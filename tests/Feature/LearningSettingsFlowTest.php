@@ -25,7 +25,7 @@ it('renders the learning settings page with the current settings', function () {
         );
 });
 
-it('creates default settings on first visit', function () {
+it('shows in-memory default settings on first visit without persisting a row', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -35,6 +35,8 @@ it('creates default settings on first visit', function () {
             ->where('settings.notificationFrequency', 'daily')
             ->where('settings.newItemCapOverride', null),
         );
+
+    expect(UserSetting::query()->where('user_id', $user->id)->exists())->toBeFalse();
 });
 
 it('updates settings and redirects back to the settings page', function () {

@@ -5,14 +5,16 @@ use App\Enums\NotificationFrequency;
 use App\Models\User;
 use App\Models\UserSetting;
 
-it('creates default settings for a user on first access', function () {
+it('returns in-memory default settings for a user with no saved settings, without persisting them', function () {
     $user = User::factory()->create();
 
     $settings = (new GetUserSettings)->handle($user);
 
     expect($settings->notification_frequency)->toBe(NotificationFrequency::Daily)
         ->and($settings->new_item_cap_override)->toBeNull()
-        ->and($settings->context_emphasis)->toBeNull();
+        ->and($settings->context_emphasis)->toBeNull()
+        ->and($settings->exists)->toBeFalse()
+        ->and(UserSetting::query()->where('user_id', $user->id)->exists())->toBeFalse();
 });
 
 it('returns the existing settings on subsequent access instead of creating another row', function () {

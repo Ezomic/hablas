@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,15 +59,20 @@ const form = useForm({
 });
 
 function submit() {
-    form.transform((data) => ({
-        notification_frequency: data.notification_frequency,
-        new_item_cap_override:
-            data.new_item_cap_override === ''
-                ? null
-                : Number(data.new_item_cap_override),
-        context_emphasis:
-            data.context_emphasis === 'none' ? null : data.context_emphasis,
-    })).patch(update().url, { preserveScroll: true });
+    form.transform((data) => {
+        const parsedCapOverride = Number(data.new_item_cap_override);
+
+        return {
+            notification_frequency: data.notification_frequency,
+            new_item_cap_override:
+                data.new_item_cap_override === '' ||
+                Number.isNaN(parsedCapOverride)
+                    ? null
+                    : parsedCapOverride,
+            context_emphasis:
+                data.context_emphasis === 'none' ? null : data.context_emphasis,
+        };
+    }).patch(update().url, { preserveScroll: true });
 }
 </script>
 
@@ -102,6 +108,7 @@ function submit() {
                         </SelectItem>
                     </SelectContent>
                 </Select>
+                <InputError :message="form.errors.notification_frequency" />
             </div>
 
             <div class="grid gap-2">
@@ -121,6 +128,7 @@ function submit() {
                     Leave blank to let the app adjust your daily new-item limit
                     automatically based on your review backlog.
                 </p>
+                <InputError :message="form.errors.new_item_cap_override" />
             </div>
 
             <div class="grid gap-2">
@@ -142,6 +150,7 @@ function submit() {
                         </SelectItem>
                     </SelectContent>
                 </Select>
+                <InputError :message="form.errors.context_emphasis" />
             </div>
 
             <div class="flex items-center gap-4">
