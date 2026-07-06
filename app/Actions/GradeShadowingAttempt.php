@@ -28,17 +28,31 @@ class GradeShadowingAttempt
     }
 
     /**
-     * Lowercases, strips accents, and strips punctuation before splitting
-     * into unique words — speech-recognition output varies in how (or
-     * whether) it renders diacritics, so folding them keeps the match rough
-     * rather than penalizing an otherwise-correct answer for an accent mark.
+     * Vowels a learner's guess accidentally spells without their written
+     * accent (e.g. "esta" for "está"), only mapping the vowel diacritics.
+     *
+     * @var array<string, string>
+     */
+    private const VOWEL_ACCENT_FOLDS = [
+        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
+    ];
+
+    /**
+     * Lowercases, folds vowel accents, and strips punctuation before
+     * splitting into unique words — speech-recognition output varies in how
+     * (or whether) it renders diacritics, so folding vowel accents keeps the
+     * match rough rather than penalizing an otherwise-correct answer for a
+     * missing accent mark. Deliberately does NOT fold 'ñ' to 'n': unlike a
+     * vowel accent, ñ is a distinct letter/phoneme in Spanish (año/ano is a
+     * canonical minimal pair), so collapsing it would hide exactly the kind
+     * of pronunciation error this exercise exists to catch.
      *
      * @return Collection<int, non-empty-string>
      */
     private function normalizeWords(string $text): Collection
     {
-        $normalized = Str::ascii(Str::lower(trim($text)));
-        $normalized = preg_replace('/[^a-z0-9\s]/', '', $normalized) ?? '';
+        $normalized = strtr(Str::lower(trim($text)), self::VOWEL_ACCENT_FOLDS);
+        $normalized = preg_replace('/[^\p{L}\p{N}\s]/u', '', $normalized) ?? '';
 
         $words = preg_split('/\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 

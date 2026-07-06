@@ -3,6 +3,8 @@ import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getCsrfToken } from '@/lib/csrf';
+import { store as storeAttempt } from '@/routes/shadowing/attempts';
 
 interface Exercise {
     id: number;
@@ -26,12 +28,6 @@ const isRecording = ref(false);
 const transcriptGuess = ref<string | null>(null);
 const score = ref<number | null>(null);
 const errorMessage = ref<string | null>(null);
-
-function getCsrfToken(): string {
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-
-    return match ? decodeURIComponent(match[1]) : '';
-}
 
 function startRecording() {
     if (!props.exercise) {
@@ -77,7 +73,7 @@ async function submitAttempt() {
         return;
     }
 
-    const response = await fetch(`/shadowing/${props.exercise.id}/attempts`, {
+    const response = await fetch(storeAttempt(props.exercise.id).url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -27,12 +27,20 @@ it('gives partial credit for a partial word match', function () {
     expect($score)->toBe(50.0);
 });
 
-it('is case, punctuation, and accent insensitive', function () {
-    $exercise = ShadowingExercise::factory()->create(['target_transcript' => '¿Dónde está el baño?']);
+it('is case, punctuation, and vowel-accent insensitive', function () {
+    $exercise = ShadowingExercise::factory()->create(['target_transcript' => '¿Dónde está el hotel?']);
 
-    $score = (new GradeShadowingAttempt)->handle($exercise, 'donde esta el bano');
+    $score = (new GradeShadowingAttempt)->handle($exercise, 'donde esta el hotel');
 
     expect($score)->toBe(100.0);
+});
+
+it('does not fold ñ to n, since they are distinct Spanish phonemes', function () {
+    $exercise = ShadowingExercise::factory()->create(['target_transcript' => 'Hoy es mi año de graduación']);
+
+    $score = (new GradeShadowingAttempt)->handle($exercise, 'Hoy es mi ano de graduacion');
+
+    expect($score)->toBeLessThan(100.0);
 });
 
 it('does not double-count repeated words', function () {
