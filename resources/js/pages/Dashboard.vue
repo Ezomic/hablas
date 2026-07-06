@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { ref } from 'vue';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -15,6 +16,7 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
+import { index as reviewIndex } from '@/routes/review';
 
 interface Streak {
     currentLength: number;
@@ -27,6 +29,7 @@ interface Props {
     blendedLevel?: string | null;
     skillLevels?: Record<string, string>;
     streak?: Streak;
+    dueReviewCount?: number;
 }
 
 const props = defineProps<Props>();
@@ -95,6 +98,21 @@ function pluralizeDays(count: number): string {
         </Card>
 
         <p v-else class="text-muted-foreground">No active language yet.</p>
+
+        <Card v-if="props.dueReviewCount">
+            <CardHeader>
+                <CardDescription>Review</CardDescription>
+                <CardTitle class="text-4xl">
+                    {{ props.dueReviewCount }}
+                    {{ props.dueReviewCount === 1 ? 'card' : 'cards' }} due
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Button as-child>
+                    <Link :href="reviewIndex().url">Start review</Link>
+                </Button>
+            </CardContent>
+        </Card>
 
         <Card v-if="props.streak">
             <CardHeader>
