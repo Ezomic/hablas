@@ -2,6 +2,7 @@
 
 namespace App\Actions\Srs;
 
+use App\Actions\Streaks\RecordStreakActivity;
 use App\Enums\ErrorTagCategory;
 use App\Enums\SrsRating;
 use App\Models\SrsCard;
@@ -35,6 +36,8 @@ class ReviewSrsCard
             'error_tag_category' => $errorTagCategory,
             'reviewed_at' => now(),
         ]);
+
+        (new RecordStreakActivity)->handle($card->user);
 
         return $card;
     }

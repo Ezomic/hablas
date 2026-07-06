@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ComputeBlendedCefrLevel;
 use App\Actions\GetUserSkillLevels;
+use App\Actions\Streaks\ReconcileStreak;
 use App\Models\Language;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
@@ -16,8 +17,10 @@ class DashboardController extends Controller
         Request $request,
         GetUserSkillLevels $getUserSkillLevels,
         ComputeBlendedCefrLevel $computeBlendedCefrLevel,
+        ReconcileStreak $reconcileStreak,
     ): Response {
         $language = Language::active();
+        $streak = $reconcileStreak->handle($request->user());
 
         if ($language === null) {
             return Inertia::render('Dashboard', ['language' => null]);
@@ -31,6 +34,11 @@ class DashboardController extends Controller
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ]),
+            'streak' => [
+                'currentLength' => $streak->current_length,
+                'longestLength' => $streak->longest_length,
+                'freezeDaysRemaining' => $streak->freeze_days_remaining,
+            ],
         ]);
     }
 }

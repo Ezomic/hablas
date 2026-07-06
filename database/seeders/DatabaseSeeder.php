@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PlacementTestSeeder::class);
         $this->call(ShadowingExerciseSeeder::class);
         $this->call(WritingExerciseSeeder::class);
+        $this->call(CefrCanDoStatementSeeder::class);
 
         // User::factory(10)->create();
 

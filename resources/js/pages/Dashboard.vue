@@ -16,10 +16,17 @@ import {
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
 
+interface Streak {
+    currentLength: number;
+    longestLength: number;
+    freezeDaysRemaining: number;
+}
+
 interface Props {
     language: { code: string; name: string } | null;
     blendedLevel?: string | null;
     skillLevels?: Record<string, string>;
+    streak?: Streak;
 }
 
 const props = defineProps<Props>();
@@ -43,6 +50,10 @@ const skillLabels: Record<string, string> = {
 };
 
 const breakdownOpen = ref(false);
+
+function pluralizeDays(count: number): string {
+    return count === 1 ? 'day' : 'days';
+}
 </script>
 
 <template>
@@ -84,5 +95,27 @@ const breakdownOpen = ref(false);
         </Card>
 
         <p v-else class="text-muted-foreground">No active language yet.</p>
+
+        <Card v-if="props.streak">
+            <CardHeader>
+                <CardDescription>Streak</CardDescription>
+                <CardTitle class="text-4xl">
+                    {{ props.streak.currentLength }}
+                    {{ pluralizeDays(props.streak.currentLength) }}
+                </CardTitle>
+            </CardHeader>
+            <CardContent
+                class="flex flex-col gap-1 text-sm text-muted-foreground"
+            >
+                <span
+                    >Longest streak: {{ props.streak.longestLength }}
+                    {{ pluralizeDays(props.streak.longestLength) }}</span
+                >
+                <span
+                    >Freeze days remaining:
+                    {{ props.streak.freezeDaysRemaining }}</span
+                >
+            </CardContent>
+        </Card>
     </div>
 </template>

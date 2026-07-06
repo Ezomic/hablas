@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Actions\Streaks\RecordStreakActivity;
 use App\Models\ShadowingAttempt;
 use App\Models\ShadowingExercise;
 use App\Models\User;
@@ -12,12 +13,16 @@ class RecordShadowingAttempt
     {
         $score = (new GradeShadowingAttempt)->handle($exercise, $transcriptGuess);
 
-        return ShadowingAttempt::create([
+        $attempt = ShadowingAttempt::create([
             'user_id' => $user->id,
             'shadowing_exercise_id' => $exercise->id,
             'transcript_guess' => $transcriptGuess,
             'score' => $score,
             'attempted_at' => now(),
         ]);
+
+        (new RecordStreakActivity)->handle($user);
+
+        return $attempt;
     }
 }
