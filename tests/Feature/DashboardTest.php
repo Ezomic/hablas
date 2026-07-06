@@ -54,6 +54,7 @@ it('renders a graceful empty state when there is no active language', function (
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard')
-            ->where('language', null),
+            ->where('language', null)
+            ->where('streak.currentLength', 0),
         );
 });

@@ -4,7 +4,6 @@ namespace App\Actions\Reflections;
 
 use App\Actions\GetUserSkillLevels;
 use App\Enums\CefrLevel;
-use App\Enums\Skill;
 use App\Models\CefrCanDoStatement;
 use App\Models\Language;
 use App\Models\User;
@@ -25,14 +24,8 @@ class GetCanDoStatementsForReflection
         $skillLevels = (new GetUserSkillLevels)->handle($user, $language)
             ->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [$skillLevel->skill->value => $skillLevel->cefr_level]);
 
-        $query = CefrCanDoStatement::query();
-
-        foreach (Skill::cases() as $skill) {
-            $level = $skillLevels[$skill->value] ?? CefrLevel::A1;
-
-            $query->orWhere(fn ($skillQuery) => $skillQuery->where('skill', $skill)->where('cefr_level', $level));
-        }
-
-        return $query->get();
+        return CefrCanDoStatement::all()
+            ->filter(fn (CefrCanDoStatement $statement): bool => $statement->cefr_level === ($skillLevels[$statement->skill->value] ?? CefrLevel::A1))
+            ->values();
     }
 }

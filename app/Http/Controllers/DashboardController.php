@@ -22,8 +22,14 @@ class DashboardController extends Controller
         $language = Language::active();
         $streak = $reconcileStreak->handle($request->user());
 
+        $streakProp = [
+            'currentLength' => $streak->current_length,
+            'longestLength' => $streak->longest_length,
+            'freezeDaysRemaining' => $streak->freeze_days_remaining,
+        ];
+
         if ($language === null) {
-            return Inertia::render('Dashboard', ['language' => null]);
+            return Inertia::render('Dashboard', ['language' => null, 'streak' => $streakProp]);
         }
 
         $skillLevels = $getUserSkillLevels->handle($request->user(), $language);
@@ -34,11 +40,7 @@ class DashboardController extends Controller
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ]),
-            'streak' => [
-                'currentLength' => $streak->current_length,
-                'longestLength' => $streak->longest_length,
-                'freezeDaysRemaining' => $streak->freeze_days_remaining,
-            ],
+            'streak' => $streakProp,
         ]);
     }
 }

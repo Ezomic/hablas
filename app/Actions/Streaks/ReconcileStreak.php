@@ -18,7 +18,7 @@ class ReconcileStreak
      */
     public function handle(User $user): Streak
     {
-        $streak = Streak::query()->firstOrCreate(
+        $streak = Streak::query()->createOrFirst(
             ['user_id' => $user->id],
             ['current_length' => 0, 'longest_length' => 0, 'freeze_days_remaining' => 2, 'last_activity_date' => null],
         );

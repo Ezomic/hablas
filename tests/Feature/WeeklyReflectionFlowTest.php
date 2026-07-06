@@ -58,3 +58,16 @@ it('submits a weekly reflection and redirects to the index', function () {
 
     expect(WeeklyReflection::query()->where('user_id', $user->id)->exists())->toBeTrue();
 });
+
+it('rejects a can-do id that was not among the presented statement ids', function () {
+    $presented = CefrCanDoStatement::factory()->create();
+    $notPresented = CefrCanDoStatement::factory()->create();
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('reflections.store'), [
+            'statement_ids' => [$presented->id],
+            'can_do_ids' => [$notPresented->id],
+        ])
+        ->assertInvalid(['can_do_ids.0']);
+});

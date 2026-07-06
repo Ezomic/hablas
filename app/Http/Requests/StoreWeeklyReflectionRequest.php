@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreWeeklyReflectionRequest extends FormRequest
 {
@@ -26,7 +27,7 @@ class StoreWeeklyReflectionRequest extends FormRequest
             'statement_ids' => ['required', 'array'],
             'statement_ids.*' => ['integer', 'exists:cefr_can_do_statements,id'],
             'can_do_ids' => ['array'],
-            'can_do_ids.*' => ['integer', 'exists:cefr_can_do_statements,id'],
+            'can_do_ids.*' => ['integer', Rule::in($this->input('statement_ids', []))],
         ];
     }
 }
