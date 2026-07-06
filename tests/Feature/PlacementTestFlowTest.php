@@ -62,6 +62,17 @@ it('scores the submission and redirects to the dashboard', function () {
     expect(PlacementTestAttempt::query()->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
+it('rejects a submission with no responses and returns a clear error', function () {
+    PlacementTestItem::factory()->create(['language_id' => $this->spanish->id]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('placement.store'), ['responses' => []])
+        ->assertSessionHasErrors('responses');
+
+    expect(PlacementTestAttempt::query()->where('user_id', $user->id)->exists())->toBeFalse();
+});
+
 it('lets a user skip the placement test and start at A1', function () {
     $user = User::factory()->create();
 

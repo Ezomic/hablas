@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -91,6 +92,8 @@ function skipTest() {
                     </RadioGroup>
                 </div>
             </div>
+
+            <InputError :message="form.errors.responses" />
 
             <Button type="submit" :disabled="form.processing">
                 <Spinner v-if="form.processing" />

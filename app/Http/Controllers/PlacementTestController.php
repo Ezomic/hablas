@@ -16,7 +16,7 @@ class PlacementTestController extends Controller
 {
     public function index(): Response
     {
-        $language = Language::query()->where('is_active', true)->firstOrFail();
+        $language = Language::active() ?? abort(404);
 
         $items = PlacementTestItem::query()
             ->where('language_id', $language->id)
@@ -30,7 +30,7 @@ class PlacementTestController extends Controller
 
     public function store(StorePlacementTestRequest $request, ScorePlacementTest $scorePlacementTest): RedirectResponse
     {
-        $language = Language::query()->where('is_active', true)->firstOrFail();
+        $language = Language::active() ?? abort(404);
 
         $scorePlacementTest->handle($request->user(), $language, $request->validated('responses'));
 
@@ -39,7 +39,7 @@ class PlacementTestController extends Controller
 
     public function skip(Request $request, SkipPlacementTest $skipPlacementTest): RedirectResponse
     {
-        $language = Language::query()->where('is_active', true)->firstOrFail();
+        $language = Language::active() ?? abort(404);
 
         $skipPlacementTest->handle($request->user(), $language);
 

@@ -27,4 +27,14 @@ class StorePlacementTestRequest extends FormRequest
             'responses.*' => ['required', 'string'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'responses.required' => 'Answer at least one question before submitting.',
+        ];
+    }
 }

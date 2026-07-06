@@ -17,7 +17,7 @@ class EnsurePlacementTestCompleted
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $language = Language::query()->where('is_active', true)->first();
+        $language = Language::active();
 
         if ($language === null) {
             return $next($request);
