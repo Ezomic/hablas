@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SpanishA1Seeder::class);
         $this->call(PlacementTestSeeder::class);
         $this->call(ShadowingExerciseSeeder::class);
+        $this->call(WritingExerciseSeeder::class);
 
         // User::factory(10)->create();
 
