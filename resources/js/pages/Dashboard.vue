@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
 import { index as reviewIndex } from '@/routes/review';
+import type { LanguageOption } from '@/types';
 
 interface Streak {
     currentLength: number;
@@ -25,7 +26,7 @@ interface Streak {
 }
 
 interface Props {
-    language: { code: string; name: string } | null;
+    language: Pick<LanguageOption, 'code' | 'name'> | null;
     blendedLevel?: string | null;
     skillLevels?: Record<string, string>;
     streak?: Streak;

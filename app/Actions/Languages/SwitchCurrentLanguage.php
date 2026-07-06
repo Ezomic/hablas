@@ -8,11 +8,16 @@ use App\Models\User;
 class SwitchCurrentLanguage
 {
     /**
-     * Trusts the caller to have already validated that $language is active
-     * (see UpdateCurrentLanguageRequest) rather than re-checking here.
+     * Trusts the caller to have already validated that $languageId refers to
+     * an active language (see UpdateCurrentLanguageRequest) rather than
+     * re-checking is_active here.
      */
-    public function handle(User $user, Language $language): void
+    public function handle(User $user, int $languageId): Language
     {
+        $language = Language::query()->where('id', $languageId)->firstOrFail();
+
         $user->forceFill(['current_language_id' => $language->id])->save();
+
+        return $language;
     }
 }

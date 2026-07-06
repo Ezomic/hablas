@@ -14,7 +14,7 @@ const page = usePage();
 function switchLanguage(languageId: string) {
     router.patch(
         update().url,
-        { language_id: Number(languageId) },
+        { language_id: languageId },
         { preserveScroll: true },
     );
 }
