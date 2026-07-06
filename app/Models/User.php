@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -60,5 +61,17 @@ class User extends Authenticatable implements PasskeyUser
     public function unitProgress(): HasMany
     {
         return $this->hasMany(UserUnitProgress::class);
+    }
+
+    /** @return HasOne<Streak, $this> */
+    public function streak(): HasOne
+    {
+        return $this->hasOne(Streak::class);
+    }
+
+    /** @return HasMany<WeeklyReflection, $this> */
+    public function weeklyReflections(): HasMany
+    {
+        return $this->hasMany(WeeklyReflection::class);
     }
 }
