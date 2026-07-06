@@ -40,11 +40,17 @@ class AdaptiveNewItemCap
         };
     }
 
+    /**
+     * Matches GetDueSrsCards' definition of the normal review queue: weak-spot
+     * cards are gated into a separate remedial drill rather than counted here,
+     * so they don't double up with the ordinary due-backlog signal.
+     */
     private function dueCardCount(User $user, Language $language): int
     {
         return SrsCard::query()
             ->where('user_id', $user->id)
             ->where('language_id', $language->id)
+            ->where('is_weak_spot', false)
             ->where('due_at', '<=', now())
             ->count();
     }

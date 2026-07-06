@@ -15,9 +15,9 @@ use Illuminate\Support\Collection;
  *
  * @return Collection<int, SrsCard>
  */
-function createSrsCards(User $user, Language $language, int $count, CarbonImmutable $dueAt): Collection
+function createDueSrsCardsForAdaptiveCapTest(User $user, Language $language, int $count, CarbonImmutable $dueAt, bool $isWeakSpot = false): Collection
 {
-    return collect(range(1, $count))->map(function (int $i) use ($user, $language, $dueAt) {
+    return collect(range(1, $count))->map(function (int $i) use ($user, $language, $dueAt, $isWeakSpot) {
         $vocabularyItem = VocabularyItem::query()->create([
             'language_id' => $language->id,
             'term' => "word-{$i}-{$language->id}",
@@ -31,6 +31,7 @@ function createSrsCards(User $user, Language $language, int $count, CarbonImmuta
             'cardable_type' => VocabularyItem::class,
             'cardable_id' => $vocabularyItem->id,
             'due_at' => $dueAt,
+            'is_weak_spot' => $isWeakSpot,
         ]);
     });
 }
@@ -45,7 +46,7 @@ it('returns the base cap when there is no review backlog', function () {
 it('lowers the cap once the due backlog crosses the moderate threshold', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
-    createSrsCards($user, $language, 50, CarbonImmutable::now());
+    createDueSrsCardsForAdaptiveCapTest($user, $language, 50, CarbonImmutable::now());
 
     expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(5);
 });
@@ -53,7 +54,7 @@ it('lowers the cap once the due backlog crosses the moderate threshold', functio
 it('drops the cap to zero once the due backlog crosses the heavy threshold', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
-    createSrsCards($user, $language, 100, CarbonImmutable::now());
+    createDueSrsCardsForAdaptiveCapTest($user, $language, 100, CarbonImmutable::now());
 
     expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(0);
 });
@@ -61,7 +62,7 @@ it('drops the cap to zero once the due backlog crosses the heavy threshold', fun
 it('raises the cap back up once the backlog is cleared', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
-    $cards = createSrsCards($user, $language, 60, CarbonImmutable::now());
+    $cards = createDueSrsCardsForAdaptiveCapTest($user, $language, 60, CarbonImmutable::now());
 
     expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(5);
 
@@ -73,7 +74,7 @@ it('raises the cap back up once the backlog is cleared', function () {
 it('does not count cards that are not yet due', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
-    createSrsCards($user, $language, 60, CarbonImmutable::now()->addDay());
+    createDueSrsCardsForAdaptiveCapTest($user, $language, 60, CarbonImmutable::now()->addDay());
 
     expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(10);
 });
@@ -82,17 +83,25 @@ it('scopes the backlog to the given language', function () {
     $user = User::factory()->create();
     $spanish = Language::factory()->create();
     $portuguese = Language::factory()->create();
-    createSrsCards($user, $spanish, 60, CarbonImmutable::now());
+    createDueSrsCardsForAdaptiveCapTest($user, $spanish, 60, CarbonImmutable::now());
 
     expect((new AdaptiveNewItemCap)->forUser($user, $spanish))->toBe(5)
         ->and((new AdaptiveNewItemCap)->forUser($user, $portuguese))->toBe(10);
+});
+
+it('does not count weak-spot cards toward the backlog', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+    createDueSrsCardsForAdaptiveCapTest($user, $language, 60, CarbonImmutable::now(), isWeakSpot: true);
+
+    expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(10);
 });
 
 it('scopes the backlog to the given user', function () {
     $language = Language::factory()->create();
     $userWithBacklog = User::factory()->create();
     $otherUser = User::factory()->create();
-    createSrsCards($userWithBacklog, $language, 60, CarbonImmutable::now());
+    createDueSrsCardsForAdaptiveCapTest($userWithBacklog, $language, 60, CarbonImmutable::now());
 
     expect((new AdaptiveNewItemCap)->forUser($userWithBacklog, $language))->toBe(5)
         ->and((new AdaptiveNewItemCap)->forUser($otherUser, $language))->toBe(10);
