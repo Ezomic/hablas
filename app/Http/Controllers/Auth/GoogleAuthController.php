@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
+use Throwable;
 
 class GoogleAuthController extends Controller
 {
@@ -18,7 +19,15 @@ class GoogleAuthController extends Controller
 
     public function callback(HandleGoogleCallback $handleGoogleCallback): RedirectResponse
     {
-        $googleUser = Socialite::driver('google')->user();
+        if (Auth::check()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (Throwable) {
+            return redirect()->route('login')->with('status', 'The Google sign-in request expired or was invalid. Please try again.');
+        }
 
         $user = $handleGoogleCallback->handle($googleUser);
 
