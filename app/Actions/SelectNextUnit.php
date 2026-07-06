@@ -18,18 +18,6 @@ class SelectNextUnit
      */
     private const ROTATION_WINDOW = 10;
 
-    /**
-     * Travel-weighted first, per the priority-goal decision in category 2
-     * of the Feature Brainstorm doc.
-     *
-     * @var array<string, int>
-     */
-    private const CONTEXT_TAG_PRIORITY = [
-        'travel' => 0,
-        'everyday_social' => 1,
-        'professional' => 2,
-    ];
-
     public function handle(User $user, Language $language): ?Unit
     {
         $blendedLevel = (new ComputeBlendedCefrLevel)->handle(
@@ -58,7 +46,7 @@ class SelectNextUnit
         $topPriorityTag = $candidates
             ->pluck('context_tag')
             ->unique()
-            ->sortBy(fn (ContextTag $tag): int => self::CONTEXT_TAG_PRIORITY[$tag->value])
+            ->sortBy(fn (ContextTag $tag): int => $tag->sortOrder())
             ->first();
 
         $prioritized = $candidates->where('context_tag', $topPriorityTag);
@@ -66,8 +54,7 @@ class SelectNextUnit
         $recentSkillCounts = $this->recentSkillCounts($user);
 
         return $prioritized
-            ->sortBy('sort_order')
-            ->sortBy(fn (Unit $unit): int => $recentSkillCounts[$unit->primary_skill->value] ?? 0)
+            ->sortBy(fn (Unit $unit): array => [$recentSkillCounts[$unit->primary_skill->value] ?? 0, $unit->sort_order])
             ->first();
     }
 
