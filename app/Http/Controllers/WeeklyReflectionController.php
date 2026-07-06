@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Reflections\GetCanDoStatementsForReflection;
 use App\Actions\Reflections\HasSubmittedReflectionThisWeek;
 use App\Actions\Reflections\SubmitWeeklyReflection;
 use App\Http\Requests\StoreWeeklyReflectionRequest;
 use App\Models\CefrCanDoStatement;
-use App\Models\Language;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,8 +19,9 @@ class WeeklyReflectionController extends Controller
         Request $request,
         GetCanDoStatementsForReflection $getCanDoStatements,
         HasSubmittedReflectionThisWeek $hasSubmittedThisWeek,
+        GetCurrentLanguage $getCurrentLanguage,
     ): Response {
-        $language = Language::active();
+        $language = $getCurrentLanguage->handle($request->user());
 
         if ($language === null) {
             return Inertia::render('reflections/Index', ['statements' => [], 'submittedThisWeek' => false]);
@@ -42,9 +43,9 @@ class WeeklyReflectionController extends Controller
         ]);
     }
 
-    public function store(StoreWeeklyReflectionRequest $request, SubmitWeeklyReflection $submitWeeklyReflection): RedirectResponse
+    public function store(StoreWeeklyReflectionRequest $request, SubmitWeeklyReflection $submitWeeklyReflection, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
     {
-        $language = Language::active() ?? abort(404);
+        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
         $submitWeeklyReflection->handle(
             $request->user(),

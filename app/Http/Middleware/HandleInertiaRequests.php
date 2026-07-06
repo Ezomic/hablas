@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Actions\Languages\GetCurrentLanguage;
+use App\Models\Language;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,13 +37,17 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'currentLanguage' => $user ? (new GetCurrentLanguage)->handle($user) : null,
+            'availableLanguages' => $user ? Language::query()->where('is_active', true)->get(['id', 'code', 'name']) : [],
         ];
     }
 }

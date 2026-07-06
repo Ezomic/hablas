@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Srs\PresentSrsCardForReview;
 use App\Actions\Srs\ReviewSrsCard;
 use App\Enums\SrsRating;
 use App\Http\Requests\StoreSrsReviewRequest;
-use App\Models\Language;
 use App\Models\SrsCard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,9 +16,9 @@ use Inertia\Response;
 
 class ReviewSessionController extends Controller
 {
-    public function index(Request $request, GetDueSrsCards $getDueSrsCards, PresentSrsCardForReview $presentCard): Response
+    public function index(Request $request, GetDueSrsCards $getDueSrsCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
     {
-        $language = Language::active();
+        $language = $getCurrentLanguage->handle($request->user());
 
         if ($language === null) {
             return Inertia::render('review/Index', ['cards' => []]);

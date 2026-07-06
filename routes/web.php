@@ -19,3 +19,4 @@ require __DIR__.'/shadowing.php';
 require __DIR__.'/writing.php';
 require __DIR__.'/reflections.php';
 require __DIR__.'/review.php';
+require __DIR__.'/language.php';
