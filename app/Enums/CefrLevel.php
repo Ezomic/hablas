@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+use InvalidArgumentException;
+use LogicException;
+
 enum CefrLevel: string
 {
     case A1 = 'A1';
@@ -11,20 +14,31 @@ enum CefrLevel: string
     case C1 = 'C1';
     case C2 = 'C2';
 
+    /**
+     * Position in the six-level scale, derived from declaration order so it
+     * can't drift out of sync with the case list above.
+     */
     public function sortOrder(): int
     {
-        return match ($this) {
-            self::A1 => 1,
-            self::A2 => 2,
-            self::B1 => 3,
-            self::B2 => 4,
-            self::C1 => 5,
-            self::C2 => 6,
-        };
+        foreach (self::cases() as $index => $case) {
+            if ($case === $this) {
+                return $index;
+            }
+        }
+
+        throw new LogicException('Unreachable: enum case not found in its own cases() list.');
     }
 
     public static function lowest(CefrLevel ...$levels): self
     {
-        return collect($levels)->sortBy(fn (self $level) => $level->sortOrder())->firstOrFail();
+        if ($levels === []) {
+            throw new InvalidArgumentException('CefrLevel::lowest() requires at least one level.');
+        }
+
+        return array_reduce(
+            $levels,
+            fn (CefrLevel $lowest, CefrLevel $level): CefrLevel => $level->sortOrder() < $lowest->sortOrder() ? $level : $lowest,
+            $levels[0],
+        );
     }
 }
