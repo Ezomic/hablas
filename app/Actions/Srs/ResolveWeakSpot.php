@@ -12,10 +12,11 @@ class ResolveWeakSpot
      */
     public function handle(SrsCard $card): SrsCard
     {
-        $card->is_weak_spot = false;
-        $card->consecutive_lapses = 0;
-        $card->due_at = now();
-        $card->save();
+        $card->forceFill([
+            'is_weak_spot' => false,
+            'consecutive_lapses' => 0,
+            'due_at' => now(),
+        ])->save();
 
         return $card;
     }

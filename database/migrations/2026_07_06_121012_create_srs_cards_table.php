@@ -28,6 +28,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'cardable_type', 'cardable_id']);
+            $table->index(['user_id', 'language_id', 'is_weak_spot', 'due_at']);
         });
     }
 
