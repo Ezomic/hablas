@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\ComputeBlendedCefrLevel;
 use App\Actions\GetUserSkillLevels;
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\SelectNextUnit;
+use App\Actions\Srs\EvaluateSessionHealth;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Streaks\ReconcileStreak;
 use App\Models\UserSkillLevel;
@@ -21,6 +23,8 @@ class DashboardController extends Controller
         ReconcileStreak $reconcileStreak,
         GetDueSrsCards $getDueSrsCards,
         GetCurrentLanguage $getCurrentLanguage,
+        EvaluateSessionHealth $evaluateSessionHealth,
+        SelectNextUnit $selectNextUnit,
     ): Response {
         $language = $getCurrentLanguage->handle($request->user());
         $streak = $reconcileStreak->handle($request->user());
@@ -36,6 +40,8 @@ class DashboardController extends Controller
         }
 
         $skillLevels = $getUserSkillLevels->handle($request->user(), $language);
+        $sessionNeedsRemediation = $evaluateSessionHealth->handle($request->user(), $language);
+        $nextUnit = $sessionNeedsRemediation ? null : $selectNextUnit->handle($request->user(), $language);
 
         return Inertia::render('Dashboard', [
             'language' => ['code' => $language->code, 'name' => $language->name],
@@ -45,6 +51,12 @@ class DashboardController extends Controller
             ]),
             'streak' => $streakProp,
             'dueReviewCount' => $getDueSrsCards->count($request->user(), $language),
+            'sessionNeedsRemediation' => $sessionNeedsRemediation,
+            'nextUnit' => $nextUnit === null ? null : [
+                'id' => $nextUnit->id,
+                'title' => $nextUnit->title,
+                'taskDescription' => $nextUnit->task_description,
+            ],
         ]);
     }
 }

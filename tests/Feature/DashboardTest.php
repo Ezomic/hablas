@@ -2,9 +2,12 @@
 
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
+use App\Enums\SrsRating;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use App\Models\SrsCard;
+use App\Models\SrsReview;
+use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Models\VocabularyItem;
@@ -71,6 +74,54 @@ it('shows the count of due review cards for the active language', function () {
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard')
             ->where('dueReviewCount', 1),
+        );
+});
+
+it('surfaces the next unit when the session is healthy', function () {
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish', 'is_active' => true]);
+    $user = User::factory()->create();
+    PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+    $unit = Unit::factory()->create(['language_id' => $language->id, 'cefr_level' => CefrLevel::A1]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('sessionNeedsRemediation', false)
+            ->where('nextUnit.id', $unit->id)
+            ->where('nextUnit.title', $unit->title),
+        );
+});
+
+it('shows a remediation prompt instead of the next unit when the session is unhealthy', function () {
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish', 'is_active' => true]);
+    $user = User::factory()->create();
+    PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+    Unit::factory()->create(['language_id' => $language->id, 'cefr_level' => CefrLevel::A1]);
+    $card = SrsCard::factory()->create(['user_id' => $user->id, 'language_id' => $language->id]);
+
+    collect(range(1, 8))->each(fn () => SrsReview::factory()->create([
+        'user_id' => $user->id,
+        'srs_card_id' => $card->id,
+        'rating' => SrsRating::Again,
+    ]));
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('sessionNeedsRemediation', true)
+            ->where('nextUnit', null),
         );
 });
 

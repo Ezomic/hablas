@@ -25,12 +25,20 @@ interface Streak {
     freezeDaysRemaining: number;
 }
 
+interface NextUnit {
+    id: number;
+    title: string;
+    taskDescription: string;
+}
+
 interface Props {
     language: Pick<LanguageOption, 'code' | 'name'> | null;
     blendedLevel?: string | null;
     skillLevels?: Record<string, string>;
     streak?: Streak;
     dueReviewCount?: number;
+    sessionNeedsRemediation?: boolean;
+    nextUnit?: NextUnit | null;
 }
 
 const props = defineProps<Props>();
@@ -99,6 +107,38 @@ function pluralizeDays(count: number): string {
         </Card>
 
         <p v-else class="text-muted-foreground">No active language yet.</p>
+
+        <Card v-if="props.sessionNeedsRemediation">
+            <CardHeader>
+                <CardDescription>Next up</CardDescription>
+                <CardTitle class="text-2xl"
+                    >Reinforce what's tricky first</CardTitle
+                >
+            </CardHeader>
+            <CardContent class="flex flex-col gap-4">
+                <p class="text-sm text-muted-foreground">
+                    Your recent reviews have had a lot of misses — revisit those
+                    before starting something new.
+                </p>
+                <Button as-child>
+                    <Link :href="reviewIndex().url">Review now</Link>
+                </Button>
+            </CardContent>
+        </Card>
+
+        <Card v-else-if="props.nextUnit">
+            <CardHeader>
+                <CardDescription>Next up</CardDescription>
+                <CardTitle class="text-2xl">{{
+                    props.nextUnit.title
+                }}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p class="text-sm text-muted-foreground">
+                    {{ props.nextUnit.taskDescription }}
+                </p>
+            </CardContent>
+        </Card>
 
         <Card v-if="props.dueReviewCount">
             <CardHeader>
