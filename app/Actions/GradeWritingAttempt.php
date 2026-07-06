@@ -8,6 +8,18 @@ use Illuminate\Support\Str;
 
 class GradeWritingAttempt
 {
+    /**
+     * Only vowel accents are folded — 'ñ' is deliberately left alone, since
+     * it is a distinct Spanish letter/phoneme rather than an accent mark
+     * (año/ano is a canonical minimal pair), and this is a written spelling
+     * check where that distinction is exactly what's being tested.
+     *
+     * @var array<string, string>
+     */
+    private const VOWEL_ACCENT_FOLDS = [
+        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
+    ];
+
     public function handle(WritingExercise $exercise, string $response): bool
     {
         return match ($exercise->type) {
@@ -53,7 +65,7 @@ class GradeWritingAttempt
 
     private function normalize(string $text): string
     {
-        $normalized = Str::ascii(Str::lower(trim($text)));
+        $normalized = strtr(Str::lower(trim($text)), self::VOWEL_ACCENT_FOLDS);
 
         return preg_replace('/\s+/', ' ', $normalized) ?? '';
     }

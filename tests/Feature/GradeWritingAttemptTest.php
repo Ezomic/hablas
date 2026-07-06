@@ -40,6 +40,15 @@ it('is case, whitespace, and accent insensitive for fill-in-template and sentenc
     expect((new GradeWritingAttempt)->handle($exercise, '  ESTA  '))->toBeTrue();
 });
 
+it('does not fold ñ to n, since they are distinct Spanish phonemes', function () {
+    $exercise = WritingExercise::factory()->create([
+        'type' => WritingExerciseType::FillInTemplate,
+        'correct_answers' => ['año'],
+    ]);
+
+    expect((new GradeWritingAttempt)->handle($exercise, 'ano'))->toBeFalse();
+});
+
 it('grades a guided-paragraph exercise as correct when all required stems are present', function () {
     $exercise = WritingExercise::factory()->create([
         'type' => WritingExerciseType::GuidedParagraph,
