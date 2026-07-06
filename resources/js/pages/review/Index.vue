@@ -12,6 +12,8 @@ interface ReviewCard {
     back: string;
 }
 
+type Rating = 'again' | 'hard' | 'good' | 'easy';
+
 const props = defineProps<{
     cards: ReviewCard[];
 }>();
@@ -25,15 +27,16 @@ defineOptions({
 const queue = ref([...props.cards]);
 const revealed = ref(false);
 const isSubmitting = ref(false);
+const submitFailed = ref(false);
 
-const ratings = [
+const ratings: { value: Rating; label: string }[] = [
     { value: 'again', label: 'Again' },
     { value: 'hard', label: 'Hard' },
     { value: 'good', label: 'Good' },
     { value: 'easy', label: 'Easy' },
-] as const;
+];
 
-async function rate(rating: (typeof ratings)[number]['value']) {
+async function rate(rating: Rating) {
     const card = queue.value[0];
 
     if (!card || isSubmitting.value) {
@@ -41,9 +44,10 @@ async function rate(rating: (typeof ratings)[number]['value']) {
     }
 
     isSubmitting.value = true;
+    submitFailed.value = false;
 
     try {
-        await fetch(storeReview(card.id).url, {
+        const response = await fetch(storeReview(card.id).url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,6 +56,12 @@ async function rate(rating: (typeof ratings)[number]['value']) {
             },
             body: JSON.stringify({ rating }),
         });
+
+        if (!response.ok) {
+            submitFailed.value = true;
+
+            return;
+        }
 
         queue.value.shift();
         revealed.value = false;
@@ -95,6 +105,13 @@ async function rate(rating: (typeof ratings)[number]['value']) {
                 <p class="text-sm text-muted-foreground">
                     {{ queue.length }} card{{ queue.length === 1 ? '' : 's' }}
                     left
+                </p>
+
+                <p
+                    v-if="submitFailed"
+                    class="text-sm font-medium text-red-600 dark:text-red-500"
+                >
+                    Couldn't save that rating — try again.
                 </p>
             </CardContent>
         </Card>

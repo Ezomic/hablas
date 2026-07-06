@@ -47,3 +47,14 @@ it('never mixes cards from different language decks', function () {
     expect($result)->toHaveCount(1)
         ->and($result->first()->language_id)->toBe($spanish->id);
 });
+
+it('counts due cards using the same definition as handle()', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+
+    SrsCard::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'due_at' => now()->subMinute()]);
+    SrsCard::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'due_at' => now()->addDay()]);
+    SrsCard::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'due_at' => now()->subMinute(), 'is_weak_spot' => true]);
+
+    expect((new GetDueSrsCards)->count($user, $language))->toBe(1);
+});

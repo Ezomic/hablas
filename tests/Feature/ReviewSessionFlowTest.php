@@ -60,7 +60,7 @@ it('records a rating and updates the card', function () {
     expect(SrsReview::query()->where('srs_card_id', $card->id)->where('rating', SrsRating::Good)->exists())->toBeTrue();
 });
 
-it('rejects rating another user\'s card', function () {
+it('hides another user\'s card behind a 404 rather than revealing it exists', function () {
     $owner = User::factory()->create();
     $otherUser = User::factory()->create();
     $card = SrsCard::factory()->create([
@@ -71,7 +71,7 @@ it('rejects rating another user\'s card', function () {
 
     $this->actingAs($otherUser)
         ->postJson(route('review.reviews.store', $card), ['rating' => SrsRating::Good->value])
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('rejects an invalid rating', function () {

@@ -43,7 +43,7 @@ class DashboardController extends Controller
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ]),
             'streak' => $streakProp,
-            'dueReviewCount' => $getDueSrsCards->handle($request->user(), $language)->count(),
+            'dueReviewCount' => $getDueSrsCards->count($request->user(), $language),
         ]);
     }
 }

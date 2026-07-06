@@ -33,7 +33,7 @@ class ReviewSessionController extends Controller
 
     public function store(StoreSrsReviewRequest $request, SrsCard $srsCard, ReviewSrsCard $reviewSrsCard): JsonResponse
     {
-        abort_if($srsCard->user_id !== $request->user()->id, 403);
+        abort_if($srsCard->user_id !== $request->user()->id, 404);
 
         $reviewSrsCard->handle($srsCard, SrsRating::from($request->validated('rating')));
 
