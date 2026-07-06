@@ -23,19 +23,19 @@ class EvaluateSessionHealth
 
     public function handle(User $user, Language $language): bool
     {
-        $recentReviews = SrsReview::query()
+        $recentRatings = SrsReview::query()
             ->where('user_id', $user->id)
             ->whereHas('srsCard', fn ($query) => $query->where('language_id', $language->id))
             ->latest('reviewed_at')
             ->limit(self::SESSION_WINDOW)
-            ->get();
+            ->pluck('rating');
 
-        if ($recentReviews->isEmpty()) {
+        if ($recentRatings->isEmpty()) {
             return false;
         }
 
-        $againCount = $recentReviews->filter(fn (SrsReview $review): bool => $review->rating === SrsRating::Again)->count();
+        $againCount = $recentRatings->filter(fn (SrsRating $rating): bool => $rating === SrsRating::Again)->count();
 
-        return ($againCount / $recentReviews->count()) >= self::AGAIN_RATE_THRESHOLD;
+        return ($againCount / $recentRatings->count()) >= self::AGAIN_RATE_THRESHOLD;
     }
 }
