@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->id();
             $table->foreignId('language_id')->constrained()->cascadeOnDelete();
+            $table->string('slug');
             $table->string('cefr_level');
             $table->string('context_tag');
             $table->string('primary_skill');
@@ -22,6 +23,8 @@ return new class extends Migration
             $table->text('task_description');
             $table->unsignedInteger('sort_order');
             $table->timestamps();
+
+            $table->unique(['language_id', 'slug']);
         });
     }
 

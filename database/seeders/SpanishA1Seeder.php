@@ -29,8 +29,9 @@ class SpanishA1Seeder extends Seeder
 
         foreach ($this->units() as $sortOrder => $definition) {
             $unit = Unit::query()->updateOrCreate(
-                ['language_id' => $spanish->id, 'title' => $definition['title']],
+                ['language_id' => $spanish->id, 'slug' => $definition['slug']],
                 [
+                    'title' => $definition['title'],
                     'cefr_level' => CefrLevel::A1,
                     'context_tag' => $definition['context_tag'],
                     'primary_skill' => $definition['primary_skill'],
@@ -58,6 +59,7 @@ class SpanishA1Seeder extends Seeder
 
     /**
      * @return array<int, array{
+     *     slug: string,
      *     title: string,
      *     context_tag: ContextTag,
      *     primary_skill: Skill,
@@ -71,6 +73,7 @@ class SpanishA1Seeder extends Seeder
     {
         return [
             [
+                'slug' => 'greetings-and-introductions',
                 'title' => 'Greetings and introductions',
                 'context_tag' => ContextTag::EverydaySocial,
                 'primary_skill' => Skill::Speaking,
@@ -97,6 +100,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'at-the-airport',
                 'title' => 'At the airport',
                 'context_tag' => ContextTag::Travel,
                 'primary_skill' => Skill::Listening,
@@ -123,6 +127,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'checking-into-a-hotel',
                 'title' => 'Checking into a hotel',
                 'context_tag' => ContextTag::Travel,
                 'primary_skill' => Skill::Speaking,
@@ -149,6 +154,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'ordering-food-at-a-restaurant',
                 'title' => 'Ordering food at a restaurant',
                 'context_tag' => ContextTag::Travel,
                 'primary_skill' => Skill::Speaking,
@@ -175,6 +181,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'asking-for-directions',
                 'title' => 'Asking for directions',
                 'context_tag' => ContextTag::Travel,
                 'primary_skill' => Skill::Listening,
@@ -201,6 +208,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'shopping-for-clothes',
                 'title' => 'Shopping for clothes',
                 'context_tag' => ContextTag::Travel,
                 'primary_skill' => Skill::Speaking,
@@ -227,6 +235,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'talking-about-your-family',
                 'title' => 'Talking about your family',
                 'context_tag' => ContextTag::EverydaySocial,
                 'primary_skill' => Skill::Speaking,
@@ -253,6 +262,7 @@ class SpanishA1Seeder extends Seeder
                 ],
             ],
             [
+                'slug' => 'describing-your-daily-routine',
                 'title' => 'Describing your daily routine',
                 'context_tag' => ContextTag::EverydaySocial,
                 'primary_skill' => Skill::Writing,

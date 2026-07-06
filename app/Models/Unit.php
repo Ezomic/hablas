@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $language_id
+ * @property string $slug
  * @property CefrLevel $cefr_level
  * @property ContextTag $context_tag
  * @property Skill $primary_skill
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['language_id', 'cefr_level', 'context_tag', 'primary_skill', 'secondary_skill', 'title', 'task_description', 'sort_order'])]
+#[Fillable(['language_id', 'slug', 'cefr_level', 'context_tag', 'primary_skill', 'secondary_skill', 'title', 'task_description', 'sort_order'])]
 class Unit extends Model
 {
     /** @use HasFactory<UnitFactory> */

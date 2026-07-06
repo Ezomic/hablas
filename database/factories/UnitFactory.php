@@ -23,6 +23,7 @@ class UnitFactory extends Factory
     {
         return [
             'language_id' => Language::factory(),
+            'slug' => $this->faker->unique()->slug(3),
             'cefr_level' => $this->faker->randomElement(CefrLevel::cases()),
             'context_tag' => $this->faker->randomElement(ContextTag::cases()),
             'primary_skill' => $this->faker->randomElement(Skill::cases()),

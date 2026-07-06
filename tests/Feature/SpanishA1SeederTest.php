@@ -55,3 +55,18 @@ it('is idempotent when run twice', function () {
     expect(Unit::query()->count())->toBe($unitCountAfterFirstRun)
         ->and(VocabularyItem::query()->count())->toBe($vocabCountAfterFirstRun);
 });
+
+it('updates an existing unit by slug rather than duplicating it when the title has drifted', function () {
+    $spanish = Language::query()->where('code', 'es')->sole();
+
+    $stale = Unit::factory()->create([
+        'language_id' => $spanish->id,
+        'slug' => 'greetings-and-introductions',
+        'title' => 'Old stale title from a previous edit',
+    ]);
+
+    $this->seed(SpanishA1Seeder::class);
+
+    expect(Unit::query()->where('slug', 'greetings-and-introductions')->count())->toBe(1)
+        ->and($stale->fresh()->title)->toBe('Greetings and introductions');
+});
