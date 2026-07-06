@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Actions\Settings\GetUserSettings;
+use App\Actions\Srs\GetDueSrsCards;
 use App\Models\Language;
-use App\Models\SrsCard;
 use App\Models\User;
 
 /**
@@ -35,27 +35,12 @@ class AdaptiveNewItemCap
             return $override;
         }
 
-        $dueCount = $this->dueCardCount($user, $language);
+        $dueCount = (new GetDueSrsCards)->count($user, $language);
 
         return match (true) {
             $dueCount >= self::HEAVY_BACKLOG_THRESHOLD => self::HEAVY_BACKLOG_CAP,
             $dueCount >= self::MODERATE_BACKLOG_THRESHOLD => self::MODERATE_BACKLOG_CAP,
             default => self::BASE_CAP,
         };
-    }
-
-    /**
-     * Matches GetDueSrsCards' definition of the normal review queue: weak-spot
-     * cards are gated into a separate remedial drill rather than counted here,
-     * so they don't double up with the ordinary due-backlog signal.
-     */
-    private function dueCardCount(User $user, Language $language): int
-    {
-        return SrsCard::query()
-            ->where('user_id', $user->id)
-            ->where('language_id', $language->id)
-            ->where('is_weak_spot', false)
-            ->where('due_at', '<=', now())
-            ->count();
     }
 }
