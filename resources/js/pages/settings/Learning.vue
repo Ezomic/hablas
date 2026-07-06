@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -93,6 +94,16 @@ function submit() {
 
 const interestsForm = useForm({
     interest_tags: [...props.interestTags],
+});
+
+const interestTagsError = computed(() => {
+    const key = Object.keys(interestsForm.errors).find((k) =>
+        k.startsWith('interest_tags'),
+    );
+
+    return key
+        ? interestsForm.errors[key as keyof typeof interestsForm.errors]
+        : undefined;
 });
 
 function toggleInterest(tag: InterestTag, checked: boolean) {
@@ -201,7 +212,7 @@ function submitInterests() {
                 </p>
                 <div class="flex flex-col gap-3 pt-2">
                     <div
-                        v-for="(label, tag) in interestTagLabels"
+                        v-for="tag in props.availableInterestTags"
                         :key="tag"
                         class="flex items-center gap-3"
                     >
@@ -215,10 +226,12 @@ function submitInterests() {
                                     toggleInterest(tag, checked === true)
                             "
                         />
-                        <Label :for="`interest-${tag}`">{{ label }}</Label>
+                        <Label :for="`interest-${tag}`">{{
+                            interestTagLabels[tag]
+                        }}</Label>
                     </div>
                 </div>
-                <InputError :message="interestsForm.errors.interest_tags" />
+                <InputError :message="interestTagsError" />
             </div>
 
             <div class="flex items-center gap-4">
