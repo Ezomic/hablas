@@ -3,11 +3,14 @@
 use App\Actions\SelectNextUnit;
 use App\Enums\CefrLevel;
 use App\Enums\ContextTag;
+use App\Enums\InterestTag;
 use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
 use App\Models\Unit;
+use App\Models\UnitInterestTag;
 use App\Models\User;
+use App\Models\UserInterestPreference;
 use App\Models\UserSkillLevel;
 use App\Models\UserUnitProgress;
 
@@ -172,4 +175,49 @@ it('never selects a unit from a different language deck', function () {
     $selected = (new SelectNextUnit)->handle($this->user, $this->language);
 
     expect($selected->id)->toBe($ownUnit->id);
+});
+
+it('prefers a unit whose interest tags overlap the users preferences among skill-tied candidates', function () {
+    UserInterestPreference::factory()->create([
+        'user_id' => $this->user->id,
+        'interest_tag' => InterestTag::Cooking,
+    ]);
+
+    $noMatch = Unit::factory()->create([
+        'language_id' => $this->language->id,
+        'cefr_level' => CefrLevel::A1,
+        'context_tag' => ContextTag::Travel,
+        'primary_skill' => Skill::Reading,
+        'sort_order' => 1,
+    ]);
+    $match = Unit::factory()->create([
+        'language_id' => $this->language->id,
+        'cefr_level' => CefrLevel::A1,
+        'context_tag' => ContextTag::Travel,
+        'primary_skill' => Skill::Reading,
+        'sort_order' => 2,
+    ]);
+    UnitInterestTag::factory()->create([
+        'unit_id' => $match->id,
+        'interest_tag' => InterestTag::Cooking,
+    ]);
+
+    $selected = (new SelectNextUnit)->handle($this->user, $this->language);
+
+    expect($selected->id)->toBe($match->id)
+        ->and($selected->id)->not->toBe($noMatch->id);
+});
+
+it('ignores interest tags entirely when the user has no preferences set', function () {
+    $unit = Unit::factory()->create([
+        'language_id' => $this->language->id,
+        'cefr_level' => CefrLevel::A1,
+        'context_tag' => ContextTag::Travel,
+        'primary_skill' => Skill::Reading,
+        'sort_order' => 1,
+    ]);
+
+    $selected = (new SelectNextUnit)->handle($this->user, $this->language);
+
+    expect($selected->id)->toBe($unit->id);
 });

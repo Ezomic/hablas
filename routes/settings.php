@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\InterestPreferencesController;
 use App\Http\Controllers\Settings\LearningController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/learning', [LearningController::class, 'edit'])->name('learning.edit');
     Route::patch('settings/learning', [LearningController::class, 'update'])->name('learning.update');
+    Route::patch('settings/learning/interests', [InterestPreferencesController::class, 'update'])->name('learning.interests.update');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

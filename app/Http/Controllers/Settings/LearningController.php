@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Actions\Settings\GetUserSettings;
 use App\Actions\Settings\UpdateUserSettings;
 use App\Enums\ContextTag;
+use App\Enums\InterestTag;
 use App\Enums\NotificationFrequency;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateUserSettingsRequest;
@@ -25,6 +26,9 @@ class LearningController extends Controller
                 'newItemCapOverride' => $settings->new_item_cap_override,
                 'contextEmphasis' => $settings->context_emphasis?->value,
             ],
+            'interestTags' => $request->user()->interestPreferences()->get()
+                ->map(fn ($preference): string => $preference->interest_tag->value),
+            'availableInterestTags' => collect(InterestTag::cases())->map(fn (InterestTag $tag): string => $tag->value),
         ]);
     }
 

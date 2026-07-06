@@ -66,4 +66,10 @@ class Unit extends Model
     {
         return $this->hasMany(UserUnitProgress::class);
     }
+
+    /** @return HasMany<UnitInterestTag, $this> */
+    public function interestTags(): HasMany
+    {
+        return $this->hasMany(UnitInterestTag::class);
+    }
 }
