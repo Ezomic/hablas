@@ -60,4 +60,10 @@ class Unit extends Model
     {
         return $this->hasMany(GrammarPoint::class);
     }
+
+    /** @return HasMany<UserUnitProgress, $this> */
+    public function userProgress(): HasMany
+    {
+        return $this->hasMany(UserUnitProgress::class);
+    }
 }
