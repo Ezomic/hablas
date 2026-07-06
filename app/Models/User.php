@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -18,6 +19,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
  * @property int $id
+ * @property int|null $current_language_id
  * @property string $name
  * @property string $email
  * @property string|null $google_id
@@ -30,7 +32,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'google_id', 'password'])]
+#[Fillable(['name', 'email', 'google_id', 'password', 'current_language_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -79,5 +81,11 @@ class User extends Authenticatable implements PasskeyUser
     public function settings(): HasOne
     {
         return $this->hasOne(UserSetting::class);
+    }
+
+    /** @return BelongsTo<Language, $this> */
+    public function currentLanguage(): BelongsTo
+    {
+        return $this->belongsTo(Language::class, 'current_language_id');
     }
 }

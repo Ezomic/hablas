@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\ComputeBlendedCefrLevel;
 use App\Actions\GetUserSkillLevels;
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Streaks\ReconcileStreak;
-use App\Models\Language;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,8 +20,9 @@ class DashboardController extends Controller
         ComputeBlendedCefrLevel $computeBlendedCefrLevel,
         ReconcileStreak $reconcileStreak,
         GetDueSrsCards $getDueSrsCards,
+        GetCurrentLanguage $getCurrentLanguage,
     ): Response {
-        $language = Language::active();
+        $language = $getCurrentLanguage->handle($request->user());
         $streak = $reconcileStreak->handle($request->user());
 
         $streakProp = [

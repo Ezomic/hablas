@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordShadowingAttempt;
 use App\Http\Requests\StoreShadowingAttemptRequest;
-use App\Models\Language;
 use App\Models\ShadowingExercise;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,9 +13,9 @@ use Inertia\Response;
 
 class ShadowingExerciseController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage): Response
     {
-        $language = Language::active();
+        $language = $getCurrentLanguage->handle($request->user());
 
         if ($language === null) {
             return Inertia::render('shadowing/Index', ['exercise' => null]);

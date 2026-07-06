@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordWritingAttempt;
 use App\Http\Requests\StoreWritingAttemptRequest;
-use App\Models\Language;
 use App\Models\WritingExercise;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,9 +13,9 @@ use Inertia\Response;
 
 class WritingExerciseController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage): Response
     {
-        $language = Language::active();
+        $language = $getCurrentLanguage->handle($request->user());
 
         if ($language === null) {
             return Inertia::render('writing/Index', ['exercise' => null]);

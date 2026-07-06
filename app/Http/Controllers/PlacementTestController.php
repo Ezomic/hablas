@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\ScorePlacementTest;
 use App\Actions\SkipPlacementTest;
 use App\Http\Requests\StorePlacementTestRequest;
-use App\Models\Language;
 use App\Models\PlacementTestItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,9 +14,9 @@ use Inertia\Response;
 
 class PlacementTestController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage): Response
     {
-        $language = Language::active() ?? abort(404);
+        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
         $items = PlacementTestItem::query()
             ->where('language_id', $language->id)
@@ -28,18 +28,18 @@ class PlacementTestController extends Controller
         ]);
     }
 
-    public function store(StorePlacementTestRequest $request, ScorePlacementTest $scorePlacementTest): RedirectResponse
+    public function store(StorePlacementTestRequest $request, ScorePlacementTest $scorePlacementTest, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
     {
-        $language = Language::active() ?? abort(404);
+        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
         $scorePlacementTest->handle($request->user(), $language, $request->validated('responses'));
 
         return redirect()->route('dashboard');
     }
 
-    public function skip(Request $request, SkipPlacementTest $skipPlacementTest): RedirectResponse
+    public function skip(Request $request, SkipPlacementTest $skipPlacementTest, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
     {
-        $language = Language::active() ?? abort(404);
+        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
         $skipPlacementTest->handle($request->user(), $language);
 

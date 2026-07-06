@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { LanguageOption } from '@/types/language';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -19,6 +20,8 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            currentLanguage: LanguageOption | null;
+            availableLanguages: LanguageOption[];
             [key: string]: unknown;
         };
     }

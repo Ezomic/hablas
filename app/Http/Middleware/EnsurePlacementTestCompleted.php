@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Language;
+use App\Actions\Languages\GetCurrentLanguage;
 use App\Models\PlacementTestAttempt;
 use Closure;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class EnsurePlacementTestCompleted
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $language = Language::active();
+        $language = (new GetCurrentLanguage)->handle($request->user());
 
         if ($language === null) {
             return $next($request);
