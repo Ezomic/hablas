@@ -15,3 +15,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/socialite.php';
 require __DIR__.'/placement.php';
+require __DIR__.'/shadowing.php';
