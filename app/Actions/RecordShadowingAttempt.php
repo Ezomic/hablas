@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Actions\Streaks\RecordStreakActivity;
+use App\Enums\Skill;
 use App\Models\ShadowingAttempt;
 use App\Models\ShadowingExercise;
 use App\Models\User;
@@ -22,6 +23,10 @@ class RecordShadowingAttempt
         ]);
 
         (new RecordStreakActivity)->handle($user);
+
+        $levelBefore = (new ComputeBlendedCefrLevel)->handle((new GetUserSkillLevels)->handle($user, $exercise->language));
+        (new ReassessSkillLevel)->handle($user, $exercise->language, Skill::Speaking);
+        (new NotifyOnBlendedLevelIncrease)->handle($user, $exercise->language, $levelBefore);
 
         return $attempt;
     }
