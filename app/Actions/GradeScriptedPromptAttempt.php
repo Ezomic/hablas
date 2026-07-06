@@ -14,17 +14,22 @@ class GradeScriptedPromptAttempt
      */
     public function handle(ScriptedPromptExercise $exercise, string $transcriptGuess): float
     {
-        if ($exercise->expected_keywords === []) {
+        $normalizer = new SpanishTextNormalizer;
+
+        $keywords = collect($exercise->expected_keywords)
+            ->map(fn (string $keyword): string => $normalizer->collapseWhitespace($keyword))
+            ->filter(fn (string $keyword): bool => $keyword !== '');
+
+        if ($keywords->isEmpty()) {
             return 0.0;
         }
 
-        $normalizer = new SpanishTextNormalizer;
         $normalizedGuess = $normalizer->collapseWhitespace($transcriptGuess);
 
-        $matched = collect($exercise->expected_keywords)
-            ->filter(fn (string $keyword): bool => str_contains($normalizedGuess, $normalizer->collapseWhitespace($keyword)))
+        $matched = $keywords
+            ->filter(fn (string $keyword): bool => str_contains($normalizedGuess, $keyword))
             ->count();
 
-        return round(($matched / count($exercise->expected_keywords)) * 100, 1);
+        return round(($matched / $keywords->count()) * 100, 1);
     }
 }

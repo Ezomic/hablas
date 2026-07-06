@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordShadowingAttempt;
+use App\Actions\SelectExerciseForUser;
 use App\Http\Requests\StoreShadowingAttemptRequest;
 use App\Models\ShadowingExercise;
 use Illuminate\Http\JsonResponse;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 class ShadowingExerciseController extends Controller
 {
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
         $language = $getCurrentLanguage->handle($request->user());
 
@@ -21,12 +22,10 @@ class ShadowingExerciseController extends Controller
             return Inertia::render('shadowing/Index', ['exercise' => null]);
         }
 
-        $exercise = ShadowingExercise::query()
-            ->where('language_id', $language->id)
-            ->whereDoesntHave('attempts', fn ($query) => $query->where('user_id', $request->user()->id))
-            ->inRandomOrder()
-            ->first()
-            ?? ShadowingExercise::query()->where('language_id', $language->id)->inRandomOrder()->first();
+        $exercise = $selectExercise->handle(
+            ShadowingExercise::query()->where('language_id', $language->id),
+            $request->user(),
+        );
 
         return Inertia::render('shadowing/Index', [
             'exercise' => $exercise === null ? null : [

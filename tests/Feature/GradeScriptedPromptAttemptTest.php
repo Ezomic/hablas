@@ -50,3 +50,21 @@ it('fails closed when no expected keywords are configured', function () {
 
     expect((new GradeScriptedPromptAttempt)->handle($exercise, 'Cualquier respuesta.'))->toBe(0.0);
 });
+
+it('does not let a blank keyword auto-match every transcript', function () {
+    $exercise = ScriptedPromptExercise::factory()->create([
+        'expected_keywords' => ['llamo', '  '],
+    ]);
+
+    $score = (new GradeScriptedPromptAttempt)->handle($exercise, 'No entiendo la pregunta.');
+
+    expect($score)->toBe(0.0);
+});
+
+it('fails closed when every configured keyword is blank', function () {
+    $exercise = ScriptedPromptExercise::factory()->create([
+        'expected_keywords' => ['', '   '],
+    ]);
+
+    expect((new GradeScriptedPromptAttempt)->handle($exercise, 'Cualquier respuesta.'))->toBe(0.0);
+});
