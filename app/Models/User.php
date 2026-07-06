@@ -55,4 +55,10 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(UserSkillLevel::class);
     }
+
+    /** @return HasMany<UserUnitProgress, $this> */
+    public function unitProgress(): HasMany
+    {
+        return $this->hasMany(UserUnitProgress::class);
+    }
 }
