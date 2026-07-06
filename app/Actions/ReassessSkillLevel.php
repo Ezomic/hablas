@@ -39,7 +39,9 @@ class ReassessSkillLevel
         $outcomes = match ($skill) {
             Skill::Writing => $this->recentWritingOutcomes($user, $language),
             Skill::Speaking => $this->recentSpeakingOutcomes($user, $language),
-            default => collect(),
+            // Reading/Listening have no live practice mechanism yet — only
+            // the one-time placement test ever sets those two skill levels.
+            Skill::Reading, Skill::Listening => collect(),
         };
 
         if ($outcomes->count() < self::ATTEMPT_WINDOW) {

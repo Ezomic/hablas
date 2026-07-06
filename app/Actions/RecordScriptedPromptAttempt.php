@@ -24,9 +24,11 @@ class RecordScriptedPromptAttempt
 
         (new RecordStreakActivity)->handle($user);
 
-        $levelBefore = (new ComputeBlendedCefrLevel)->handle((new GetUserSkillLevels)->handle($user, $exercise->language));
-        (new ReassessSkillLevel)->handle($user, $exercise->language, Skill::Speaking);
-        (new NotifyOnBlendedLevelIncrease)->handle($user, $exercise->language, $levelBefore);
+        (new NotifyOnBlendedLevelIncrease)->handle(
+            $user,
+            $exercise->language,
+            fn () => (new ReassessSkillLevel)->handle($user, $exercise->language, Skill::Speaking),
+        );
 
         return $attempt;
     }

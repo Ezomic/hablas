@@ -5,19 +5,23 @@ namespace App\Actions;
 use App\Enums\CefrLevel;
 use App\Models\Language;
 use App\Models\User;
+use Closure;
 use Inertia\Inertia;
 
 class NotifyOnBlendedLevelIncrease
 {
     /**
-     * Compares the blended CEFR level against a level captured before some
-     * mutation (a placement test, a skill-level reassessment) and flashes a
-     * celebratory toast if it increased. Takes the "before" level rather than
-     * a callback so callers keep their own mutation logic in their own Action.
+     * Wraps a mutation that might change the user's skill levels (a placement
+     * test, a skill-level reassessment), comparing the blended CEFR level
+     * before and after and flashing a celebratory toast if it increased.
      */
-    public function handle(User $user, Language $language, ?CefrLevel $levelBefore): void
+    public function handle(User $user, Language $language, Closure $mutate): void
     {
-        $levelAfter = (new ComputeBlendedCefrLevel)->handle((new GetUserSkillLevels)->handle($user, $language));
+        $levelBefore = $this->blendedLevel($user, $language);
+
+        $mutate();
+
+        $levelAfter = $this->blendedLevel($user, $language);
 
         if ($levelAfter === null) {
             return;
@@ -31,5 +35,10 @@ class NotifyOnBlendedLevelIncrease
             'type' => 'milestone',
             'message' => "You've reached {$levelAfter->value} in {$language->name}!",
         ]);
+    }
+
+    private function blendedLevel(User $user, Language $language): ?CefrLevel
+    {
+        return (new ComputeBlendedCefrLevel)->handle((new GetUserSkillLevels)->handle($user, $language));
     }
 }
