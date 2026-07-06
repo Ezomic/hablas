@@ -30,6 +30,16 @@ class Language extends Model
         ];
     }
 
+    /**
+     * The single active language for Milestone 1 (Spanish). Centralizes the
+     * "how do we resolve the current language" question so it only needs to
+     * change in one place if that ever becomes per-user.
+     */
+    public static function active(): ?self
+    {
+        return static::query()->where('is_active', true)->first();
+    }
+
     /** @return HasMany<UserSkillLevel, $this> */
     public function userSkillLevels(): HasMany
     {
