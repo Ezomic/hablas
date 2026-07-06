@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Actions\Streaks\RecordStreakActivity;
+use App\Enums\Skill;
 use App\Models\User;
 use App\Models\WritingAttempt;
 use App\Models\WritingExercise;
@@ -22,6 +23,12 @@ class RecordWritingAttempt
         ]);
 
         (new RecordStreakActivity)->handle($user);
+
+        (new NotifyOnBlendedLevelIncrease)->handle(
+            $user,
+            $exercise->language,
+            fn () => (new ReassessSkillLevel)->handle($user, $exercise->language, Skill::Writing),
+        );
 
         return $attempt;
     }

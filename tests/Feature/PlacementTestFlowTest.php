@@ -62,6 +62,23 @@ it('scores the submission and redirects to the dashboard', function () {
     expect(PlacementTestAttempt::query()->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
+it('flashes a celebratory toast the first time a placement test sets a skill level', function () {
+    $item = PlacementTestItem::factory()->create([
+        'language_id' => $this->spanish->id,
+        'correct_answer' => 'correct',
+    ]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('placement.store'), [
+            'responses' => [$item->id => 'correct'],
+        ])
+        ->assertInertiaFlash('toast', [
+            'type' => 'milestone',
+            'message' => "You've reached A2 in Spanish!",
+        ]);
+});
+
 it('rejects a submission with no responses and returns a clear error', function () {
     PlacementTestItem::factory()->create(['language_id' => $this->spanish->id]);
     $user = User::factory()->create();

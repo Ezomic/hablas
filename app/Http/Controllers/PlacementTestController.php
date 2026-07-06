@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\NotifyOnBlendedLevelIncrease;
 use App\Actions\ScorePlacementTest;
 use App\Actions\SkipPlacementTest;
 use App\Http\Requests\StorePlacementTestRequest;
@@ -28,11 +29,19 @@ class PlacementTestController extends Controller
         ]);
     }
 
-    public function store(StorePlacementTestRequest $request, ScorePlacementTest $scorePlacementTest, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
-    {
+    public function store(
+        StorePlacementTestRequest $request,
+        ScorePlacementTest $scorePlacementTest,
+        GetCurrentLanguage $getCurrentLanguage,
+        NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
+    ): RedirectResponse {
         $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
-        $scorePlacementTest->handle($request->user(), $language, $request->validated('responses'));
+        $notifyOnBlendedLevelIncrease->handle(
+            $request->user(),
+            $language,
+            fn () => $scorePlacementTest->handle($request->user(), $language, $request->validated('responses')),
+        );
 
         return redirect()->route('dashboard');
     }

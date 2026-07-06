@@ -87,6 +87,11 @@
             'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
             'Noto Color Emoji';
     }
+
+    .milestone-toast {
+        border-color: var(--chart-3) !important;
+        color: var(--chart-3);
+    }
 }
 
 :root {
