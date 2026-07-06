@@ -4,22 +4,10 @@ namespace App\Actions;
 
 use App\Enums\WritingExerciseType;
 use App\Models\WritingExercise;
-use Illuminate\Support\Str;
+use App\Services\SpanishTextNormalizer;
 
 class GradeWritingAttempt
 {
-    /**
-     * Only vowel accents are folded — 'ñ' is deliberately left alone, since
-     * it is a distinct Spanish letter/phoneme rather than an accent mark
-     * (año/ano is a canonical minimal pair), and this is a written spelling
-     * check where that distinction is exactly what's being tested.
-     *
-     * @var array<string, string>
-     */
-    private const VOWEL_ACCENT_FOLDS = [
-        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
-    ];
-
     public function handle(WritingExercise $exercise, string $response): bool
     {
         return match ($exercise->type) {
@@ -31,10 +19,11 @@ class GradeWritingAttempt
 
     private function matchesAnAcceptedAnswer(WritingExercise $exercise, string $response): bool
     {
-        $normalizedResponse = $this->normalize($response);
+        $normalizer = new SpanishTextNormalizer;
+        $normalizedResponse = $normalizer->collapseWhitespace($response);
 
         foreach ($exercise->correct_answers as $acceptedAnswer) {
-            if ($this->normalize($acceptedAnswer) === $normalizedResponse) {
+            if ($normalizer->collapseWhitespace($acceptedAnswer) === $normalizedResponse) {
                 return true;
             }
         }
@@ -56,21 +45,15 @@ class GradeWritingAttempt
             return false;
         }
 
-        $normalizedResponse = $this->normalize($response);
+        $normalizer = new SpanishTextNormalizer;
+        $normalizedResponse = $normalizer->collapseWhitespace($response);
 
         foreach ($exercise->correct_answers as $requiredStem) {
-            if (! str_contains($normalizedResponse, $this->normalize($requiredStem))) {
+            if (! str_contains($normalizedResponse, $normalizer->collapseWhitespace($requiredStem))) {
                 return false;
             }
         }
 
         return true;
-    }
-
-    private function normalize(string $text): string
-    {
-        $normalized = strtr(Str::lower(trim($text)), self::VOWEL_ACCENT_FOLDS);
-
-        return preg_replace('/\s+/', ' ', $normalized) ?? '';
     }
 }

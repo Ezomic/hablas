@@ -3,47 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
-use App\Actions\RecordShadowingAttempt;
+use App\Actions\RecordScriptedPromptAttempt;
 use App\Actions\SelectExerciseForUser;
-use App\Http\Requests\StoreShadowingAttemptRequest;
-use App\Models\ShadowingExercise;
+use App\Http\Requests\StoreScriptedPromptAttemptRequest;
+use App\Models\ScriptedPromptExercise;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ShadowingExerciseController extends Controller
+class ScriptedPromptExerciseController extends Controller
 {
     public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
         $language = $getCurrentLanguage->handle($request->user());
 
         if ($language === null) {
-            return Inertia::render('shadowing/Index', ['exercise' => null]);
+            return Inertia::render('scripted-prompts/Index', ['exercise' => null]);
         }
 
         $exercise = $selectExercise->handle(
-            ShadowingExercise::query()->where('language_id', $language->id),
+            ScriptedPromptExercise::query()->where('language_id', $language->id),
             $request->user(),
         );
 
-        return Inertia::render('shadowing/Index', [
+        return Inertia::render('scripted-prompts/Index', [
             'exercise' => $exercise === null ? null : [
                 'id' => $exercise->id,
-                'target_transcript' => $exercise->target_transcript,
-                'audio_url' => $exercise->audio_url,
+                'prompt_text' => $exercise->prompt_text,
             ],
         ]);
     }
 
     public function store(
-        StoreShadowingAttemptRequest $request,
-        ShadowingExercise $shadowingExercise,
-        RecordShadowingAttempt $recordShadowingAttempt,
+        StoreScriptedPromptAttemptRequest $request,
+        ScriptedPromptExercise $scriptedPromptExercise,
+        RecordScriptedPromptAttempt $recordScriptedPromptAttempt,
     ): JsonResponse {
-        $attempt = $recordShadowingAttempt->handle(
+        $attempt = $recordScriptedPromptAttempt->handle(
             $request->user(),
-            $shadowingExercise,
+            $scriptedPromptExercise,
             $request->validated('transcript_guess'),
         );
 

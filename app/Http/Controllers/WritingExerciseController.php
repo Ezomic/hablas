@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordWritingAttempt;
+use App\Actions\SelectExerciseForUser;
 use App\Http\Requests\StoreWritingAttemptRequest;
 use App\Models\WritingExercise;
 use Illuminate\Http\JsonResponse;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 class WritingExerciseController extends Controller
 {
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
         $language = $getCurrentLanguage->handle($request->user());
 
@@ -21,12 +22,10 @@ class WritingExerciseController extends Controller
             return Inertia::render('writing/Index', ['exercise' => null]);
         }
 
-        $exercise = WritingExercise::query()
-            ->where('language_id', $language->id)
-            ->whereDoesntHave('attempts', fn ($query) => $query->where('user_id', $request->user()->id))
-            ->inRandomOrder()
-            ->first()
-            ?? WritingExercise::query()->where('language_id', $language->id)->inRandomOrder()->first();
+        $exercise = $selectExercise->handle(
+            WritingExercise::query()->where('language_id', $language->id),
+            $request->user(),
+        );
 
         return Inertia::render('writing/Index', [
             'exercise' => $exercise === null ? null : [
