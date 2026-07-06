@@ -52,6 +52,10 @@ class GradeWritingAttempt
      */
     private function containsRequiredKeywords(WritingExercise $exercise, string $response): bool
     {
+        if ($exercise->correct_answers === []) {
+            return false;
+        }
+
         $normalizedResponse = $this->normalize($response);
 
         foreach ($exercise->correct_answers as $requiredStem) {

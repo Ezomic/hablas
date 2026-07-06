@@ -70,3 +70,12 @@ it('grades a guided-paragraph exercise as incorrect when a required stem is miss
 
     expect((new GradeWritingAttempt)->handle($exercise, $response))->toBeFalse();
 });
+
+it('fails closed for a guided-paragraph exercise with no required stems configured', function () {
+    $exercise = WritingExercise::factory()->create([
+        'type' => WritingExerciseType::GuidedParagraph,
+        'correct_answers' => [],
+    ]);
+
+    expect((new GradeWritingAttempt)->handle($exercise, 'Me levanto a las siete.'))->toBeFalse();
+});
