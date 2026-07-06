@@ -5,10 +5,12 @@ namespace Database\Seeders;
 use App\Enums\CefrLevel;
 use App\Enums\ContextTag;
 use App\Enums\ErrorTagCategory;
+use App\Enums\InterestTag;
 use App\Enums\Skill;
 use App\Models\GrammarPoint;
 use App\Models\Language;
 use App\Models\Unit;
+use App\Models\UnitInterestTag;
 use App\Models\VocabularyItem;
 use Illuminate\Database\Seeder;
 
@@ -54,6 +56,12 @@ class SpanishA1Seeder extends Seeder
                     $grammar,
                 );
             }
+
+            foreach ($definition['interest_tags'] as $interestTag) {
+                UnitInterestTag::query()->updateOrCreate(
+                    ['unit_id' => $unit->id, 'interest_tag' => $interestTag],
+                );
+            }
         }
     }
 
@@ -67,6 +75,7 @@ class SpanishA1Seeder extends Seeder
      *     task_description: string,
      *     vocabulary: array<int, array{term: string, translation_en: string, is_cognate: bool, part_of_speech: string}>,
      *     grammar: array<int, array{title: string, explanation: string, error_tag_category: ErrorTagCategory|null}>,
+     *     interest_tags: array<int, InterestTag>,
      * }>
      */
     private function units(): array
@@ -79,6 +88,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Speaking,
                 'secondary_skill' => Skill::Listening,
                 'task_description' => 'Introduce yourself to someone new and greet people appropriately at different times of day.',
+                'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'hola', 'translation_en' => 'hello', 'is_cognate' => false, 'part_of_speech' => 'interjection'],
                     ['term' => 'buenos días', 'translation_en' => 'good morning', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
@@ -106,6 +116,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Listening,
                 'secondary_skill' => Skill::Reading,
                 'task_description' => 'Understand airport announcements, signs, and basic travel vocabulary.',
+                'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'el aeropuerto', 'translation_en' => 'airport', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'el vuelo', 'translation_en' => 'flight', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -133,6 +144,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Speaking,
                 'secondary_skill' => Skill::Writing,
                 'task_description' => 'Check into a hotel, ask about room availability, and understand what is included.',
+                'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'el hotel', 'translation_en' => 'hotel', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'la habitación', 'translation_en' => 'room', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -160,6 +172,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Speaking,
                 'secondary_skill' => Skill::Reading,
                 'task_description' => 'Order a meal at a restaurant and ask questions about menu items.',
+                'interest_tags' => [InterestTag::Food, InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'el restaurante', 'translation_en' => 'restaurant', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'el menú', 'translation_en' => 'menu', 'is_cognate' => true, 'part_of_speech' => 'noun'],
@@ -187,6 +200,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Listening,
                 'secondary_skill' => Skill::Speaking,
                 'task_description' => 'Ask for and understand directions around a city.',
+                'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'la calle', 'translation_en' => 'street', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'la esquina', 'translation_en' => 'corner', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -214,6 +228,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Speaking,
                 'secondary_skill' => Skill::Reading,
                 'task_description' => 'Buy clothes, ask about size, color, and price.',
+                'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'la ropa', 'translation_en' => 'clothing', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'la camisa', 'translation_en' => 'shirt', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -241,6 +256,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Speaking,
                 'secondary_skill' => Skill::Writing,
                 'task_description' => 'Describe your family members and their relationships to you.',
+                'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'la familia', 'translation_en' => 'family', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'el padre', 'translation_en' => 'father', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -268,6 +284,7 @@ class SpanishA1Seeder extends Seeder
                 'primary_skill' => Skill::Writing,
                 'secondary_skill' => Skill::Speaking,
                 'task_description' => 'Describe your daily routine using reflexive verbs and time expressions.',
+                'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'levantarse', 'translation_en' => 'to get up', 'is_cognate' => false, 'part_of_speech' => 'verb'],
                     ['term' => 'despertarse', 'translation_en' => 'to wake up', 'is_cognate' => false, 'part_of_speech' => 'verb'],

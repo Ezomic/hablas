@@ -4,11 +4,13 @@ namespace App\Actions;
 
 use App\Enums\CefrLevel;
 use App\Enums\ContextTag;
+use App\Enums\InterestTag;
 use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
 use App\Models\Unit;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class SelectNextUnit
 {
@@ -36,6 +38,7 @@ class SelectNextUnit
             ->where('language_id', $language->id)
             ->whereIn('cefr_level', $eligibleLevels)
             ->whereNotIn('id', $completedUnitIds)
+            ->with('interestTags')
             ->orderBy('sort_order')
             ->get();
 
@@ -52,10 +55,42 @@ class SelectNextUnit
         $prioritized = $candidates->where('context_tag', $topPriorityTag);
 
         $recentSkillCounts = $this->recentSkillCounts($user);
+        $preferredInterestTags = $user->interestPreferences()->get()
+            ->pluck('interest_tag')
+            ->map(fn (InterestTag $tag): string => $tag->value);
 
         return $prioritized
-            ->sortBy(fn (Unit $unit): array => [$recentSkillCounts[$unit->primary_skill->value] ?? 0, $unit->sort_order])
+            ->sortBy(fn (Unit $unit): array => [
+                $recentSkillCounts[$unit->primary_skill->value] ?? 0,
+                $this->interestScore($unit, $preferredInterestTags),
+                $unit->sort_order,
+            ])
             ->first();
+    }
+
+    /**
+     * 0 when the unit overlaps the user's interest preferences (sorts first),
+     * 1 otherwise — a no-op tiebreaker when the user has no preferences set,
+     * so existing skill-balance/sort-order behavior is unaffected. Compares
+     * on the enum's string value since array_intersect (used under the hood
+     * by Collection::intersect) casts elements to strings for comparison,
+     * which fails on enum instances.
+     *
+     * @param  Collection<int, string>  $preferredInterestTags
+     */
+    private function interestScore(Unit $unit, Collection $preferredInterestTags): int
+    {
+        if ($preferredInterestTags->isEmpty()) {
+            return 0;
+        }
+
+        $matches = $unit->interestTags
+            ->pluck('interest_tag')
+            ->map(fn (InterestTag $tag): string => $tag->value)
+            ->intersect($preferredInterestTags)
+            ->isNotEmpty();
+
+        return $matches ? 0 : 1;
     }
 
     /** @return array<string, int> */

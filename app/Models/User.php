@@ -88,4 +88,10 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->belongsTo(Language::class, 'current_language_id');
     }
+
+    /** @return HasMany<UserInterestPreference, $this> */
+    public function interestPreferences(): HasMany
+    {
+        return $this->hasMany(UserInterestPreference::class);
+    }
 }

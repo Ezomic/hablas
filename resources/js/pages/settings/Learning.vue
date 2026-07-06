@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { edit, update } from '@/routes/learning';
+import { update as updateInterests } from '@/routes/learning/interests';
 
 interface Settings {
     notificationFrequency: 'daily' | 'weekly' | 'never';
@@ -20,8 +22,13 @@ interface Settings {
     contextEmphasis: 'travel' | 'everyday_social' | 'professional' | null;
 }
 
+type InterestTag =
+    'football' | 'cooking' | 'tech' | 'music' | 'travel' | 'food';
+
 const props = defineProps<{
     settings: Settings;
+    interestTags: InterestTag[];
+    availableInterestTags: InterestTag[];
 }>();
 
 defineOptions({
@@ -49,6 +56,15 @@ const contextEmphasisLabels: Record<
     professional: 'Professional',
 };
 
+const interestTagLabels: Record<InterestTag, string> = {
+    football: 'Football',
+    cooking: 'Cooking',
+    tech: 'Tech',
+    music: 'Music',
+    travel: 'Travel',
+    food: 'Food',
+};
+
 const form = useForm({
     notification_frequency: props.settings.notificationFrequency,
     new_item_cap_override:
@@ -73,6 +89,24 @@ function submit() {
                 data.context_emphasis === 'none' ? null : data.context_emphasis,
         };
     }).patch(update().url, { preserveScroll: true });
+}
+
+const interestsForm = useForm({
+    interest_tags: [...props.interestTags],
+});
+
+function toggleInterest(tag: InterestTag, checked: boolean) {
+    if (checked) {
+        interestsForm.interest_tags.push(tag);
+    } else {
+        interestsForm.interest_tags = interestsForm.interest_tags.filter(
+            (t) => t !== tag,
+        );
+    }
+}
+
+function submitInterests() {
+    interestsForm.patch(updateInterests().url, { preserveScroll: true });
 }
 </script>
 
@@ -155,6 +189,42 @@ function submit() {
 
             <div class="flex items-center gap-4">
                 <Button :disabled="form.processing" type="submit">Save</Button>
+            </div>
+        </form>
+
+        <form class="flex flex-col gap-6" @submit.prevent="submitInterests">
+            <div class="grid gap-2">
+                <Label>Interests</Label>
+                <p class="text-sm text-muted-foreground">
+                    Units that match your interests are prioritized when picking
+                    what to learn next.
+                </p>
+                <div class="flex flex-col gap-3 pt-2">
+                    <div
+                        v-for="(label, tag) in interestTagLabels"
+                        :key="tag"
+                        class="flex items-center gap-3"
+                    >
+                        <Checkbox
+                            :id="`interest-${tag}`"
+                            :model-value="
+                                interestsForm.interest_tags.includes(tag)
+                            "
+                            @update:model-value="
+                                (checked: boolean | 'indeterminate') =>
+                                    toggleInterest(tag, checked === true)
+                            "
+                        />
+                        <Label :for="`interest-${tag}`">{{ label }}</Label>
+                    </div>
+                </div>
+                <InputError :message="interestsForm.errors.interest_tags" />
+            </div>
+
+            <div class="flex items-center gap-4">
+                <Button :disabled="interestsForm.processing" type="submit"
+                    >Save interests</Button
+                >
             </div>
         </form>
     </div>
