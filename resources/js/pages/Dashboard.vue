@@ -1,7 +1,28 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { ChevronDown } from '@lucide/vue';
+import { ref } from 'vue';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
+
+interface Props {
+    language: { code: string; name: string } | null;
+    blendedLevel?: string | null;
+    skillLevels?: Record<string, string>;
+}
+
+const props = defineProps<Props>();
 
 defineOptions({
     layout: {
@@ -13,35 +34,55 @@ defineOptions({
         ],
     },
 });
+
+const skillLabels: Record<string, string> = {
+    reading: 'Reading',
+    listening: 'Listening',
+    speaking: 'Speaking',
+    writing: 'Writing',
+};
+
+const breakdownOpen = ref(false);
 </script>
 
 <template>
     <Head title="Dashboard" />
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-        </div>
-        <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
-        </div>
+    <div class="flex h-full flex-1 flex-col gap-4 p-4">
+        <Card v-if="props.language">
+            <CardHeader>
+                <CardDescription>{{ props.language.name }}</CardDescription>
+                <CardTitle class="text-4xl">
+                    {{ props.blendedLevel ?? '—' }}
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Collapsible v-model:open="breakdownOpen">
+                    <CollapsibleTrigger
+                        class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                        Per-skill breakdown
+                        <ChevronDown
+                            class="size-4 transition-transform"
+                            :class="{ 'rotate-180': breakdownOpen }"
+                        />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent class="mt-4 flex flex-col gap-2">
+                        <div
+                            v-for="skill in Object.keys(skillLabels)"
+                            :key="skill"
+                            class="flex items-center justify-between border-b pb-2 text-sm last:border-b-0"
+                        >
+                            <span>{{ skillLabels[skill] }}</span>
+                            <span class="font-medium">{{
+                                props.skillLevels?.[skill] ?? '—'
+                            }}</span>
+                        </div>
+                    </CollapsibleContent>
+                </Collapsible>
+            </CardContent>
+        </Card>
+
+        <p v-else class="text-muted-foreground">No active language yet.</p>
     </div>
 </template>

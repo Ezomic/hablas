@@ -3,18 +3,15 @@
 namespace App\Actions;
 
 use App\Enums\CefrLevel;
-use App\Models\Language;
-use App\Models\User;
 use App\Models\UserSkillLevel;
+use Illuminate\Support\Collection;
 
 class ComputeBlendedCefrLevel
 {
-    public function handle(User $user, Language $language): ?CefrLevel
+    /** @param  Collection<int, UserSkillLevel>  $skillLevels */
+    public function handle(Collection $skillLevels): ?CefrLevel
     {
-        $levels = $user->skillLevels()
-            ->where('language_id', $language->id)
-            ->get()
-            ->map(fn (UserSkillLevel $skillLevel): CefrLevel => $skillLevel->cefr_level);
+        $levels = $skillLevels->map(fn (UserSkillLevel $skillLevel): CefrLevel => $skillLevel->cefr_level);
 
         if ($levels->isEmpty()) {
             return null;
