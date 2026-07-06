@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\LearningController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Auth\Middleware\RequirePassword;
@@ -24,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
+
+    Route::get('settings/learning', [LearningController::class, 'edit'])->name('learning.edit');
+    Route::patch('settings/learning', [LearningController::class, 'update'])->name('learning.update');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

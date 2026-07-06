@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Settings\GetUserSettings;
 use App\Models\Language;
 use App\Models\SrsCard;
 use App\Models\User;
@@ -11,11 +12,8 @@ use App\Models\User;
  * their due-review backlog grows so they clear reviews before piling on more
  * new material, and automatically back up once the backlog clears (the cap is
  * computed fresh from the current due count on every call — no separate
- * throttle-state is persisted).
- *
- * Does not yet account for a per-user override (planned for THI-193's
- * user_settings table) — that will layer a check in front of this once it
- * exists.
+ * throttle-state is persisted). An explicit per-user override in their
+ * settings always takes precedence over the computed cap.
  */
 class AdaptiveNewItemCap
 {
@@ -31,6 +29,12 @@ class AdaptiveNewItemCap
 
     public function forUser(User $user, Language $language): int
     {
+        $override = (new GetUserSettings)->handle($user)->new_item_cap_override;
+
+        if ($override !== null) {
+            return $override;
+        }
+
         $dueCount = $this->dueCardCount($user, $language);
 
         return match (true) {

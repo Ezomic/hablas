@@ -3,6 +3,7 @@
 use App\Models\Language;
 use App\Models\SrsCard;
 use App\Models\User;
+use App\Models\UserSetting;
 use App\Models\VocabularyItem;
 use App\Services\AdaptiveNewItemCap;
 use Carbon\CarbonImmutable;
@@ -95,6 +96,28 @@ it('does not count weak-spot cards toward the backlog', function () {
     createDueSrsCardsForAdaptiveCapTest($user, $language, 60, CarbonImmutable::now(), isWeakSpot: true);
 
     expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(10);
+});
+
+it('lets an explicit user override take precedence over the computed cap', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+    createDueSrsCardsForAdaptiveCapTest($user, $language, 100, CarbonImmutable::now());
+    UserSetting::factory()->create(['user_id' => $user->id, 'new_item_cap_override' => 25]);
+
+    expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(25);
+});
+
+it('falls back to the computed cap once the override is cleared', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+    createDueSrsCardsForAdaptiveCapTest($user, $language, 50, CarbonImmutable::now());
+    $settings = UserSetting::factory()->create(['user_id' => $user->id, 'new_item_cap_override' => 25]);
+
+    expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(25);
+
+    $settings->update(['new_item_cap_override' => null]);
+
+    expect((new AdaptiveNewItemCap)->forUser($user, $language))->toBe(5);
 });
 
 it('scopes the backlog to the given user', function () {

@@ -74,4 +74,10 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(WeeklyReflection::class);
     }
+
+    /** @return HasOne<UserSetting, $this> */
+    public function settings(): HasOne
+    {
+        return $this->hasOne(UserSetting::class);
+    }
 }
