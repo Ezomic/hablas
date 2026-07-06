@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4200cd3f292dcf2ebcc4e7f31119ca94",
+    "content-hash": "2ed570604cc5fd87ed1d8d93e1dddcc3",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -4492,6 +4492,59 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.3"
             },
             "time": "2026-06-18T03:57:49+00:00"
+        },
+        {
+            "name": "scottlaurent/fsrs",
+            "version": "v0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/scottlaurent/FSRS.git",
+                "reference": "d661d94ef3233c94ba3b294d2499eca160fa789c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/scottlaurent/FSRS/zipball/d661d94ef3233c94ba3b294d2499eca160fa789c",
+                "reference": "d661d94ef3233c94ba3b294d2499eca160fa789c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1|^8.2|^8.3"
+            },
+            "require-dev": {
+                "fakerphp/faker": "^1.23",
+                "mockery/mockery": "^1.6.0",
+                "phpunit/phpunit": "^9.0|^10.0|^11.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Tests\\": "tests/",
+                    "Scottlaurent\\FSRS\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Scott Laurent",
+                    "email": "scott@baselineapplications.com"
+                }
+            ],
+            "description": "Free Spaced Repetition Scheduler (FSRS) Algorithm Implementation for PHP",
+            "keywords": [
+                "fsrs",
+                "learning",
+                "memory",
+                "scheduler",
+                "spaced repetition"
+            ],
+            "support": {
+                "issues": "https://github.com/scottlaurent/FSRS/issues",
+                "source": "https://github.com/scottlaurent/FSRS/tree/v0.1"
+            },
+            "time": "2025-08-11T00:46:36+00:00"
         },
         {
             "name": "spomky-labs/cbor-php",
