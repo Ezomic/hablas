@@ -24,6 +24,7 @@ class UserSettingFactory extends Factory
             'notification_frequency' => NotificationFrequency::Daily,
             'new_item_cap_override' => null,
             'context_emphasis' => null,
+            'last_digest_sent_at' => null,
         ];
     }
 }
