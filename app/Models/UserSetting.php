@@ -17,10 +17,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property NotificationFrequency $notification_frequency
  * @property int|null $new_item_cap_override
  * @property ContextTag|null $context_emphasis
+ * @property CarbonImmutable|null $last_digest_sent_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['user_id', 'notification_frequency', 'new_item_cap_override', 'context_emphasis'])]
+#[Fillable(['user_id', 'notification_frequency', 'new_item_cap_override', 'context_emphasis', 'last_digest_sent_at'])]
 class UserSetting extends Model
 {
     /** @use HasFactory<UserSettingFactory> */
@@ -31,6 +32,7 @@ class UserSetting extends Model
         return [
             'notification_frequency' => NotificationFrequency::class,
             'context_emphasis' => ContextTag::class,
+            'last_digest_sent_at' => 'datetime',
         ];
     }
 
