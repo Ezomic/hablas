@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command(SendDailyDigests::class)->dailyAt('08:00');
+Schedule::command(SendDailyDigests::class)->dailyAt('08:00')->withoutOverlapping();

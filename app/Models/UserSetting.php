@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['user_id', 'notification_frequency', 'new_item_cap_override', 'context_emphasis', 'last_digest_sent_at'])]
+#[Fillable(['user_id', 'notification_frequency', 'new_item_cap_override', 'context_emphasis'])]
 class UserSetting extends Model
 {
     /** @use HasFactory<UserSettingFactory> */
