@@ -36,14 +36,6 @@ class PortugueseTextNormalizer
     }
 
     /**
-     * Accent-folds, then collapses whitespace — for exact-string comparisons.
-     */
-    public function collapseWhitespace(string $text): string
-    {
-        return preg_replace('/\s+/', ' ', $this->foldAccents($text)) ?? '';
-    }
-
-    /**
      * Accent-folds, strips punctuation, and splits into unique words — for
      * word-overlap style matching.
      *

@@ -17,12 +17,6 @@ it('does not fold ç to c, since they are distinct Portuguese phonemes', functio
     expect($normalizer->foldAccents('AÇÃO'))->toBe('ação');
 });
 
-it('collapses whitespace after folding accents', function () {
-    $normalizer = new PortugueseTextNormalizer;
-
-    expect($normalizer->collapseWhitespace('  Está   bem  '))->toBe('esta bem');
-});
-
 it('splits into unique normalized words, stripping punctuation', function () {
     $normalizer = new PortugueseTextNormalizer;
 
