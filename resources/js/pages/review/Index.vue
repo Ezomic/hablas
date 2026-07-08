@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getCsrfToken } from '@/lib/csrf';
+import { useOfflineSync } from '@/composables/useOfflineSync';
 import { store as storeReview } from '@/routes/review/reviews';
 
 interface ReviewCard {
@@ -24,10 +24,13 @@ defineOptions({
     },
 });
 
+const { submitOrQueue } = useOfflineSync();
+
 const queue = ref([...props.cards]);
 const revealed = ref(false);
 const isSubmitting = ref(false);
 const submitFailed = ref(false);
+const queuedOffline = ref(false);
 
 const ratings: { value: Rating; label: string }[] = [
     { value: 'again', label: 'Again' },
@@ -47,17 +50,19 @@ async function rate(rating: Rating) {
     submitFailed.value = false;
 
     try {
-        const response = await fetch(storeReview(card.id).url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken(),
-            },
-            body: JSON.stringify({ rating }),
+        const result = await submitOrQueue(storeReview(card.id).url, {
+            rating,
         });
 
-        if (!response.ok) {
+        if (result.queued) {
+            queuedOffline.value = true;
+            queue.value.shift();
+            revealed.value = false;
+
+            return;
+        }
+
+        if (!result.response.ok) {
             submitFailed.value = true;
 
             return;
@@ -76,6 +81,11 @@ async function rate(rating: Rating) {
 
     <div class="mx-auto flex max-w-xl flex-col gap-6 p-4">
         <h1 class="text-2xl font-semibold">Review</h1>
+
+        <p v-if="queuedOffline" class="text-sm text-muted-foreground">
+            You're offline — ratings are saved and will sync once you're back
+            online.
+        </p>
 
         <Card v-if="queue[0]">
             <CardHeader>

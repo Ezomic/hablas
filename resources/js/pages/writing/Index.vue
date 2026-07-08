@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { getCsrfToken } from '@/lib/csrf';
+import { useOfflineSync } from '@/composables/useOfflineSync';
 import { store as storeAttempt } from '@/routes/writing/attempts';
 
 interface Exercise {
@@ -25,8 +25,11 @@ defineOptions({
     },
 });
 
+const { submitOrQueue } = useOfflineSync();
+
 const response = ref('');
 const isCorrect = ref<boolean | null>(null);
+const isQueued = ref(false);
 const isSubmitting = ref(false);
 
 async function submit() {
@@ -35,19 +38,23 @@ async function submit() {
     }
 
     isSubmitting.value = true;
+    isQueued.value = false;
 
     try {
-        const result = await fetch(storeAttempt(props.exercise.id).url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken(),
-            },
-            body: JSON.stringify({ response: response.value }),
-        });
+        const result = await submitOrQueue(
+            storeAttempt(props.exercise.id).url,
+            { response: response.value },
+        );
 
-        const data = (await result.json()) as { is_correct: boolean };
+        if (result.queued) {
+            isQueued.value = true;
+
+            return;
+        }
+
+        const data = (await result.response.json()) as {
+            is_correct: boolean;
+        };
         isCorrect.value = data.is_correct;
     } finally {
         isSubmitting.value = false;
@@ -89,8 +96,12 @@ async function submit() {
                     Submit
                 </Button>
 
+                <p v-if="isQueued" class="text-sm text-muted-foreground">
+                    You're offline — this answer is saved and will be graded
+                    once you're back online.
+                </p>
                 <p
-                    v-if="isCorrect === true"
+                    v-else-if="isCorrect === true"
                     class="text-lg font-medium text-green-600 dark:text-green-500"
                 >
                     ¡Correcto!

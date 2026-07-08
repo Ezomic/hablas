@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getCsrfToken } from '@/lib/csrf';
+import { useOfflineSync } from '@/composables/useOfflineSync';
 import { store as storeAttempt } from '@/routes/scripted-prompts/attempts';
 
 interface Exercise {
@@ -21,11 +21,14 @@ defineOptions({
     },
 });
 
+const { submitOrQueue } = useOfflineSync();
+
 const isSupported =
     'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
 const isRecording = ref(false);
 const transcriptGuess = ref<string | null>(null);
 const score = ref<number | null>(null);
+const isQueued = ref(false);
 const errorMessage = ref<string | null>(null);
 
 function startRecording() {
@@ -42,6 +45,7 @@ function startRecording() {
 
     errorMessage.value = null;
     score.value = null;
+    isQueued.value = false;
     transcriptGuess.value = null;
 
     const recognition = new SpeechRecognitionCtor();
@@ -72,17 +76,17 @@ async function submitAttempt() {
         return;
     }
 
-    const response = await fetch(storeAttempt(props.exercise.id).url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-XSRF-TOKEN': getCsrfToken(),
-        },
-        body: JSON.stringify({ transcript_guess: transcriptGuess.value }),
+    const result = await submitOrQueue(storeAttempt(props.exercise.id).url, {
+        transcript_guess: transcriptGuess.value,
     });
 
-    const data = (await response.json()) as { score: number };
+    if (result.queued) {
+        isQueued.value = true;
+
+        return;
+    }
+
+    const data = (await result.response.json()) as { score: number };
     score.value = data.score;
 }
 </script>
@@ -109,7 +113,11 @@ async function submitAttempt() {
                 <p v-if="transcriptGuess" class="text-sm text-muted-foreground">
                     You said: "{{ transcriptGuess }}"
                 </p>
-                <p v-if="score !== null" class="text-lg font-medium">
+                <p v-if="isQueued" class="text-sm text-muted-foreground">
+                    You're offline — this attempt is saved and will be scored
+                    once you're back online.
+                </p>
+                <p v-else-if="score !== null" class="text-lg font-medium">
                     Keyword match: {{ score }}%
                 </p>
                 <p
