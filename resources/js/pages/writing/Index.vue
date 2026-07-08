@@ -31,6 +31,7 @@ const response = ref('');
 const isCorrect = ref<boolean | null>(null);
 const isQueued = ref(false);
 const isSubmitting = ref(false);
+const submitFailed = ref(false);
 
 async function submit() {
     if (!props.exercise || !response.value) {
@@ -39,6 +40,7 @@ async function submit() {
 
     isSubmitting.value = true;
     isQueued.value = false;
+    submitFailed.value = false;
 
     try {
         const result = await submitOrQueue(
@@ -48,6 +50,12 @@ async function submit() {
 
         if (result.queued) {
             isQueued.value = true;
+
+            return;
+        }
+
+        if (!result.response.ok) {
+            submitFailed.value = true;
 
             return;
         }
@@ -111,6 +119,12 @@ async function submit() {
                     class="text-lg font-medium text-red-600 dark:text-red-500"
                 >
                     Not quite — try again.
+                </p>
+                <p
+                    v-if="submitFailed"
+                    class="text-sm font-medium text-red-600 dark:text-red-500"
+                >
+                    Couldn't submit that answer — try again.
                 </p>
             </CardContent>
         </Card>

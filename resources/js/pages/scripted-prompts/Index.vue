@@ -86,6 +86,12 @@ async function submitAttempt() {
         return;
     }
 
+    if (!result.response.ok) {
+        errorMessage.value = "Couldn't submit that attempt. Try again.";
+
+        return;
+    }
+
     const data = (await result.response.json()) as { score: number };
     score.value = data.score;
 }

@@ -48,6 +48,7 @@ async function rate(rating: Rating) {
 
     isSubmitting.value = true;
     submitFailed.value = false;
+    queuedOffline.value = false;
 
     try {
         const result = await submitOrQueue(storeReview(card.id).url, {

@@ -21,6 +21,18 @@ function postJson(url: string, body: string): Promise<Response> {
     });
 }
 
+// Web Locks isn't supported in every browser (or test environment) — fall
+// back to running the callback unguarded rather than throwing.
+async function withReplayLock(callback: () => Promise<void>): Promise<void> {
+    if (!navigator.locks) {
+        await callback();
+
+        return;
+    }
+
+    await navigator.locks.request('hablas-offline-replay', callback);
+}
+
 /**
  * Submits a POST as JSON, falling back to an IndexedDB queue when offline
  * (or when the request fails outright) rather than losing the attempt. The
@@ -30,26 +42,30 @@ export function useOfflineSync() {
     const isOnline = ref(navigator.onLine);
 
     async function replayQueue(): Promise<void> {
-        const pending = await getPendingSubmissions();
+        // Guards against two tabs both reconnecting and racing to replay the
+        // same queued rows before either has deleted them.
+        await withReplayLock(async () => {
+            const pending = await getPendingSubmissions();
 
-        for (const submission of pending) {
-            try {
-                const response = await postJson(
-                    submission.url,
-                    submission.body,
-                );
+            for (const submission of pending) {
+                try {
+                    const response = await postJson(
+                        submission.url,
+                        submission.body,
+                    );
 
-                if (!response.ok) {
+                    if (!response.ok) {
+                        break;
+                    }
+
+                    await removePendingSubmission(submission.id);
+                } catch {
+                    // Still offline, or the request failed again — stop here
+                    // rather than replaying out of order.
                     break;
                 }
-
-                await removePendingSubmission(submission.id);
-            } catch {
-                // Still offline, or the request failed again — stop here
-                // rather than replaying out of order.
-                break;
             }
-        }
+        });
     }
 
     async function submitOrQueue(
