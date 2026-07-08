@@ -26,6 +26,7 @@ class PlacementTestController extends Controller
 
         return Inertia::render('placement/Index', [
             'items' => $items,
+            'language' => ['code' => $language->code, 'name' => $language->name],
         ]);
     }
 

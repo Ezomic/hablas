@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
+import { activatePortuguese } from '@/routes/language';
 import { index as reviewIndex } from '@/routes/review';
 import type { LanguageOption } from '@/types';
 
@@ -39,9 +40,14 @@ interface Props {
     dueReviewCount?: number;
     sessionNeedsRemediation?: boolean;
     nextUnit?: NextUnit | null;
+    canActivatePortuguese?: boolean;
 }
 
 const props = defineProps<Props>();
+
+function activatePortugueseTrack() {
+    router.post(activatePortuguese().url);
+}
 
 defineOptions({
     layout: {
@@ -107,6 +113,24 @@ function pluralizeDays(count: number): string {
         </Card>
 
         <p v-else class="text-muted-foreground">No active language yet.</p>
+
+        <Card v-if="props.canActivatePortuguese">
+            <CardHeader>
+                <CardDescription>New language unlocked</CardDescription>
+                <CardTitle class="text-2xl"
+                    >Ready to start Portuguese?</CardTitle
+                >
+            </CardHeader>
+            <CardContent class="flex flex-col gap-4">
+                <p class="text-sm text-muted-foreground">
+                    You've reached A2 in Spanish. Portuguese shares a lot with
+                    Spanish, but we'll flag the differences as you go.
+                </p>
+                <Button @click="activatePortugueseTrack"
+                    >Start learning Portuguese</Button
+                >
+            </CardContent>
+        </Card>
 
         <Card v-if="props.sessionNeedsRemediation">
             <CardHeader>
