@@ -34,10 +34,15 @@ class Language extends Model
      * The single active language for Milestone 1 (Spanish). Centralizes the
      * "how do we resolve the current language" question so it only needs to
      * change in one place if that ever becomes per-user.
+     *
+     * Ordered by id so this stays deterministic even if more than one row
+     * is ever active at once (e.g. after a second language is unlocked
+     * without deactivating the first) — see THI-297 for the underlying
+     * per-user-vs-global activation gap this papers over.
      */
     public static function active(): ?self
     {
-        return static::query()->where('is_active', true)->first();
+        return static::query()->where('is_active', true)->orderBy('id')->first();
     }
 
     /** @return HasMany<UserSkillLevel, $this> */

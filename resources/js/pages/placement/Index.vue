@@ -17,6 +17,7 @@ interface PlacementTestItem {
 
 const props = defineProps<{
     items: PlacementTestItem[];
+    language: { code: string; name: string };
 }>();
 
 defineOptions({
@@ -50,11 +51,13 @@ function skipTest() {
 </script>
 
 <template>
-    <Head title="Spanish placement test" />
+    <Head :title="`${props.language.name} placement test`" />
 
     <div class="mx-auto flex max-w-2xl flex-col gap-8 p-4">
         <div>
-            <h1 class="text-2xl font-semibold">Spanish placement test</h1>
+            <h1 class="text-2xl font-semibold">
+                {{ props.language.name }} placement test
+            </h1>
             <p class="mt-1 text-muted-foreground">
                 Answer as many as you can. This sets your starting CEFR level
                 for reading, listening, speaking, and writing separately.

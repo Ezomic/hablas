@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ComputeBlendedCefrLevel;
 use App\Actions\GetUserSkillLevels;
+use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\SelectNextUnit;
 use App\Actions\Srs\EvaluateSessionHealth;
@@ -25,9 +26,11 @@ class DashboardController extends Controller
         GetCurrentLanguage $getCurrentLanguage,
         EvaluateSessionHealth $evaluateSessionHealth,
         SelectNextUnit $selectNextUnit,
+        EvaluatePortugueseActivationEligibility $evaluatePortugueseActivationEligibility,
     ): Response {
         $language = $getCurrentLanguage->handle($request->user());
         $streak = $reconcileStreak->handle($request->user());
+        $canActivatePortuguese = $evaluatePortugueseActivationEligibility->handle($request->user());
 
         $streakProp = [
             'currentLength' => $streak->current_length,
@@ -36,7 +39,12 @@ class DashboardController extends Controller
         ];
 
         if ($language === null) {
-            return Inertia::render('Dashboard', ['language' => null, 'streak' => $streakProp, 'dueReviewCount' => 0]);
+            return Inertia::render('Dashboard', [
+                'language' => null,
+                'streak' => $streakProp,
+                'dueReviewCount' => 0,
+                'canActivatePortuguese' => $canActivatePortuguese,
+            ]);
         }
 
         $skillLevels = $getUserSkillLevels->handle($request->user(), $language);
@@ -57,6 +65,7 @@ class DashboardController extends Controller
                 'title' => $nextUnit->title,
                 'taskDescription' => $nextUnit->task_description,
             ],
+            'canActivatePortuguese' => $canActivatePortuguese,
         ]);
     }
 }

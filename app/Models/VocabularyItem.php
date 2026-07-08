@@ -19,10 +19,11 @@ use Illuminate\Support\Carbon;
  * @property bool $is_cognate
  * @property string $part_of_speech
  * @property string|null $audio_url
+ * @property string|null $contrast_note
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['language_id', 'unit_id', 'term', 'translation_en', 'is_cognate', 'part_of_speech', 'audio_url'])]
+#[Fillable(['language_id', 'unit_id', 'term', 'translation_en', 'is_cognate', 'part_of_speech', 'audio_url', 'contrast_note'])]
 class VocabularyItem extends Model
 {
     /** @use HasFactory<VocabularyItemFactory> */

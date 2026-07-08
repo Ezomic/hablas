@@ -17,8 +17,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(LanguageSeeder::class);
         $this->call(SpanishA1Seeder::class);
+        $this->call(PortugueseA1Seeder::class);
         $this->call(PlacementTestSeeder::class);
+        $this->call(PortuguesePlacementTestSeeder::class);
         $this->call(ShadowingExerciseSeeder::class);
+        $this->call(PronunciationDrillExerciseSeeder::class);
         $this->call(ScriptedPromptExerciseSeeder::class);
         $this->call(WritingExerciseSeeder::class);
         $this->call(CefrCanDoStatementSeeder::class);

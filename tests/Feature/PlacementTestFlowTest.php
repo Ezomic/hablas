@@ -42,7 +42,9 @@ it('renders the placement test page with items for the active language', functio
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('placement/Index')
-            ->has('items', 3),
+            ->has('items', 3)
+            ->where('language.code', 'es')
+            ->where('language.name', 'Spanish'),
         );
 });
 

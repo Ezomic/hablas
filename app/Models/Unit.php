@@ -24,10 +24,11 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property string $task_description
  * @property int $sort_order
+ * @property string|null $contrast_note
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['language_id', 'slug', 'cefr_level', 'context_tag', 'primary_skill', 'secondary_skill', 'title', 'task_description', 'sort_order'])]
+#[Fillable(['language_id', 'slug', 'cefr_level', 'context_tag', 'primary_skill', 'secondary_skill', 'title', 'task_description', 'sort_order', 'contrast_note'])]
 class Unit extends Model
 {
     /** @use HasFactory<UnitFactory> */
