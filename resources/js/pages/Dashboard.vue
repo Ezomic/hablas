@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
+import { show as showProgressShare } from '@/routes/progress/share';
 import { index as reviewIndex } from '@/routes/review';
 import type { LanguageOption } from '@/types';
 
@@ -198,6 +199,20 @@ function pluralizeDays(count: number): string {
                     >Freeze days remaining:
                     {{ props.streak.freezeDaysRemaining }}</span
                 >
+            </CardContent>
+        </Card>
+
+        <Card v-if="props.language">
+            <CardHeader>
+                <CardDescription>Share</CardDescription>
+                <CardTitle class="text-2xl">Share your progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Button as-child variant="outline">
+                    <Link :href="showProgressShare().url"
+                        >Get shareable link</Link
+                    >
+                </Button>
             </CardContent>
         </Card>
     </div>

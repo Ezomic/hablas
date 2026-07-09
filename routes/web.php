@@ -22,3 +22,4 @@ require __DIR__.'/review.php';
 require __DIR__.'/language.php';
 require __DIR__.'/scripted-prompts.php';
 require __DIR__.'/pronunciation-drills.php';
+require __DIR__.'/progress.php';
