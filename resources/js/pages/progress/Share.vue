@@ -11,6 +11,7 @@ import { regenerate } from '@/routes/progress/share';
 const props = defineProps<{
     snapshot: ProgressSnapshot | null;
     shareUrl: string | null;
+    languageId: number | null;
 }>();
 
 defineOptions({
@@ -33,8 +34,15 @@ async function copyLink() {
 }
 
 function regenerateLink() {
-    copied.value = false;
-    router.post(regenerate().url, {}, { preserveScroll: true });
+    if (props.languageId === null) {
+        return;
+    }
+
+    router.post(
+        regenerate().url,
+        { language_id: props.languageId },
+        { preserveScroll: true },
+    );
 }
 </script>
 

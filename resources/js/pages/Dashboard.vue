@@ -15,6 +15,8 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { pluralizeDays } from '@/lib/pluralize';
+import { skillLabels } from '@/lib/skillLabels';
 import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
 import { show as showProgressShare } from '@/routes/progress/share';
@@ -61,18 +63,7 @@ defineOptions({
     },
 });
 
-const skillLabels: Record<string, string> = {
-    reading: 'Reading',
-    listening: 'Listening',
-    speaking: 'Speaking',
-    writing: 'Writing',
-};
-
 const breakdownOpen = ref(false);
-
-function pluralizeDays(count: number): string {
-    return count === 1 ? 'day' : 'days';
-}
 </script>
 
 <template>

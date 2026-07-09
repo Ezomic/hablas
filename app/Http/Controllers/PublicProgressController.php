@@ -11,9 +11,8 @@ class PublicProgressController extends Controller
 {
     public function show(string $token, BuildProgressSnapshot $buildProgressSnapshot): Response
     {
-        $share = ProgressShare::query()
+        $share = ProgressShare::active()
             ->where('token', $token)
-            ->whereNull('revoked_at')
             ->firstOrFail();
 
         return Inertia::render('progress/Public', [

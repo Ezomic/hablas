@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\CarbonImmutable;
 use Database\Factories\ProgressShareFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,5 +43,15 @@ class ProgressShare extends Model
     public function language(): BelongsTo
     {
         return $this->belongsTo(Language::class);
+    }
+
+    /**
+     * @param  Builder<ProgressShare>  $query
+     * @return Builder<ProgressShare>
+     */
+    #[Scope]
+    protected function active(Builder $query): Builder
+    {
+        return $query->whereNull('revoked_at');
     }
 }

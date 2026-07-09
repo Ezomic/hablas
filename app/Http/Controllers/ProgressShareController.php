@@ -6,7 +6,8 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Progress\BuildProgressSnapshot;
 use App\Actions\Progress\GetOrCreateProgressShare;
 use App\Actions\Progress\RevokeProgressShare;
-use App\Models\ProgressShare;
+use App\Http\Requests\Progress\RegenerateProgressShareRequest;
+use App\Models\Language;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -23,7 +24,7 @@ class ProgressShareController extends Controller
         $language = $getCurrentLanguage->handle($request->user());
 
         if ($language === null) {
-            return Inertia::render('progress/Share', ['snapshot' => null, 'shareUrl' => null]);
+            return Inertia::render('progress/Share', ['snapshot' => null, 'shareUrl' => null, 'languageId' => null]);
         }
 
         $share = $getOrCreateProgressShare->handle($request->user(), $language);
@@ -31,31 +32,25 @@ class ProgressShareController extends Controller
         return Inertia::render('progress/Share', [
             'snapshot' => $buildProgressSnapshot->handle($request->user(), $language),
             'shareUrl' => route('progress.public', $share->token),
+            'languageId' => $language->id,
         ]);
     }
 
+    /**
+     * Acts on the language_id the Share page actually has on screen, rather
+     * than re-resolving "current language" — the user's current language can
+     * change (another tab, a switch mid-visit) between loading the page and
+     * clicking regenerate, and this must invalidate the link they were
+     * looking at, not whichever language happens to be current now.
+     */
     public function regenerate(
-        Request $request,
-        GetCurrentLanguage $getCurrentLanguage,
+        RegenerateProgressShareRequest $request,
         RevokeProgressShare $revokeProgressShare,
         GetOrCreateProgressShare $getOrCreateProgressShare,
     ): RedirectResponse {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = Language::query()->where('id', $request->validated('language_id'))->firstOrFail();
 
-        if ($language === null) {
-            return back();
-        }
-
-        $existing = ProgressShare::query()
-            ->where('user_id', $request->user()->id)
-            ->where('language_id', $language->id)
-            ->whereNull('revoked_at')
-            ->first();
-
-        if ($existing !== null) {
-            $revokeProgressShare->handle($existing);
-        }
-
+        $revokeProgressShare->handle($request->user(), $language);
         $getOrCreateProgressShare->handle($request->user(), $language);
 
         return to_route('progress.share.show');

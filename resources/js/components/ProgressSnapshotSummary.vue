@@ -6,6 +6,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { pluralizeDays } from '@/lib/pluralize';
+import { skillLabels } from '@/lib/skillLabels';
 
 export interface ProgressSnapshot {
     language: { code: string; name: string };
@@ -20,13 +22,6 @@ defineProps<{
     snapshot: ProgressSnapshot;
 }>();
 
-const skillLabels: Record<string, string> = {
-    reading: 'Reading',
-    listening: 'Listening',
-    speaking: 'Speaking',
-    writing: 'Writing',
-};
-
 const errorTagLabels: Record<string, string> = {
     wrong_gender: 'Wrong gender',
     ser_estar_confusion: 'Ser/estar confusion',
@@ -35,10 +30,6 @@ const errorTagLabels: Record<string, string> = {
     portunol_slip: 'Portuñol slip',
     other: 'Other',
 };
-
-function pluralizeDays(count: number): string {
-    return count === 1 ? 'day' : 'days';
-}
 </script>
 
 <template>

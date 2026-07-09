@@ -85,3 +85,32 @@ it('returns a zero percentage without a division error when the language has no 
         ->and($snapshot['blendedLevel'])->toBeNull()
         ->and($snapshot['topErrorTags'])->toBe([]);
 });
+
+it('returns zero streak values without creating a row for a user who has never had one', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+
+    $snapshot = (new BuildProgressSnapshot)->handle($user, $language);
+
+    expect($snapshot['streak'])->toBe(['currentLength' => 0, 'longestLength' => 0])
+        ->and(Streak::query()->where('user_id', $user->id)->exists())->toBeFalse();
+});
+
+it('reads the streak without reconciling or persisting a change to it', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 7,
+        'longest_length' => 7,
+        'freeze_days_remaining' => 0,
+        // 10 days stale with no freeze days left — ReconcileStreak would
+        // reset current_length to 0 if this action called it.
+        'last_activity_date' => now()->subDays(10),
+    ]);
+
+    $snapshot = (new BuildProgressSnapshot)->handle($user, $language);
+
+    expect($snapshot['streak'])->toBe(['currentLength' => 7, 'longestLength' => 7])
+        ->and(Streak::query()->where('user_id', $user->id)->sole()->current_length)->toBe(7);
+});
