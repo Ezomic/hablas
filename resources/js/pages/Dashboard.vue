@@ -15,8 +15,11 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { pluralizeDays } from '@/lib/pluralize';
+import { skillLabels } from '@/lib/skillLabels';
 import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
+import { show as showProgressShare } from '@/routes/progress/share';
 import { index as reviewIndex } from '@/routes/review';
 import type { LanguageOption } from '@/types';
 
@@ -60,18 +63,7 @@ defineOptions({
     },
 });
 
-const skillLabels: Record<string, string> = {
-    reading: 'Reading',
-    listening: 'Listening',
-    speaking: 'Speaking',
-    writing: 'Writing',
-};
-
 const breakdownOpen = ref(false);
-
-function pluralizeDays(count: number): string {
-    return count === 1 ? 'day' : 'days';
-}
 </script>
 
 <template>
@@ -198,6 +190,20 @@ function pluralizeDays(count: number): string {
                     >Freeze days remaining:
                     {{ props.streak.freezeDaysRemaining }}</span
                 >
+            </CardContent>
+        </Card>
+
+        <Card v-if="props.language">
+            <CardHeader>
+                <CardDescription>Share</CardDescription>
+                <CardTitle class="text-2xl">Share your progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Button as-child variant="outline">
+                    <Link :href="showProgressShare().url"
+                        >Get shareable link</Link
+                    >
+                </Button>
             </CardContent>
         </Card>
     </div>
