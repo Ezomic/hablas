@@ -55,13 +55,18 @@ self.addEventListener('notificationclick', (event) => {
     const url =
         (event.notification.data as { url?: string } | undefined)?.url ??
         '/dashboard';
+    // clients.matchAll() always returns absolute client.url values, while the
+    // notification payload's url is a relative path — resolve both against
+    // the SW's own origin before comparing, or an already-open tab is never
+    // matched and a duplicate tab opens on every click.
+    const absoluteUrl = new URL(url, self.location.origin).href;
 
     event.waitUntil(
         self.clients
             .matchAll({ type: 'window', includeUncontrolled: true })
             .then((clientList) => {
                 for (const client of clientList) {
-                    if (client.url === url && 'focus' in client) {
+                    if (client.url === absoluteUrl && 'focus' in client) {
                         return client.focus();
                     }
                 }

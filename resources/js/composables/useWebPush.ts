@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { getCsrfToken } from '@/lib/csrf';
+import { fetchJson } from '@/lib/http';
 import { destroy, store } from '@/routes/push-subscriptions';
 
 // Web push subscriptions require the VAPID public key as a Uint8Array, but
@@ -63,24 +63,28 @@ export function useWebPush(vapidPublicKey: string) {
                 applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
             });
 
-            const response = await fetch(store().url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-XSRF-TOKEN': getCsrfToken(),
-                },
-                body: JSON.stringify(toSubscriptionPayload(subscription)),
-            });
+            const response = await fetchJson(
+                store().url,
+                'POST',
+                JSON.stringify(toSubscriptionPayload(subscription)),
+            );
 
             if (!response.ok) {
+                // The browser subscription itself already succeeded — leaving
+                // it in place with no server-side record would orphan it, so
+                // roll it back rather than silently drifting out of sync.
+                await subscription.unsubscribe();
                 error.value = 'Failed to save the push subscription.';
 
                 return false;
             }
 
             return true;
-        } catch {
+        } catch (caughtError) {
+            console.error(
+                'Failed to subscribe to push notifications:',
+                caughtError,
+            );
             error.value = 'Failed to subscribe to push notifications.';
 
             return false;
@@ -107,19 +111,25 @@ export function useWebPush(vapidPublicKey: string) {
                 const endpoint = subscription.endpoint;
                 await subscription.unsubscribe();
 
-                await fetch(destroy().url, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-XSRF-TOKEN': getCsrfToken(),
-                    },
-                    body: JSON.stringify({ endpoint }),
-                });
+                const response = await fetchJson(
+                    destroy().url,
+                    'DELETE',
+                    JSON.stringify({ endpoint }),
+                );
+
+                if (!response.ok) {
+                    error.value = 'Failed to remove the push subscription.';
+
+                    return false;
+                }
             }
 
             return true;
-        } catch {
+        } catch (caughtError) {
+            console.error(
+                'Failed to unsubscribe from push notifications:',
+                caughtError,
+            );
             error.value = 'Failed to unsubscribe from push notifications.';
 
             return false;

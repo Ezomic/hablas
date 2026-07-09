@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\DestroyPushSubscriptionRequest;
 use App\Http\Requests\Settings\StorePushSubscriptionRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class PushSubscriptionController extends Controller
 {
@@ -20,11 +20,9 @@ class PushSubscriptionController extends Controller
         return response()->json(['subscribed' => true]);
     }
 
-    public function destroy(Request $request): JsonResponse
+    public function destroy(DestroyPushSubscriptionRequest $request): JsonResponse
     {
-        $request->validate(['endpoint' => ['required', 'string', 'max:500']]);
-
-        $request->user()->deletePushSubscription($request->string('endpoint')->toString());
+        $request->user()->deletePushSubscription($request->validated('endpoint'));
 
         return response()->json(['subscribed' => false]);
     }

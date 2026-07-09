@@ -41,10 +41,10 @@ class DailyDigestNotification extends Notification implements ShouldQueue
             ->greeting("Hi {$notifiable->name},");
 
         if ($this->dueReviewCount > 0) {
-            $message->line("You have {$this->dueReviewCount} review ".Str::plural('card', $this->dueReviewCount).' due.');
+            $message->line("You have {$this->dueReviewPhrase()} due.");
         }
 
-        $message->line("Current streak: {$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength).'.');
+        $message->line("Current streak: {$this->streakPhrase()}.");
 
         if ($this->hasUnsubmittedWeeklyReflection) {
             $message->line("You haven't submitted this week's reflection yet.");
@@ -56,12 +56,22 @@ class DailyDigestNotification extends Notification implements ShouldQueue
     public function toWebPush(User $notifiable): WebPushMessage
     {
         $body = $this->dueReviewCount > 0
-            ? "{$this->dueReviewCount} review ".Str::plural('card', $this->dueReviewCount).' due · '."{$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength).' streak'
-            : "{$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength).' streak';
+            ? "{$this->dueReviewPhrase()} due · {$this->streakPhrase()} streak"
+            : "{$this->streakPhrase()} streak";
 
         return (new WebPushMessage)
             ->title("Your {$this->languageName} learning digest")
             ->body($body)
             ->data(['url' => '/dashboard']);
+    }
+
+    private function dueReviewPhrase(): string
+    {
+        return "{$this->dueReviewCount} review ".Str::plural('card', $this->dueReviewCount);
+    }
+
+    private function streakPhrase(): string
+    {
+        return "{$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength);
     }
 }

@@ -74,3 +74,11 @@ it('does not delete another users push subscription', function () {
 
     expect(PushSubscription::query()->where('endpoint', 'https://fcm.googleapis.com/fcm/send/other')->exists())->toBeTrue();
 });
+
+it('rejects a delete request missing an endpoint', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->deleteJson(route('push-subscriptions.destroy'), [])
+        ->assertInvalid(['endpoint']);
+});
