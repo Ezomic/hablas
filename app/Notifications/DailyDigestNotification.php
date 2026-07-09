@@ -8,6 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class DailyDigestNotification extends Notification implements ShouldQueue
 {
@@ -20,10 +22,16 @@ class DailyDigestNotification extends Notification implements ShouldQueue
         private readonly bool $hasUnsubmittedWeeklyReflection,
     ) {}
 
-    /** @return list<string> */
-    public function via(object $notifiable): array
+    /** @return list<string|class-string> */
+    public function via(User $notifiable): array
     {
-        return ['mail'];
+        $channels = ['mail'];
+
+        if ($notifiable->pushSubscriptions()->exists()) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        return $channels;
     }
 
     public function toMail(User $notifiable): MailMessage
@@ -43,5 +51,17 @@ class DailyDigestNotification extends Notification implements ShouldQueue
         }
 
         return $message->action('Open Hablas', url('/dashboard'));
+    }
+
+    public function toWebPush(User $notifiable): WebPushMessage
+    {
+        $body = $this->dueReviewCount > 0
+            ? "{$this->dueReviewCount} review ".Str::plural('card', $this->dueReviewCount).' due · '."{$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength).' streak'
+            : "{$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength).' streak';
+
+        return (new WebPushMessage)
+            ->title("Your {$this->languageName} learning digest")
+            ->body($body)
+            ->data(['url' => '/dashboard']);
     }
 }

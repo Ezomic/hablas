@@ -38,6 +38,16 @@ export default defineConfig({
             // 'auto' injection to modify — register the SW ourselves via
             // virtual:pwa-register/vue in app.ts instead.
             injectRegister: false,
+            // Web push (THI-300) needs a `push`/`notificationclick` listener
+            // in the service worker itself. generateSW's `workbox.importScripts`
+            // exists but the vite-plugin-pwa maintainers explicitly steer
+            // custom SW logic toward injectManifest instead — it hands over
+            // authoring the SW file (resources/sw-src/sw.ts), and the plugin
+            // just injects the precache manifest into it, rather than
+            // generating the whole file from workbox config as before.
+            strategies: 'injectManifest',
+            srcDir: 'resources/sw-src',
+            filename: 'sw.ts',
             // Laravel serves static files from public/, but laravel-vite-plugin
             // builds assets into public/build/ — a service worker registered
             // from there could only ever control /build/* by default (browsers
@@ -59,36 +69,13 @@ export default defineConfig({
                 start_url: '/dashboard',
                 icons: [],
             },
-            workbox: {
+            injectManifest: {
                 // Precache only the built static assets (JS/CSS/fonts) so the
                 // app shell can boot offline — server-rendered page HTML is
-                // handled separately via runtime caching below, since each
+                // handled separately via runtime caching in sw.ts, since each
                 // route's HTML embeds page-specific Inertia props rather than
                 // being a single static index.html a typical SPA would have.
                 globPatterns: ['**/*.{js,css,woff,woff2}'],
-                // generateSW assumes a single-page app by default and installs
-                // a NavigationRoute that intercepts every navigation FIRST,
-                // trying to serve a precached "index.html" — this app has no
-                // such file (every route gets its own server-rendered HTML),
-                // so that default route always fails and, worse, runs ahead
-                // of the runtimeCaching rule below, since Workbox matches
-                // routes in registration order. Disabling it lets our own
-                // NetworkFirst rule actually handle navigation requests.
-                navigateFallback: null,
-                runtimeCaching: [
-                    {
-                        // Cache the last-seen render of each visited page so
-                        // it can be revisited offline, falling back to the
-                        // network first since page data should stay fresh
-                        // whenever connectivity is available.
-                        urlPattern: ({ request }) => request.mode === 'navigate',
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'pages',
-                            networkTimeoutSeconds: 3,
-                        },
-                    },
-                ],
             },
         }),
     ],

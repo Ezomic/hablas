@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useWebPush } from '@/composables/useWebPush';
 import { edit, update } from '@/routes/learning';
 import { update as updateInterests } from '@/routes/learning/interests';
 
@@ -30,6 +31,8 @@ const props = defineProps<{
     settings: Settings;
     interestTags: InterestTag[];
     availableInterestTags: InterestTag[];
+    pushEnabled: boolean;
+    vapidPublicKey: string | null;
 }>();
 
 defineOptions({
@@ -119,6 +122,23 @@ function toggleInterest(tag: InterestTag, checked: boolean) {
 function submitInterests() {
     interestsForm.patch(updateInterests().url, { preserveScroll: true });
 }
+
+const pushEnabled = ref(props.pushEnabled);
+const webPush = props.vapidPublicKey ? useWebPush(props.vapidPublicKey) : null;
+
+async function togglePush(checked: boolean) {
+    if (!webPush) {
+        return;
+    }
+
+    const succeeded = checked
+        ? await webPush.subscribe()
+        : await webPush.unsubscribe();
+
+    if (succeeded) {
+        pushEnabled.value = checked;
+    }
+}
 </script>
 
 <template>
@@ -202,6 +222,27 @@ function submitInterests() {
                 <Button :disabled="form.processing" type="submit">Save</Button>
             </div>
         </form>
+
+        <div v-if="webPush" class="flex flex-col gap-2">
+            <Label>Push notifications</Label>
+            <p class="text-sm text-muted-foreground">
+                Get a browser notification for your daily digest instead of (or
+                alongside) email.
+            </p>
+            <div class="flex items-center gap-3 pt-2">
+                <Checkbox
+                    id="push-enabled"
+                    :model-value="pushEnabled"
+                    :disabled="webPush.isSubscribing.value"
+                    @update:model-value="
+                        (checked: boolean | 'indeterminate') =>
+                            togglePush(checked === true)
+                    "
+                />
+                <Label for="push-enabled">Enable push notifications</Label>
+            </div>
+            <InputError :message="webPush.error.value ?? undefined" />
+        </div>
 
         <form class="flex flex-col gap-6" @submit.prevent="submitInterests">
             <div class="grid gap-2">
