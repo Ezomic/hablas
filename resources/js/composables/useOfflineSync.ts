@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted, ref } from 'vue';
-import { getCsrfToken } from '@/lib/csrf';
+import { fetchJson } from '@/lib/http';
 import {
     getPendingSubmissions,
     queuePendingSubmission,
@@ -10,15 +10,7 @@ export type SubmitResult =
     { queued: true } | { queued: false; response: Response };
 
 function postJson(url: string, body: string): Promise<Response> {
-    return fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-XSRF-TOKEN': getCsrfToken(),
-        },
-        body,
-    });
+    return fetchJson(url, 'POST', body);
 }
 
 // Web Locks isn't supported in every browser (or test environment) — fall

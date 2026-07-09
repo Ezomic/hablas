@@ -29,6 +29,8 @@ class LearningController extends Controller
             'interestTags' => $request->user()->interestPreferences()->get()
                 ->map(fn ($preference): string => $preference->interest_tag->value),
             'availableInterestTags' => collect(InterestTag::cases())->map(fn (InterestTag $tag): string => $tag->value),
+            'pushEnabled' => $request->user()->pushSubscriptions()->exists(),
+            'vapidPublicKey' => config('webpush.vapid.public_key'),
         ]);
     }
 
