@@ -22,6 +22,13 @@ class GetCurrentLanguage
             return $current;
         }
 
-        return $user->unlockedLanguages()->orderBy('user_languages.created_at')->first();
+        // Ordered by created_at then id — the id tiebreak keeps this
+        // deterministic when two unlocks land in the same second (e.g. the
+        // one-time backfill migration inserts several rows for the same
+        // user with an identical timestamp).
+        return $user->unlockedLanguages()
+            ->orderBy('user_languages.created_at')
+            ->orderBy('user_languages.id')
+            ->first();
     }
 }

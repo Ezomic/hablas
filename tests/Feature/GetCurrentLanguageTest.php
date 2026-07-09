@@ -4,6 +4,7 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Models\Language;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 it('returns the user\'s explicitly selected language when it is unlocked for them', function () {
     $spanish = Language::factory()->create();
@@ -52,4 +53,19 @@ it('does not resolve a language unlocked only by a different user', function () 
     $user = User::factory()->create(['current_language_id' => null]);
 
     expect((new GetCurrentLanguage)->handle($user))->toBeNull();
+});
+
+it('deterministically picks the lower id when two unlocks share the same timestamp', function () {
+    $spanish = Language::factory()->create();
+    $portuguese = Language::factory()->create();
+    $user = User::factory()->create(['current_language_id' => null]);
+
+    $now = now();
+    CarbonImmutable::setTestNow($now);
+    (new UnlockLanguageForUser)->handle($user, $spanish);
+    (new UnlockLanguageForUser)->handle($user, $portuguese);
+    CarbonImmutable::setTestNow();
+
+    expect($user->unlockedLanguages()->where('user_languages.created_at', $now)->count())->toBe(2)
+        ->and((new GetCurrentLanguage)->handle($user)?->id)->toBe($spanish->id);
 });

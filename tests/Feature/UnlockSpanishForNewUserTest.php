@@ -24,6 +24,16 @@ it('unlocks Spanish for the newly registered user', function () {
     expect($user->unlockedLanguages()->where('languages.id', $spanish->id)->exists())->toBeTrue();
 });
 
+it('also sets Spanish as the user\'s current language', function () {
+    $this->seed(LanguageSeeder::class);
+    $spanish = Language::query()->where('code', 'es')->sole();
+    $user = User::create(['name' => 'New User', 'email' => 'new@example.com', 'password' => Hash::make('password')]);
+
+    (new UnlockSpanishForNewUser)->handle(new Registered($user));
+
+    expect($user->fresh()->current_language_id)->toBe($spanish->id);
+});
+
 it('does not unlock Spanish for any other user', function () {
     $this->seed(LanguageSeeder::class);
     $spanish = Language::query()->where('code', 'es')->sole();

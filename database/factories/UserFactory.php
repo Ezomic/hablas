@@ -39,10 +39,13 @@ class UserFactory extends Factory
     }
 
     /**
-     * Mirrors UnlockSpanishForNewUser's production behavior, so tests that
-     * create a plain factory user keep resolving Spanish the way real
-     * registered users do — a no-op if Spanish hasn't been seeded in that
-     * test's DB state.
+     * Mirrors the unlock half of UnlockSpanishForNewUser's production
+     * behavior, so tests that create a plain factory user keep resolving
+     * Spanish the way real registered users do — a no-op if Spanish hasn't
+     * been seeded in that test's DB state. Deliberately doesn't also set
+     * current_language_id like the listener does, since many tests pass an
+     * explicit current_language_id override that this would otherwise
+     * clobber.
      */
     public function configure(): static
     {

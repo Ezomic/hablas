@@ -40,5 +40,6 @@ it('unlocks Spanish for a newly registered user', function () {
 
     $user = User::query()->where('email', 'test@example.com')->sole();
 
-    expect($user->unlockedLanguages()->where('languages.id', $spanish->id)->exists())->toBeTrue();
+    expect($user->unlockedLanguages()->where('languages.id', $spanish->id)->exists())->toBeTrue()
+        ->and($user->current_language_id)->toBe($spanish->id);
 });

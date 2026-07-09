@@ -67,11 +67,26 @@ it('shares the current and available languages with every Inertia page', functio
         'completed_at' => now(),
     ]);
 
+    // Each entry must be a plain {id, code, name} shape, not a raw
+    // pivot-model dump — Eloquent's BelongsToMany attaches a `pivot`
+    // sub-object to every hydrated model even when specific columns are
+    // selected. Asserting only id/code/name here (without ->etc()) makes
+    // Laravel's fluent JSON assertion fail if a `pivot` key is present.
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertInertia(fn ($page) => $page
             ->where('currentLanguage.id', $spanish->id)
-            ->has('availableLanguages', 2),
+            ->has('availableLanguages', 2)
+            ->has('availableLanguages.0', fn ($language) => $language
+                ->whereType('id', 'integer')
+                ->whereType('code', 'string')
+                ->whereType('name', 'string'),
+            )
+            ->has('availableLanguages.1', fn ($language) => $language
+                ->whereType('id', 'integer')
+                ->whereType('code', 'string')
+                ->whereType('name', 'string'),
+            ),
         );
 });
 
