@@ -11,12 +11,12 @@ beforeEach(function () {
     $this->user = User::factory()->create();
 });
 
-it('flips Portuguese to active', function () {
-    expect($this->portuguese->is_active)->toBeFalse();
+it('unlocks Portuguese for the user', function () {
+    expect($this->user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeFalse();
 
     (new ActivatePortuguese)->handle($this->user);
 
-    expect($this->portuguese->fresh()->is_active)->toBeTrue();
+    expect($this->user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeTrue();
 });
 
 it('switches the user\'s current language to Portuguese', function () {
@@ -35,6 +35,14 @@ it('does not error when called twice', function () {
     (new ActivatePortuguese)->handle($this->user);
     (new ActivatePortuguese)->handle($this->user);
 
-    expect($this->portuguese->fresh()->is_active)->toBeTrue()
+    expect($this->user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->count())->toBe(1)
         ->and($this->user->fresh()->current_language_id)->toBe($this->portuguese->id);
+});
+
+it('does not unlock Portuguese for a different user', function () {
+    $otherUser = User::factory()->create();
+
+    (new ActivatePortuguese)->handle($this->user);
+
+    expect($otherUser->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeFalse();
 });

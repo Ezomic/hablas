@@ -14,12 +14,12 @@ class LanguageSeeder extends Seeder
     {
         Language::query()->updateOrCreate(
             ['code' => 'es'],
-            ['name' => 'Spanish', 'is_active' => true],
+            ['name' => 'Spanish'],
         );
 
         Language::query()->updateOrCreate(
             ['code' => 'pt'],
-            ['name' => 'Portuguese', 'is_active' => false],
+            ['name' => 'Portuguese'],
         );
     }
 }

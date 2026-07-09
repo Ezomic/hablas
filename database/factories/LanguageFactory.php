@@ -20,7 +20,6 @@ class LanguageFactory extends Factory
         return [
             'code' => $this->faker->unique()->languageCode(),
             'name' => $this->faker->unique()->word(),
-            'is_active' => true,
         ];
     }
 }

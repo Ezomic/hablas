@@ -47,7 +47,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentLanguage' => $user ? (new GetCurrentLanguage)->handle($user) : null,
-            'availableLanguages' => $user ? Language::query()->where('is_active', true)->get(['id', 'code', 'name']) : [],
+            'availableLanguages' => $user
+                ? $user->unlockedLanguages()
+                    ->get(['languages.id', 'languages.code', 'languages.name'])
+                    ->map(fn (Language $language): array => ['id' => $language->id, 'code' => $language->code, 'name' => $language->name])
+                : [],
         ];
     }
 }

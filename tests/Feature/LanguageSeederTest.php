@@ -3,14 +3,14 @@
 use App\Models\Language;
 use Database\Seeders\LanguageSeeder;
 
-it('seeds spanish as active and portuguese as inactive', function () {
+it('seeds spanish and portuguese', function () {
     $this->seed(LanguageSeeder::class);
 
     $spanish = Language::query()->where('code', 'es')->sole();
     $portuguese = Language::query()->where('code', 'pt')->sole();
 
-    expect($spanish->is_active)->toBeTrue()
-        ->and($portuguese->is_active)->toBeFalse();
+    expect($spanish->name)->toBe('Spanish')
+        ->and($portuguese->name)->toBe('Portuguese');
 });
 
 it('is idempotent when run twice', function () {

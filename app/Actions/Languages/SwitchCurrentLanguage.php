@@ -8,13 +8,13 @@ use App\Models\User;
 class SwitchCurrentLanguage
 {
     /**
-     * Trusts the caller to have already validated that $languageId refers to
-     * an active language (see UpdateCurrentLanguageRequest) rather than
-     * re-checking is_active here.
+     * Scopes the lookup through the user's own unlocked languages rather
+     * than trusting the caller to have validated ownership — naturally
+     * 404s if $languageId isn't unlocked for this specific user.
      */
     public function handle(User $user, int $languageId): Language
     {
-        $language = Language::query()->where('id', $languageId)->firstOrFail();
+        $language = $user->unlockedLanguages()->where('languages.id', $languageId)->firstOrFail();
 
         $user->forceFill(['current_language_id' => $language->id])->save();
 
