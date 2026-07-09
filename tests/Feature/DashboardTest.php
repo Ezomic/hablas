@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Languages\UnlockLanguageForUser;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
 use App\Enums\SrsRating;
@@ -26,8 +27,9 @@ it('allows authenticated users to visit the dashboard', function () {
 });
 
 it('shows the blended headline level and per-skill breakdown for the active language', function () {
-    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish', 'is_active' => true]);
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
     PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,
@@ -52,8 +54,9 @@ it('shows the blended headline level and per-skill breakdown for the active lang
 });
 
 it('shows the count of due review cards for the active language', function () {
-    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish', 'is_active' => true]);
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
     PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,
@@ -78,8 +81,9 @@ it('shows the count of due review cards for the active language', function () {
 });
 
 it('surfaces the next unit when the session is healthy', function () {
-    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish', 'is_active' => true]);
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
     PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,
@@ -99,8 +103,9 @@ it('surfaces the next unit when the session is healthy', function () {
 });
 
 it('shows a remediation prompt instead of the next unit when the session is unhealthy', function () {
-    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish', 'is_active' => true]);
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
     PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,

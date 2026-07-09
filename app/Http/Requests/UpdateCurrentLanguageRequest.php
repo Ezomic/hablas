@@ -24,7 +24,7 @@ class UpdateCurrentLanguageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'language_id' => ['required', 'integer', Rule::exists('languages', 'id')->where('is_active', true)],
+            'language_id' => ['required', 'integer', Rule::exists('user_languages', 'language_id')->where('user_id', $this->user()->id)],
         ];
     }
 }

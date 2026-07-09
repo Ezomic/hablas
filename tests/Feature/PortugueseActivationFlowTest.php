@@ -29,7 +29,7 @@ it('activates Portuguese for a user with a Spanish blended level of A2 or above'
         ->post(route('language.activate-portuguese'))
         ->assertRedirect(route('dashboard'));
 
-    expect($this->portuguese->fresh()->is_active)->toBeTrue()
+    expect($user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeTrue()
         ->and($user->fresh()->current_language_id)->toBe($this->portuguese->id);
 });
 
@@ -48,7 +48,7 @@ it('forbids activation for a user below A2 in Spanish', function () {
         ->post(route('language.activate-portuguese'))
         ->assertForbidden();
 
-    expect($this->portuguese->fresh()->is_active)->toBeFalse();
+    expect($user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeFalse();
 });
 
 it('exposes canActivatePortuguese as true on the dashboard once eligible', function () {

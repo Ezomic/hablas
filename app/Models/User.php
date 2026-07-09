@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -93,5 +94,17 @@ class User extends Authenticatable implements PasskeyUser
     public function interestPreferences(): HasMany
     {
         return $this->hasMany(UserInterestPreference::class);
+    }
+
+    /**
+     * Languages this specific user has unlocked — replaces the old global
+     * Language.is_active flag, which leaked one user's activation to
+     * everyone (see THI-297).
+     *
+     * @return BelongsToMany<Language, $this>
+     */
+    public function unlockedLanguages(): BelongsToMany
+    {
+        return $this->belongsToMany(Language::class, 'user_languages')->withTimestamps();
     }
 }

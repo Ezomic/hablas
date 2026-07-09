@@ -20,7 +20,7 @@ class EvaluatePortugueseActivationEligibility
     {
         $portuguese = Language::query()->where('code', 'pt')->first();
 
-        if ($portuguese === null || $portuguese->is_active) {
+        if ($portuguese === null || $user->unlockedLanguages()->where('languages.id', $portuguese->id)->exists()) {
             return false;
         }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Languages\UnlockLanguageForUser;
 use App\Models\Language;
 use App\Models\PronunciationDrillAttempt;
 use App\Models\PronunciationDrillExercise;
@@ -9,7 +10,6 @@ use Database\Seeders\LanguageSeeder;
 beforeEach(function () {
     $this->seed(LanguageSeeder::class);
     $this->portuguese = Language::query()->where('code', 'pt')->sole();
-    $this->portuguese->forceFill(['is_active' => true])->save();
 });
 
 it('renders the pronunciation-drills page with an exercise for the active language', function () {
@@ -20,6 +20,7 @@ it('renders the pronunciation-drills page with an exercise for the active langua
         'target_word' => 'pão',
     ]);
     $user = User::factory()->create(['current_language_id' => $this->portuguese->id]);
+    (new UnlockLanguageForUser)->handle($user, $this->portuguese);
 
     $this->actingAs($user)
         ->get(route('pronunciation-drills.index'))
@@ -34,6 +35,7 @@ it('prefers an exercise the user has not already attempted', function () {
     $attempted = PronunciationDrillExercise::factory()->create(['language_id' => $this->portuguese->id]);
     $fresh = PronunciationDrillExercise::factory()->create(['language_id' => $this->portuguese->id]);
     $user = User::factory()->create(['current_language_id' => $this->portuguese->id]);
+    (new UnlockLanguageForUser)->handle($user, $this->portuguese);
 
     PronunciationDrillAttempt::factory()->create([
         'user_id' => $user->id,
@@ -49,6 +51,7 @@ it('prefers an exercise the user has not already attempted', function () {
 
 it('renders a graceful empty state when no exercises exist', function () {
     $user = User::factory()->create(['current_language_id' => $this->portuguese->id]);
+    (new UnlockLanguageForUser)->handle($user, $this->portuguese);
 
     $this->actingAs($user)
         ->get(route('pronunciation-drills.index'))
@@ -67,6 +70,7 @@ it('scores a submitted attempt and returns it as json', function () {
         'target_word' => 'pão',
     ]);
     $user = User::factory()->create(['current_language_id' => $this->portuguese->id]);
+    (new UnlockLanguageForUser)->handle($user, $this->portuguese);
 
     $response = $this->actingAs($user)
         ->postJson(route('pronunciation-drills.attempts.store', $exercise), ['transcript_guess' => 'pão']);
@@ -79,6 +83,7 @@ it('scores a submitted attempt and returns it as json', function () {
 it('rejects an attempt with no transcript', function () {
     $exercise = PronunciationDrillExercise::factory()->create(['language_id' => $this->portuguese->id]);
     $user = User::factory()->create(['current_language_id' => $this->portuguese->id]);
+    (new UnlockLanguageForUser)->handle($user, $this->portuguese);
 
     $this->actingAs($user)
         ->postJson(route('pronunciation-drills.attempts.store', $exercise), [])

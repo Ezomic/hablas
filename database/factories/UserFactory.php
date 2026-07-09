@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Actions\Languages\UnlockLanguageForUser;
+use App\Models\Language;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +36,23 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    /**
+     * Mirrors UnlockSpanishForNewUser's production behavior, so tests that
+     * create a plain factory user keep resolving Spanish the way real
+     * registered users do — a no-op if Spanish hasn't been seeded in that
+     * test's DB state.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $spanish = Language::query()->where('code', 'es')->first();
+
+            if ($spanish !== null) {
+                (new UnlockLanguageForUser)->handle($user, $spanish);
+            }
+        });
     }
 
     /**
