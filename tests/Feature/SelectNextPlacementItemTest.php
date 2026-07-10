@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Placement\DeriveCurrentPlacementTier;
 use App\Actions\Placement\SelectNextPlacementItem;
 use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
@@ -102,4 +103,22 @@ it('never returns an item from a different skill', function () {
     $selected = (new SelectNextPlacementItem)->handle($attempt, Skill::Reading);
 
     expect($selected)->toBeNull();
+});
+
+it('selects an item at exactly the tier DeriveCurrentPlacementTier independently derives', function () {
+    $language = Language::factory()->create();
+    $attempt = PlacementTestAttempt::factory()->create(['language_id' => $language->id]);
+    // Two correct answers: A1.3 -> A2.1 -> A2.2.
+    PlacementTestResponse::factory()->count(2)->create([
+        'attempt_id' => $attempt->id,
+        'skill' => Skill::Reading,
+        'is_correct' => true,
+    ]);
+    PlacementTestItem::factory()->tier(CefrSubLevel::A2_2)->create(['language_id' => $language->id, 'skill' => Skill::Reading]);
+
+    $derivedTier = (new DeriveCurrentPlacementTier)->handle($attempt, Skill::Reading);
+    $selected = (new SelectNextPlacementItem)->handle($attempt, Skill::Reading);
+
+    expect($derivedTier)->toBe(CefrSubLevel::A2_2)
+        ->and($selected?->cefr_sublevel_tag)->toBe($derivedTier);
 });

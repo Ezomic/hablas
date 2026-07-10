@@ -6,7 +6,6 @@ use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
-use App\Models\PlacementTestResponse;
 use Illuminate\Support\Collection;
 
 class SelectNextPlacementItem
@@ -28,38 +27,35 @@ class SelectNextPlacementItem
             return null;
         }
 
-        if ($this->hasSettled($responses)) {
+        // Single replay shared by both the settlement check and the tier
+        // lookup below — DeriveCurrentPlacementTier is the one place that
+        // knows the starting tier and step semantics, so nothing here
+        // duplicates that walk or its starting point.
+        $tierSequence = (new DeriveCurrentPlacementTier)->tierSequence($responses);
+
+        if ($this->hasSettled($tierSequence)) {
             return null;
         }
 
-        $tier = (new DeriveCurrentPlacementTier)->handle($attempt, $skill);
+        $tier = $tierSequence === [] ? DeriveCurrentPlacementTier::STARTING_TIER : end($tierSequence);
         $answeredItemIds = $responses->pluck('item_id');
 
         return $this->findUnansweredItem($attempt->language_id, $skill, $tier, $answeredItemIds);
     }
 
     /**
-     * Walks the response history tracking each intermediate tier (not just
-     * the final one) and checks whether the last N tiers in that sequence
-     * are identical — i.e. the staircase has stopped moving.
+     * The staircase has stopped moving once the last N tiers in the
+     * sequence are identical.
      *
-     * @param  Collection<int, PlacementTestResponse>  $responses
+     * @param  list<CefrSubLevel>  $tierSequence
      */
-    private function hasSettled(Collection $responses): bool
+    private function hasSettled(array $tierSequence): bool
     {
-        if ($responses->count() < self::CONSECUTIVE_STOP_THRESHOLD) {
+        if (count($tierSequence) < self::CONSECUTIVE_STOP_THRESHOLD) {
             return false;
         }
 
-        $tier = CefrSubLevel::A1_3;
-        $tiersAfterEachResponse = [];
-
-        foreach ($responses as $response) {
-            $tier = $response->is_correct ? $tier->stepUp() : $tier->stepDown();
-            $tiersAfterEachResponse[] = $tier;
-        }
-
-        $lastN = array_slice($tiersAfterEachResponse, -self::CONSECUTIVE_STOP_THRESHOLD);
+        $lastN = array_slice($tierSequence, -self::CONSECUTIVE_STOP_THRESHOLD);
 
         return count(array_unique(array_map(fn (CefrSubLevel $t): string => $t->value, $lastN))) === 1;
     }

@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $language_id
  * @property Carbon $started_at
  * @property Carbon|null $completed_at
- * @property array<string, array{cefr_level: string, sub_level: string}>|null $resulting_skill_levels
+ * @property array<string, string>|array<string, array{cefr_level: string, sub_level: string}>|null $resulting_skill_levels Old attempts (ScorePlacementTest) wrote skill => CefrLevel string; new ones (FinalizePlacementAttempt) write skill => {cefr_level, sub_level}.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
