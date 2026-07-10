@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use Database\Factories\PlacementTestItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $prompt
  * @property array<int, string> $options
  * @property string $correct_answer
- * @property string $cefr_sublevel_tag
+ * @property CefrSubLevel $cefr_sublevel_tag
  * @property int $sort_order
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -33,6 +34,7 @@ class PlacementTestItem extends Model
         return [
             'skill' => Skill::class,
             'options' => 'array',
+            'cefr_sublevel_tag' => CefrSubLevel::class,
         ];
     }
 

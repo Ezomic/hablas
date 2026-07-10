@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $language_id
  * @property Carbon $started_at
  * @property Carbon|null $completed_at
- * @property array<string, string>|null $resulting_skill_levels
+ * @property array<string, array{cefr_level: string, sub_level: string}>|null $resulting_skill_levels
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -44,5 +45,11 @@ class PlacementTestAttempt extends Model
     public function language(): BelongsTo
     {
         return $this->belongsTo(Language::class);
+    }
+
+    /** @return HasMany<PlacementTestResponse, $this> */
+    public function responses(): HasMany
+    {
+        return $this->hasMany(PlacementTestResponse::class, 'attempt_id');
     }
 }
