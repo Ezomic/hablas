@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\PlacementTestItem;
@@ -27,8 +28,13 @@ class PlacementTestItemFactory extends Factory
             'prompt' => $this->faker->sentence().'?',
             'options' => $options,
             'correct_answer' => $options[0],
-            'cefr_sublevel_tag' => 'A1.1',
+            'cefr_sublevel_tag' => CefrSubLevel::A1_1,
             'sort_order' => $this->faker->numberBetween(1, 100),
         ];
+    }
+
+    public function tier(CefrSubLevel $tier): self
+    {
+        return $this->state(fn (array $attributes): array => ['cefr_sublevel_tag' => $tier]);
     }
 }
