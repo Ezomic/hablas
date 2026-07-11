@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\PlacementTestItem;
@@ -10,13 +11,29 @@ beforeEach(function () {
     $this->seed(LanguageSeeder::class);
 });
 
-it('seeds five items per skill for Portuguese', function () {
+it('seeds twenty items per skill for Portuguese, spanning all eight sub-level tiers', function () {
     $this->seed(PortuguesePlacementTestSeeder::class);
 
     $portuguese = Language::query()->where('code', 'pt')->sole();
 
     foreach (Skill::cases() as $skill) {
-        expect(PlacementTestItem::query()->where('language_id', $portuguese->id)->where('skill', $skill)->count())->toBe(5);
+        expect(PlacementTestItem::query()->where('language_id', $portuguese->id)->where('skill', $skill)->count())->toBe(20);
+    }
+
+    foreach (CefrSubLevel::cases() as $tier) {
+        expect(PlacementTestItem::query()->where('language_id', $portuguese->id)->where('cefr_sublevel_tag', $tier)->exists())->toBeTrue();
+    }
+});
+
+it('seeds exactly three items per skill for each of the five tiers beyond A1', function () {
+    $this->seed(PortuguesePlacementTestSeeder::class);
+
+    $portuguese = Language::query()->where('code', 'pt')->sole();
+
+    foreach ([CefrSubLevel::A2_1, CefrSubLevel::A2_2, CefrSubLevel::B1_1, CefrSubLevel::B1_2, CefrSubLevel::B2] as $tier) {
+        foreach (Skill::cases() as $skill) {
+            expect(PlacementTestItem::query()->where('language_id', $portuguese->id)->where('cefr_sublevel_tag', $tier)->where('skill', $skill)->count())->toBe(3);
+        }
     }
 });
 

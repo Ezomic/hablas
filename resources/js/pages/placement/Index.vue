@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Spinner } from '@/components/ui/spinner';
-import { skip, store } from '@/routes/placement';
+import { fetchJson } from '@/lib/http';
+import { dashboard } from '@/routes';
+import { answer, skip } from '@/routes/placement';
 
 interface PlacementTestItem {
     id: number;
     skill: string;
     prompt: string;
     options: string[];
-    sort_order: number;
 }
 
 const props = defineProps<{
-    items: PlacementTestItem[];
+    item: PlacementTestItem | null;
     language: { code: string; name: string };
 }>();
 
@@ -33,20 +35,54 @@ const skillLabels: Record<string, string> = {
     writing: 'Writing',
 };
 
-const form = useForm<{ responses: Record<number, string> }>({
-    responses: {},
-});
+const currentItem = ref(props.item);
+const selectedAnswer = ref<string | null>(null);
+const isSubmitting = ref(false);
+const submitFailed = ref(false);
 
-function itemsBySkill(skill: string) {
-    return props.items.filter((item) => item.skill === skill);
+async function submit() {
+    const item = currentItem.value;
+
+    if (!item || !selectedAnswer.value || isSubmitting.value) {
+        return;
+    }
+
+    isSubmitting.value = true;
+    submitFailed.value = false;
+
+    try {
+        const response = await fetchJson(
+            answer(item.id).url,
+            'POST',
+            JSON.stringify({ response: selectedAnswer.value }),
+        );
+
+        if (!response.ok) {
+            submitFailed.value = true;
+
+            return;
+        }
+
+        const payload = (await response.json()) as
+            { done: true } | { done: false; item: PlacementTestItem };
+
+        if (payload.done) {
+            router.visit(dashboard().url);
+
+            return;
+        }
+
+        currentItem.value = payload.item;
+        selectedAnswer.value = null;
+    } finally {
+        isSubmitting.value = false;
+    }
 }
 
-function submit() {
-    form.post(store().url);
-}
+const skipForm = useForm({});
 
 function skipTest() {
-    form.post(skip().url);
+    skipForm.post(skip().url);
 }
 </script>
 
@@ -59,57 +95,51 @@ function skipTest() {
                 {{ props.language.name }} placement test
             </h1>
             <p class="mt-1 text-muted-foreground">
-                Answer as many as you can. This sets your starting CEFR level
-                for reading, listening, speaking, and writing separately.
+                Answer each question — the next one adjusts to how you're doing.
+                This sets your starting CEFR level for reading, listening,
+                speaking, and writing separately.
             </p>
         </div>
 
-        <form class="flex flex-col gap-10" @submit.prevent="submit">
-            <div
-                v-for="skill in Object.keys(skillLabels)"
-                :key="skill"
-                class="flex flex-col gap-6"
-            >
-                <h2 class="text-lg font-medium">{{ skillLabels[skill] }}</h2>
+        <div v-if="currentItem" class="flex flex-col gap-6">
+            <h2 class="text-lg font-medium">
+                {{ skillLabels[currentItem.skill] ?? currentItem.skill }}
+            </h2>
 
-                <div
-                    v-for="item in itemsBySkill(skill)"
-                    :key="item.id"
-                    class="flex flex-col gap-3"
-                >
-                    <p class="font-medium">{{ item.prompt }}</p>
-                    <RadioGroup v-model="form.responses[item.id]">
-                        <div
-                            v-for="option in item.options"
-                            :key="option"
-                            class="flex items-center gap-2"
-                        >
-                            <RadioGroupItem
-                                :id="`item-${item.id}-${option}`"
-                                :value="option"
-                            />
-                            <Label :for="`item-${item.id}-${option}`">{{
-                                option
-                            }}</Label>
-                        </div>
-                    </RadioGroup>
-                </div>
+            <div class="flex flex-col gap-3">
+                <p class="font-medium">{{ currentItem.prompt }}</p>
+                <RadioGroup v-model="selectedAnswer">
+                    <div
+                        v-for="option in currentItem.options"
+                        :key="option"
+                        class="flex items-center gap-2"
+                    >
+                        <RadioGroupItem
+                            :id="`option-${option}`"
+                            :value="option"
+                        />
+                        <Label :for="`option-${option}`">{{ option }}</Label>
+                    </div>
+                </RadioGroup>
             </div>
 
-            <InputError :message="form.errors.responses" />
+            <InputError
+                v-if="submitFailed"
+                message="Couldn't save that answer — try again."
+            />
 
-            <Button type="submit" :disabled="form.processing">
-                <Spinner v-if="form.processing" />
-                See my results
+            <Button :disabled="!selectedAnswer || isSubmitting" @click="submit">
+                <Spinner v-if="isSubmitting" />
+                Next
             </Button>
-        </form>
+        </div>
 
         <div class="border-t pt-6 text-center text-sm text-muted-foreground">
             Not ready for a test?
             <button
                 type="button"
                 class="underline underline-offset-4"
-                :disabled="form.processing"
+                :disabled="skipForm.processing"
                 @click="skipTest"
             >
                 Skip and start at A1

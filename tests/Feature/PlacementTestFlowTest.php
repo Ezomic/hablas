@@ -1,10 +1,16 @@
 <?php
 
+use App\Actions\Placement\GetCurrentPlacementItem;
+use App\Enums\CefrLevel;
+use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
+use App\Models\PlacementTestResponse;
 use App\Models\User;
+use App\Models\UserSkillLevel;
 use Database\Seeders\LanguageSeeder;
+use Database\Seeders\PlacementTestSeeder;
 
 beforeEach(function () {
     $this->seed(LanguageSeeder::class);
@@ -33,8 +39,8 @@ it('allows access to the dashboard once the placement test is completed', functi
         ->assertOk();
 });
 
-it('renders the placement test page with items for the active language', function () {
-    PlacementTestItem::factory()->count(3)->create(['language_id' => $this->spanish->id]);
+it('renders the placement test page with the first item for the active language', function () {
+    $item = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -42,54 +48,132 @@ it('renders the placement test page with items for the active language', functio
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('placement/Index')
-            ->has('items', 3)
+            ->where('item.id', $item->id)
             ->where('language.code', 'es')
             ->where('language.name', 'Spanish'),
         );
 });
 
-it('scores the submission and redirects to the dashboard', function () {
-    $item = PlacementTestItem::factory()->create([
-        'language_id' => $this->spanish->id,
-        'correct_answer' => 'correct',
-    ]);
+it('resumes the same in-progress attempt instead of starting a new one', function () {
+    PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->post(route('placement.store'), [
-            'responses' => [$item->id => 'correct'],
-        ])
-        ->assertRedirect(route('dashboard'));
+    $this->actingAs($user)->get(route('placement.index'));
+    $this->actingAs($user)->get(route('placement.index'));
 
-    expect(PlacementTestAttempt::query()->where('user_id', $user->id)->exists())->toBeTrue();
+    expect(PlacementTestAttempt::query()->where('user_id', $user->id)->count())->toBe(1);
 });
 
-it('flashes a celebratory toast the first time a placement test sets a skill level', function () {
-    $item = PlacementTestItem::factory()->create([
-        'language_id' => $this->spanish->id,
-        'correct_answer' => 'correct',
-    ]);
+it('answers an item, receives the next item, and does not repeat items', function () {
+    $reading = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading, 'correct_answer' => 'right']);
+    $listening = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Listening, 'correct_answer' => 'right']);
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->post(route('placement.store'), [
-            'responses' => [$item->id => 'correct'],
-        ])
-        ->assertInertiaFlash('toast', [
-            'type' => 'milestone',
-            'message' => "You've reached A2 in Spanish!",
-        ]);
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $response = $this->actingAs($user)
+        ->postJson(route('placement.answer', $reading), ['response' => 'right'])
+        ->assertOk()
+        ->json();
+
+    expect($response['done'])->toBeFalse()
+        ->and($response['item']['id'])->toBe($listening->id);
 });
 
-it('rejects a submission with no responses and returns a clear error', function () {
-    PlacementTestItem::factory()->create(['language_id' => $this->spanish->id]);
+it('rejects answering an item that is not the currently-expected one', function () {
+    PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
+    $otherItem = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Listening]);
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->post(route('placement.store'), ['responses' => []])
-        ->assertSessionHasErrors('responses');
+    $this->actingAs($user)->get(route('placement.index'));
 
-    expect(PlacementTestAttempt::query()->where('user_id', $user->id)->exists())->toBeFalse();
+    $this->actingAs($user)
+        ->postJson(route('placement.answer', $otherItem), ['response' => 'anything'])
+        ->assertStatus(409);
+
+    expect(PlacementTestResponse::query()->count())->toBe(0);
+});
+
+it('completes all four skills, finalizes the attempt, and unlocks the dashboard', function () {
+    foreach (Skill::cases() as $skill) {
+        PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => $skill, 'correct_answer' => 'right']);
+    }
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $done = false;
+    $guard = 0;
+
+    while (! $done && $guard < 50) {
+        $attempt = PlacementTestAttempt::query()->where('user_id', $user->id)->sole();
+        $currentItem = (new GetCurrentPlacementItem)->handle($attempt);
+
+        if ($currentItem === null) {
+            break;
+        }
+
+        $response = $this->actingAs($user)
+            ->postJson(route('placement.answer', $currentItem), ['response' => $currentItem->correct_answer])
+            ->assertOk()
+            ->json();
+
+        $done = $response['done'];
+        $guard++;
+    }
+
+    expect($done)->toBeTrue();
+
+    $attempt = PlacementTestAttempt::query()->where('user_id', $user->id)->sole();
+    expect($attempt->completed_at)->not->toBeNull();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk();
+});
+
+it('flashes a celebratory toast when finishing the placement test raises the blended level', function () {
+    foreach (Skill::cases() as $skill) {
+        PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => $skill, 'correct_answer' => 'right']);
+    }
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $lastResponse = null;
+    $done = false;
+    $guard = 0;
+
+    while (! $done && $guard < 50) {
+        $attempt = PlacementTestAttempt::query()->where('user_id', $user->id)->sole();
+        $currentItem = (new GetCurrentPlacementItem)->handle($attempt);
+
+        if ($currentItem === null) {
+            break;
+        }
+
+        $lastResponse = $this->actingAs($user)
+            ->postJson(route('placement.answer', $currentItem), ['response' => $currentItem->correct_answer]);
+
+        $done = $lastResponse->json('done');
+        $guard++;
+    }
+
+    $lastResponse->assertInertiaFlash('toast', [
+        'type' => 'milestone',
+        'message' => "You've reached A2 in Spanish!",
+    ]);
+});
+
+it('rejects an answer request with no response', function () {
+    $item = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $this->actingAs($user)
+        ->postJson(route('placement.answer', $item), [])
+        ->assertInvalid(['response']);
 });
 
 it('lets a user skip the placement test and start at A1', function () {
@@ -100,4 +184,37 @@ it('lets a user skip the placement test and start at A1', function () {
         ->assertRedirect(route('dashboard'));
 
     expect(PlacementTestAttempt::query()->where('user_id', $user->id)->whereNotNull('completed_at')->exists())->toBeTrue();
+
+    foreach (Skill::cases() as $skill) {
+        expect(UserSkillLevel::query()->where('user_id', $user->id)->where('skill', $skill)->sole()->cefr_level)->toBe(CefrLevel::A1);
+    }
+});
+
+it('seeds a realistic item bank that a full staircase can walk through end to end', function () {
+    $this->seed(PlacementTestSeeder::class);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $done = false;
+    $guard = 0;
+
+    while (! $done && $guard < 50) {
+        $attempt = PlacementTestAttempt::query()->where('user_id', $user->id)->sole();
+        $currentItem = (new GetCurrentPlacementItem)->handle($attempt);
+
+        if ($currentItem === null) {
+            break;
+        }
+
+        $response = $this->actingAs($user)
+            ->postJson(route('placement.answer', $currentItem), ['response' => $currentItem->correct_answer])
+            ->assertOk()
+            ->json();
+
+        $done = $response['done'];
+        $guard++;
+    }
+
+    expect($done)->toBeTrue();
 });
