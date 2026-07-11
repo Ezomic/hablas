@@ -2,24 +2,31 @@
 
 namespace App\Actions\Placement;
 
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\UserSkillLevel;
+use Closure;
 use Illuminate\Support\Facades\DB;
 
 class FinalizePlacementAttempt
 {
-    public function handle(PlacementTestAttempt $attempt): PlacementTestAttempt
+    /**
+     * @param  (Closure(Skill): CefrSubLevel)|null  $resolveTier  Defaults to replaying the attempt's response history via DeriveCurrentPlacementTier. SkipPlacementTest passes a resolver that always returns the A1 floor instead.
+     */
+    public function handle(PlacementTestAttempt $attempt, ?Closure $resolveTier = null): PlacementTestAttempt
     {
+        $resolveTier ??= fn (Skill $skill): CefrSubLevel => (new DeriveCurrentPlacementTier)->handle($attempt, $skill);
+
         // Wrapped so a failure partway through never leaves some skills'
         // UserSkillLevel rows updated while others (and the attempt's own
         // completed_at) are not — either the whole finalization lands or
         // none of it does.
-        return DB::transaction(function () use ($attempt): PlacementTestAttempt {
+        return DB::transaction(function () use ($attempt, $resolveTier): PlacementTestAttempt {
             $resultingLevels = [];
 
             foreach (Skill::cases() as $skill) {
-                $tier = (new DeriveCurrentPlacementTier)->handle($attempt, $skill);
+                $tier = $resolveTier($skill);
 
                 $resultingLevels[$skill->value] = [
                     'cefr_level' => $tier->parentLevel()->value,

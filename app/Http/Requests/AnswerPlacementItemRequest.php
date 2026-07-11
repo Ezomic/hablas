@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorePlacementTestRequest extends FormRequest
+class AnswerPlacementItemRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +23,7 @@ class StorePlacementTestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'responses' => ['required', 'array'],
-            'responses.*' => ['required', 'string'],
+            'response' => ['required', 'string'],
         ];
     }
 
@@ -34,7 +33,7 @@ class StorePlacementTestRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'responses.required' => 'Answer at least one question before submitting.',
+            'response.required' => 'Select an answer before continuing.',
         ];
     }
 }
