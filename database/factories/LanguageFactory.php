@@ -17,8 +17,12 @@ class LanguageFactory extends Factory
      */
     public function definition(): array
     {
+        do {
+            $code = $this->faker->unique()->languageCode();
+        } while (in_array($code, ['es', 'pt'], true));
+
         return [
-            'code' => $this->faker->unique()->languageCode(),
+            'code' => $code,
             'name' => $this->faker->unique()->word(),
         ];
     }
