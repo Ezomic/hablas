@@ -26,4 +26,14 @@ class AnswerPlacementItemRequest extends FormRequest
             'response' => ['required', 'string'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'response.required' => 'Select an answer before continuing.',
+        ];
+    }
 }

@@ -12,6 +12,7 @@ use App\Actions\Placement\SkipPlacementTest;
 use App\Http\Requests\AnswerPlacementItemRequest;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class PlacementTestController extends Controller
         GetOrCreateInProgressPlacementAttempt $getOrCreateInProgressPlacementAttempt,
         GetCurrentPlacementItem $getCurrentPlacementItem,
         FinalizePlacementAttempt $finalizePlacementAttempt,
+        NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
     ): Response|RedirectResponse {
         $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
@@ -35,20 +37,20 @@ class PlacementTestController extends Controller
         if ($item === null) {
             // Every skill's staircase is already done but the attempt was
             // never finalized (e.g. the process died between the last
-            // answer and finalization) — finish it now rather than
-            // rendering a page with nothing to show.
-            $finalizePlacementAttempt->handle($attempt);
+            // answer and finalization) — finish it now, via the same
+            // notifier-wrapped path answer() uses, so a level-up here still
+            // shows the milestone toast rather than finalizing silently.
+            $notifyOnBlendedLevelIncrease->handle(
+                $request->user(),
+                $language,
+                fn () => $finalizePlacementAttempt->handle($attempt),
+            );
 
             return redirect()->route('dashboard');
         }
 
         return Inertia::render('placement/Index', [
-            'item' => [
-                'id' => $item->id,
-                'skill' => $item->skill->value,
-                'prompt' => $item->prompt,
-                'options' => $item->options,
-            ],
+            'item' => $this->serializeItem($item),
             'language' => ['code' => $language->code, 'name' => $language->name],
         ]);
     }
@@ -77,7 +79,15 @@ class PlacementTestController extends Controller
         $expected = $getCurrentPlacementItem->handle($attempt);
         abort_unless($expected?->id === $item->id, 409);
 
-        $recordPlacementResponse->handle($attempt, $item, $request->validated('response'));
+        try {
+            $recordPlacementResponse->handle($attempt, $item, $request->validated('response'));
+        } catch (UniqueConstraintViolationException) {
+            // A second, near-simultaneous submission for the same item lost
+            // the race to the unique(attempt_id, item_id) constraint — treat
+            // it the same as the spoofing/staleness guard above rather than
+            // surfacing a 500.
+            abort(409);
+        }
 
         $next = $getCurrentPlacementItem->handle($attempt);
 
@@ -93,12 +103,7 @@ class PlacementTestController extends Controller
 
         return response()->json([
             'done' => false,
-            'item' => [
-                'id' => $next->id,
-                'skill' => $next->skill->value,
-                'prompt' => $next->prompt,
-                'options' => $next->options,
-            ],
+            'item' => $this->serializeItem($next),
         ]);
     }
 
@@ -109,5 +114,16 @@ class PlacementTestController extends Controller
         $skipPlacementTest->handle($request->user(), $language);
 
         return redirect()->route('dashboard');
+    }
+
+    /** @return array{id: int, skill: string, prompt: string, options: array<int, string>} */
+    private function serializeItem(PlacementTestItem $item): array
+    {
+        return [
+            'id' => $item->id,
+            'skill' => $item->skill->value,
+            'prompt' => $item->prompt,
+            'options' => $item->options,
+        ];
     }
 }

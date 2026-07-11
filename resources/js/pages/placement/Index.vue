@@ -58,6 +58,15 @@ async function submit() {
         );
 
         if (!response.ok) {
+            if (response.status === 409) {
+                // Our local currentItem is stale (e.g. answered from another
+                // tab) — there's no valid "retry" for the same item id, so
+                // resync from the server instead of looping on the same 409.
+                router.reload();
+
+                return;
+            }
+
             submitFailed.value = true;
 
             return;

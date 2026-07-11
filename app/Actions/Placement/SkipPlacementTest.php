@@ -2,14 +2,10 @@
 
 namespace App\Actions\Placement;
 
-use App\Enums\CefrLevel;
 use App\Enums\CefrSubLevel;
-use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use App\Models\User;
-use App\Models\UserSkillLevel;
-use Illuminate\Support\Facades\DB;
 
 class SkipPlacementTest
 {
@@ -22,29 +18,8 @@ class SkipPlacementTest
      */
     public function handle(User $user, Language $language): PlacementTestAttempt
     {
-        return DB::transaction(function () use ($user, $language): PlacementTestAttempt {
-            $attempt = (new GetOrCreateInProgressPlacementAttempt)->handle($user, $language);
+        $attempt = (new GetOrCreateInProgressPlacementAttempt)->handle($user, $language);
 
-            $resultingLevels = [];
-
-            foreach (Skill::cases() as $skill) {
-                $resultingLevels[$skill->value] = [
-                    'cefr_level' => CefrLevel::A1->value,
-                    'sub_level' => CefrSubLevel::A1_1->value,
-                ];
-
-                UserSkillLevel::query()->updateOrCreate(
-                    ['user_id' => $user->id, 'language_id' => $language->id, 'skill' => $skill->value],
-                    ['cefr_level' => CefrLevel::A1->value],
-                );
-            }
-
-            $attempt->forceFill([
-                'completed_at' => now(),
-                'resulting_skill_levels' => $resultingLevels,
-            ])->save();
-
-            return $attempt;
-        });
+        return (new FinalizePlacementAttempt)->handle($attempt, fn () => CefrSubLevel::A1_1);
     }
 }
