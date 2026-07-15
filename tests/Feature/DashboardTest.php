@@ -53,6 +53,55 @@ it('shows the blended headline level and per-skill breakdown for the active lang
         );
 });
 
+it('explains the ceiling when a placement-only skill pins the blended level', function () {
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
+    $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
+    PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Reading, 'cefr_level' => CefrLevel::A1]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Listening, 'cefr_level' => CefrLevel::B1]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Speaking, 'cefr_level' => CefrLevel::B1]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Writing, 'cefr_level' => CefrLevel::B2]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('blendedLevel', CefrLevel::A1->value)
+            ->where('blendedLevelCeiling', [Skill::Reading->value]),
+        );
+});
+
+it('reports no ceiling when a practice-progressable skill is the floor', function () {
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
+    $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
+    PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Reading, 'cefr_level' => CefrLevel::B1]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Listening, 'cefr_level' => CefrLevel::B1]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Speaking, 'cefr_level' => CefrLevel::A2]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Writing, 'cefr_level' => CefrLevel::B2]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('blendedLevelCeiling', []),
+        );
+});
+
 it('shows the count of due review cards for the active language', function () {
     $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();

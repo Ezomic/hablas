@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Actions\ComputeBlendedCefrLevel;
 use App\Actions\GetUserSkillLevels;
+use App\Actions\IdentifyBlendedLevelCeiling;
 use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\SelectNextUnit;
 use App\Actions\Srs\EvaluateSessionHealth;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Streaks\ReconcileStreak;
+use App\Enums\Skill;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,6 +23,7 @@ class DashboardController extends Controller
         Request $request,
         GetUserSkillLevels $getUserSkillLevels,
         ComputeBlendedCefrLevel $computeBlendedCefrLevel,
+        IdentifyBlendedLevelCeiling $identifyBlendedLevelCeiling,
         ReconcileStreak $reconcileStreak,
         GetDueSrsCards $getDueSrsCards,
         GetCurrentLanguage $getCurrentLanguage,
@@ -54,6 +57,9 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'language' => ['code' => $language->code, 'name' => $language->name],
             'blendedLevel' => $computeBlendedCefrLevel->handle($skillLevels)?->value,
+            'blendedLevelCeiling' => $identifyBlendedLevelCeiling->handle($skillLevels)
+                ->map(fn (Skill $skill): string => $skill->value)
+                ->all(),
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ]),
