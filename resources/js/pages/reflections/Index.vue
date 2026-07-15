@@ -82,8 +82,10 @@ function submit() {
                     <CardContent class="flex items-center gap-3 py-4">
                         <Checkbox
                             :id="`statement-${statement.id}`"
-                            :checked="form.can_do_ids.includes(statement.id)"
-                            @update:checked="
+                            :model-value="
+                                form.can_do_ids.includes(statement.id)
+                            "
+                            @update:model-value="
                                 (checked: boolean | 'indeterminate') =>
                                     toggle(statement.id, checked === true)
                             "
