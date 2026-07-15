@@ -80,6 +80,30 @@ it('shows the count of due review cards for the active language', function () {
         );
 });
 
+it('shows the count of weak-spot cards for the active language', function () {
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
+    $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
+    PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+    SrsCard::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'is_weak_spot' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('weakSpotReviewCount', 1),
+        );
+});
+
 it('surfaces the next unit when the session is healthy', function () {
     $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();

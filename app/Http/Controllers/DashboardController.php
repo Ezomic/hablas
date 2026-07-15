@@ -9,6 +9,7 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\SelectNextUnit;
 use App\Actions\Srs\EvaluateSessionHealth;
 use App\Actions\Srs\GetDueSrsCards;
+use App\Actions\Srs\GetWeakSpotCards;
 use App\Actions\Streaks\ReconcileStreak;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class DashboardController extends Controller
         ComputeBlendedCefrLevel $computeBlendedCefrLevel,
         ReconcileStreak $reconcileStreak,
         GetDueSrsCards $getDueSrsCards,
+        GetWeakSpotCards $getWeakSpotCards,
         GetCurrentLanguage $getCurrentLanguage,
         EvaluateSessionHealth $evaluateSessionHealth,
         SelectNextUnit $selectNextUnit,
@@ -43,6 +45,7 @@ class DashboardController extends Controller
                 'language' => null,
                 'streak' => $streakProp,
                 'dueReviewCount' => 0,
+                'weakSpotReviewCount' => 0,
                 'canActivatePortuguese' => $canActivatePortuguese,
             ]);
         }
@@ -59,6 +62,7 @@ class DashboardController extends Controller
             ]),
             'streak' => $streakProp,
             'dueReviewCount' => $getDueSrsCards->count($request->user(), $language),
+            'weakSpotReviewCount' => $getWeakSpotCards->count($request->user(), $language),
             'sessionNeedsRemediation' => $sessionNeedsRemediation,
             'nextUnit' => $nextUnit === null ? null : [
                 'id' => $nextUnit->id,
