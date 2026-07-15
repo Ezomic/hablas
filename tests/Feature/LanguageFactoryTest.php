@@ -18,3 +18,9 @@ it('does not collide with LanguageSeeder rows when factory-creating alongside it
     expect(Language::query()->count())->toBe(52)
         ->and(Language::query()->distinct('code')->count('code'))->toBe(52);
 });
+
+it('generates unique codes well past the ~184 real ISO codes without exhausting a pool', function () {
+    $codes = Language::factory()->count(300)->make()->pluck('code');
+
+    expect($codes->unique())->toHaveCount(300);
+});
