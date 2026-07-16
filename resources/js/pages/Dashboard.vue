@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -39,6 +39,7 @@ interface NextUnit {
 interface Props {
     language: Pick<LanguageOption, 'code' | 'name'> | null;
     blendedLevel?: string | null;
+    blendedLevelCeiling?: string[];
     skillLevels?: Record<string, string>;
     streak?: Streak;
     dueReviewCount?: number;
@@ -66,6 +67,12 @@ defineOptions({
 });
 
 const breakdownOpen = ref(false);
+
+const ceilingSkillNames = computed(() =>
+    (props.blendedLevelCeiling ?? [])
+        .map((skill) => skillLabels[skill] ?? skill)
+        .join(' and '),
+);
 </script>
 
 <template>
@@ -80,6 +87,14 @@ const breakdownOpen = ref(false);
                 </CardTitle>
             </CardHeader>
             <CardContent>
+                <p
+                    v-if="ceilingSkillNames"
+                    class="mb-4 text-sm text-muted-foreground"
+                >
+                    Your overall level is held by {{ ceilingSkillNames }}, which
+                    the placement test sets and daily practice doesn't yet move.
+                    Your other skills have already climbed higher.
+                </p>
                 <Collapsible v-model:open="breakdownOpen">
                     <CollapsibleTrigger
                         class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
