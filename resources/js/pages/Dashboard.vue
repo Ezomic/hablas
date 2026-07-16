@@ -21,6 +21,7 @@ import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
 import { show as showProgressShare } from '@/routes/progress/share';
 import { index as reviewIndex } from '@/routes/review';
+import { index as weakSpotIndex } from '@/routes/review/weak-spots';
 import type { LanguageOption } from '@/types';
 
 interface Streak {
@@ -41,6 +42,7 @@ interface Props {
     skillLevels?: Record<string, string>;
     streak?: Streak;
     dueReviewCount?: number;
+    weakSpotReviewCount?: number;
     sessionNeedsRemediation?: boolean;
     nextUnit?: NextUnit | null;
     canActivatePortuguese?: boolean;
@@ -167,6 +169,26 @@ const breakdownOpen = ref(false);
             <CardContent>
                 <Button as-child>
                     <Link :href="reviewIndex().url">Start review</Link>
+                </Button>
+            </CardContent>
+        </Card>
+
+        <Card v-if="props.weakSpotReviewCount">
+            <CardHeader>
+                <CardDescription>Weak spots</CardDescription>
+                <CardTitle class="text-4xl">
+                    {{ props.weakSpotReviewCount }}
+                    {{ props.weakSpotReviewCount === 1 ? 'card' : 'cards' }} to
+                    revisit
+                </CardTitle>
+            </CardHeader>
+            <CardContent class="flex flex-col gap-4">
+                <p class="text-sm text-muted-foreground">
+                    Cards you've missed a few times in a row, set aside until you
+                    get them right once more.
+                </p>
+                <Button as-child variant="outline">
+                    <Link :href="weakSpotIndex().url">Review weak spots</Link>
                 </Button>
             </CardContent>
         </Card>
