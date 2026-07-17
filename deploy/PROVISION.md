@@ -46,15 +46,28 @@ Build and initialise:
     php artisan webpush:vapid          # once; copy the printed pair into .env
     php artisan optimize
 
-### SQLite permissions
+### Filesystem permissions (php-fpm is www-data, workers are deploy)
 
-php-fpm runs as `www-data`; the queue/scheduler run as `deploy`. The DB file (and
-its `-wal`/`-shm` siblings) must be group-writable by both, or you get
-"readonly database" 500s:
+php-fpm runs as `www-data`; the queue/scheduler run as `deploy`. Everything the
+app writes must be group-writable by both, or you get opaque 500s (Laravel can't
+even create a log file to tell you why). `deploy` is in the `www-data` group, so
+no sudo is needed:
 
+    # SQLite DB — needs the -wal/-shm siblings creatable, so the DIR matters too
     touch database/database.sqlite
-    sudo chown deploy:www-data database/database.sqlite
+    chgrp www-data database/database.sqlite database
     chmod 664 database/database.sqlite
+    chmod 775 database
+
+    # storage/ + bootstrap/cache — sessions, views, config cache, logs
+    chgrp -R www-data storage bootstrap/cache
+    chmod -R g+w storage bootstrap/cache
+    # setgid so files created by either user keep the www-data group
+    find storage bootstrap/cache -type d -exec chmod g+s {} \;
+
+Note: supervisord opens `storage/logs/{queue,scheduler}.log` as root before
+dropping to `user=deploy`, so those two files stay root-owned and `chgrp` on them
+fails harmlessly. Don't let that abort the rest of the command (`set -e` will).
 
 ## 3. TLS (shared cert)
 
