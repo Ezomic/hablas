@@ -29,6 +29,15 @@ class PlacementTestResponse extends Model
     /** @use HasFactory<PlacementTestResponseFactory> */
     use HasFactory;
 
+    /**
+     * Reserved response value for "I don't know". Scores incorrect via the
+     * existing `response === correct_answer` check (a real answer can never
+     * equal this), so an abstention steps the adaptive staircase down instead
+     * of making the user guess and risk over-placement. Stored verbatim, so it
+     * stays distinguishable from a wrong guess.
+     */
+    public const string DONT_KNOW = '__dont_know__';
+
     protected function casts(): array
     {
         return [

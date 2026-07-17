@@ -20,6 +20,7 @@ interface PlacementTestItem {
 const props = defineProps<{
     item: PlacementTestItem | null;
     language: { code: string; name: string };
+    dontKnowResponse: string;
 }>();
 
 defineOptions({
@@ -40,10 +41,10 @@ const selectedAnswer = ref<string | null>(null);
 const isSubmitting = ref(false);
 const submitFailed = ref(false);
 
-async function submit() {
+async function submit(answerValue: string) {
     const item = currentItem.value;
 
-    if (!item || !selectedAnswer.value || isSubmitting.value) {
+    if (!item || !answerValue || isSubmitting.value) {
         return;
     }
 
@@ -54,7 +55,7 @@ async function submit() {
         const response = await fetchJson(
             answer(item.id).url,
             'POST',
-            JSON.stringify({ response: selectedAnswer.value }),
+            JSON.stringify({ response: answerValue }),
         );
 
         if (!response.ok) {
@@ -137,10 +138,28 @@ function skipTest() {
                 message="Couldn't save that answer — try again."
             />
 
-            <Button :disabled="!selectedAnswer || isSubmitting" @click="submit">
-                <Spinner v-if="isSubmitting" />
-                Next
-            </Button>
+            <div class="flex flex-col gap-3">
+                <Button
+                    :disabled="!selectedAnswer || isSubmitting"
+                    @click="submit(selectedAnswer ?? '')"
+                >
+                    <Spinner v-if="isSubmitting" />
+                    Next
+                </Button>
+                <!--
+                    Records as incorrect (see PlacementTestResponse::DONT_KNOW),
+                    stepping the staircase down — an honest signal instead of a
+                    guess. Enabled without a selection, since not knowing is the
+                    whole point.
+                -->
+                <Button
+                    variant="ghost"
+                    :disabled="isSubmitting"
+                    @click="submit(props.dontKnowResponse)"
+                >
+                    I don't know
+                </Button>
+            </div>
         </div>
 
         <div class="border-t pt-6 text-center text-sm text-muted-foreground">

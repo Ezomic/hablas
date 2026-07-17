@@ -12,6 +12,7 @@ use App\Actions\Placement\SkipPlacementTest;
 use App\Http\Requests\AnswerPlacementItemRequest;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
+use App\Models\PlacementTestResponse;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -52,6 +53,7 @@ class PlacementTestController extends Controller
         return Inertia::render('placement/Index', [
             'item' => $this->serializeItem($item),
             'language' => ['code' => $language->code, 'name' => $language->name],
+            'dontKnowResponse' => PlacementTestResponse::DONT_KNOW,
         ]);
     }
 
