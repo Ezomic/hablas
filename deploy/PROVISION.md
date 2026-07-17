@@ -65,27 +65,44 @@ source of truth and re-issue. Never hand-run `certbot --expand` (THI-309):
     bin/renew-shared-cert.sh --dry-run   # confirm it keeps every existing SAN
     bin/renew-shared-cert.sh
 
-## 4. nginx
+## 4. Root prerequisite: sudoers rules (one-time, needs full root)
 
-    sudo cp /home/deploy/hablas/deploy/nginx/hablas.thijssensoftware.nl.conf \
-            /etc/nginx/sites-available/hablas.thijssensoftware.nl
-    # confirm the php-fpm socket (ls /run/php/) and cert path (ls /etc/letsencrypt/live/)
-    sudo ln -s /etc/nginx/sites-available/hablas.thijssensoftware.nl \
-               /etc/nginx/sites-enabled/
-    sudo nginx -t && sudo systemctl reload nginx
+The `deploy` user's passwordless sudo is a hardcoded per-app allow-list; it can
+reload/restart services and run certbot, but it CANNOT drop a new app's nginx
+vhost or supervisor conf into `/etc`. A root admin adds three lines (mirroring
+the existing `zero` rules) to the sudoers drop-in, e.g. `/etc/sudoers.d/deploy`:
 
-## 5. Background workers (supervisor)
+    deploy ALL=(ALL) NOPASSWD: /bin/mv /tmp/hablas-nginx.conf /etc/nginx/sites-available/hablas
+    deploy ALL=(ALL) NOPASSWD: /bin/ln -sf /etc/nginx/sites-available/hablas /etc/nginx/sites-enabled/hablas
+    deploy ALL=(ALL) NOPASSWD: /bin/mv /tmp/hablas-supervisor.conf /etc/supervisor/conf.d/hablas.conf
 
-    sudo cp /home/deploy/hablas/deploy/supervisor/hablas-scheduler.conf /etc/supervisor/conf.d/
-    sudo cp /home/deploy/hablas/deploy/supervisor/hablas-queue.conf     /etc/supervisor/conf.d/
+Validate with `sudo visudo -c`. Once these exist, everything below runs as
+`deploy` (no interactive root needed).
+
+## 5. nginx
+
+The vhost is staged at `/tmp/hablas-nginx.conf` (php8.4-fpm socket, shared
+`thijssensoftware.nl` cert lineage). Install and reload:
+
+    sudo mv /tmp/hablas-nginx.conf /etc/nginx/sites-available/hablas
+    sudo ln -sf /etc/nginx/sites-available/hablas /etc/nginx/sites-enabled/hablas
+    sudo systemctl reload nginx
+
+(`nginx -t` needs full root; if unavailable, the reload will still fail loudly
+on a bad config rather than applying it.)
+
+## 6. Background workers (supervisor)
+
+One conf file, two programs (`hablas-queue`, `hablas-scheduler`), staged at
+`/tmp/hablas-supervisor.conf`:
+
+    sudo mv /tmp/hablas-supervisor.conf /etc/supervisor/conf.d/hablas.conf
     sudo supervisorctl reread && sudo supervisorctl update
-    # supervisord creates the logfiles as root; hand them to deploy so rotation works:
-    sudo chown deploy:www-data storage/logs/scheduler.log storage/logs/queue.log
 
-These are the two groups the deploy workflow restarts
-(`hablas-scheduler:*`, `hablas-queue:*`).
+These are the groups the deploy workflow restarts
+(`hablas-queue:*`, `hablas-scheduler:*`).
 
-## 6. GitHub Actions deploy secrets
+## 7. GitHub Actions deploy secrets
 
 So `deploy.yml` can SSH in on every push to `main`, set three repo secrets on
 `Ezomic/hablas` (Settings → Secrets and variables → Actions) — the same values
@@ -95,7 +112,7 @@ the other apps use:
 - `DEPLOY_SSH_USER` — `deploy`
 - `DEPLOY_SSH_KEY` — the private key whose public half is authorised for `deploy`
 
-## 7. Verify
+## 8. Verify
 
     curl -sS -o /dev/null -w '%{http_code}\n' https://hablas.thijssensoftware.nl/login   # 200
 
