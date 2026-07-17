@@ -24,9 +24,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
  * @property int|null $current_language_id
  * @property string $name
  * @property string $email
- * @property string|null $google_id
  * @property Carbon|null $email_verified_at
- * @property string $password
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -34,8 +32,8 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'google_id', 'password', 'current_language_id'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'email', 'current_language_id'])]
+#[Hidden(['two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -50,7 +48,6 @@ class User extends Authenticatable implements PasskeyUser
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

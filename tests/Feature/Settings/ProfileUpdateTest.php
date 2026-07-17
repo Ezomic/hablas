@@ -50,14 +50,13 @@ it('leaves email verification status unchanged when the email is unchanged', fun
     expect($user->refresh()->email_verified_at)->not->toBeNull();
 });
 
-it('allows a user to delete their account', function () {
+it('allows a user to delete their account once they have confirmed it is them', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
-        ->delete(route('profile.destroy'), [
-            'password' => 'password',
-        ]);
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->delete(route('profile.destroy'));
 
     $response
         ->assertSessionHasNoErrors()
@@ -67,19 +66,16 @@ it('allows a user to delete their account', function () {
     expect($user->fresh())->toBeNull();
 });
 
-it('requires the correct password to delete the account', function () {
+it('makes a user confirm it is them before deleting the account', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
-        ->from(route('profile.edit'))
-        ->delete(route('profile.destroy'), [
-            'password' => 'wrong-password',
-        ]);
+        ->delete(route('profile.destroy'));
 
-    $response
-        ->assertSessionHasErrors('password')
-        ->assertRedirect(route('profile.edit'));
+    // The password.confirm middleware now re-authenticates with an emailed
+    // code, so an unconfirmed session is bounced rather than deleting anything.
+    $response->assertRedirect(route('password.confirm'));
 
     expect($user->fresh())->not->toBeNull();
 });
