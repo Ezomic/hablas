@@ -2,6 +2,7 @@
 
 use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
@@ -217,4 +218,64 @@ it('seeds a realistic item bank that a full staircase can walk through end to en
     }
 
     expect($done)->toBeTrue();
+});
+
+it('exposes the "I don\'t know" response value to the page', function () {
+    PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('placement.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('dontKnowResponse', PlacementTestResponse::DONT_KNOW),
+        );
+});
+
+it('records "I don\'t know" as incorrect so it never over-places', function () {
+    $reading = PlacementTestItem::factory()->create([
+        'language_id' => $this->spanish->id,
+        'skill' => Skill::Reading,
+        'correct_answer' => 'right',
+    ]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $this->actingAs($user)
+        ->postJson(route('placement.answer', $reading), ['response' => PlacementTestResponse::DONT_KNOW])
+        ->assertOk();
+
+    $recorded = PlacementTestResponse::query()->sole();
+
+    // Scored incorrect, and stored verbatim so an abstention stays
+    // distinguishable from a wrong guess.
+    expect($recorded->is_correct)->toBeFalse()
+        ->and($recorded->response)->toBe(PlacementTestResponse::DONT_KNOW);
+});
+
+it('steps the staircase down when the user does not know', function () {
+    $a1 = PlacementTestItem::factory()->create([
+        'language_id' => $this->spanish->id,
+        'skill' => Skill::Reading,
+        'cefr_sublevel_tag' => CefrSubLevel::A1_3,
+        'correct_answer' => 'right',
+    ]);
+    // A lower-tier item must exist for the staircase to step down into.
+    $lower = PlacementTestItem::factory()->create([
+        'language_id' => $this->spanish->id,
+        'skill' => Skill::Reading,
+        'cefr_sublevel_tag' => CefrSubLevel::A1_2,
+        'correct_answer' => 'right',
+    ]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'));
+
+    $next = $this->actingAs($user)
+        ->postJson(route('placement.answer', $a1), ['response' => PlacementTestResponse::DONT_KNOW])
+        ->assertOk()
+        ->json();
+
+    expect($next['done'])->toBeFalse()
+        ->and($next['item']['id'])->toBe($lower->id);
 });
