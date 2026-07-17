@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\NotifyOnBlendedLevelIncrease;
+use App\Actions\Placement\ComputePlacementProgress;
 use App\Actions\Placement\FinalizePlacementAttempt;
 use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Actions\Placement\GetOrCreateInProgressPlacementAttempt;
@@ -29,6 +30,7 @@ class PlacementTestController extends Controller
         GetCurrentPlacementItem $getCurrentPlacementItem,
         FinalizePlacementAttempt $finalizePlacementAttempt,
         NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
+        ComputePlacementProgress $computePlacementProgress,
     ): Response|RedirectResponse {
         $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
@@ -54,6 +56,7 @@ class PlacementTestController extends Controller
             'item' => $this->serializeItem($item),
             'language' => ['code' => $language->code, 'name' => $language->name],
             'dontKnowResponse' => PlacementTestResponse::DONT_KNOW,
+            'progress' => $computePlacementProgress->handle($attempt),
         ]);
     }
 
@@ -65,6 +68,7 @@ class PlacementTestController extends Controller
         RecordPlacementResponse $recordPlacementResponse,
         FinalizePlacementAttempt $finalizePlacementAttempt,
         NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
+        ComputePlacementProgress $computePlacementProgress,
     ): JsonResponse {
         $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
 
@@ -106,6 +110,7 @@ class PlacementTestController extends Controller
         return response()->json([
             'done' => false,
             'item' => $this->serializeItem($next),
+            'progress' => $computePlacementProgress->handle($attempt),
         ]);
     }
 

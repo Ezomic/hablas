@@ -55,6 +55,25 @@ it('renders the placement test page with the first item for the active language'
         );
 });
 
+it('exposes placement progress on the page and advances it as answers come in', function () {
+    foreach (Skill::cases() as $skill) {
+        PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => $skill, 'correct_answer' => 'right']);
+    }
+    $reading = PlacementTestItem::query()->where('skill', Skill::Reading)->sole();
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('placement.index'))
+        ->assertInertia(fn ($page) => $page->where('progress', 0));
+
+    $progress = $this->actingAs($user)
+        ->postJson(route('placement.answer', $reading), ['response' => 'right'])
+        ->assertOk()
+        ->json('progress');
+
+    expect($progress)->toBeGreaterThan(0);
+});
+
 it('resumes the same in-progress attempt instead of starting a new one', function () {
     PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
     $user = User::factory()->create();
