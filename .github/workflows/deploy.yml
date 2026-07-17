@@ -20,13 +20,26 @@ jobs:
           host: ${{ secrets.DEPLOY_SSH_HOST }}
           username: ${{ secrets.DEPLOY_SSH_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          # appleboy/ssh-action defaults to a 10m command_timeout. `npm ci` alone
+          # takes ~8m on this droplet, so the default killed the deploy midway —
+          # leaving new code against an un-migrated DB and a node_modules with no
+          # .bin/ (npm had not reached the link stage), so `vite` vanished and the
+          # build could not be re-run. Give the whole script real headroom.
+          command_timeout: 25m
           script: |
             set -e
             cd /home/deploy/hablas
             git fetch origin
             git reset --hard origin/main
             composer install --no-dev --optimize-autoloader --no-interaction
-            npm ci
+            # MUST come before the build. Wayfinder generates resources/js/routes/*
+            # (gitignored) by booting artisan, so a leftover route cache from the
+            # PREVIOUS deploy makes it emit the previous deploy's route table — any
+            # newly added route is missing and the build dies with
+            # UNLOADABLE_DEPENDENCY. It also clears a cache that can reference
+            # classes this release deleted.
+            php artisan optimize:clear
+            npm ci --no-audit --no-fund
             npm run build
             php artisan migrate --force
             # Rebuild config/route/view cache from the new code. Without this the
