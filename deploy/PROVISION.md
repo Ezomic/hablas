@@ -42,6 +42,11 @@ Build and initialise:
     composer install --no-dev --optimize-autoloader
     npm ci && npm run build
     php artisan migrate --force
+    # Course/reference content. Use ContentSeeder, NOT db:seed — DatabaseSeeder
+    # also creates a Test User fixture that must never exist on production.
+    # Without this there is no course to start, and UnlockSpanishForNewUser
+    # silently no-ops on registration, leaving new accounts with no language.
+    php artisan db:seed --class=ContentSeeder --force
     php artisan storage:link
     php artisan webpush:vapid          # once; copy the printed pair into .env
     php artisan optimize
