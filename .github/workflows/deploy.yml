@@ -42,6 +42,13 @@ jobs:
             npm ci --no-audit --no-fund
             npm run build
             php artisan migrate --force
+            # Course/reference content (languages, units, vocabulary, placement
+            # items, can-do statements). ContentSeeder holds no user fixtures, so
+            # unlike DatabaseSeeder it is safe here; every seeder it calls uses
+            # updateOrCreate, so running it each release is idempotent and just
+            # brings content up to date. Without this the app has no course to
+            # start, and UnlockSpanishForNewUser silently no-ops on registration.
+            php artisan db:seed --class=ContentSeeder --force
             # Rebuild config/route/view cache from the new code. Without this the
             # old cache persists and the fpm reload below just reloads stale routes.
             php artisan optimize

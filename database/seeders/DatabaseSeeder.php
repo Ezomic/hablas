@@ -6,6 +6,12 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+/**
+ * Local development seeding: the real course content plus a dev login.
+ *
+ * Production runs ContentSeeder directly instead, because the Test User below
+ * must never exist on the live site.
+ */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
@@ -15,18 +21,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(LanguageSeeder::class);
-        $this->call(SpanishA1Seeder::class);
-        $this->call(PortugueseA1Seeder::class);
-        $this->call(PlacementTestSeeder::class);
-        $this->call(PortuguesePlacementTestSeeder::class);
-        $this->call(ShadowingExerciseSeeder::class);
-        $this->call(PronunciationDrillExerciseSeeder::class);
-        $this->call(ScriptedPromptExerciseSeeder::class);
-        $this->call(WritingExerciseSeeder::class);
-        $this->call(CefrCanDoStatementSeeder::class);
-
-        // User::factory(10)->create();
+        $this->call(ContentSeeder::class);
 
         User::factory()->create([
             'name' => 'Test User',
