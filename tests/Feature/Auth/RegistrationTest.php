@@ -19,8 +19,6 @@ it('registers new users', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
     ]);
 
     $this->assertAuthenticated();
@@ -34,8 +32,6 @@ it('unlocks Spanish for a newly registered user', function () {
     $this->post(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
     ]);
 
     $user = User::query()->where('email', 'test@example.com')->sole();

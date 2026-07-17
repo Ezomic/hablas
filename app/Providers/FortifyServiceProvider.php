@@ -2,17 +2,20 @@
 
 namespace App\Providers;
 
+use App\Actions\Auth\AuthenticateWithEmailCode;
+use App\Actions\Auth\VerifyEmailCode;
 use App\Actions\Fortify\CreateNewUser;
-use App\Actions\Fortify\ResetUserPassword;
+use App\Enums\EmailCodePurpose;
+use App\Http\Requests\Auth\LoginCodeRequest;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Requests\LoginRequest;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -21,7 +24,10 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Fortify's own LoginRequest requires a `password` field; ours requires
+        // a `code`. AuthenticatedSessionController type-hints the vendor class,
+        // so rebind it to the subclass.
+        $this->app->bind(LoginRequest::class, LoginCodeRequest::class);
     }
 
     /**
@@ -39,8 +45,23 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureActions(): void
     {
-        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        // There are no passwords: POST /login proves control of the inbox with a
+        // one-time code instead. Reusing Fortify's callback (rather than our own
+        // login route) keeps its throttling, session regeneration and 2FA
+        // challenge redirect working unchanged.
+        Fortify::authenticateUsing(fn (Request $request) => app(AuthenticateWithEmailCode::class)($request));
+
+        // Likewise, the password.confirm middleware still guards sensitive
+        // actions; it just confirms with an emailed code. Fortify's
+        // ConfirmablePasswordController hands the callback
+        // $request->input('password'), so the confirm form posts the code under
+        // that field name — hence the odd-looking parameter here.
+        Fortify::confirmPasswordsUsing(function (User $user, ?string $code) {
+            return $code !== null
+                && app(VerifyEmailCode::class)->handle($user, $code, EmailCodePurpose::Confirm);
+        });
     }
 
     /**
@@ -49,17 +70,6 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
-            'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'status' => $request->session()->get('status'),
-        ]));
-
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ]));
-
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/ForgotPassword', [
             'status' => $request->session()->get('status'),
         ]));
 
@@ -67,13 +77,13 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/Register', [
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ]));
+        Fortify::registerView(fn () => Inertia::render('auth/Register'));
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/ConfirmPassword'));
+        Fortify::confirmPasswordView(fn (Request $request) => Inertia::render('auth/ConfirmPassword', [
+            'status' => $request->session()->get('status'),
+        ]));
     }
 
     /**
@@ -89,6 +99,20 @@ class FortifyServiceProvider extends ServiceProvider
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
+        });
+
+        // Sending mail is expensive and the code is a secret being pushed to an
+        // inbox, so requesting one is throttled harder than verifying it. Keyed
+        // by user id when re-confirming (that route has no email field) and by
+        // the submitted address when signing in.
+        RateLimiter::for('login-code', function (Request $request) {
+            $identifier = $request->user()?->getAuthIdentifier() ?? Str::lower((string) $request->input('email'));
+            $throttleKey = Str::transliterate($identifier.'|'.$request->ip());
+
+            return [
+                Limit::perMinute(3)->by($throttleKey),
+                Limit::perHour(10)->by($throttleKey),
+            ];
         });
 
         RateLimiter::for('passkeys', function (Request $request) {

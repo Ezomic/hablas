@@ -3,6 +3,7 @@
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+use Tests\Support\EmailCode;
 
 beforeEach(function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
@@ -24,7 +25,7 @@ it('renders the two-factor challenge', function () {
 
     $this->post(route('login'), [
         'email' => $user->email,
-        'password' => 'password',
+        'code' => EmailCode::issue($user),
     ]);
 
     $this->get(route('two-factor.login'))
