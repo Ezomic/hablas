@@ -11,10 +11,10 @@ and the deploy workflow is present.
 
 ## 1. DNS
 
-Create an A/AAAA record for the droplet:
+Create an A record for the droplet. The zone is hosted on DigitalOcean and every
+sibling app (id, tracker, zero, billr, …) uses an A record only, no AAAA:
 
-    hablas.thijssensoftware.nl.  A     165.22.203.180
-    hablas.thijssensoftware.nl.  AAAA  2a03:b0c0:2:f0:0:1:c081:1001
+    hablas.thijssensoftware.nl.  A  165.22.203.180
 
 Wait for it to resolve (`dig +short hablas.thijssensoftware.nl` → the droplet IP)
 before requesting TLS.
