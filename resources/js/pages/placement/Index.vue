@@ -8,8 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Spinner } from '@/components/ui/spinner';
 import { fetchJson } from '@/lib/http';
-import { dashboard } from '@/routes';
-import { answer, skip } from '@/routes/placement';
+import { answer, results, skip } from '@/routes/placement';
 
 interface PlacementTestItem {
     id: number;
@@ -81,7 +80,7 @@ async function submit(answerValue: string) {
             | { done: false; item: PlacementTestItem; progress: number };
 
         if (payload.done) {
-            router.visit(dashboard().url);
+            router.visit(results().url);
 
             return;
         }

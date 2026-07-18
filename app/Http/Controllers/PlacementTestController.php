@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\NotifyOnBlendedLevelIncrease;
+use App\Actions\Placement\BuildPlacementResult;
 use App\Actions\Placement\ComputePlacementProgress;
 use App\Actions\Placement\FinalizePlacementAttempt;
 use App\Actions\Placement\GetCurrentPlacementItem;
@@ -49,7 +50,7 @@ class PlacementTestController extends Controller
                 fn () => $finalizePlacementAttempt->handle($attempt),
             );
 
-            return redirect()->route('dashboard');
+            return redirect()->route('placement.results');
         }
 
         return Inertia::render('placement/Index', [
@@ -111,6 +112,27 @@ class PlacementTestController extends Controller
             'done' => false,
             'item' => $this->serializeItem($next),
             'progress' => $computePlacementProgress->handle($attempt),
+        ]);
+    }
+
+    public function results(Request $request, GetCurrentLanguage $getCurrentLanguage, BuildPlacementResult $buildPlacementResult): Response|RedirectResponse
+    {
+        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
+
+        $attempt = PlacementTestAttempt::query()
+            ->where('user_id', $request->user()->id)
+            ->where('language_id', $language->id)
+            ->whereNotNull('completed_at')
+            ->latest('completed_at')
+            ->first();
+
+        if ($attempt === null) {
+            return redirect()->route('placement.index');
+        }
+
+        return Inertia::render('placement/Results', [
+            'language' => ['code' => $language->code, 'name' => $language->name],
+            'result' => $buildPlacementResult->handle($attempt),
         ]);
     }
 
