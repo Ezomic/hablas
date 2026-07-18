@@ -185,6 +185,43 @@ it('flashes a celebratory toast when finishing the placement test raises the ble
     ]);
 });
 
+it('shows the placement results page with a breakdown for a completed attempt', function () {
+    $item = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading, 'prompt' => 'Q1', 'correct_answer' => 'right']);
+    $user = User::factory()->create();
+    $attempt = PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $this->spanish->id,
+        'completed_at' => now(),
+        'resulting_skill_levels' => [
+            'reading' => ['cefr_level' => 'A2', 'sub_level' => 'A2.1'],
+            'listening' => ['cefr_level' => 'A2', 'sub_level' => 'A2.1'],
+            'speaking' => ['cefr_level' => 'A2', 'sub_level' => 'A2.1'],
+            'writing' => ['cefr_level' => 'A2', 'sub_level' => 'A2.1'],
+        ],
+    ]);
+    PlacementTestResponse::factory()->create(['attempt_id' => $attempt->id, 'item_id' => $item->id, 'skill' => Skill::Reading, 'response' => 'right', 'is_correct' => true]);
+
+    $this->actingAs($user)
+        ->get(route('placement.results'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('placement/Results')
+            ->where('language.code', 'es')
+            ->where('result.blendedLevel', 'A2.1')
+            ->where('result.skills.0.level', 'A2.1')
+            ->where('result.skipped', false)
+            ->where('result.skills.0.items.0.status', 'correct'),
+        );
+});
+
+it('redirects to the placement test when there is no completed attempt to show results for', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('placement.results'))
+        ->assertRedirect(route('placement.index'));
+});
+
 it('rejects an answer request with no response', function () {
     $item = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Reading]);
     $user = User::factory()->create();

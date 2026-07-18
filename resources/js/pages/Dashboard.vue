@@ -19,6 +19,7 @@ import { pluralizeDays } from '@/lib/pluralize';
 import { skillLabels } from '@/lib/skillLabels';
 import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
+import { results as placementResults } from '@/routes/placement';
 import { show as showProgressShare } from '@/routes/progress/share';
 import { index as reviewIndex } from '@/routes/review';
 import { index as weakSpotIndex } from '@/routes/review/weak-spots';
@@ -118,6 +119,12 @@ const ceilingSkillNames = computed(() =>
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
+                <Link
+                    :href="placementResults().url"
+                    class="mt-4 inline-block text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                >
+                    View placement results
+                </Link>
             </CardContent>
         </Card>
 
