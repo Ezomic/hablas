@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class SelectNextPlacementItem
 {
-    private const int MAX_ITEMS_PER_SKILL = 8;
+    public const int MAX_ITEMS_PER_SKILL = 8;
 
     private const int CONSECUTIVE_STOP_THRESHOLD = 3;
 

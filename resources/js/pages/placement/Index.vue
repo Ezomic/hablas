@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Spinner } from '@/components/ui/spinner';
 import { fetchJson } from '@/lib/http';
@@ -21,6 +22,7 @@ const props = defineProps<{
     item: PlacementTestItem | null;
     language: { code: string; name: string };
     dontKnowResponse: string;
+    progress: number;
 }>();
 
 defineOptions({
@@ -37,6 +39,7 @@ const skillLabels: Record<string, string> = {
 };
 
 const currentItem = ref(props.item);
+const progress = ref(props.progress);
 const selectedAnswer = ref<string | null>(null);
 const isSubmitting = ref(false);
 const submitFailed = ref(false);
@@ -74,7 +77,8 @@ async function submit(answerValue: string) {
         }
 
         const payload = (await response.json()) as
-            { done: true } | { done: false; item: PlacementTestItem };
+            | { done: true }
+            | { done: false; item: PlacementTestItem; progress: number };
 
         if (payload.done) {
             router.visit(dashboard().url);
@@ -83,6 +87,7 @@ async function submit(answerValue: string) {
         }
 
         currentItem.value = payload.item;
+        progress.value = payload.progress;
         selectedAnswer.value = null;
     } finally {
         isSubmitting.value = false;
@@ -109,6 +114,16 @@ function skipTest() {
                 This sets your starting CEFR level for reading, listening,
                 speaking, and writing separately.
             </p>
+
+            <div v-if="currentItem" class="mt-4 flex flex-col gap-1.5">
+                <div
+                    class="flex items-center justify-between text-sm text-muted-foreground"
+                >
+                    <span>Progress</span>
+                    <span>{{ progress }}%</span>
+                </div>
+                <Progress :model-value="progress" />
+            </div>
         </div>
 
         <div v-if="currentItem" class="flex flex-col gap-6">
