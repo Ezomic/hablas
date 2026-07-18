@@ -21,7 +21,7 @@ it('builds the blended level, per-skill levels, and a per-question breakdown', f
             'reading' => ['cefr_level' => 'B1', 'sub_level' => 'B1.1'],
             'listening' => ['cefr_level' => 'A2', 'sub_level' => 'A2.2'],
             'speaking' => ['cefr_level' => 'A2', 'sub_level' => 'A2.1'],
-            'writing' => ['cefr_level' => 'B2', 'sub_level' => 'B2.1'],
+            'writing' => ['cefr_level' => 'B2', 'sub_level' => 'B2'],
         ],
     ]);
 
@@ -35,12 +35,12 @@ it('builds the blended level, per-skill levels, and a per-question breakdown', f
 
     $result = (new BuildPlacementResult)->handle($attempt);
 
-    // Blended is the lowest of the four skills.
-    expect($result['blendedLevel'])->toBe('A2')
+    // Blended is the lowest sub-level of the four skills.
+    expect($result['blendedLevel'])->toBe('A2.1')
         ->and($result['skipped'])->toBeFalse();
 
     $reading = collect($result['skills'])->firstWhere('skill', 'reading');
-    expect($reading['level'])->toBe('B1')
+    expect($reading['level'])->toBe('B1.1')
         ->and($reading['items'])->toHaveCount(3)
         ->and($reading['items'][0])->toMatchArray(['prompt' => 'Q1', 'yourAnswer' => 'fui', 'correctAnswer' => 'fui', 'status' => 'correct'])
         ->and($reading['items'][1])->toMatchArray(['prompt' => 'Q2', 'yourAnswer' => 'era', 'correctAnswer' => 'fui', 'status' => 'incorrect'])
@@ -50,6 +50,10 @@ it('builds the blended level, per-skill levels, and a per-question breakdown', f
     $writing = collect($result['skills'])->firstWhere('skill', 'writing');
     expect($writing['level'])->toBe('B2')
         ->and($writing['items'])->toBe([]);
+
+    // Every listed level uses the sub-level scale, not the parent level.
+    $listening = collect($result['skills'])->firstWhere('skill', 'listening');
+    expect($listening['level'])->toBe('A2.2');
 });
 
 it('flags a skipped attempt that has no responses', function () {
@@ -67,6 +71,6 @@ it('flags a skipped attempt that has no responses', function () {
     $result = (new BuildPlacementResult)->handle($attempt);
 
     expect($result['skipped'])->toBeTrue()
-        ->and($result['blendedLevel'])->toBe('A1')
+        ->and($result['blendedLevel'])->toBe('A1.1')
         ->and($result['skills'])->toHaveCount(4);
 });

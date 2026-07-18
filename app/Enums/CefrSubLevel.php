@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use InvalidArgumentException;
 use LogicException;
 
 enum CefrSubLevel: string
@@ -46,6 +47,19 @@ enum CefrSubLevel: string
         $previous = $this->sortOrder() - 1;
 
         return $previous >= 0 ? self::cases()[$previous] : $this;
+    }
+
+    public static function lowest(CefrSubLevel ...$tiers): self
+    {
+        if ($tiers === []) {
+            throw new InvalidArgumentException('CefrSubLevel::lowest() requires at least one tier.');
+        }
+
+        return array_reduce(
+            $tiers,
+            fn (CefrSubLevel $lowest, CefrSubLevel $tier): CefrSubLevel => $tier->sortOrder() < $lowest->sortOrder() ? $tier : $lowest,
+            $tiers[0],
+        );
     }
 
     public function parentLevel(): CefrLevel

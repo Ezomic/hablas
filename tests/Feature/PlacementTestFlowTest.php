@@ -207,7 +207,8 @@ it('shows the placement results page with a breakdown for a completed attempt', 
         ->assertInertia(fn ($page) => $page
             ->component('placement/Results')
             ->where('language.code', 'es')
-            ->where('result.blendedLevel', 'A2')
+            ->where('result.blendedLevel', 'A2.1')
+            ->where('result.skills.0.level', 'A2.1')
             ->where('result.skipped', false)
             ->where('result.skills.0.items.0.status', 'correct'),
         );
