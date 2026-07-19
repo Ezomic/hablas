@@ -112,11 +112,30 @@ jobs:
             set -e
             cd /home/deploy/hablas
             git fetch origin
-            git reset --hard origin/main
+            # Pin to the exact commit the build job built its assets from, not
+            # a moving origin/main. If another push lands on main while this
+            # deploy waits in the production queue, resetting to origin/main
+            # would serve newer PHP/routes against this run's older manifest —
+            # a Vite-manifest miss (500). This keeps code and assets in lockstep.
+            git reset --hard ${{ github.sha }}
             composer install --no-dev --optimize-autoloader --no-interaction
             # Clear any stale config/route/view cache from the previous release
             # before rebuilding it below.
             php artisan optimize:clear
+            # Locate the assets the build job shipped, tolerant of whether
+            # scp-action stripped the leading dir, and confirm all three PWA
+            # outputs arrived — BEFORE migrating or touching the live public/,
+            # so a malformed transfer aborts the deploy instead of leaving
+            # production with a migrated DB or a half-swapped public/.
+            if [ -d deploy-incoming/build ]; then
+              INCOMING=deploy-incoming
+            elif [ -d deploy-incoming/dist/build ]; then
+              INCOMING=deploy-incoming/dist
+            else
+              echo "Shipped build/ not found under deploy-incoming"; exit 1
+            fi
+            test -f "$INCOMING/sw.js"
+            ls "$INCOMING"/workbox-*.js >/dev/null 2>&1 || { echo "workbox asset missing from shipped build"; exit 1; }
             php artisan migrate --force
             # Course/reference content (languages, units, vocabulary, placement
             # items, can-do statements). ContentSeeder holds no user fixtures and
@@ -124,15 +143,15 @@ jobs:
             # release is idempotent. Without it the app has no course to start.
             php artisan db:seed --class=ContentSeeder --force
             php artisan optimize
-            # Swap in the assets built and shipped by the CI build job. Keep the
-            # previous build until the new one is in place, then discard it, so
-            # the window where public/build is absent is a single rename.
+            # Swap in the validated assets. Keep the previous build until the
+            # new one is in place, then discard it, so the window where
+            # public/build is absent is a single rename.
             rm -rf public/build.old
             [ -d public/build ] && mv public/build public/build.old
-            mv deploy-incoming/build public/build
-            cp -f deploy-incoming/sw.js public/sw.js
+            mv "$INCOMING/build" public/build
+            cp -f "$INCOMING/sw.js" public/sw.js
             rm -f public/workbox-*.js
-            cp -f deploy-incoming/workbox-*.js public/
+            cp -f "$INCOMING"/workbox-*.js public/
             rm -rf public/build.old deploy-incoming
             sudo /bin/systemctl reload php8.4-fpm
             # Restart the scheduler (SendDailyDigests) and the database queue
