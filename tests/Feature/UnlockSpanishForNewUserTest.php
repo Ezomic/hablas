@@ -6,6 +6,7 @@ use App\Models\User;
 use Database\Seeders\LanguageSeeder;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Uses User::create() directly rather than the factory — the factory's own
@@ -49,5 +50,27 @@ it('does not error when Spanish has not been seeded yet', function () {
 
     (new UnlockSpanishForNewUser)->handle(new Registered($user));
 
+    expect($user->unlockedLanguages()->count())->toBe(0);
+});
+
+it('stays silent about a missing Spanish row in the testing environment', function () {
+    Log::spy();
+    $user = User::create(['name' => 'New User', 'email' => 'new@example.com', 'password' => Hash::make('password')]);
+
+    (new UnlockSpanishForNewUser)->handle(new Registered($user));
+
+    Log::shouldNotHaveReceived('warning');
+    Log::shouldNotHaveReceived('error');
+});
+
+it('logs an error when Spanish is missing in production so the misconfig is visible', function () {
+    app()->detectEnvironment(fn () => 'production');
+    Log::spy();
+    $user = User::create(['name' => 'New User', 'email' => 'new@example.com', 'password' => Hash::make('password')]);
+
+    (new UnlockSpanishForNewUser)->handle(new Registered($user));
+
+    Log::shouldHaveReceived('error')->once();
+    // Still a no-op for the account itself — loud in logs, not a hard failure.
     expect($user->unlockedLanguages()->count())->toBe(0);
 });
