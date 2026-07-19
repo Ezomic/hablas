@@ -31,7 +31,8 @@ const sendForm = useForm({});
 // so the one-time code has to travel under that field name.
 const confirmForm = useForm({ password: '' });
 
-const sendCode = () => sendForm.post(sendConfirmCode().url, { preserveScroll: true });
+const sendCode = () =>
+    sendForm.post(sendConfirmCode().url, { preserveScroll: true });
 
 const submit = () =>
     confirmForm.post(store().url, {

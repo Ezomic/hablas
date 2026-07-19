@@ -36,7 +36,9 @@ vi.mock('@/components/PasskeyVerify.vue', () => ({
 
 vi.mock('@/routes', () => ({ register: () => ({ url: '/register' }) }));
 vi.mock('@/routes/login', () => ({ store: () => ({ url: '/login' }) }));
-vi.mock('@/routes/login/code', () => ({ store: () => ({ url: '/login/code' }) }));
+vi.mock('@/routes/login/code', () => ({
+    store: () => ({ url: '/login/code' }),
+}));
 
 function mountPage() {
     forms.length = 0;
@@ -45,7 +47,10 @@ function mountPage() {
 
     return {
         wrapper,
-        emailForm: forms[0] as { email: string; post: ReturnType<typeof vi.fn> },
+        emailForm: forms[0] as {
+            email: string;
+            post: ReturnType<typeof vi.fn>;
+        },
         codeForm: forms[1] as { email: string; code: string },
     };
 }

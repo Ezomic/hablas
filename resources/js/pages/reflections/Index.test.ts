@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { reactive } from 'vue';
 import Index from './Index.vue';
 
-const { forms } = vi.hoisted(() => ({ forms: [] as Record<string, unknown>[] }));
+const { forms } = vi.hoisted(() => ({
+    forms: [] as Record<string, unknown>[],
+}));
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
@@ -25,7 +27,11 @@ function mountPage() {
     const wrapper = mount(Index, {
         props: {
             statements: [
-                { id: 1, skill: 'reading', statement_text: 'I can read a menu.' },
+                {
+                    id: 1,
+                    skill: 'reading',
+                    statement_text: 'I can read a menu.',
+                },
             ],
             submittedThisWeek: false,
         },

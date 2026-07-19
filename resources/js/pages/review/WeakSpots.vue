@@ -123,7 +123,9 @@ async function rate(rating: Rating) {
                 </div>
 
                 <p class="text-sm text-muted-foreground">
-                    {{ queue.length }} weak spot{{ queue.length === 1 ? '' : 's' }}
+                    {{ queue.length }} weak spot{{
+                        queue.length === 1 ? '' : 's'
+                    }}
                     left
                 </p>
 

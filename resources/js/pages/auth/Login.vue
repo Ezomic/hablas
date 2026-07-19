@@ -118,7 +118,8 @@ const useDifferentEmail = () => {
                 data-test="code-input"
             />
             <p class="text-xs text-muted-foreground">
-                We sent a code to {{ codeForm.email }}. It expires in 10 minutes.
+                We sent a code to {{ codeForm.email }}. It expires in 10
+                minutes.
             </p>
             <InputError :message="codeForm.errors.code" />
             <InputError :message="codeForm.errors.email" />
@@ -126,7 +127,11 @@ const useDifferentEmail = () => {
 
         <div class="flex items-center justify-between">
             <Label for="remember" class="flex items-center space-x-3">
-                <Checkbox id="remember" v-model="codeForm.remember" :tabindex="3" />
+                <Checkbox
+                    id="remember"
+                    v-model="codeForm.remember"
+                    :tabindex="3"
+                />
                 <span>Remember me</span>
             </Label>
         </div>

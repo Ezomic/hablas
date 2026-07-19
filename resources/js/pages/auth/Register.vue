@@ -54,8 +54,8 @@ defineOptions({
                 />
                 <InputError :message="errors.email" />
                 <p class="text-xs text-muted-foreground">
-                    No password needed — we’ll email you a code whenever you sign
-                    in, and you can add a passkey once you’re in.
+                    No password needed — we’ll email you a code whenever you
+                    sign in, and you can add a passkey once you’re in.
                 </p>
             </div>
 
