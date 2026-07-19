@@ -206,8 +206,8 @@ const ceilingSkillNames = computed(() =>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    Cards you've missed a few times in a row, set aside until you
-                    get them right once more.
+                    Cards you've missed a few times in a row, set aside until
+                    you get them right once more.
                 </p>
                 <Button as-child variant="outline">
                     <Link :href="weakSpotIndex().url">Review weak spots</Link>

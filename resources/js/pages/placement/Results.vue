@@ -30,7 +30,9 @@ const props = defineProps<{
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Placement results', href: '/placement/results' }],
+        breadcrumbs: [
+            { title: 'Placement results', href: '/placement/results' },
+        ],
     },
 });
 
@@ -45,12 +47,22 @@ const statusMeta: Record<
     BreakdownItem['status'],
     { icon: typeof Check; label: string; class: string }
 > = {
-    correct: { icon: Check, label: 'Correct', class: 'text-green-600 dark:text-green-500' },
+    correct: {
+        icon: Check,
+        label: 'Correct',
+        class: 'text-green-600 dark:text-green-500',
+    },
     incorrect: { icon: X, label: 'Incorrect', class: 'text-destructive' },
-    dont_know: { icon: Minus, label: "Didn't know", class: 'text-muted-foreground' },
+    dont_know: {
+        icon: Minus,
+        label: "Didn't know",
+        class: 'text-muted-foreground',
+    },
 };
 
-const skillsWithItems = props.result.skills.filter((skill) => skill.items.length > 0);
+const skillsWithItems = props.result.skills.filter(
+    (skill) => skill.items.length > 0,
+);
 </script>
 
 <template>
@@ -88,15 +100,17 @@ const skillsWithItems = props.result.skills.filter((skill) => skill.items.length
                         <span class="text-sm text-muted-foreground">
                             {{ skillLabels[skill.skill] ?? skill.skill }}
                         </span>
-                        <span class="font-medium">{{ skill.level ?? '—' }}</span>
+                        <span class="font-medium">{{
+                            skill.level ?? '—'
+                        }}</span>
                     </div>
                 </div>
             </CardContent>
         </Card>
 
         <p v-if="props.result.skipped" class="text-muted-foreground">
-            You skipped the placement test, so every skill starts at A1. Take the
-            test any time to set a more accurate level.
+            You skipped the placement test, so every skill starts at A1. Take
+            the test any time to set a more accurate level.
         </p>
 
         <div v-else class="flex flex-col gap-6">
@@ -105,7 +119,9 @@ const skillsWithItems = props.result.skills.filter((skill) => skill.items.length
             <Card v-for="skill in skillsWithItems" :key="skill.skill">
                 <CardHeader>
                     <CardTitle class="flex items-center justify-between">
-                        <span>{{ skillLabels[skill.skill] ?? skill.skill }}</span>
+                        <span>{{
+                            skillLabels[skill.skill] ?? skill.skill
+                        }}</span>
                         <span class="text-sm font-normal text-muted-foreground">
                             {{ skill.level ?? '—' }}
                         </span>
