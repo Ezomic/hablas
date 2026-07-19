@@ -10,48 +10,149 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy
+  # Build the front-end assets on the runner instead of on the droplet. The
+  # droplet has 2GB RAM and no swap, where `npm ci` alone took ~8m and once hit
+  # the ssh timeout mid-install — leaving a node_modules with no .bin/ and a
+  # half-deployed production (see HAB-41). Building here removes the slowest and
+  # most memory-hungry step from the server entirely; the droplet no longer needs
+  # Node or devDependencies at all, and a failed build never touches production.
+  build:
+    name: Build assets
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+          cache: npm
+
+      # `npm run build` boots artisan via the Wayfinder Vite plugin (it
+      # generates resources/js/routes/* from the route table), so the build
+      # needs a bootable app: PHP deps + an APP_KEY. Mirrors tests.yml.
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Prepare app for artisan boot
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Install Node dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build assets
+        run: npm run build
+
+      # The PWA build emits generated files in three gitignored locations:
+      # public/build/ (Vite assets + manifest), public/sw.js and
+      # public/workbox-*.js (service worker). Stage all of them under one dir,
+      # preserving the public/ layout, so the deploy job can drop them straight
+      # into the droplet's public/.
+      - name: Stage built assets
+        run: |
+          mkdir -p dist/public
+          cp -r public/build dist/public/build
+          cp public/sw.js dist/public/sw.js
+          cp public/workbox-*.js dist/public/
+
+      - name: Upload built assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-assets
+          path: dist/public
+          retention-days: 3
+          include-hidden-files: true
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built assets
+        uses: actions/download-artifact@v4
+        with:
+          name: public-assets
+          path: dist
+
+      # Ship the built assets into a staging dir on the droplet. rm clears any
+      # leftover from a previous run so no stale files linger.
+      - name: Copy assets to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_SSH_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: 'dist/*'
+          target: /home/deploy/hablas/deploy-incoming
+          strip_components: 1
+          rm: true
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_SSH_HOST }}
           username: ${{ secrets.DEPLOY_SSH_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          # appleboy/ssh-action defaults to a 10m command_timeout. `npm ci` alone
-          # takes ~8m on this droplet, so the default killed the deploy midway —
-          # leaving new code against an un-migrated DB and a node_modules with no
-          # .bin/ (npm had not reached the link stage), so `vite` vanished and the
-          # build could not be re-run. Give the whole script real headroom.
-          command_timeout: 25m
+          # No npm on the server anymore, so the old 25m headroom for `npm ci`
+          # isn't needed. The remaining steps (composer, migrate, optimize) are
+          # fast; keep a comfortable margin.
+          command_timeout: 10m
           script: |
             set -e
             cd /home/deploy/hablas
             git fetch origin
-            git reset --hard origin/main
+            # Pin to the exact commit the build job built its assets from, not
+            # a moving origin/main. If another push lands on main while this
+            # deploy waits in the production queue, resetting to origin/main
+            # would serve newer PHP/routes against this run's older manifest —
+            # a Vite-manifest miss (500). This keeps code and assets in lockstep.
+            git reset --hard ${{ github.sha }}
             composer install --no-dev --optimize-autoloader --no-interaction
-            # MUST come before the build. Wayfinder generates resources/js/routes/*
-            # (gitignored) by booting artisan, so a leftover route cache from the
-            # PREVIOUS deploy makes it emit the previous deploy's route table — any
-            # newly added route is missing and the build dies with
-            # UNLOADABLE_DEPENDENCY. It also clears a cache that can reference
-            # classes this release deleted.
+            # Clear any stale config/route/view cache from the previous release
+            # before rebuilding it below.
             php artisan optimize:clear
-            npm ci --no-audit --no-fund
-            npm run build
+            # Locate the assets the build job shipped, tolerant of whether
+            # scp-action stripped the leading dir, and confirm all three PWA
+            # outputs arrived — BEFORE migrating or touching the live public/,
+            # so a malformed transfer aborts the deploy instead of leaving
+            # production with a migrated DB or a half-swapped public/.
+            if [ -d deploy-incoming/build ]; then
+              INCOMING=deploy-incoming
+            elif [ -d deploy-incoming/dist/build ]; then
+              INCOMING=deploy-incoming/dist
+            else
+              echo "Shipped build/ not found under deploy-incoming"; exit 1
+            fi
+            test -f "$INCOMING/sw.js"
+            ls "$INCOMING"/workbox-*.js >/dev/null 2>&1 || { echo "workbox asset missing from shipped build"; exit 1; }
             php artisan migrate --force
             # Course/reference content (languages, units, vocabulary, placement
-            # items, can-do statements). ContentSeeder holds no user fixtures, so
-            # unlike DatabaseSeeder it is safe here; every seeder it calls uses
-            # updateOrCreate, so running it each release is idempotent and just
-            # brings content up to date. Without this the app has no course to
-            # start, and UnlockSpanishForNewUser silently no-ops on registration.
+            # items, can-do statements). ContentSeeder holds no user fixtures and
+            # every seeder it calls uses updateOrCreate, so running it each
+            # release is idempotent. Without it the app has no course to start.
             php artisan db:seed --class=ContentSeeder --force
-            # Rebuild config/route/view cache from the new code. Without this the
-            # old cache persists and the fpm reload below just reloads stale routes.
             php artisan optimize
+            # Swap in the validated assets. Keep the previous build until the
+            # new one is in place, then discard it, so the window where
+            # public/build is absent is a single rename.
+            rm -rf public/build.old
+            [ -d public/build ] && mv public/build public/build.old
+            mv "$INCOMING/build" public/build
+            cp -f "$INCOMING/sw.js" public/sw.js
+            rm -f public/workbox-*.js
+            cp -f "$INCOMING"/workbox-*.js public/
+            rm -rf public/build.old deploy-incoming
             sudo /bin/systemctl reload php8.4-fpm
             # Restart the scheduler (SendDailyDigests) and the database queue
             # worker (DailyDigestNotification) so both pick up the new code.
