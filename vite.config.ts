@@ -67,7 +67,30 @@ export default defineConfig({
                 background_color: '#0a0a0a',
                 display: 'standalone',
                 start_url: '/dashboard',
-                icons: [],
+                // Without these the PWA install prompt has no icon at all.
+                // "maskable" lets Android crop to its own shape without
+                // clipping the glyph; "any" keeps the rounded square intact
+                // everywhere else.
+                icons: [
+                    {
+                        src: '/pwa-192.png',
+                        sizes: '192x192',
+                        type: 'image/png',
+                        purpose: 'any',
+                    },
+                    {
+                        src: '/pwa-512.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'any',
+                    },
+                    {
+                        src: '/pwa-maskable-512.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'maskable',
+                    },
+                ],
             },
             injectManifest: {
                 // Precache only the built static assets (JS/CSS/fonts) so the
