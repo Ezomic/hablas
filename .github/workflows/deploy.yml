@@ -54,17 +54,18 @@ jobs:
       - name: Build assets
         run: npm run build
 
-      # The PWA build emits generated files in three gitignored locations:
-      # public/build/ (Vite assets + manifest), public/sw.js and
-      # public/workbox-*.js (service worker). Stage all of them under one dir,
-      # preserving the public/ layout, so the deploy job can drop them straight
-      # into the droplet's public/.
+      # The PWA build emits public/build/ (Vite assets + manifest) and
+      # public/sw.js (the service worker). Under injectManifest — this
+      # project's strategy — workbox is bundled into sw.js, so there is no
+      # separate public/workbox-*.js; ship it only on the chance a future
+      # config switch to generateSW emits one. Stage everything under one dir
+      # preserving the public/ layout so the deploy job can drop it straight in.
       - name: Stage built assets
         run: |
           mkdir -p dist/public
           cp -r public/build dist/public/build
           cp public/sw.js dist/public/sw.js
-          cp public/workbox-*.js dist/public/
+          cp public/workbox-*.js dist/public/ 2>/dev/null || true
 
       - name: Upload built assets
         uses: actions/upload-artifact@v4
@@ -123,10 +124,11 @@ jobs:
             # before rebuilding it below.
             php artisan optimize:clear
             # Locate the assets the build job shipped, tolerant of whether
-            # scp-action stripped the leading dir, and confirm all three PWA
-            # outputs arrived — BEFORE migrating or touching the live public/,
-            # so a malformed transfer aborts the deploy instead of leaving
-            # production with a migrated DB or a half-swapped public/.
+            # scp-action stripped the leading dir, and confirm the required
+            # outputs (build/ + sw.js) arrived — BEFORE migrating or touching
+            # the live public/, so a malformed transfer aborts the deploy
+            # instead of leaving a migrated DB or a half-swapped public/.
+            # workbox-*.js is optional (injectManifest bundles it into sw.js).
             if [ -d deploy-incoming/build ]; then
               INCOMING=deploy-incoming
             elif [ -d deploy-incoming/dist/build ]; then
@@ -135,7 +137,6 @@ jobs:
               echo "Shipped build/ not found under deploy-incoming"; exit 1
             fi
             test -f "$INCOMING/sw.js"
-            ls "$INCOMING"/workbox-*.js >/dev/null 2>&1 || { echo "workbox asset missing from shipped build"; exit 1; }
             php artisan migrate --force
             # Course/reference content (languages, units, vocabulary, placement
             # items, can-do statements). ContentSeeder holds no user fixtures and
@@ -150,8 +151,10 @@ jobs:
             [ -d public/build ] && mv public/build public/build.old
             mv "$INCOMING/build" public/build
             cp -f "$INCOMING/sw.js" public/sw.js
+            # Clear any stale workbox-*.js (the injectManifest sw.js doesn't
+            # reference one), then ship a new one only if the build produced it.
             rm -f public/workbox-*.js
-            cp -f "$INCOMING"/workbox-*.js public/
+            cp -f "$INCOMING"/workbox-*.js public/ 2>/dev/null || true
             rm -rf public/build.old deploy-incoming
             sudo /bin/systemctl reload php8.4-fpm
             # Restart the scheduler (SendDailyDigests) and the database queue
