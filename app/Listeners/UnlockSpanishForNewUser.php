@@ -7,6 +7,7 @@ use App\Actions\Languages\UnlockLanguageForUser;
 use App\Models\Language;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Log;
 
 class UnlockSpanishForNewUser
 {
@@ -27,10 +28,34 @@ class UnlockSpanishForNewUser
         $spanish = Language::query()->where('code', 'es')->first();
 
         if ($spanish === null) {
+            $this->reportMissingSpanish($user);
+
             return;
         }
 
         (new UnlockLanguageForUser)->handle($user, $spanish);
         (new SwitchCurrentLanguage)->handle($user, $spanish->id);
+    }
+
+    /**
+     * A missing 'es' row is legitimate in tests — UserFactory creates users
+     * without seeding languages — so this stays a no-op rather than throwing.
+     * But in a real environment it means the new user silently registered
+     * with no course, which is exactly the invisible-broken-account failure.
+     * Surface it in the logs (as an error in production, where a missing 'es'
+     * row is never legitimate) instead of returning silently.
+     */
+    private function reportMissingSpanish(User $user): void
+    {
+        if (app()->environment('testing')) {
+            return;
+        }
+
+        $message = 'UnlockSpanishForNewUser: no "es" language row found; new user registered with no course. The languages table is likely unseeded.';
+        $context = ['user_id' => $user->id];
+
+        app()->isProduction()
+            ? Log::error($message, $context)
+            : Log::warning($message, $context);
     }
 }
