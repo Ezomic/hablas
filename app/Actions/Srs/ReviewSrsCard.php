@@ -8,6 +8,7 @@ use App\Enums\SrsRating;
 use App\Models\SrsCard;
 use App\Models\SrsReview;
 use App\Services\FsrsScheduler;
+use RuntimeException;
 
 class ReviewSrsCard
 {
@@ -37,7 +38,13 @@ class ReviewSrsCard
             'reviewed_at' => now(),
         ]);
 
-        (new RecordStreakActivity)->handle($card->user);
+        $user = $card->user;
+
+        if ($user === null) {
+            throw new RuntimeException("Srs card {$card->id} has no user.");
+        }
+
+        (new RecordStreakActivity)->handle($user);
 
         return $card;
     }

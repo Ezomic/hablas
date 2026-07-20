@@ -15,9 +15,14 @@ class PublicProgressController extends Controller
             ->where('token', $token)
             ->firstOrFail();
 
+        $user = $share->user;
+        $language = $share->language;
+
+        abort_if($user === null || $language === null, 404);
+
         return Inertia::render('progress/Public', [
-            'snapshot' => $buildProgressSnapshot->handle($share->user, $share->language),
-            'ownerName' => $share->user->name,
+            'snapshot' => $buildProgressSnapshot->handle($user, $language),
+            'ownerName' => $user->name,
         ]);
     }
 }

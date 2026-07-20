@@ -7,6 +7,7 @@ use App\Enums\Skill;
 use App\Models\User;
 use App\Models\WritingAttempt;
 use App\Models\WritingExercise;
+use RuntimeException;
 
 class RecordWritingAttempt
 {
@@ -24,10 +25,16 @@ class RecordWritingAttempt
 
         (new RecordStreakActivity)->handle($user);
 
+        $language = $exercise->language;
+
+        if ($language === null) {
+            throw new RuntimeException("Exercise {$exercise->id} has no language.");
+        }
+
         (new NotifyOnBlendedLevelIncrease)->handle(
             $user,
-            $exercise->language,
-            fn () => (new ReassessSkillLevel)->handle($user, $exercise->language, Skill::Writing),
+            $language,
+            fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Writing),
         );
 
         return $attempt;

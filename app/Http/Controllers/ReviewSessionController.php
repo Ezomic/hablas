@@ -6,6 +6,7 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Srs\PresentSrsCardForReview;
 use App\Actions\Srs\ReviewSrsCard;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\SrsRating;
 use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
@@ -16,15 +17,17 @@ use Inertia\Response;
 
 class ReviewSessionController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(Request $request, GetDueSrsCards $getDueSrsCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
     {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('review/Index', ['cards' => []]);
         }
 
-        $cards = $getDueSrsCards->handle($request->user(), $language)->load('cardable');
+        $cards = $getDueSrsCards->handle($this->currentUser(), $language)->load('cardable');
 
         return Inertia::render('review/Index', [
             'cards' => $cards->map(fn (SrsCard $card): array => $presentCard->handle($card))->values(),
@@ -33,7 +36,7 @@ class ReviewSessionController extends Controller
 
     public function store(StoreSrsReviewRequest $request, SrsCard $srsCard, ReviewSrsCard $reviewSrsCard): JsonResponse
     {
-        abort_if($srsCard->user_id !== $request->user()->id, 404);
+        abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
         $reviewSrsCard->handle($srsCard, SrsRating::from($request->validated('rating')));
 

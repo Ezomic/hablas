@@ -7,6 +7,7 @@ use App\Actions\Srs\GetWeakSpotCards;
 use App\Actions\Srs\PresentSrsCardForReview;
 use App\Actions\Srs\ResolveWeakSpot;
 use App\Actions\Srs\ReviewSrsCard;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\SrsRating;
 use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
@@ -17,15 +18,17 @@ use Inertia\Response;
 
 class WeakSpotReviewController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(Request $request, GetWeakSpotCards $getWeakSpotCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
     {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('review/WeakSpots', ['cards' => []]);
         }
 
-        $cards = $getWeakSpotCards->handle($request->user(), $language)->load('cardable');
+        $cards = $getWeakSpotCards->handle($this->currentUser(), $language)->load('cardable');
 
         return Inertia::render('review/WeakSpots', [
             'cards' => $cards->map(fn (SrsCard $card): array => $presentCard->handle($card))->values(),
@@ -34,7 +37,7 @@ class WeakSpotReviewController extends Controller
 
     public function store(StoreSrsReviewRequest $request, SrsCard $srsCard, ReviewSrsCard $reviewSrsCard, ResolveWeakSpot $resolveWeakSpot): JsonResponse
     {
-        abort_if($srsCard->user_id !== $request->user()->id, 404);
+        abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
         $rating = SrsRating::from($request->validated('rating'));
 

@@ -6,6 +6,7 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Reflections\GetCanDoStatementsForReflection;
 use App\Actions\Reflections\HasSubmittedReflectionThisWeek;
 use App\Actions\Reflections\SubmitWeeklyReflection;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreWeeklyReflectionRequest;
 use App\Models\CefrCanDoStatement;
 use Illuminate\Http\RedirectResponse;
@@ -15,23 +16,25 @@ use Inertia\Response;
 
 class WeeklyReflectionController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(
         Request $request,
         GetCanDoStatementsForReflection $getCanDoStatements,
         HasSubmittedReflectionThisWeek $hasSubmittedThisWeek,
         GetCurrentLanguage $getCurrentLanguage,
     ): Response {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('reflections/Index', ['statements' => [], 'submittedThisWeek' => false]);
         }
 
-        if ($hasSubmittedThisWeek->handle($request->user(), $language)) {
+        if ($hasSubmittedThisWeek->handle($this->currentUser(), $language)) {
             return Inertia::render('reflections/Index', ['statements' => [], 'submittedThisWeek' => true]);
         }
 
-        $statements = $getCanDoStatements->handle($request->user(), $language);
+        $statements = $getCanDoStatements->handle($this->currentUser(), $language);
 
         return Inertia::render('reflections/Index', [
             'statements' => $statements->map(fn (CefrCanDoStatement $statement): array => [
@@ -45,10 +48,10 @@ class WeeklyReflectionController extends Controller
 
     public function store(StoreWeeklyReflectionRequest $request, SubmitWeeklyReflection $submitWeeklyReflection, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
     {
-        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
+        $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
         $submitWeeklyReflection->handle(
-            $request->user(),
+            $this->currentUser(),
             $language,
             $request->validated('statement_ids'),
             $request->validated('can_do_ids', []),

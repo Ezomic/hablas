@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Actions\Settings\UpdateInterestPreferences;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\InterestTag;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateInterestPreferencesRequest;
@@ -11,6 +12,8 @@ use Inertia\Inertia;
 
 class InterestPreferencesController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function update(UpdateInterestPreferencesRequest $request, UpdateInterestPreferences $updateInterestPreferences): RedirectResponse
     {
         $interestTags = array_values(array_map(
@@ -18,7 +21,7 @@ class InterestPreferencesController extends Controller
             $request->validated('interest_tags', []),
         ));
 
-        $updateInterestPreferences->handle($request->user(), $interestTags);
+        $updateInterestPreferences->handle($this->currentUser(), $interestTags);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Interest preferences updated.')]);
 

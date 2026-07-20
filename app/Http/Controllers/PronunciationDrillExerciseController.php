@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordPronunciationDrillAttempt;
 use App\Actions\SelectExerciseForUser;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StorePronunciationDrillAttemptRequest;
 use App\Models\PronunciationDrillExercise;
 use Illuminate\Http\JsonResponse;
@@ -14,9 +15,11 @@ use Inertia\Response;
 
 class PronunciationDrillExerciseController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('pronunciation-drills/Index', ['exercise' => null]);
@@ -24,7 +27,7 @@ class PronunciationDrillExerciseController extends Controller
 
         $exercise = $selectExercise->handle(
             PronunciationDrillExercise::query()->where('language_id', $language->id),
-            $request->user(),
+            $this->currentUser(),
         );
 
         return Inertia::render('pronunciation-drills/Index', [
@@ -46,7 +49,7 @@ class PronunciationDrillExerciseController extends Controller
         RecordPronunciationDrillAttempt $recordPronunciationDrillAttempt,
     ): JsonResponse {
         $attempt = $recordPronunciationDrillAttempt->handle(
-            $request->user(),
+            $this->currentUser(),
             $pronunciationDrillExercise,
             $request->validated('transcript_guess'),
         );

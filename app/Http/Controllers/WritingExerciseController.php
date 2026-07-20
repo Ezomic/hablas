@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordWritingAttempt;
 use App\Actions\SelectExerciseForUser;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreWritingAttemptRequest;
 use App\Models\WritingExercise;
 use Illuminate\Http\JsonResponse;
@@ -14,9 +15,11 @@ use Inertia\Response;
 
 class WritingExerciseController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('writing/Index', ['exercise' => null]);
@@ -24,7 +27,7 @@ class WritingExerciseController extends Controller
 
         $exercise = $selectExercise->handle(
             WritingExercise::query()->where('language_id', $language->id),
-            $request->user(),
+            $this->currentUser(),
         );
 
         return Inertia::render('writing/Index', [
@@ -43,7 +46,7 @@ class WritingExerciseController extends Controller
         RecordWritingAttempt $recordWritingAttempt,
     ): JsonResponse {
         $attempt = $recordWritingAttempt->handle(
-            $request->user(),
+            $this->currentUser(),
             $writingExercise,
             $request->validated('response'),
         );
