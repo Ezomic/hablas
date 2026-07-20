@@ -157,7 +157,3 @@ jobs:
             cp -f "$INCOMING"/workbox-*.js public/ 2>/dev/null || true
             rm -rf public/build.old deploy-incoming
             sudo /bin/systemctl reload php8.4-fpm
-            # Restart the scheduler (SendDailyDigests) and the database queue
-            # worker (DailyDigestNotification) so both pick up the new code.
-            sudo /usr/bin/supervisorctl restart hablas-scheduler:*
-            sudo /usr/bin/supervisorctl restart hablas-queue:*
