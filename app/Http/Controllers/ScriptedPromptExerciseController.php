@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordScriptedPromptAttempt;
 use App\Actions\SelectExerciseForUser;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreScriptedPromptAttemptRequest;
 use App\Models\ScriptedPromptExercise;
 use Illuminate\Http\JsonResponse;
@@ -14,9 +15,11 @@ use Inertia\Response;
 
 class ScriptedPromptExerciseController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('scripted-prompts/Index', ['exercise' => null]);
@@ -24,7 +27,7 @@ class ScriptedPromptExerciseController extends Controller
 
         $exercise = $selectExercise->handle(
             ScriptedPromptExercise::query()->where('language_id', $language->id),
-            $request->user(),
+            $this->currentUser(),
         );
 
         return Inertia::render('scripted-prompts/Index', [
@@ -41,7 +44,7 @@ class ScriptedPromptExerciseController extends Controller
         RecordScriptedPromptAttempt $recordScriptedPromptAttempt,
     ): JsonResponse {
         $attempt = $recordScriptedPromptAttempt->handle(
-            $request->user(),
+            $this->currentUser(),
             $scriptedPromptExercise,
             $request->validated('transcript_guess'),
         );

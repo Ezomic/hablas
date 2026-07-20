@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordShadowingAttempt;
 use App\Actions\SelectExerciseForUser;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreShadowingAttemptRequest;
 use App\Models\ShadowingExercise;
 use Illuminate\Http\JsonResponse;
@@ -14,9 +15,11 @@ use Inertia\Response;
 
 class ShadowingExerciseController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
     {
-        $language = $getCurrentLanguage->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return Inertia::render('shadowing/Index', ['exercise' => null]);
@@ -24,7 +27,7 @@ class ShadowingExerciseController extends Controller
 
         $exercise = $selectExercise->handle(
             ShadowingExercise::query()->where('language_id', $language->id),
-            $request->user(),
+            $this->currentUser(),
         );
 
         return Inertia::render('shadowing/Index', [
@@ -42,7 +45,7 @@ class ShadowingExerciseController extends Controller
         RecordShadowingAttempt $recordShadowingAttempt,
     ): JsonResponse {
         $attempt = $recordShadowingAttempt->handle(
-            $request->user(),
+            $this->currentUser(),
             $shadowingExercise,
             $request->validated('transcript_guess'),
         );

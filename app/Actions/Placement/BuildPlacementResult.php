@@ -122,9 +122,9 @@ class BuildPlacementResult
             $abstained = $response->response === PlacementTestResponse::DONT_KNOW;
 
             return [
-                'prompt' => $response->item->prompt,
+                'prompt' => $response->item->prompt ?? '',
                 'yourAnswer' => $abstained ? null : $response->response,
-                'correctAnswer' => $response->item->correct_answer,
+                'correctAnswer' => $response->item->correct_answer ?? '',
                 'status' => match (true) {
                     $abstained => 'dont_know',
                     $response->is_correct => 'correct',

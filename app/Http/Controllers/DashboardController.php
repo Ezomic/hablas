@@ -12,6 +12,7 @@ use App\Actions\Srs\EvaluateSessionHealth;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Srs\GetWeakSpotCards;
 use App\Actions\Streaks\ReconcileStreak;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\Skill;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
@@ -20,6 +21,8 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(
         Request $request,
         GetUserSkillLevels $getUserSkillLevels,
@@ -33,9 +36,9 @@ class DashboardController extends Controller
         SelectNextUnit $selectNextUnit,
         EvaluatePortugueseActivationEligibility $evaluatePortugueseActivationEligibility,
     ): Response {
-        $language = $getCurrentLanguage->handle($request->user());
-        $streak = $reconcileStreak->handle($request->user());
-        $canActivatePortuguese = $evaluatePortugueseActivationEligibility->handle($request->user());
+        $language = $getCurrentLanguage->handle($this->currentUser());
+        $streak = $reconcileStreak->handle($this->currentUser());
+        $canActivatePortuguese = $evaluatePortugueseActivationEligibility->handle($this->currentUser());
 
         $streakProp = [
             'currentLength' => $streak->current_length,
@@ -53,9 +56,9 @@ class DashboardController extends Controller
             ]);
         }
 
-        $skillLevels = $getUserSkillLevels->handle($request->user(), $language);
-        $sessionNeedsRemediation = $evaluateSessionHealth->handle($request->user(), $language);
-        $nextUnit = $sessionNeedsRemediation ? null : $selectNextUnit->handle($request->user(), $language);
+        $skillLevels = $getUserSkillLevels->handle($this->currentUser(), $language);
+        $sessionNeedsRemediation = $evaluateSessionHealth->handle($this->currentUser(), $language);
+        $nextUnit = $sessionNeedsRemediation ? null : $selectNextUnit->handle($this->currentUser(), $language);
 
         return Inertia::render('Dashboard', [
             'language' => ['code' => $language->code, 'name' => $language->name],
@@ -67,8 +70,8 @@ class DashboardController extends Controller
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ]),
             'streak' => $streakProp,
-            'dueReviewCount' => $getDueSrsCards->count($request->user(), $language),
-            'weakSpotReviewCount' => $getWeakSpotCards->count($request->user(), $language),
+            'dueReviewCount' => $getDueSrsCards->count($this->currentUser(), $language),
+            'weakSpotReviewCount' => $getWeakSpotCards->count($this->currentUser(), $language),
             'sessionNeedsRemediation' => $sessionNeedsRemediation,
             'nextUnit' => $nextUnit === null ? null : [
                 'id' => $nextUnit->id,

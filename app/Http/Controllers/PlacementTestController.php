@@ -11,6 +11,7 @@ use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Actions\Placement\GetOrCreateInProgressPlacementAttempt;
 use App\Actions\Placement\RecordPlacementResponse;
 use App\Actions\Placement\SkipPlacementTest;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\AnswerPlacementItemRequest;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
@@ -24,6 +25,8 @@ use Inertia\Response;
 
 class PlacementTestController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function index(
         Request $request,
         GetCurrentLanguage $getCurrentLanguage,
@@ -33,9 +36,9 @@ class PlacementTestController extends Controller
         NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
         ComputePlacementProgress $computePlacementProgress,
     ): Response|RedirectResponse {
-        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
+        $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
-        $attempt = $getOrCreateInProgressPlacementAttempt->handle($request->user(), $language);
+        $attempt = $getOrCreateInProgressPlacementAttempt->handle($this->currentUser(), $language);
         $item = $getCurrentPlacementItem->handle($attempt);
 
         if ($item === null) {
@@ -45,7 +48,7 @@ class PlacementTestController extends Controller
             // notifier-wrapped path answer() uses, so a level-up here still
             // shows the milestone toast rather than finalizing silently.
             $notifyOnBlendedLevelIncrease->handle(
-                $request->user(),
+                $this->currentUser(),
                 $language,
                 fn () => $finalizePlacementAttempt->handle($attempt),
             );
@@ -71,10 +74,10 @@ class PlacementTestController extends Controller
         NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
         ComputePlacementProgress $computePlacementProgress,
     ): JsonResponse {
-        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
+        $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
         $attempt = PlacementTestAttempt::query()
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $this->currentUser()->id)
             ->where('language_id', $language->id)
             ->whereNull('completed_at')
             ->firstOrFail();
@@ -100,7 +103,7 @@ class PlacementTestController extends Controller
 
         if ($next === null) {
             $notifyOnBlendedLevelIncrease->handle(
-                $request->user(),
+                $this->currentUser(),
                 $language,
                 fn () => $finalizePlacementAttempt->handle($attempt),
             );
@@ -117,10 +120,10 @@ class PlacementTestController extends Controller
 
     public function results(Request $request, GetCurrentLanguage $getCurrentLanguage, BuildPlacementResult $buildPlacementResult): Response|RedirectResponse
     {
-        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
+        $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
         $attempt = PlacementTestAttempt::query()
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $this->currentUser()->id)
             ->where('language_id', $language->id)
             ->whereNotNull('completed_at')
             ->latest('completed_at')
@@ -138,9 +141,9 @@ class PlacementTestController extends Controller
 
     public function skip(Request $request, SkipPlacementTest $skipPlacementTest, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
     {
-        $language = $getCurrentLanguage->handle($request->user()) ?? abort(404);
+        $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
-        $skipPlacementTest->handle($request->user(), $language);
+        $skipPlacementTest->handle($this->currentUser(), $language);
 
         return redirect()->route('dashboard');
     }

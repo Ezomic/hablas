@@ -7,6 +7,7 @@ use App\Enums\Skill;
 use App\Models\ScriptedPromptAttempt;
 use App\Models\ScriptedPromptExercise;
 use App\Models\User;
+use RuntimeException;
 
 class RecordScriptedPromptAttempt
 {
@@ -24,10 +25,16 @@ class RecordScriptedPromptAttempt
 
         (new RecordStreakActivity)->handle($user);
 
+        $language = $exercise->language;
+
+        if ($language === null) {
+            throw new RuntimeException("Exercise {$exercise->id} has no language.");
+        }
+
         (new NotifyOnBlendedLevelIncrease)->handle(
             $user,
-            $exercise->language,
-            fn () => (new ReassessSkillLevel)->handle($user, $exercise->language, Skill::Speaking),
+            $language,
+            fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Speaking),
         );
 
         return $attempt;

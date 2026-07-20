@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Actions\Settings\GetUserSettings;
 use App\Actions\Settings\UpdateUserSettings;
+use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\ContextTag;
 use App\Enums\InterestTag;
 use App\Enums\NotificationFrequency;
@@ -16,9 +17,11 @@ use Inertia\Response;
 
 class LearningController extends Controller
 {
+    use InteractsWithCurrentUser;
+
     public function edit(Request $request, GetUserSettings $getUserSettings): Response
     {
-        $settings = $getUserSettings->handle($request->user());
+        $settings = $getUserSettings->handle($this->currentUser());
 
         return Inertia::render('settings/Learning', [
             'settings' => [
@@ -26,10 +29,10 @@ class LearningController extends Controller
                 'newItemCapOverride' => $settings->new_item_cap_override,
                 'contextEmphasis' => $settings->context_emphasis?->value,
             ],
-            'interestTags' => $request->user()->interestPreferences()->get()
+            'interestTags' => $this->currentUser()->interestPreferences()->get()
                 ->map(fn ($preference): string => $preference->interest_tag->value),
             'availableInterestTags' => collect(InterestTag::cases())->map(fn (InterestTag $tag): string => $tag->value),
-            'pushEnabled' => $request->user()->pushSubscriptions()->exists(),
+            'pushEnabled' => $this->currentUser()->pushSubscriptions()->exists(),
             'vapidPublicKey' => config('webpush.vapid.public_key'),
         ]);
     }
@@ -39,7 +42,7 @@ class LearningController extends Controller
         $contextEmphasis = $request->validated('context_emphasis');
 
         $updateUserSettings->handle(
-            $request->user(),
+            $this->currentUser(),
             notificationFrequency: NotificationFrequency::from($request->validated('notification_frequency')),
             newItemCapOverride: $request->validated('new_item_cap_override'),
             contextEmphasis: $contextEmphasis === null ? null : ContextTag::from($contextEmphasis),
