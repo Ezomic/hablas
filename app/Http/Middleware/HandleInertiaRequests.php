@@ -49,7 +49,10 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'portalApps' => fn () => $user === null
                 ? []
-                : app(IdPortalClient::class)->appsFor($user),
+                : app(IdPortalClient::class)->appsFor($user)['apps'],
+            'portalCategories' => fn () => $user === null
+                ? []
+                : app(IdPortalClient::class)->appsFor($user)['categories'],
             'currentLanguage' => $user ? (new GetCurrentLanguage)->handle($user) : null,
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()
