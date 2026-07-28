@@ -1,5 +1,6 @@
 import type { Auth } from '@/types/auth';
 import type { LanguageOption } from '@/types/language';
+import type { PortalApp } from '@/types/portal';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -19,6 +20,7 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            portalApps: PortalApp[];
             sidebarOpen: boolean;
             currentLanguage: LanguageOption | null;
             availableLanguages: LanguageOption[];
