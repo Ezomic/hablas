@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Models\Language;
+use App\Services\Portal\IdPortalClient;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -46,6 +47,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'portalApps' => fn () => $user === null
+                ? []
+                : app(IdPortalClient::class)->appsFor($user),
             'currentLanguage' => $user ? (new GetCurrentLanguage)->handle($user) : null,
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()

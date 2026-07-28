@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
+import PortalSwitcher from '@/components/PortalSwitcher.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem } from '@/types';
 
@@ -26,7 +27,10 @@ withDefaults(
                 </template>
             </div>
 
-            <LanguageSwitcher />
+            <div class="flex items-center gap-2">
+                <PortalSwitcher />
+                <LanguageSwitcher />
+            </div>
         </div>
     </header>
 </template>
