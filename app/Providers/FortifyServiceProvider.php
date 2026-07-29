@@ -96,7 +96,8 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $username = Str::lower($request->string(Fortify::username())->value());
+            $throttleKey = Str::transliterate($username.'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
         });
@@ -106,7 +107,8 @@ class FortifyServiceProvider extends ServiceProvider
         // by user id when re-confirming (that route has no email field) and by
         // the submitted address when signing in.
         RateLimiter::for('login-code', function (Request $request) {
-            $identifier = $request->user()?->getAuthIdentifier() ?? Str::lower((string) $request->input('email'));
+            $authId = $request->user()?->getAuthIdentifier();
+            $identifier = is_scalar($authId) ? (string) $authId : Str::lower($request->string('email')->value());
             $throttleKey = Str::transliterate($identifier.'|'.$request->ip());
 
             return [
@@ -116,9 +118,9 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('passkeys', function (Request $request) {
-            return Limit::perMinute(10)->by(
-                ($request->input('credential.id') ?: $request->session()->getId()).'|'.$request->ip(),
-            );
+            $identifier = $request->string('credential.id')->value() ?: $request->session()->getId();
+
+            return Limit::perMinute(10)->by($identifier.'|'.$request->ip());
         });
     }
 }

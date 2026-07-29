@@ -46,7 +46,7 @@ class ScriptedPromptExerciseController extends Controller
         $attempt = $recordScriptedPromptAttempt->handle(
             $this->currentUser(),
             $scriptedPromptExercise,
-            $request->validated('transcript_guess'),
+            $request->string('transcript_guess')->toString(),
         );
 
         return response()->json(['score' => $attempt->score]);

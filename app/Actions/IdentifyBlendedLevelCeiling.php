@@ -26,14 +26,14 @@ class IdentifyBlendedLevelCeiling
     public function handle(Collection $skillLevels): Collection
     {
         if ($skillLevels->isEmpty()) {
-            return collect();
+            return new Collection;
         }
 
         $orders = $skillLevels->map(fn (UserSkillLevel $skillLevel): int => $skillLevel->cefr_level->sortOrder());
 
         // Nothing is being held back unless some skill is actually ahead of the floor.
         if ($orders->max() <= $orders->min()) {
-            return collect();
+            return new Collection;
         }
 
         return $skillLevels

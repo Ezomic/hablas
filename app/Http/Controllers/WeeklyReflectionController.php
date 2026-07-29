@@ -53,10 +53,21 @@ class WeeklyReflectionController extends Controller
         $submitWeeklyReflection->handle(
             $this->currentUser(),
             $language,
-            $request->validated('statement_ids'),
-            $request->validated('can_do_ids', []),
+            $this->intList($request, 'statement_ids'),
+            $this->intList($request, 'can_do_ids'),
         );
 
         return redirect()->route('reflections.index');
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function intList(Request $request, string $key): array
+    {
+        return $request->collect($key)
+            ->map(fn (mixed $id): int => is_numeric($id) ? (int) $id : 0)
+            ->values()
+            ->all();
     }
 }

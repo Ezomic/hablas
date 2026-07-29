@@ -81,7 +81,8 @@ class ReassessSkillLevel
             ->whereHas('writingExercise', fn ($query) => $query->where('language_id', $language->id))
             ->latest('submitted_at')
             ->limit(self::ATTEMPT_WINDOW)
-            ->pluck('is_correct');
+            ->get()
+            ->map(fn (WritingAttempt $attempt): bool => $attempt->is_correct);
     }
 
     /**

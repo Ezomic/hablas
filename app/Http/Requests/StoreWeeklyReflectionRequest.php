@@ -27,7 +27,7 @@ class StoreWeeklyReflectionRequest extends FormRequest
             'statement_ids' => ['required', 'array'],
             'statement_ids.*' => ['integer', 'exists:cefr_can_do_statements,id'],
             'can_do_ids' => ['array'],
-            'can_do_ids.*' => ['integer', Rule::in($this->input('statement_ids', []))],
+            'can_do_ids.*' => ['integer', Rule::in($this->collect('statement_ids')->all())],
         ];
     }
 }

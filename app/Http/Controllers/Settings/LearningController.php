@@ -39,12 +39,12 @@ class LearningController extends Controller
 
     public function update(UpdateUserSettingsRequest $request, UpdateUserSettings $updateUserSettings): RedirectResponse
     {
-        $contextEmphasis = $request->validated('context_emphasis');
+        $contextEmphasis = $request->string('context_emphasis')->toString() ?: null;
 
         $updateUserSettings->handle(
             $this->currentUser(),
-            notificationFrequency: NotificationFrequency::from($request->validated('notification_frequency')),
-            newItemCapOverride: $request->validated('new_item_cap_override'),
+            notificationFrequency: NotificationFrequency::from($request->string('notification_frequency')->toString()),
+            newItemCapOverride: $request->filled('new_item_cap_override') ? $request->integer('new_item_cap_override') : null,
             contextEmphasis: $contextEmphasis === null ? null : ContextTag::from($contextEmphasis),
         );
 

@@ -28,7 +28,8 @@ class EvaluateSessionHealth
             ->whereHas('srsCard', fn ($query) => $query->where('language_id', $language->id))
             ->latest('reviewed_at')
             ->limit(self::SESSION_WINDOW)
-            ->pluck('rating');
+            ->get()
+            ->map(fn (SrsReview $review): SrsRating => $review->rating);
 
         if ($recentRatings->isEmpty()) {
             return false;

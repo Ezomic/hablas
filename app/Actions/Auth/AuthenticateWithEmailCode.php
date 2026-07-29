@@ -33,12 +33,14 @@ class AuthenticateWithEmailCode
     public function __invoke(Request $request): ?User
     {
         if ($request->attributes->has(self::MEMO_KEY)) {
-            return $request->attributes->get(self::MEMO_KEY);
+            $memoized = $request->attributes->get(self::MEMO_KEY);
+
+            return $memoized instanceof User ? $memoized : null;
         }
 
         $user = $this->attempt(
-            (string) $request->input('email'),
-            (string) $request->input('code'),
+            $request->string('email')->toString(),
+            $request->string('code')->toString(),
         );
 
         $request->attributes->set(self::MEMO_KEY, $user);

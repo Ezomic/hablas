@@ -38,7 +38,9 @@ class SelectNextPlacementItem
         }
 
         $tier = $tierSequence === [] ? DeriveCurrentPlacementTier::STARTING_TIER : end($tierSequence);
-        $answeredItemIds = $responses->pluck('item_id');
+        $answeredItemIds = $responses->pluck('item_id')
+            ->map(fn (mixed $id): int => is_numeric($id) ? (int) $id : 0)
+            ->values();
 
         return $this->findUnansweredItem($attempt->language_id, $skill, $tier, $answeredItemIds);
     }

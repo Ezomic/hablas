@@ -48,7 +48,7 @@ class WritingExerciseController extends Controller
         $attempt = $recordWritingAttempt->handle(
             $this->currentUser(),
             $writingExercise,
-            $request->validated('response'),
+            $request->string('response')->toString(),
         );
 
         return response()->json(['is_correct' => $attempt->is_correct]);

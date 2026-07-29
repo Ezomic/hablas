@@ -39,7 +39,7 @@ class WeakSpotReviewController extends Controller
     {
         abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
-        $rating = SrsRating::from($request->validated('rating'));
+        $rating = SrsRating::from($request->string('rating')->toString());
 
         $reviewSrsCard->handle($srsCard, $rating);
 

@@ -51,7 +51,7 @@ class PronunciationDrillExerciseController extends Controller
         $attempt = $recordPronunciationDrillAttempt->handle(
             $this->currentUser(),
             $pronunciationDrillExercise,
-            $request->validated('transcript_guess'),
+            $request->string('transcript_guess')->toString(),
         );
 
         return response()->json(['is_correct' => $attempt->is_correct, 'score' => $attempt->score]);

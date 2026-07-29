@@ -7,6 +7,7 @@ use App\Enums\SrsRating;
 use App\Models\SrsCard;
 use Carbon\CarbonImmutable;
 use DateTime;
+use DateTimeInterface;
 use DateTimeZone;
 use LogicException;
 use Scottlaurent\FSRS\Card as VendorCard;
@@ -39,13 +40,19 @@ class FsrsScheduler
         $reviewedAt = new DateTime('now', new DateTimeZone('UTC'));
 
         $result = $this->manager->reviewCard($vendorCard, $this->toVendorRating($rating), $reviewedAt);
-        $updated = $result['card'];
+        $updated = $result['card'] ?? null;
 
-        $card->stability = $updated->stability;
-        $card->difficulty = $updated->difficulty;
-        $card->state = $this->fromVendorState($updated->state);
-        $card->reps = $updated->reps;
-        $card->lapses = $updated->lapses;
+        // The vendor Card exposes untyped public properties, so each value is
+        // narrowed before it lands on the typed model columns.
+        if (! $updated instanceof VendorCard || ! $updated->due instanceof DateTimeInterface) {
+            throw new LogicException('FSRS returned an unexpected card payload.');
+        }
+
+        $card->stability = (float) (is_numeric($updated->stability) ? $updated->stability : 0);
+        $card->difficulty = (float) (is_numeric($updated->difficulty) ? $updated->difficulty : 0);
+        $card->state = $this->fromVendorState(is_numeric($updated->state) ? (int) $updated->state : 0);
+        $card->reps = is_numeric($updated->reps) ? (int) $updated->reps : 0;
+        $card->lapses = is_numeric($updated->lapses) ? (int) $updated->lapses : 0;
         $card->due_at = CarbonImmutable::instance($updated->due);
         $card->last_reviewed_at = CarbonImmutable::instance($reviewedAt);
 

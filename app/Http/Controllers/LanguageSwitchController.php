@@ -13,7 +13,7 @@ class LanguageSwitchController extends Controller
 
     public function update(UpdateCurrentLanguageRequest $request, SwitchCurrentLanguage $switchCurrentLanguage): RedirectResponse
     {
-        $switchCurrentLanguage->handle($this->currentUser(), $request->validated('language_id'));
+        $switchCurrentLanguage->handle($this->currentUser(), $request->integer('language_id'));
 
         return back();
     }

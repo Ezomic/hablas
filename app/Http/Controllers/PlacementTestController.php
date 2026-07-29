@@ -90,7 +90,7 @@ class PlacementTestController extends Controller
         abort_unless($expected?->id === $item->id, 409);
 
         try {
-            $recordPlacementResponse->handle($attempt, $item, $request->validated('response'));
+            $recordPlacementResponse->handle($attempt, $item, $request->string('response')->toString());
         } catch (UniqueConstraintViolationException) {
             // A second, near-simultaneous submission for the same item lost
             // the race to the unique(attempt_id, item_id) constraint — treat

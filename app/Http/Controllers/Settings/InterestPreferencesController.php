@@ -16,10 +16,11 @@ class InterestPreferencesController extends Controller
 
     public function update(UpdateInterestPreferencesRequest $request, UpdateInterestPreferences $updateInterestPreferences): RedirectResponse
     {
-        $interestTags = array_values(array_map(
-            fn (string $tag): InterestTag => InterestTag::from($tag),
-            $request->validated('interest_tags', []),
-        ));
+        $interestTags = array_values($request->collect('interest_tags')
+            ->filter(fn (mixed $tag): bool => is_string($tag))
+            ->map(fn (string $tag): InterestTag => InterestTag::from($tag))
+            ->values()
+            ->all());
 
         $updateInterestPreferences->handle($this->currentUser(), $interestTags);
 
