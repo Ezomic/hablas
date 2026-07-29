@@ -27,9 +27,14 @@ class GetMostFrequentErrorTags
             ->orderByDesc('count')
             ->limit($limit)
             ->get()
-            ->map(fn (object $row): array => [
-                'error_tag_category' => ErrorTagCategory::from($row->error_tag_category),
-                'count' => (int) $row->count,
-            ]);
+            ->map(function (object $row): array {
+                $category = $row->error_tag_category;
+                $count = $row->count;
+
+                return [
+                    'error_tag_category' => ErrorTagCategory::from(is_string($category) ? $category : ''),
+                    'count' => is_numeric($count) ? (int) $count : 0,
+                ];
+            });
     }
 }

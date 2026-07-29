@@ -20,11 +20,11 @@ class EmailCodeController extends Controller
      */
     public function store(Request $request, SendEmailCode $sendEmailCode): RedirectResponse
     {
-        $validated = $request->validate([
+        $request->validate([
             'email' => ['required', 'string', 'email', 'max:255'],
         ]);
 
-        $user = User::query()->where('email', $validated['email'])->first();
+        $user = User::query()->where('email', $request->string('email')->toString())->first();
 
         if ($user !== null) {
             $sendEmailCode->handle($user, EmailCodePurpose::Login);

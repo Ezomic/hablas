@@ -3,8 +3,9 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\EnsurePlacementTestCompleted;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::get('/', fn () => Inertia::render('Welcome'))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])

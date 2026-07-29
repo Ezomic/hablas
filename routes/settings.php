@@ -7,6 +7,7 @@ use App\Http\Controllers\Settings\PushSubscriptionController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile');
@@ -26,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(RequirePassword::class)
         ->name('security.edit');
 
-    Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
+    Route::get('settings/appearance', fn () => Inertia::render('settings/Appearance'))->name('appearance.edit');
 
     Route::get('settings/learning', [LearningController::class, 'edit'])->name('learning.edit');
     Route::patch('settings/learning', [LearningController::class, 'update'])->name('learning.update');

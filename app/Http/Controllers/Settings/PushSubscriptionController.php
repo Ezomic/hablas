@@ -15,9 +15,9 @@ class PushSubscriptionController extends Controller
     public function store(StorePushSubscriptionRequest $request): JsonResponse
     {
         $this->currentUser()->updatePushSubscription(
-            endpoint: $request->validated('endpoint'),
-            key: $request->validated('keys.p256dh'),
-            token: $request->validated('keys.auth'),
+            endpoint: $request->string('endpoint')->toString(),
+            key: $request->string('keys.p256dh')->toString() ?: null,
+            token: $request->string('keys.auth')->toString() ?: null,
         );
 
         return response()->json(['subscribed' => true]);
@@ -25,7 +25,7 @@ class PushSubscriptionController extends Controller
 
     public function destroy(DestroyPushSubscriptionRequest $request): JsonResponse
     {
-        $this->currentUser()->deletePushSubscription($request->validated('endpoint'));
+        $this->currentUser()->deletePushSubscription($request->string('endpoint')->toString());
 
         return response()->json(['subscribed' => false]);
     }

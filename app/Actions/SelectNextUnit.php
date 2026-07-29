@@ -4,14 +4,13 @@ namespace App\Actions;
 
 use App\Enums\CefrLevel;
 use App\Enums\ContextTag;
-use App\Enums\InterestTag;
 use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
 use App\Models\Unit;
 use App\Models\UnitInterestTag;
 use App\Models\User;
-use Illuminate\Support\Collection;
+use App\Models\UserInterestPreference;
 
 class SelectNextUnit
 {
@@ -48,7 +47,7 @@ class SelectNextUnit
         }
 
         $topPriorityTag = $candidates
-            ->pluck('context_tag')
+            ->map(fn (Unit $unit): ContextTag => $unit->context_tag)
             ->unique()
             ->sortBy(fn (ContextTag $tag): int => $tag->sortOrder())
             ->first();
@@ -57,8 +56,9 @@ class SelectNextUnit
 
         $recentSkillCounts = $this->recentSkillCounts($user);
         $preferredInterestTags = $user->interestPreferences()->get()
-            ->pluck('interest_tag')
-            ->map(fn (InterestTag $tag): string => $tag->value);
+            ->map(fn (UserInterestPreference $preference): string => $preference->interest_tag->value)
+            ->values()
+            ->all();
 
         return $prioritized
             ->sortBy(fn (Unit $unit): array => [
@@ -74,16 +74,16 @@ class SelectNextUnit
      * 1 otherwise — a no-op tiebreaker when the user has no preferences set,
      * so existing skill-balance/sort-order behavior is unaffected.
      *
-     * @param  Collection<int, string>  $preferredInterestTags
+     * @param  array<int, string>  $preferredInterestTags
      */
-    private function interestScore(Unit $unit, Collection $preferredInterestTags): int
+    private function interestScore(Unit $unit, array $preferredInterestTags): int
     {
-        if ($preferredInterestTags->isEmpty()) {
+        if ($preferredInterestTags === []) {
             return 0;
         }
 
         $matches = $unit->interestTags->contains(
-            fn (UnitInterestTag $tag): bool => $preferredInterestTags->contains($tag->interest_tag->value),
+            fn (UnitInterestTag $tag): bool => in_array($tag->interest_tag->value, $preferredInterestTags, true),
         );
 
         return $matches ? 0 : 1;
@@ -99,10 +99,15 @@ class SelectNextUnit
             ->latest('completed_at')
             ->limit(self::ROTATION_WINDOW)
             ->with('unit')
-            ->get()
-            ->pluck('unit');
+            ->get();
 
-        foreach ($recentUnits as $unit) {
+        foreach ($recentUnits as $progress) {
+            $unit = $progress->unit;
+
+            if ($unit === null) {
+                continue;
+            }
+
             $counts[$unit->primary_skill->value]++;
         }
 

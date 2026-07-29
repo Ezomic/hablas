@@ -47,7 +47,7 @@ class ShadowingExerciseController extends Controller
         $attempt = $recordShadowingAttempt->handle(
             $this->currentUser(),
             $shadowingExercise,
-            $request->validated('transcript_guess'),
+            $request->string('transcript_guess')->toString(),
         );
 
         return response()->json(['score' => $attempt->score]);

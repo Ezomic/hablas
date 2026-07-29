@@ -38,7 +38,7 @@ class ReviewSessionController extends Controller
     {
         abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
-        $reviewSrsCard->handle($srsCard, SrsRating::from($request->validated('rating')));
+        $reviewSrsCard->handle($srsCard, SrsRating::from($request->string('rating')->toString()));
 
         return response()->json(['status' => 'ok']);
     }
