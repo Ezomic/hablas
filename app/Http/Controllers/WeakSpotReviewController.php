@@ -39,9 +39,9 @@ class WeakSpotReviewController extends Controller
     {
         abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
-        $rating = SrsRating::from($request->string('rating')->toString());
+        $rating = $request->rating();
 
-        $reviewSrsCard->handle($srsCard, $rating);
+        $reviewSrsCard->handle($srsCard, $rating, $request->errorTagCategory());
 
         // A non-Again review clears the remedial drill and re-admits the card to
         // the normal FSRS rotation; an Again leaves it benched for another pass.

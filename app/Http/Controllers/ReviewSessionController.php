@@ -7,7 +7,6 @@ use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Srs\PresentSrsCardForReview;
 use App\Actions\Srs\ReviewSrsCard;
 use App\Concerns\InteractsWithCurrentUser;
-use App\Enums\SrsRating;
 use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
 use Illuminate\Http\JsonResponse;
@@ -38,7 +37,7 @@ class ReviewSessionController extends Controller
     {
         abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
-        $reviewSrsCard->handle($srsCard, SrsRating::from($request->string('rating')->toString()));
+        $reviewSrsCard->handle($srsCard, $request->rating(), $request->errorTagCategory());
 
         return response()->json(['status' => 'ok']);
     }
