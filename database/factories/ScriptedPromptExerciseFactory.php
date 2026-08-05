@@ -19,7 +19,7 @@ class ScriptedPromptExerciseFactory extends Factory
     public function definition(): array
     {
         return [
-            'language_id' => Language::factory(),
+            'language_id' => Language::firstOrCreate(['code' => 'es'], ['name' => 'Spanish']),
             'unit_id' => null,
             'prompt_text' => $this->faker->sentence(),
             'expected_keywords' => [$this->faker->word()],

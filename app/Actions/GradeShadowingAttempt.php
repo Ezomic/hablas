@@ -2,8 +2,10 @@
 
 namespace App\Actions;
 
+use App\Contracts\TextNormalizer;
 use App\Models\ShadowingExercise;
-use App\Services\SpanishTextNormalizer;
+use App\Services\TextNormalizerResolver;
+use RuntimeException;
 
 class GradeShadowingAttempt
 {
@@ -14,7 +16,7 @@ class GradeShadowingAttempt
      */
     public function handle(ShadowingExercise $exercise, string $transcriptGuess): float
     {
-        $normalizer = new SpanishTextNormalizer;
+        $normalizer = $this->normalizerFor($exercise);
         $targetWords = $normalizer->uniqueWords($exercise->target_transcript);
 
         if ($targetWords->isEmpty()) {
@@ -25,5 +27,21 @@ class GradeShadowingAttempt
         $matched = $targetWords->intersect($guessWords)->count();
 
         return round(($matched / $targetWords->count()) * 100, 1);
+    }
+
+    /**
+     * Which accents are foldable and which are phonemic is language-specific,
+     * so grading folds against the exercise's own language rather than a
+     * hardcoded one.
+     */
+    private function normalizerFor(ShadowingExercise $exercise): TextNormalizer
+    {
+        $language = $exercise->language;
+
+        if ($language === null) {
+            throw new RuntimeException("Shadowing exercise {$exercise->id} has no language.");
+        }
+
+        return (new TextNormalizerResolver)->forLanguage($language);
     }
 }

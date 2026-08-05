@@ -19,7 +19,7 @@ class ShadowingExerciseFactory extends Factory
     public function definition(): array
     {
         return [
-            'language_id' => Language::factory(),
+            'language_id' => Language::firstOrCreate(['code' => 'es'], ['name' => 'Spanish']),
             'unit_id' => null,
             'target_transcript' => $this->faker->sentence(),
             'audio_url' => null,

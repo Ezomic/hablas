@@ -2,14 +2,7 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-
-/**
- * Shared accent-folding/normalization for Portuguese text, used by graders
- * that fuzzy-match a learner's answer against a reference string.
- */
-class PortugueseTextNormalizer
+class PortugueseTextNormalizer extends AccentFoldingTextNormalizer
 {
     /**
      * Only non-nasal vowel accents are folded. 'ã'/'õ' and 'ç' are
@@ -20,32 +13,16 @@ class PortugueseTextNormalizer
      * 'ç' is likewise a distinct phoneme from plain 'c', the same reasoning
      * SpanishTextNormalizer uses to preserve 'ñ'.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    private const VOWEL_ACCENT_FOLDS = [
-        'á' => 'a', 'à' => 'a', 'â' => 'a',
-        'é' => 'e', 'ê' => 'e',
-        'í' => 'i',
-        'ó' => 'o', 'ô' => 'o',
-        'ú' => 'u', 'ü' => 'u',
-    ];
-
-    public function foldAccents(string $text): string
+    protected function vowelAccentFolds(): array
     {
-        return strtr(Str::lower(trim($text)), self::VOWEL_ACCENT_FOLDS);
-    }
-
-    /**
-     * Accent-folds, strips punctuation, and splits into unique words — for
-     * word-overlap style matching.
-     *
-     * @return Collection<int, non-empty-string>
-     */
-    public function uniqueWords(string $text): Collection
-    {
-        $normalized = preg_replace('/[^\p{L}\p{N}\s]/u', '', $this->foldAccents($text)) ?? '';
-        $words = preg_split('/\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
-        return collect($words)->unique();
+        return [
+            'á' => 'a', 'à' => 'a', 'â' => 'a',
+            'é' => 'e', 'ê' => 'e',
+            'í' => 'i',
+            'ó' => 'o', 'ô' => 'o',
+            'ú' => 'u', 'ü' => 'u',
+        ];
     }
 }

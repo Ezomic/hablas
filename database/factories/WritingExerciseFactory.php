@@ -20,7 +20,7 @@ class WritingExerciseFactory extends Factory
     public function definition(): array
     {
         return [
-            'language_id' => Language::factory(),
+            'language_id' => Language::firstOrCreate(['code' => 'es'], ['name' => 'Spanish']),
             'unit_id' => null,
             'type' => WritingExerciseType::FillInTemplate,
             'prompt' => $this->faker->sentence(),

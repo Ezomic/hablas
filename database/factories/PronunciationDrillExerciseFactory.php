@@ -19,7 +19,7 @@ class PronunciationDrillExerciseFactory extends Factory
     public function definition(): array
     {
         return [
-            'language_id' => Language::factory(),
+            'language_id' => Language::firstOrCreate(['code' => 'pt'], ['name' => 'Portuguese']),
             'unit_id' => null,
             'word_a' => 'pão',
             'word_a_translation_en' => 'bread',

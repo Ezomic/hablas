@@ -2,24 +2,27 @@
 
 namespace App\Actions;
 
+use App\Contracts\TextNormalizer;
 use App\Enums\WritingExerciseType;
 use App\Models\WritingExercise;
-use App\Services\SpanishTextNormalizer;
+use App\Services\TextNormalizerResolver;
+use RuntimeException;
 
 class GradeWritingAttempt
 {
     public function handle(WritingExercise $exercise, string $response): bool
     {
+        $normalizer = $this->normalizerFor($exercise);
+
         return match ($exercise->type) {
             WritingExerciseType::FillInTemplate,
-            WritingExerciseType::SentenceTransformation => $this->matchesAnAcceptedAnswer($exercise, $response),
-            WritingExerciseType::GuidedParagraph => $this->containsRequiredKeywords($exercise, $response),
+            WritingExerciseType::SentenceTransformation => $this->matchesAnAcceptedAnswer($exercise, $response, $normalizer),
+            WritingExerciseType::GuidedParagraph => $this->containsRequiredKeywords($exercise, $response, $normalizer),
         };
     }
 
-    private function matchesAnAcceptedAnswer(WritingExercise $exercise, string $response): bool
+    private function matchesAnAcceptedAnswer(WritingExercise $exercise, string $response, TextNormalizer $normalizer): bool
     {
-        $normalizer = new SpanishTextNormalizer;
         $normalizedResponse = $normalizer->collapseWhitespace($response);
 
         foreach ($exercise->correct_answers as $acceptedAnswer) {
@@ -39,13 +42,12 @@ class GradeWritingAttempt
      * substring check tolerates conjugation without needing to be
      * grammar-aware.
      */
-    private function containsRequiredKeywords(WritingExercise $exercise, string $response): bool
+    private function containsRequiredKeywords(WritingExercise $exercise, string $response, TextNormalizer $normalizer): bool
     {
         if ($exercise->correct_answers === []) {
             return false;
         }
 
-        $normalizer = new SpanishTextNormalizer;
         $normalizedResponse = $normalizer->collapseWhitespace($response);
 
         foreach ($exercise->correct_answers as $requiredStem) {
@@ -55,5 +57,21 @@ class GradeWritingAttempt
         }
 
         return true;
+    }
+
+    /**
+     * Which accents are foldable and which are phonemic is language-specific,
+     * so grading folds against the exercise's own language rather than a
+     * hardcoded one.
+     */
+    private function normalizerFor(WritingExercise $exercise): TextNormalizer
+    {
+        $language = $exercise->language;
+
+        if ($language === null) {
+            throw new RuntimeException("Writing exercise {$exercise->id} has no language.");
+        }
+
+        return (new TextNormalizerResolver)->forLanguage($language);
     }
 }
