@@ -188,3 +188,196 @@ describe('keyboard shortcuts', () => {
         expect(submitOrQueue).not.toHaveBeenCalled();
     });
 });
+
+describe('review flow', () => {
+    async function reveal(wrapper: ReturnType<typeof mountDeck>) {
+        await wrapper.find('button').trigger('click');
+    }
+
+    function ratingButtons(wrapper: ReturnType<typeof mountDeck>) {
+        return wrapper.findAll('button');
+    }
+
+    it('hides the answer until it is revealed', async () => {
+        const wrapper = mountDeck([vocabularyCard(1)]);
+
+        expect(wrapper.text()).toContain('front 1');
+        expect(wrapper.text()).not.toContain('back 1');
+
+        await reveal(wrapper);
+
+        expect(wrapper.text()).toContain('back 1');
+    });
+
+    it('submits the chosen rating and advances', async () => {
+        const wrapper = mountDeck([vocabularyCard(1), vocabularyCard(2)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/1/reviews', {
+            rating: 'good',
+            error_tag_category: null,
+        });
+        expect(wrapper.text()).toContain('front 2');
+    });
+
+    it('counts down the cards left', async () => {
+        const wrapper = mountDeck([vocabularyCard(1), vocabularyCard(2)]);
+
+        expect(wrapper.text()).toContain('2 cards left');
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+
+        expect(wrapper.text()).toContain('1 card left');
+    });
+
+    it('surfaces a failed submit and keeps the card in place', async () => {
+        submitOrQueue.mockResolvedValue({
+            queued: false,
+            response: { ok: false } as Response,
+        });
+
+        const wrapper = mountDeck([vocabularyCard(1)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+
+        expect(wrapper.text()).toContain("Couldn't save that rating");
+        expect(wrapper.text()).toContain('front 1');
+        expect(wrapper.text()).toContain('1 card left');
+    });
+
+    it('lets a failed rating be retried', async () => {
+        submitOrQueue.mockResolvedValueOnce({
+            queued: false,
+            response: { ok: false } as Response,
+        });
+
+        const wrapper = mountDeck([vocabularyCard(1)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledTimes(2);
+        expect(wrapper.text()).not.toContain("Couldn't save that rating");
+    });
+
+    it('queues offline and still advances', async () => {
+        submitOrQueue.mockResolvedValue({ queued: true });
+
+        const wrapper = mountDeck([vocabularyCard(1), vocabularyCard(2)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+
+        expect(wrapper.text()).toContain("You're offline");
+        expect(wrapper.text()).toContain('front 2');
+    });
+
+    it('renders the empty state when there was nothing to review', () => {
+        const wrapper = mountDeck([]);
+
+        expect(wrapper.text()).toContain('All caught up.');
+        expect(wrapper.text()).not.toContain('Session complete');
+    });
+
+    it('shows a session summary with the rating breakdown once done', async () => {
+        const wrapper = mountDeck([vocabularyCard(1), vocabularyCard(2)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[2].trigger('click');
+        await nextTick();
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[3].trigger('click');
+        await nextTick();
+
+        expect(wrapper.text()).toContain('Session complete');
+        expect(wrapper.text()).toContain('2 cards reviewed');
+        expect(wrapper.text()).toContain('Nothing else due right now');
+        expect(wrapper.text()).not.toContain('All caught up.');
+    });
+
+    it('reports what is still due after a capped session', async () => {
+        const wrapper = mount(ReviewDeck, {
+            props: {
+                cards: [vocabularyCard(1)],
+                reviewUrl: (cardId: number) => `/review/${cardId}/reviews`,
+                countNoun: 'card',
+                emptyMessage: 'All caught up.',
+                dueRemaining: 12,
+            },
+            attachTo: document.body,
+        });
+        mounted.push(wrapper);
+
+        await wrapper.find('button').trigger('click');
+        await wrapper.findAll('button')[2].trigger('click');
+        await nextTick();
+
+        expect(wrapper.text()).toContain('12 more cards still due');
+    });
+
+    it('asks what went wrong when a grammar card is missed', async () => {
+        const wrapper = mountDeck([grammarCard(9)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[0].trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain('What went wrong?');
+
+        const tagButton = wrapper
+            .findAll('button')
+            .find((button) => button.text() === 'Ser vs estar');
+        await tagButton?.trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/9/reviews', {
+            rating: 'again',
+            error_tag_category: 'ser_estar_confusion',
+        });
+    });
+
+    it('lets a missed grammar card go untagged', async () => {
+        const wrapper = mountDeck([grammarCard(9)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[0].trigger('click');
+        await nextTick();
+
+        const skip = wrapper
+            .findAll('button')
+            .find((button) => button.text() === 'Not sure');
+        await skip?.trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/9/reviews', {
+            rating: 'again',
+            error_tag_category: null,
+        });
+    });
+
+    it('does not ask what went wrong for a missed vocabulary card', async () => {
+        const wrapper = mountDeck([vocabularyCard(1)]);
+
+        await reveal(wrapper);
+        await ratingButtons(wrapper)[0].trigger('click');
+        await nextTick();
+
+        expect(wrapper.text()).not.toContain('What went wrong?');
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/1/reviews', {
+            rating: 'again',
+            error_tag_category: null,
+        });
+    });
+});
