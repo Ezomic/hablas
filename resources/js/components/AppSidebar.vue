@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import {
+    AudioLines,
+    Layers,
+    LayoutGrid,
+    MessagesSquare,
+    Mic,
+    NotebookPen,
+    PenLine,
+    TriangleAlert,
+} from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
-import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -15,26 +23,38 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as pronunciationDrillsIndex } from '@/routes/pronunciation-drills';
+import { index as reflectionsIndex } from '@/routes/reflections';
+import { index as reviewIndex } from '@/routes/review';
+import { index as weakSpotsIndex } from '@/routes/review/weak-spots';
+import { index as scriptedPromptsIndex } from '@/routes/scripted-prompts';
+import { index as shadowingIndex } from '@/routes/shadowing';
+import { index as writingIndex } from '@/routes/writing';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
+const studyNavItems: NavItem[] = [
+    { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+    { title: 'Review', href: reviewIndex(), icon: Layers },
+    { title: 'Weak spots', href: weakSpotsIndex(), icon: TriangleAlert },
 ];
 
-const footerNavItems: NavItem[] = [
+const practiceNavItems: NavItem[] = [
+    { title: 'Shadowing', href: shadowingIndex(), icon: Mic },
+    { title: 'Writing', href: writingIndex(), icon: PenLine },
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
+        title: 'Scripted prompts',
+        href: scriptedPromptsIndex(),
+        icon: MessagesSquare,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
+        title: 'Pronunciation drills',
+        href: pronunciationDrillsIndex(),
+        icon: AudioLines,
+    },
+    {
+        title: 'Weekly reflection',
+        href: reflectionsIndex(),
+        icon: NotebookPen,
     },
 ];
 </script>
@@ -54,11 +74,11 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain label="Study" :items="studyNavItems" />
+            <NavMain label="Practice" :items="practiceNavItems" />
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>
