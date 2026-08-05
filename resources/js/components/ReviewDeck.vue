@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOfflineSync } from '@/composables/useOfflineSync';
@@ -7,12 +7,16 @@ import { errorTagLabels } from '@/lib/errorTagLabels';
 import { pluralize } from '@/lib/pluralize';
 import type { ErrorTag, Rating, ReviewCard } from '@/types/review';
 
-const props = defineProps<{
-    cards: ReviewCard[];
-    reviewUrl: (cardId: number) => string;
-    countNoun: string;
-    emptyMessage: string;
-}>();
+const props = withDefaults(
+    defineProps<{
+        cards: ReviewCard[];
+        reviewUrl: (cardId: number) => string;
+        countNoun: string;
+        emptyMessage: string;
+        dueRemaining?: number;
+    }>(),
+    { dueRemaining: 0 },
+);
 
 const { submitOrQueue } = useOfflineSync();
 
@@ -31,6 +35,21 @@ const ratings: { value: Rating; label: string }[] = [
 ];
 
 const errorTags = Object.keys(errorTagLabels) as ErrorTag[];
+
+const tally = ref<Record<Rating, number>>({
+    again: 0,
+    hard: 0,
+    good: 0,
+    easy: 0,
+});
+
+const reviewed = computed(() =>
+    ratings.reduce((total, rating) => total + tally.value[rating.value], 0),
+);
+
+const isFinished = computed(
+    () => queue.value.length === 0 && reviewed.value > 0,
+);
 
 // Only a missed grammar card asks what went wrong. Plain vocabulary misses
 // stay a simple right or wrong, so tagging them would be noise.
@@ -73,7 +92,7 @@ async function submit(rating: Rating, errorTag: ErrorTag | null) {
 
         if (result.queued) {
             queuedOffline.value = true;
-            advance();
+            advance(rating);
 
             return;
         }
@@ -84,13 +103,14 @@ async function submit(rating: Rating, errorTag: ErrorTag | null) {
             return;
         }
 
-        advance();
+        advance(rating);
     } finally {
         isSubmitting.value = false;
     }
 }
 
-function advance() {
+function advance(rating: Rating) {
+    tally.value[rating]++;
     queue.value.shift();
     revealed.value = false;
     pendingMiss.value = false;
@@ -164,6 +184,42 @@ function advance() {
                 class="text-sm font-medium text-red-600 dark:text-red-500"
             >
                 Couldn't save that rating, try again.
+            </p>
+        </CardContent>
+    </Card>
+
+    <Card v-else-if="isFinished">
+        <CardHeader>
+            <CardTitle class="text-2xl">Session complete</CardTitle>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-4">
+            <p class="text-sm text-muted-foreground">
+                {{ reviewed }} {{ pluralize(props.countNoun, reviewed) }}
+                reviewed.
+            </p>
+
+            <div class="grid grid-cols-4 gap-2 text-center">
+                <div
+                    v-for="rating in ratings"
+                    :key="rating.value"
+                    class="rounded-md border p-2"
+                >
+                    <div class="text-xl font-semibold">
+                        {{ tally[rating.value] }}
+                    </div>
+                    <div class="text-xs text-muted-foreground">
+                        {{ rating.label }}
+                    </div>
+                </div>
+            </div>
+
+            <p v-if="props.dueRemaining" class="text-sm text-muted-foreground">
+                {{ props.dueRemaining }} more
+                {{ pluralize(props.countNoun, props.dueRemaining) }} still due.
+                Start another session whenever you're ready.
+            </p>
+            <p v-else class="text-sm text-muted-foreground">
+                Nothing else due right now.
             </p>
         </CardContent>
     </Card>
