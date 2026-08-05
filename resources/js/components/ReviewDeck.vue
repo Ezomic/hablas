@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOfflineSync } from '@/composables/useOfflineSync';
@@ -115,6 +115,50 @@ function advance(rating: Rating) {
     revealed.value = false;
     pendingMiss.value = false;
 }
+
+// Reviewing is the most repetitive screen in the app, so the whole loop is
+// reachable from the keyboard: space or enter reveals, then 1 to 4 rate.
+function handleKeydown(event: KeyboardEvent) {
+    if (event.metaKey || event.ctrlKey || event.altKey || isTyping(event)) {
+        return;
+    }
+
+    if (!queue.value[0] || isSubmitting.value || pendingMiss.value) {
+        return;
+    }
+
+    if (!revealed.value) {
+        if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            revealed.value = true;
+        }
+
+        return;
+    }
+
+    const rating = ratings[Number(event.key) - 1];
+
+    if (rating) {
+        event.preventDefault();
+        rate(rating.value);
+    }
+}
+
+function isTyping(event: KeyboardEvent): boolean {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    return (
+        target.isContentEditable ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+    );
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeydown));
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 </script>
 
 <template>
@@ -134,6 +178,10 @@ function advance(rating: Rating) {
 
             <Button v-if="!revealed" @click="revealed = true">
                 Show answer
+                <kbd
+                    class="ml-1 rounded border px-1 text-xs font-normal opacity-70"
+                    >space</kbd
+                >
             </Button>
 
             <div v-else-if="pendingMiss" class="flex flex-col gap-3">
@@ -164,13 +212,17 @@ function advance(rating: Rating) {
 
             <div v-else class="grid grid-cols-4 gap-2">
                 <Button
-                    v-for="rating in ratings"
+                    v-for="(rating, index) in ratings"
                     :key="rating.value"
                     variant="outline"
                     :disabled="isSubmitting"
                     @click="rate(rating.value)"
                 >
                     {{ rating.label }}
+                    <kbd
+                        class="ml-1 rounded border px-1 text-xs font-normal opacity-70"
+                        >{{ index + 1 }}</kbd
+                    >
                 </Button>
             </div>
 
