@@ -23,6 +23,7 @@ import { results as placementResults } from '@/routes/placement';
 import { show as showProgressShare } from '@/routes/progress/share';
 import { index as reviewIndex } from '@/routes/review';
 import { index as weakSpotIndex } from '@/routes/review/weak-spots';
+import { show as showUnit } from '@/routes/units';
 import type { LanguageOption } from '@/types';
 
 interface Streak {
@@ -173,10 +174,15 @@ const ceilingSkillNames = computed(() =>
                     props.nextUnit.title
                 }}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
                     {{ props.nextUnit.taskDescription }}
                 </p>
+                <Button as-child>
+                    <Link :href="showUnit(props.nextUnit.id).url"
+                        >Start unit</Link
+                    >
+                </Button>
             </CardContent>
         </Card>
 
