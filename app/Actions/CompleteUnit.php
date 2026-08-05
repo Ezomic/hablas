@@ -19,6 +19,12 @@ use RuntimeException;
 
 class CompleteUnit
 {
+    public function __construct(
+        private readonly AdaptiveNewItemCap $adaptiveNewItemCap = new AdaptiveNewItemCap,
+        private readonly EnrollInSrs $enrollInSrs = new EnrollInSrs,
+        private readonly RecordStreakActivity $recordStreakActivity = new RecordStreakActivity,
+    ) {}
+
     /**
      * @return array{progress: UserUnitProgress, enrolled: int, deferred: int}
      */
@@ -31,7 +37,7 @@ class CompleteUnit
 
         $enrollment = $this->enrollUnitContent($user, $unit);
 
-        (new RecordStreakActivity)->handle($user);
+        $this->recordStreakActivity->handle($user);
 
         return ['progress' => $progress, ...$enrollment];
     }
@@ -60,10 +66,8 @@ class CompleteUnit
         $pending = $this->unenrolledContent($user, $unit);
         $allowance = $this->remainingAllowance($user, $language);
 
-        $enroll = new EnrollInSrs;
-
         foreach ($pending->take($allowance) as $cardable) {
-            $enroll->handle($user, $language, $cardable);
+            $this->enrollInSrs->handle($user, $language, $cardable);
         }
 
         $enrolled = min($allowance, $pending->count());
@@ -100,6 +104,6 @@ class CompleteUnit
             ->whereDate('created_at', today())
             ->count();
 
-        return max(0, (new AdaptiveNewItemCap)->forUser($user, $language) - $enrolledToday);
+        return max(0, $this->adaptiveNewItemCap->forUser($user, $language) - $enrolledToday);
     }
 }

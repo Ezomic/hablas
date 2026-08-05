@@ -13,6 +13,12 @@ use App\Models\UserSkillLevel;
 
 class BuildProgressSnapshot
 {
+    public function __construct(
+        private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,
+        private readonly GetMostFrequentErrorTags $getMostFrequentErrorTags = new GetMostFrequentErrorTags,
+        private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
+    ) {}
+
     /**
      * @return array{
      *     language: array{code: string, name: string},
@@ -25,7 +31,7 @@ class BuildProgressSnapshot
      */
     public function handle(User $user, Language $language): array
     {
-        $skillLevels = (new GetUserSkillLevels)->handle($user, $language);
+        $skillLevels = $this->getUserSkillLevels->handle($user, $language);
         // A plain read, not ReconcileStreak — this action is called from the
         // public, unauthenticated share page as well as the owner's own
         // preview, and reconciling persists writes (streak resets, freeze-day
@@ -43,7 +49,7 @@ class BuildProgressSnapshot
 
         return [
             'language' => ['code' => $language->code, 'name' => $language->name],
-            'blendedLevel' => (new ComputeBlendedCefrLevel)->handle($skillLevels)?->value,
+            'blendedLevel' => $this->computeBlendedCefrLevel->handle($skillLevels)?->value,
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ])->all(),
@@ -54,7 +60,7 @@ class BuildProgressSnapshot
             'unitCompletionPercentage' => $totalUnits > 0
                 ? (int) round(($completedUnits / $totalUnits) * 100)
                 : 0,
-            'topErrorTags' => array_values((new GetMostFrequentErrorTags)->handle($user, $language)
+            'topErrorTags' => array_values($this->getMostFrequentErrorTags->handle($user, $language)
                 ->map(fn (array $row): array => [
                     'category' => $row['error_tag_category']->value,
                     'count' => $row['count'],

@@ -9,6 +9,10 @@ use RuntimeException;
 
 class GradeScriptedPromptAttempt
 {
+    public function __construct(
+        private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
+    ) {}
+
     /**
      * Percentage of expected_keywords found (as a substring, tolerating
      * conjugation) in the transcript — keyword-presence scoring per the
@@ -48,6 +52,6 @@ class GradeScriptedPromptAttempt
             throw new RuntimeException("Scripted prompt exercise {$exercise->id} has no language.");
         }
 
-        return (new TextNormalizerResolver)->forLanguage($language);
+        return $this->textNormalizerResolver->forLanguage($language);
     }
 }

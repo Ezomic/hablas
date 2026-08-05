@@ -13,6 +13,10 @@ class EnsurePlacementTestCompleted
 {
     use InteractsWithCurrentUser;
 
+    public function __construct(
+        private readonly GetCurrentLanguage $getCurrentLanguage = new GetCurrentLanguage,
+    ) {}
+
     /**
      * Handle an incoming request.
      *
@@ -20,7 +24,7 @@ class EnsurePlacementTestCompleted
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $language = (new GetCurrentLanguage)->handle($this->currentUser());
+        $language = $this->getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
             return $next($request);

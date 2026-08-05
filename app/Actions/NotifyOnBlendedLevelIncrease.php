@@ -9,6 +9,11 @@ use Closure;
 
 class NotifyOnBlendedLevelIncrease
 {
+    public function __construct(
+        private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,
+        private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
+    ) {}
+
     /**
      * Wraps a mutation that might change the user's skill levels (a placement
      * test, a skill-level reassessment), comparing the blended CEFR level
@@ -46,6 +51,6 @@ class NotifyOnBlendedLevelIncrease
 
     private function blendedLevel(User $user, Language $language): ?CefrLevel
     {
-        return (new ComputeBlendedCefrLevel)->handle((new GetUserSkillLevels)->handle($user, $language));
+        return $this->computeBlendedCefrLevel->handle($this->getUserSkillLevels->handle($user, $language));
     }
 }

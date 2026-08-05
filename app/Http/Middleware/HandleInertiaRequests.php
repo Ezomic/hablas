@@ -10,6 +10,10 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
+    public function __construct(
+        private readonly GetCurrentLanguage $getCurrentLanguage = new GetCurrentLanguage,
+    ) {}
+
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -53,7 +57,7 @@ class HandleInertiaRequests extends Middleware
             'portalCategories' => fn () => $user === null
                 ? []
                 : app(IdPortalClient::class)->appsFor($user)['categories'],
-            'currentLanguage' => $user ? (new GetCurrentLanguage)->handle($user) : null,
+            'currentLanguage' => $user ? $this->getCurrentLanguage->handle($user) : null,
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()
                     ->get(['languages.id', 'languages.code', 'languages.name'])

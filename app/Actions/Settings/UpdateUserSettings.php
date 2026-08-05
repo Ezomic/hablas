@@ -9,13 +9,17 @@ use App\Models\UserSetting;
 
 class UpdateUserSettings
 {
+    public function __construct(
+        private readonly GetUserSettings $getUserSettings = new GetUserSettings,
+    ) {}
+
     public function handle(
         User $user,
         NotificationFrequency $notificationFrequency,
         ?int $newItemCapOverride,
         ?ContextTag $contextEmphasis,
     ): UserSetting {
-        $settings = (new GetUserSettings)->handle($user);
+        $settings = $this->getUserSettings->handle($user);
 
         $settings->forceFill([
             'notification_frequency' => $notificationFrequency,

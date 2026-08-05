@@ -10,6 +10,11 @@ use Illuminate\Support\Collection;
 
 class BuildReviewSession
 {
+    public function __construct(
+        private readonly AdaptiveNewItemCap $adaptiveNewItemCap = new AdaptiveNewItemCap,
+        private readonly GetDueSrsCards $getDueSrsCards = new GetDueSrsCards,
+    ) {}
+
     /**
      * How many cards one sitting serves. A backlog of several hundred is a
      * realistic state for this app, and handing the lot over in one payload
@@ -23,18 +28,18 @@ class BuildReviewSession
      */
     public function handle(User $user, Language $language): array
     {
-        $repetitions = (new GetDueSrsCards)->repetitions($user, $language, self::SESSION_SIZE)->load('cardable');
+        $repetitions = $this->getDueSrsCards->repetitions($user, $language, self::SESSION_SIZE)->load('cardable');
 
         $newAllowance = max(0, min(
-            (new AdaptiveNewItemCap)->forUser($user, $language),
+            $this->adaptiveNewItemCap->forUser($user, $language),
             self::SESSION_SIZE - $repetitions->count(),
         ));
 
-        $introductions = (new GetDueSrsCards)->introductions($user, $language, $newAllowance)->load('cardable');
+        $introductions = $this->getDueSrsCards->introductions($user, $language, $newAllowance)->load('cardable');
 
         return [
             'cards' => $this->interleave($repetitions->values(), $introductions->values()),
-            'dueRemaining' => max(0, (new GetDueSrsCards)->count($user, $language) - $repetitions->count() - $introductions->count()),
+            'dueRemaining' => max(0, $this->getDueSrsCards->count($user, $language) - $repetitions->count() - $introductions->count()),
         ];
     }
 

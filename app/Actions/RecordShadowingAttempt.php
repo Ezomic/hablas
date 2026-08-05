@@ -11,12 +11,19 @@ use RuntimeException;
 
 class RecordShadowingAttempt
 {
+    public function __construct(
+        private readonly GradeShadowingAttempt $gradeShadowingAttempt = new GradeShadowingAttempt,
+        private readonly NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease = new NotifyOnBlendedLevelIncrease,
+        private readonly ReassessSkillLevel $reassessSkillLevel = new ReassessSkillLevel,
+        private readonly RecordStreakActivity $recordStreakActivity = new RecordStreakActivity,
+    ) {}
+
     /**
      * @return array{attempt: ShadowingAttempt, milestone: array{type: string, message: string}|null}
      */
     public function handle(User $user, ShadowingExercise $exercise, string $transcriptGuess): array
     {
-        $score = (new GradeShadowingAttempt)->handle($exercise, $transcriptGuess);
+        $score = $this->gradeShadowingAttempt->handle($exercise, $transcriptGuess);
 
         $attempt = ShadowingAttempt::create([
             'user_id' => $user->id,
@@ -26,7 +33,7 @@ class RecordShadowingAttempt
             'attempted_at' => now(),
         ]);
 
-        (new RecordStreakActivity)->handle($user);
+        $this->recordStreakActivity->handle($user);
 
         $language = $exercise->language;
 
@@ -34,10 +41,10 @@ class RecordShadowingAttempt
             throw new RuntimeException("Exercise {$exercise->id} has no language.");
         }
 
-        $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
+        $milestone = $this->notifyOnBlendedLevelIncrease->handle(
             $user,
             $language,
-            fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Speaking),
+            fn () => $this->reassessSkillLevel->handle($user, $language, Skill::Speaking),
         );
 
         return ['attempt' => $attempt, 'milestone' => $milestone];

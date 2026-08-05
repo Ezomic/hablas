@@ -11,12 +11,16 @@ use Illuminate\Support\Facades\DB;
 
 class FinalizePlacementAttempt
 {
+    public function __construct(
+        private readonly DeriveCurrentPlacementTier $deriveCurrentPlacementTier = new DeriveCurrentPlacementTier,
+    ) {}
+
     /**
      * @param  (Closure(Skill): CefrSubLevel)|null  $resolveTier  Defaults to replaying the attempt's response history via DeriveCurrentPlacementTier. SkipPlacementTest passes a resolver that always returns the A1 floor instead.
      */
     public function handle(PlacementTestAttempt $attempt, ?Closure $resolveTier = null): PlacementTestAttempt
     {
-        $resolveTier ??= fn (Skill $skill): CefrSubLevel => (new DeriveCurrentPlacementTier)->handle($attempt, $skill);
+        $resolveTier ??= fn (Skill $skill): CefrSubLevel => $this->deriveCurrentPlacementTier->handle($attempt, $skill);
 
         // Wrapped so a failure partway through never leaves some skills'
         // UserSkillLevel rows updated while others (and the attempt's own

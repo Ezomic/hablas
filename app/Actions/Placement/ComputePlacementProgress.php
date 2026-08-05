@@ -7,6 +7,10 @@ use App\Models\PlacementTestAttempt;
 
 class ComputePlacementProgress
 {
+    public function __construct(
+        private readonly SelectNextPlacementItem $selectNextPlacementItem = new SelectNextPlacementItem,
+    ) {}
+
     /**
      * Approximate overall completion (0-100) of an adaptive placement attempt.
      * Each skill is an equal share of the bar: a settled skill counts in full,
@@ -18,12 +22,11 @@ class ComputePlacementProgress
     {
         $skills = Skill::cases();
         $perSkillShare = 1 / count($skills);
-        $selector = new SelectNextPlacementItem;
 
         $completion = 0.0;
 
         foreach ($skills as $skill) {
-            if ($selector->handle($attempt, $skill) === null) {
+            if ($this->selectNextPlacementItem->handle($attempt, $skill) === null) {
                 $completion += $perSkillShare;
 
                 continue;

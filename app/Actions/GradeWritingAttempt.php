@@ -10,6 +10,10 @@ use RuntimeException;
 
 class GradeWritingAttempt
 {
+    public function __construct(
+        private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
+    ) {}
+
     public function handle(WritingExercise $exercise, string $response): bool
     {
         $normalizer = $this->normalizerFor($exercise);
@@ -72,6 +76,6 @@ class GradeWritingAttempt
             throw new RuntimeException("Writing exercise {$exercise->id} has no language.");
         }
 
-        return (new TextNormalizerResolver)->forLanguage($language);
+        return $this->textNormalizerResolver->forLanguage($language);
     }
 }
