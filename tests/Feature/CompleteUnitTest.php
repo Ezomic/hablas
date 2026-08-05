@@ -10,7 +10,7 @@ it('marks a unit completed for the user', function () {
     $user = User::factory()->create();
     $unit = Unit::factory()->create();
 
-    $progress = (new CompleteUnit)->handle($user, $unit);
+    $progress = (new CompleteUnit)->handle($user, $unit)['progress'];
 
     expect($progress->status)->toBe(UnitProgressStatus::Completed)
         ->and($progress->completed_at)->not->toBeNull()
@@ -23,8 +23,8 @@ it('is idempotent for the same user and unit', function () {
     $unit = Unit::factory()->create();
     $action = new CompleteUnit;
 
-    $first = $action->handle($user, $unit);
-    $second = $action->handle($user, $unit);
+    $first = $action->handle($user, $unit)['progress'];
+    $second = $action->handle($user, $unit)['progress'];
 
     expect($second->id)->toBe($first->id)
         ->and(UserUnitProgress::query()->count())->toBe(1);

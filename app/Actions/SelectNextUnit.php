@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Actions\Settings\GetUserSettings;
 use App\Enums\CefrLevel;
 use App\Enums\ContextTag;
 use App\Enums\Skill;
@@ -11,6 +12,7 @@ use App\Models\Unit;
 use App\Models\UnitInterestTag;
 use App\Models\User;
 use App\Models\UserInterestPreference;
+use Illuminate\Support\Collection;
 
 class SelectNextUnit
 {
@@ -46,13 +48,7 @@ class SelectNextUnit
             return null;
         }
 
-        $topPriorityTag = $candidates
-            ->map(fn (Unit $unit): ContextTag => $unit->context_tag)
-            ->unique()
-            ->sortBy(fn (ContextTag $tag): int => $tag->sortOrder())
-            ->first();
-
-        $prioritized = $candidates->where('context_tag', $topPriorityTag);
+        $prioritized = $candidates->where('context_tag', $this->priorityTag($user, $candidates));
 
         $recentSkillCounts = $this->recentSkillCounts($user);
         $preferredInterestTags = $user->interestPreferences()->get()
@@ -66,6 +62,29 @@ class SelectNextUnit
                 $this->interestScore($unit, $preferredInterestTags),
                 $unit->sort_order,
             ])
+            ->first();
+    }
+
+    /**
+     * The user's chosen content focus wins when they have one and there is
+     * still unfinished material in it, so the setting actually steers what
+     * comes next. Without a choice (or once that focus is exhausted) this
+     * falls back to the declared context priority.
+     *
+     * @param  Collection<int, Unit>  $candidates
+     */
+    private function priorityTag(User $user, Collection $candidates): ?ContextTag
+    {
+        $emphasis = (new GetUserSettings)->handle($user)->context_emphasis;
+
+        if ($emphasis !== null && $candidates->contains('context_tag', $emphasis)) {
+            return $emphasis;
+        }
+
+        return $candidates
+            ->map(fn (Unit $unit): ContextTag => $unit->context_tag)
+            ->unique()
+            ->sortBy(fn (ContextTag $tag): int => $tag->sortOrder())
             ->first();
     }
 
