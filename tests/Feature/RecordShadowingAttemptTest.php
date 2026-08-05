@@ -9,7 +9,7 @@ it('persists a scored attempt', function () {
     $user = User::factory()->create();
     $exercise = ShadowingExercise::factory()->create(['target_transcript' => 'Hola']);
 
-    $attempt = (new RecordShadowingAttempt)->handle($user, $exercise, 'Hola');
+    $attempt = (new RecordShadowingAttempt)->handle($user, $exercise, 'Hola')['attempt'];
 
     expect($attempt)->toBeInstanceOf(ShadowingAttempt::class)
         ->and($attempt->score)->toBe(100.0)

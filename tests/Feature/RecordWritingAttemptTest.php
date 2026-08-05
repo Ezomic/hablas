@@ -13,7 +13,7 @@ it('persists a graded attempt', function () {
         'correct_answers' => ['soy'],
     ]);
 
-    $attempt = (new RecordWritingAttempt)->handle($user, $exercise, 'soy');
+    $attempt = (new RecordWritingAttempt)->handle($user, $exercise, 'soy')['attempt'];
 
     expect($attempt)->toBeInstanceOf(WritingAttempt::class)
         ->and($attempt->is_correct)->toBeTrue()

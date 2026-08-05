@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOfflineSync } from '@/composables/useOfflineSync';
+import { showMilestone } from '@/lib/milestone';
 import { store as storeAttempt } from '@/routes/pronunciation-drills/attempts';
 
 interface Exercise {
@@ -101,6 +102,7 @@ async function submitAttempt() {
 
     const data = (await result.response.json()) as { is_correct: boolean };
     isCorrect.value = data.is_correct;
+    showMilestone(data);
 }
 </script>
 

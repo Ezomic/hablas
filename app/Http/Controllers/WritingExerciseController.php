@@ -45,12 +45,15 @@ class WritingExerciseController extends Controller
         WritingExercise $writingExercise,
         RecordWritingAttempt $recordWritingAttempt,
     ): JsonResponse {
-        $attempt = $recordWritingAttempt->handle(
+        $result = $recordWritingAttempt->handle(
             $this->currentUser(),
             $writingExercise,
             $request->string('response')->toString(),
         );
 
-        return response()->json(['is_correct' => $attempt->is_correct]);
+        return response()->json([
+            'is_correct' => $result['attempt']->is_correct,
+            'milestone' => $result['milestone'],
+        ]);
     }
 }
