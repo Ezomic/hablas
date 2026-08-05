@@ -2,8 +2,10 @@
 
 namespace App\Actions;
 
+use App\Contracts\TextNormalizer;
 use App\Models\ScriptedPromptExercise;
-use App\Services\SpanishTextNormalizer;
+use App\Services\TextNormalizerResolver;
+use RuntimeException;
 
 class GradeScriptedPromptAttempt
 {
@@ -14,7 +16,7 @@ class GradeScriptedPromptAttempt
      */
     public function handle(ScriptedPromptExercise $exercise, string $transcriptGuess): float
     {
-        $normalizer = new SpanishTextNormalizer;
+        $normalizer = $this->normalizerFor($exercise);
 
         $keywords = collect($exercise->expected_keywords)
             ->map(fn (string $keyword): string => $normalizer->collapseWhitespace($keyword))
@@ -31,5 +33,21 @@ class GradeScriptedPromptAttempt
             ->count();
 
         return round(($matched / $keywords->count()) * 100, 1);
+    }
+
+    /**
+     * Which accents are foldable and which are phonemic is language-specific,
+     * so grading folds against the exercise's own language rather than a
+     * hardcoded one.
+     */
+    private function normalizerFor(ScriptedPromptExercise $exercise): TextNormalizer
+    {
+        $language = $exercise->language;
+
+        if ($language === null) {
+            throw new RuntimeException("Scripted prompt exercise {$exercise->id} has no language.");
+        }
+
+        return (new TextNormalizerResolver)->forLanguage($language);
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Actions;
 
+use App\Contracts\TextNormalizer;
 use App\Models\PronunciationDrillExercise;
-use App\Services\PortugueseTextNormalizer;
+use App\Services\TextNormalizerResolver;
+use RuntimeException;
 
 class GradePronunciationDrillAttempt
 {
@@ -23,10 +25,26 @@ class GradePronunciationDrillAttempt
      */
     public function handle(PronunciationDrillExercise $exercise, string $transcriptGuess): array
     {
-        $normalizer = new PortugueseTextNormalizer;
+        $normalizer = $this->normalizerFor($exercise);
         $target = $normalizer->foldAccents($exercise->target_word);
         $isCorrect = $normalizer->uniqueWords($transcriptGuess)->contains($target);
 
         return ['is_correct' => $isCorrect, 'score' => $isCorrect ? 100.0 : 0.0];
+    }
+
+    /**
+     * Which accents are foldable and which are phonemic is language-specific,
+     * so grading folds against the exercise's own language rather than a
+     * hardcoded one.
+     */
+    private function normalizerFor(PronunciationDrillExercise $exercise): TextNormalizer
+    {
+        $language = $exercise->language;
+
+        if ($language === null) {
+            throw new RuntimeException("Pronunciation drill exercise {$exercise->id} has no language.");
+        }
+
+        return (new TextNormalizerResolver)->forLanguage($language);
     }
 }
