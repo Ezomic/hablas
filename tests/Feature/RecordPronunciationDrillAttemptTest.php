@@ -13,7 +13,7 @@ it('persists a graded attempt', function () {
         'target_word' => 'pão',
     ]);
 
-    $attempt = (new RecordPronunciationDrillAttempt)->handle($user, $exercise, 'pão');
+    $attempt = (new RecordPronunciationDrillAttempt)->handle($user, $exercise, 'pão')['attempt'];
 
     expect($attempt)->toBeInstanceOf(PronunciationDrillAttempt::class)
         ->and($attempt->is_correct)->toBeTrue()
@@ -31,7 +31,7 @@ it('persists an incorrect attempt too', function () {
         'target_word' => 'pão',
     ]);
 
-    $attempt = (new RecordPronunciationDrillAttempt)->handle($user, $exercise, 'pau');
+    $attempt = (new RecordPronunciationDrillAttempt)->handle($user, $exercise, 'pau')['attempt'];
 
     expect($attempt->is_correct)->toBeFalse()
         ->and($attempt->score)->toBe(0.0);

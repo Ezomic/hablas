@@ -11,7 +11,10 @@ use RuntimeException;
 
 class RecordWritingAttempt
 {
-    public function handle(User $user, WritingExercise $exercise, string $response): WritingAttempt
+    /**
+     * @return array{attempt: WritingAttempt, milestone: array{type: string, message: string}|null}
+     */
+    public function handle(User $user, WritingExercise $exercise, string $response): array
     {
         $isCorrect = (new GradeWritingAttempt)->handle($exercise, $response);
 
@@ -31,12 +34,12 @@ class RecordWritingAttempt
             throw new RuntimeException("Exercise {$exercise->id} has no language.");
         }
 
-        (new NotifyOnBlendedLevelIncrease)->handle(
+        $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
             $user,
             $language,
             fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Writing),
         );
 
-        return $attempt;
+        return ['attempt' => $attempt, 'milestone' => $milestone];
     }
 }

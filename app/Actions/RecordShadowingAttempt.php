@@ -11,7 +11,10 @@ use RuntimeException;
 
 class RecordShadowingAttempt
 {
-    public function handle(User $user, ShadowingExercise $exercise, string $transcriptGuess): ShadowingAttempt
+    /**
+     * @return array{attempt: ShadowingAttempt, milestone: array{type: string, message: string}|null}
+     */
+    public function handle(User $user, ShadowingExercise $exercise, string $transcriptGuess): array
     {
         $score = (new GradeShadowingAttempt)->handle($exercise, $transcriptGuess);
 
@@ -31,12 +34,12 @@ class RecordShadowingAttempt
             throw new RuntimeException("Exercise {$exercise->id} has no language.");
         }
 
-        (new NotifyOnBlendedLevelIncrease)->handle(
+        $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
             $user,
             $language,
             fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Speaking),
         );
 
-        return $attempt;
+        return ['attempt' => $attempt, 'milestone' => $milestone];
     }
 }

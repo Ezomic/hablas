@@ -6,9 +6,8 @@ use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\User;
 use App\Models\UserSkillLevel;
-use Inertia\Support\SessionKey;
 
-it('flashes a milestone toast when the blended level increases', function () {
+it('returns a milestone payload when the blended level increases', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create(['name' => 'Spanish']);
     $skillLevel = UserSkillLevel::factory()->create([
@@ -18,23 +17,23 @@ it('flashes a milestone toast when the blended level increases', function () {
         'cefr_level' => CefrLevel::A1,
     ]);
 
-    (new NotifyOnBlendedLevelIncrease)->handle(
+    $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
         $user,
         $language,
         fn () => $skillLevel->forceFill(['cefr_level' => CefrLevel::A2])->save(),
     );
 
-    expect(session(SessionKey::FLASH_DATA, [])['toast'] ?? null)->toBe([
+    expect($milestone)->toBe([
         'type' => 'milestone',
         'message' => "You've reached A2 in Spanish!",
     ]);
 });
 
-it('flashes a milestone toast when the user had no prior blended level', function () {
+it('returns a milestone payload when the user had no prior blended level', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create(['name' => 'Spanish']);
 
-    (new NotifyOnBlendedLevelIncrease)->handle(
+    $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
         $user,
         $language,
         fn () => UserSkillLevel::factory()->create([
@@ -45,10 +44,10 @@ it('flashes a milestone toast when the user had no prior blended level', functio
         ]),
     );
 
-    expect((session(SessionKey::FLASH_DATA, [])['toast'] ?? null)['type'])->toBe('milestone');
+    expect($milestone['type'] ?? null)->toBe('milestone');
 });
 
-it('does not flash a toast when the blended level is unchanged', function () {
+it('returns nothing when the blended level is unchanged', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
     UserSkillLevel::factory()->create([
@@ -58,12 +57,10 @@ it('does not flash a toast when the blended level is unchanged', function () {
         'cefr_level' => CefrLevel::A1,
     ]);
 
-    (new NotifyOnBlendedLevelIncrease)->handle($user, $language, fn () => null);
-
-    expect(session(SessionKey::FLASH_DATA, [])['toast'] ?? null)->toBeNull();
+    expect((new NotifyOnBlendedLevelIncrease)->handle($user, $language, fn () => null))->toBeNull();
 });
 
-it('does not flash a toast when the level drops', function () {
+it('returns nothing when the level drops', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
     $skillLevel = UserSkillLevel::factory()->create([
@@ -73,20 +70,18 @@ it('does not flash a toast when the level drops', function () {
         'cefr_level' => CefrLevel::B1,
     ]);
 
-    (new NotifyOnBlendedLevelIncrease)->handle(
+    $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
         $user,
         $language,
         fn () => $skillLevel->forceFill(['cefr_level' => CefrLevel::A1])->save(),
     );
 
-    expect(session(SessionKey::FLASH_DATA, [])['toast'] ?? null)->toBeNull();
+    expect($milestone)->toBeNull();
 });
 
-it('does not flash a toast when the user still has no skill levels at all', function () {
+it('returns nothing when the user still has no skill levels at all', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create();
 
-    (new NotifyOnBlendedLevelIncrease)->handle($user, $language, fn () => null);
-
-    expect(session(SessionKey::FLASH_DATA, [])['toast'] ?? null)->toBeNull();
+    expect((new NotifyOnBlendedLevelIncrease)->handle($user, $language, fn () => null))->toBeNull();
 });

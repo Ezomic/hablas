@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useOfflineSync } from '@/composables/useOfflineSync';
+import { showMilestone } from '@/lib/milestone';
 import { store as storeAttempt } from '@/routes/writing/attempts';
 
 interface Exercise {
@@ -64,6 +65,7 @@ async function submit() {
             is_correct: boolean;
         };
         isCorrect.value = data.is_correct;
+        showMilestone(data);
     } finally {
         isSubmitting.value = false;
     }

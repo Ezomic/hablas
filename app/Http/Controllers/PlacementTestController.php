@@ -47,11 +47,11 @@ class PlacementTestController extends Controller
             // answer and finalization) — finish it now, via the same
             // notifier-wrapped path answer() uses, so a level-up here still
             // shows the milestone toast rather than finalizing silently.
-            $notifyOnBlendedLevelIncrease->handle(
+            $this->flashMilestone($notifyOnBlendedLevelIncrease->handle(
                 $this->currentUser(),
                 $language,
                 fn () => $finalizePlacementAttempt->handle($attempt),
-            );
+            ));
 
             return redirect()->route('placement.results');
         }
@@ -102,11 +102,11 @@ class PlacementTestController extends Controller
         $next = $getCurrentPlacementItem->handle($attempt);
 
         if ($next === null) {
-            $notifyOnBlendedLevelIncrease->handle(
+            $this->flashMilestone($notifyOnBlendedLevelIncrease->handle(
                 $this->currentUser(),
                 $language,
                 fn () => $finalizePlacementAttempt->handle($attempt),
-            );
+            ));
 
             return response()->json(['done' => true]);
         }
@@ -157,5 +157,21 @@ class PlacementTestController extends Controller
             'prompt' => $item->prompt,
             'options' => $item->options,
         ];
+    }
+
+    /**
+     * The placement flow navigates through Inertia (a redirect from index, and
+     * from answer a client-side visit to the results page), so a flash still
+     * reaches the user here. The practice endpoints answer with JSON over
+     * fetch, where it would not, and carry the milestone in the response body
+     * instead.
+     *
+     * @param  array{type: string, message: string}|null  $milestone
+     */
+    private function flashMilestone(?array $milestone): void
+    {
+        if ($milestone !== null) {
+            Inertia::flash('toast', $milestone);
+        }
     }
 }

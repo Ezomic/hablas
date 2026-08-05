@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOfflineSync } from '@/composables/useOfflineSync';
+import { showMilestone } from '@/lib/milestone';
 import { store as storeAttempt } from '@/routes/shadowing/attempts';
 
 interface Exercise {
@@ -95,6 +96,7 @@ async function submitAttempt() {
 
     const data = (await result.response.json()) as { score: number };
     score.value = data.score;
+    showMilestone(data);
 }
 </script>
 

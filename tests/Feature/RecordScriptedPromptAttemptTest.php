@@ -12,7 +12,7 @@ it('persists a graded attempt', function () {
         'expected_keywords' => ['llamo'],
     ]);
 
-    $attempt = (new RecordScriptedPromptAttempt)->handle($user, $exercise, 'Me llamo Ana.');
+    $attempt = (new RecordScriptedPromptAttempt)->handle($user, $exercise, 'Me llamo Ana.')['attempt'];
 
     expect($attempt)->toBeInstanceOf(ScriptedPromptAttempt::class)
         ->and($attempt->score)->toBe(100.0)

@@ -11,7 +11,10 @@ use RuntimeException;
 
 class RecordScriptedPromptAttempt
 {
-    public function handle(User $user, ScriptedPromptExercise $exercise, string $transcriptGuess): ScriptedPromptAttempt
+    /**
+     * @return array{attempt: ScriptedPromptAttempt, milestone: array{type: string, message: string}|null}
+     */
+    public function handle(User $user, ScriptedPromptExercise $exercise, string $transcriptGuess): array
     {
         $score = (new GradeScriptedPromptAttempt)->handle($exercise, $transcriptGuess);
 
@@ -31,12 +34,12 @@ class RecordScriptedPromptAttempt
             throw new RuntimeException("Exercise {$exercise->id} has no language.");
         }
 
-        (new NotifyOnBlendedLevelIncrease)->handle(
+        $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
             $user,
             $language,
             fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Speaking),
         );
 
-        return $attempt;
+        return ['attempt' => $attempt, 'milestone' => $milestone];
     }
 }
