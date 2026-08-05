@@ -8,9 +8,13 @@ use App\Models\PlacementTestResponse;
 
 class RecordPlacementResponse
 {
+    public function __construct(
+        private readonly DeriveCurrentPlacementTier $deriveCurrentPlacementTier = new DeriveCurrentPlacementTier,
+    ) {}
+
     public function handle(PlacementTestAttempt $attempt, PlacementTestItem $item, string $response): PlacementTestResponse
     {
-        $tierAtTime = (new DeriveCurrentPlacementTier)->handle($attempt, $item->skill);
+        $tierAtTime = $this->deriveCurrentPlacementTier->handle($attempt, $item->skill);
 
         return PlacementTestResponse::query()->create([
             'attempt_id' => $attempt->id,

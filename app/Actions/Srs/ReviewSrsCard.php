@@ -19,9 +19,14 @@ class ReviewSrsCard
      */
     private const WEAK_SPOT_THRESHOLD = 3;
 
+    public function __construct(
+        private readonly FsrsScheduler $fsrsScheduler = new FsrsScheduler,
+        private readonly RecordStreakActivity $recordStreakActivity = new RecordStreakActivity,
+    ) {}
+
     public function handle(SrsCard $card, SrsRating $rating, ?ErrorTagCategory $errorTagCategory = null): SrsCard
     {
-        (new FsrsScheduler)->review($card, $rating);
+        $this->fsrsScheduler->review($card, $rating);
 
         $consecutiveLapses = $rating === SrsRating::Again ? $card->consecutive_lapses + 1 : 0;
 
@@ -44,7 +49,7 @@ class ReviewSrsCard
             throw new RuntimeException("Srs card {$card->id} has no user.");
         }
 
-        (new RecordStreakActivity)->handle($user);
+        $this->recordStreakActivity->handle($user);
 
         return $card;
     }

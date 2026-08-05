@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 class ActivatePortuguese
 {
+    public function __construct(
+        private readonly SwitchCurrentLanguage $switchCurrentLanguage = new SwitchCurrentLanguage,
+        private readonly UnlockLanguageForUser $unlockLanguageForUser = new UnlockLanguageForUser,
+    ) {}
+
     /**
      * Unlocks Portuguese for this specific user and immediately switches
      * their current language to it — the confirmation already happened at
@@ -20,9 +25,9 @@ class ActivatePortuguese
         return DB::transaction(function () use ($user): Language {
             $portuguese = Language::query()->where('code', 'pt')->firstOrFail();
 
-            (new UnlockLanguageForUser)->handle($user, $portuguese);
+            $this->unlockLanguageForUser->handle($user, $portuguese);
 
-            (new SwitchCurrentLanguage)->handle($user, $portuguese->id);
+            $this->switchCurrentLanguage->handle($user, $portuguese->id);
 
             return $portuguese;
         });

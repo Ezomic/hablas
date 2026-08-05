@@ -10,6 +10,11 @@ use App\Models\User;
 
 class EvaluatePortugueseActivationEligibility
 {
+    public function __construct(
+        private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,
+        private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
+    ) {}
+
     /**
      * Hardcodes the Spanish→Portuguese unlock specifically (matching the
      * existing convention of hardcoding 'es'/'pt' in the content seeders)
@@ -30,8 +35,8 @@ class EvaluatePortugueseActivationEligibility
             return false;
         }
 
-        $blendedLevel = (new ComputeBlendedCefrLevel)->handle(
-            (new GetUserSkillLevels)->handle($user, $spanish),
+        $blendedLevel = $this->computeBlendedCefrLevel->handle(
+            $this->getUserSkillLevels->handle($user, $spanish),
         );
 
         return $blendedLevel !== null && $blendedLevel->sortOrder() >= CefrLevel::A2->sortOrder();

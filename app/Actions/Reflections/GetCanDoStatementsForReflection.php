@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Collection;
 
 class GetCanDoStatementsForReflection
 {
+    public function __construct(
+        private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
+    ) {}
+
     /**
      * Surfaces the can-do statements for each skill at the user's current
      * per-skill level, defaulting to A1 for skills without a recorded level
@@ -21,7 +25,7 @@ class GetCanDoStatementsForReflection
      */
     public function handle(User $user, Language $language): Collection
     {
-        $skillLevels = (new GetUserSkillLevels)->handle($user, $language)
+        $skillLevels = $this->getUserSkillLevels->handle($user, $language)
             ->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [$skillLevel->skill->value => $skillLevel->cefr_level]);
 
         return CefrCanDoStatement::all()

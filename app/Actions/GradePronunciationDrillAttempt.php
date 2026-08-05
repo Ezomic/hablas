@@ -9,6 +9,10 @@ use RuntimeException;
 
 class GradePronunciationDrillAttempt
 {
+    public function __construct(
+        private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
+    ) {}
+
     /**
      * A minimal-pair discrimination check — did the transcript contain the
      * nasal-marked target word, not the other word of the pair — rather than
@@ -45,6 +49,6 @@ class GradePronunciationDrillAttempt
             throw new RuntimeException("Pronunciation drill exercise {$exercise->id} has no language.");
         }
 
-        return (new TextNormalizerResolver)->forLanguage($language);
+        return $this->textNormalizerResolver->forLanguage($language);
     }
 }

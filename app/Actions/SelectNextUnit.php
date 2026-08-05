@@ -16,6 +16,12 @@ use Illuminate\Support\Collection;
 
 class SelectNextUnit
 {
+    public function __construct(
+        private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,
+        private readonly GetUserSettings $getUserSettings = new GetUserSettings,
+        private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
+    ) {}
+
     /**
      * How many of the user's most recently completed units to look at when
      * balancing skill exposure — a rolling window, not the full history.
@@ -24,8 +30,8 @@ class SelectNextUnit
 
     public function handle(User $user, Language $language): ?Unit
     {
-        $blendedLevel = (new ComputeBlendedCefrLevel)->handle(
-            (new GetUserSkillLevels)->handle($user, $language),
+        $blendedLevel = $this->computeBlendedCefrLevel->handle(
+            $this->getUserSkillLevels->handle($user, $language),
         ) ?? CefrLevel::A1;
 
         $eligibleLevels = collect(CefrLevel::cases())
@@ -75,7 +81,7 @@ class SelectNextUnit
      */
     private function priorityTag(User $user, Collection $candidates): ?ContextTag
     {
-        $emphasis = (new GetUserSettings)->handle($user)->context_emphasis;
+        $emphasis = $this->getUserSettings->handle($user)->context_emphasis;
 
         if ($emphasis !== null && $candidates->contains('context_tag', $emphasis)) {
             return $emphasis;

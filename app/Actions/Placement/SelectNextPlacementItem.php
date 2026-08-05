@@ -14,6 +14,10 @@ class SelectNextPlacementItem
 
     private const int CONSECUTIVE_STOP_THRESHOLD = 3;
 
+    public function __construct(
+        private readonly DeriveCurrentPlacementTier $deriveCurrentPlacementTier = new DeriveCurrentPlacementTier,
+    ) {}
+
     /**
      * Server-authoritative: returns the next PlacementTestItem to present
      * for this skill in this attempt, or null when this skill's staircase
@@ -31,7 +35,7 @@ class SelectNextPlacementItem
         // lookup below — DeriveCurrentPlacementTier is the one place that
         // knows the starting tier and step semantics, so nothing here
         // duplicates that walk or its starting point.
-        $tierSequence = (new DeriveCurrentPlacementTier)->tierSequence($responses);
+        $tierSequence = $this->deriveCurrentPlacementTier->tierSequence($responses);
 
         if ($this->hasSettled($tierSequence)) {
             return null;

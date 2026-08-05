@@ -11,12 +11,19 @@ use RuntimeException;
 
 class RecordScriptedPromptAttempt
 {
+    public function __construct(
+        private readonly GradeScriptedPromptAttempt $gradeScriptedPromptAttempt = new GradeScriptedPromptAttempt,
+        private readonly NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease = new NotifyOnBlendedLevelIncrease,
+        private readonly ReassessSkillLevel $reassessSkillLevel = new ReassessSkillLevel,
+        private readonly RecordStreakActivity $recordStreakActivity = new RecordStreakActivity,
+    ) {}
+
     /**
      * @return array{attempt: ScriptedPromptAttempt, milestone: array{type: string, message: string}|null}
      */
     public function handle(User $user, ScriptedPromptExercise $exercise, string $transcriptGuess): array
     {
-        $score = (new GradeScriptedPromptAttempt)->handle($exercise, $transcriptGuess);
+        $score = $this->gradeScriptedPromptAttempt->handle($exercise, $transcriptGuess);
 
         $attempt = ScriptedPromptAttempt::create([
             'user_id' => $user->id,
@@ -26,7 +33,7 @@ class RecordScriptedPromptAttempt
             'attempted_at' => now(),
         ]);
 
-        (new RecordStreakActivity)->handle($user);
+        $this->recordStreakActivity->handle($user);
 
         $language = $exercise->language;
 
@@ -34,10 +41,10 @@ class RecordScriptedPromptAttempt
             throw new RuntimeException("Exercise {$exercise->id} has no language.");
         }
 
-        $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
+        $milestone = $this->notifyOnBlendedLevelIncrease->handle(
             $user,
             $language,
-            fn () => (new ReassessSkillLevel)->handle($user, $language, Skill::Speaking),
+            fn () => $this->reassessSkillLevel->handle($user, $language, Skill::Speaking),
         );
 
         return ['attempt' => $attempt, 'milestone' => $milestone];

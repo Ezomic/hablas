@@ -8,9 +8,13 @@ use Carbon\CarbonImmutable;
 
 class RecordStreakActivity
 {
+    public function __construct(
+        private readonly ReconcileStreak $reconcileStreak = new ReconcileStreak,
+    ) {}
+
     public function handle(User $user): Streak
     {
-        $streak = (new ReconcileStreak)->handle($user);
+        $streak = $this->reconcileStreak->handle($user);
         $today = CarbonImmutable::today();
 
         if ($streak->last_activity_date !== null && $streak->last_activity_date->isSameDay($today)) {

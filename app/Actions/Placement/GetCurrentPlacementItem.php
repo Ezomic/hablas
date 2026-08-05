@@ -8,6 +8,10 @@ use App\Models\PlacementTestItem;
 
 class GetCurrentPlacementItem
 {
+    public function __construct(
+        private readonly SelectNextPlacementItem $selectNextPlacementItem = new SelectNextPlacementItem,
+    ) {}
+
     /**
      * Walks skills in a fixed order (sequential per-skill blocks, not
      * interleaved) and returns the first one whose staircase isn't done yet.
@@ -16,7 +20,7 @@ class GetCurrentPlacementItem
     public function handle(PlacementTestAttempt $attempt): ?PlacementTestItem
     {
         foreach (Skill::cases() as $skill) {
-            $item = (new SelectNextPlacementItem)->handle($attempt, $skill);
+            $item = $this->selectNextPlacementItem->handle($attempt, $skill);
 
             if ($item !== null) {
                 return $item;

@@ -9,6 +9,10 @@ use RuntimeException;
 
 class GradeShadowingAttempt
 {
+    public function __construct(
+        private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
+    ) {}
+
     /**
      * Rough word-overlap match against the target transcript — not
      * phoneme-level pronunciation scoring, per the tier-1 shadowing scope.
@@ -42,6 +46,6 @@ class GradeShadowingAttempt
             throw new RuntimeException("Shadowing exercise {$exercise->id} has no language.");
         }
 
-        return (new TextNormalizerResolver)->forLanguage($language);
+        return $this->textNormalizerResolver->forLanguage($language);
     }
 }

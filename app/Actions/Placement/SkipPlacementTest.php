@@ -9,6 +9,11 @@ use App\Models\User;
 
 class SkipPlacementTest
 {
+    public function __construct(
+        private readonly FinalizePlacementAttempt $finalizePlacementAttempt = new FinalizePlacementAttempt,
+        private readonly GetOrCreateInProgressPlacementAttempt $getOrCreateInProgressPlacementAttempt = new GetOrCreateInProgressPlacementAttempt,
+    ) {}
+
     /**
      * Finalizes the user's in-progress attempt (creating one first if they
      * had never started) at the A1 floor for every skill — reuses
@@ -18,8 +23,8 @@ class SkipPlacementTest
      */
     public function handle(User $user, Language $language): PlacementTestAttempt
     {
-        $attempt = (new GetOrCreateInProgressPlacementAttempt)->handle($user, $language);
+        $attempt = $this->getOrCreateInProgressPlacementAttempt->handle($user, $language);
 
-        return (new FinalizePlacementAttempt)->handle($attempt, fn () => CefrSubLevel::A1_1);
+        return $this->finalizePlacementAttempt->handle($attempt, fn () => CefrSubLevel::A1_1);
     }
 }

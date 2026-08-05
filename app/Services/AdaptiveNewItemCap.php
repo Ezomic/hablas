@@ -27,15 +27,20 @@ class AdaptiveNewItemCap
 
     private const HEAVY_BACKLOG_CAP = 0;
 
+    public function __construct(
+        private readonly GetDueSrsCards $getDueSrsCards = new GetDueSrsCards,
+        private readonly GetUserSettings $getUserSettings = new GetUserSettings,
+    ) {}
+
     public function forUser(User $user, Language $language): int
     {
-        $override = (new GetUserSettings)->handle($user)->new_item_cap_override;
+        $override = $this->getUserSettings->handle($user)->new_item_cap_override;
 
         if ($override !== null) {
             return $override;
         }
 
-        $dueCount = (new GetDueSrsCards)->count($user, $language);
+        $dueCount = $this->getDueSrsCards->count($user, $language);
 
         return match (true) {
             $dueCount >= self::HEAVY_BACKLOG_THRESHOLD => self::HEAVY_BACKLOG_CAP,

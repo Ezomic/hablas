@@ -20,15 +20,23 @@ class SendDigestToUser
      */
     private const WEEKLY_INTERVAL_DAYS = 7;
 
+    public function __construct(
+        private readonly GetCurrentLanguage $getCurrentLanguage = new GetCurrentLanguage,
+        private readonly GetDueSrsCards $getDueSrsCards = new GetDueSrsCards,
+        private readonly GetUserSettings $getUserSettings = new GetUserSettings,
+        private readonly HasSubmittedReflectionThisWeek $hasSubmittedReflectionThisWeek = new HasSubmittedReflectionThisWeek,
+        private readonly ReconcileStreak $reconcileStreak = new ReconcileStreak,
+    ) {}
+
     public function handle(User $user): void
     {
-        $settings = (new GetUserSettings)->handle($user);
+        $settings = $this->getUserSettings->handle($user);
 
         if (! $this->isDue($settings)) {
             return;
         }
 
-        $language = (new GetCurrentLanguage)->handle($user);
+        $language = $this->getCurrentLanguage->handle($user);
 
         if ($language === null) {
             return;
@@ -36,9 +44,9 @@ class SendDigestToUser
 
         $user->notify(new DailyDigestNotification(
             languageName: $language->name,
-            dueReviewCount: (new GetDueSrsCards)->count($user, $language),
-            streakCurrentLength: (new ReconcileStreak)->handle($user)->current_length,
-            hasUnsubmittedWeeklyReflection: ! (new HasSubmittedReflectionThisWeek)->handle($user, $language),
+            dueReviewCount: $this->getDueSrsCards->count($user, $language),
+            streakCurrentLength: $this->reconcileStreak->handle($user)->current_length,
+            hasUnsubmittedWeeklyReflection: ! $this->hasSubmittedReflectionThisWeek->handle($user, $language),
         ));
 
         $settings->forceFill(['last_digest_sent_at' => now()])->save();

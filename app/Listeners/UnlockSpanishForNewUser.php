@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class UnlockSpanishForNewUser
 {
+    public function __construct(
+        private readonly SwitchCurrentLanguage $switchCurrentLanguage = new SwitchCurrentLanguage,
+        private readonly UnlockLanguageForUser $unlockLanguageForUser = new UnlockLanguageForUser,
+    ) {}
+
     /**
      * Every new user starts with Spanish unlocked and selected — Portuguese
      * is the only language that requires the suggest-and-confirm activation
@@ -33,8 +38,8 @@ class UnlockSpanishForNewUser
             return;
         }
 
-        (new UnlockLanguageForUser)->handle($user, $spanish);
-        (new SwitchCurrentLanguage)->handle($user, $spanish->id);
+        $this->unlockLanguageForUser->handle($user, $spanish);
+        $this->switchCurrentLanguage->handle($user, $spanish->id);
     }
 
     /**
