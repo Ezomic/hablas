@@ -2,6 +2,7 @@
 
 namespace App\Actions\Srs;
 
+use App\Enums\SrsCardState;
 use App\Models\Language;
 use App\Models\SrsCard;
 use App\Models\User;
@@ -22,6 +23,35 @@ class GetDueSrsCards
     {
         return $this->dueQuery($user, $language)
             ->orderBy('due_at')
+            ->get();
+    }
+
+    /**
+     * Cards the user has seen before and owes a repetition on, oldest first.
+     *
+     * @return Collection<int, SrsCard>
+     */
+    public function repetitions(User $user, Language $language, int $limit): Collection
+    {
+        return $this->dueQuery($user, $language)
+            ->where('state', '!=', SrsCardState::New)
+            ->orderBy('due_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Cards enrolled but never reviewed, oldest enrollment first so a unit's
+     * material is introduced in the order it was learned.
+     *
+     * @return Collection<int, SrsCard>
+     */
+    public function introductions(User $user, Language $language, int $limit): Collection
+    {
+        return $this->dueQuery($user, $language)
+            ->where('state', SrsCardState::New)
+            ->orderBy('id')
+            ->limit($limit)
             ->get();
     }
 

@@ -6,6 +6,7 @@ import type { ReviewCard } from '@/types/review';
 
 const props = defineProps<{
     cards: ReviewCard[];
+    dueRemaining: number;
 }>();
 
 defineOptions({
@@ -28,6 +29,7 @@ function reviewUrl(cardId: number): string {
         <ReviewDeck
             :cards="props.cards"
             :review-url="reviewUrl"
+            :due-remaining="props.dueRemaining"
             count-noun="card"
             empty-message="All caught up, no cards due for review."
         />

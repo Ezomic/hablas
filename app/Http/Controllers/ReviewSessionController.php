@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
-use App\Actions\Srs\GetDueSrsCards;
+use App\Actions\Srs\BuildReviewSession;
 use App\Actions\Srs\PresentSrsCardForReview;
 use App\Actions\Srs\ReviewSrsCard;
 use App\Concerns\InteractsWithCurrentUser;
@@ -18,18 +18,19 @@ class ReviewSessionController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetDueSrsCards $getDueSrsCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
+    public function index(Request $request, BuildReviewSession $buildReviewSession, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
-            return Inertia::render('review/Index', ['cards' => []]);
+            return Inertia::render('review/Index', ['cards' => [], 'dueRemaining' => 0]);
         }
 
-        $cards = $getDueSrsCards->handle($this->currentUser(), $language)->load('cardable');
+        $session = $buildReviewSession->handle($this->currentUser(), $language);
 
         return Inertia::render('review/Index', [
-            'cards' => $cards->map(fn (SrsCard $card): array => $presentCard->handle($card))->values(),
+            'cards' => $session['cards']->map(fn (SrsCard $card): array => $presentCard->handle($card))->values(),
+            'dueRemaining' => $session['dueRemaining'],
         ]);
     }
 
