@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
-import ReviewDeck from './ReviewDeck.vue';
 import type { ReviewCard } from '@/types/review';
+import ReviewDeck from './ReviewDeck.vue';
 
 const { submitOrQueue } = vi.hoisted(() => ({
     submitOrQueue: vi.fn(),
