@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5247f65bd50efeb0306f8a7c316563a0",
+    "content-hash": "ced2df3078e311cb3b70cd1ab0a240e4",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7461,6 +7461,130 @@
                 }
             ],
             "time": "2026-06-09T10:54:51+00:00"
+        },
+        {
+            "name": "thijssensoftware/request-id",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ezomic/request-id.git",
+                "reference": "7220761b0cd9c0ccee9e29e82355dfe0deade1bb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ezomic/request-id/zipball/7220761b0cd9c0ccee9e29e82355dfe0deade1bb",
+                "reference": "7220761b0cd9c0ccee9e29e82355dfe0deade1bb",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^11.0|^12.0|^13.0",
+                "illuminate/http": "^11.0|^12.0|^13.0",
+                "illuminate/queue": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Thijssensoftware\\RequestId\\RequestIdServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Thijssensoftware\\RequestId\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Thijssensoftware\\RequestId\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "pest"
+                ],
+                "lint": [
+                    "pint"
+                ]
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Stamps a correlation id on every request, queued job and console command, and forwards it to trusted hosts.",
+            "support": {
+                "source": "https://github.com/Ezomic/request-id/tree/0.1.0",
+                "issues": "https://github.com/Ezomic/request-id/issues"
+            },
+            "time": "2026-08-01T21:01:13+00:00"
+        },
+        {
+            "name": "thijssensoftware/snag-client",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ezomic/snag-client.git",
+                "reference": "0d03249afe5ecf9d706913d7c8e18df5d348e8ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ezomic/snag-client/zipball/0d03249afe5ecf9d706913d7c8e18df5d348e8ee",
+                "reference": "0d03249afe5ecf9d706913d7c8e18df5d348e8ee",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/http": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "illuminate/view": "^11.0|^12.0|^13.0",
+                "php": "^8.3",
+                "thijssensoftware/request-id": "^0.1.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Thijssensoftware\\SnagClient\\SnagClientServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Thijssensoftware\\SnagClient\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Thijssensoftware\\SnagClient\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "pest"
+                ],
+                "lint": [
+                    "pint"
+                ]
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Prints the snag reporter widget into a host app, with the reporter pseudonym and signature computed server-side.",
+            "support": {
+                "source": "https://github.com/Ezomic/snag-client/tree/0.1.0",
+                "issues": "https://github.com/Ezomic/snag-client/issues"
+            },
+            "time": "2026-08-06T14:54:17+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",
