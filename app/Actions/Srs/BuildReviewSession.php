@@ -12,6 +12,7 @@ class BuildReviewSession
 {
     public function __construct(
         private readonly AdaptiveNewItemCap $adaptiveNewItemCap = new AdaptiveNewItemCap,
+        private readonly EnrollPendingUnitContent $enrollPendingUnitContent = new EnrollPendingUnitContent,
         private readonly GetDueSrsCards $getDueSrsCards = new GetDueSrsCards,
     ) {}
 
@@ -28,6 +29,11 @@ class BuildReviewSession
      */
     public function handle(User $user, Language $language): array
     {
+        // Anything an earlier day's cap held back joins the deck here, so a
+        // user who clears their backlog gets the rest of a unit automatically
+        // rather than having to walk back into it.
+        $this->enrollPendingUnitContent->handle($user, $language);
+
         $repetitions = $this->getDueSrsCards->repetitions($user, $language, self::SESSION_SIZE)->load('cardable');
 
         $newAllowance = max(0, min(
