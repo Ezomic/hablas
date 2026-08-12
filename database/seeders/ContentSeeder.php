@@ -25,6 +25,7 @@ class ContentSeeder extends Seeder
         $this->call(PortugueseA1Seeder::class);
         $this->call(PlacementTestSeeder::class);
         $this->call(PortuguesePlacementTestSeeder::class);
+        $this->call(ReadingPassageSeeder::class);
         $this->call(ShadowingExerciseSeeder::class);
         $this->call(PronunciationDrillExerciseSeeder::class);
         $this->call(ScriptedPromptExerciseSeeder::class);
