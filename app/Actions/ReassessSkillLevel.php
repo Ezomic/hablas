@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
 use App\Models\Language;
+use App\Models\ReadingAttempt;
 use App\Models\ScriptedPromptAttempt;
 use App\Models\ShadowingAttempt;
 use App\Models\User;
@@ -34,14 +35,21 @@ class ReassessSkillLevel
      */
     private const SPEAKING_SUCCESS_SCORE = 80.0;
 
+    /**
+     * Comprehension scores (0-100) at or above this count as a successful
+     * attempt for the reading skill.
+     */
+    private const READING_SUCCESS_SCORE = 80.0;
+
     public function handle(User $user, Language $language, Skill $skill): void
     {
         $outcomes = match ($skill) {
             Skill::Writing => $this->recentWritingOutcomes($user, $language),
             Skill::Speaking => $this->recentSpeakingOutcomes($user, $language),
-            // Reading/Listening have no live practice mechanism yet — only
-            // the one-time placement test ever sets those two skill levels.
-            Skill::Reading, Skill::Listening => collect(),
+            Skill::Reading => $this->recentReadingOutcomes($user, $language),
+            // Listening has no live practice mechanism yet — only the
+            // one-time placement test ever sets that skill level.
+            Skill::Listening => collect(),
         };
 
         if ($outcomes->count() < self::ATTEMPT_WINDOW) {
@@ -71,6 +79,18 @@ class ReassessSkillLevel
         }
 
         $skillLevel->forceFill(['cefr_level' => $nextLevel])->save();
+    }
+
+    /** @return Collection<int, bool> */
+    private function recentReadingOutcomes(User $user, Language $language): Collection
+    {
+        return ReadingAttempt::query()
+            ->where('user_id', $user->id)
+            ->whereHas('readingPassage', fn ($query) => $query->where('language_id', $language->id))
+            ->latest('attempted_at')
+            ->limit(self::ATTEMPT_WINDOW)
+            ->get()
+            ->map(fn (ReadingAttempt $attempt): bool => $attempt->score >= self::READING_SUCCESS_SCORE);
     }
 
     /** @return Collection<int, bool> */

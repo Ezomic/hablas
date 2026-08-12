@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     AudioLines,
+    BookOpenText,
     Layers,
     LayoutGrid,
     MessagesSquare,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as pronunciationDrillsIndex } from '@/routes/pronunciation-drills';
+import { index as readingIndex } from '@/routes/reading';
 import { index as reflectionsIndex } from '@/routes/reflections';
 import { index as reviewIndex } from '@/routes/review';
 import { index as weakSpotsIndex } from '@/routes/review/weak-spots';
@@ -39,6 +41,7 @@ const studyNavItems: NavItem[] = [
 ];
 
 const practiceNavItems: NavItem[] = [
+    { title: 'Reading', href: readingIndex(), icon: BookOpenText },
     { title: 'Shadowing', href: shadowingIndex(), icon: Mic },
     { title: 'Writing', href: writingIndex(), icon: PenLine },
     {
