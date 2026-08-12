@@ -11,6 +11,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\SrsRating;
 use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,18 +21,19 @@ class WeakSpotReviewController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetWeakSpotCards $getWeakSpotCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
+    public function index(Request $request, GetWeakSpotCards $getWeakSpotCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
-            return Inertia::render('review/WeakSpots', ['cards' => []]);
+            return Inertia::render('review/WeakSpots', ['cards' => [], 'speechLocale' => null]);
         }
 
         $cards = $getWeakSpotCards->handle($this->currentUser(), $language)->load('cardable');
 
         return Inertia::render('review/WeakSpots', [
             'cards' => $cards->map(fn (SrsCard $card): array => $presentCard->handle($card))->values(),
+            'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }
 

@@ -9,6 +9,7 @@ use App\Actions\Srs\ReviewSrsCard;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,12 +19,12 @@ class ReviewSessionController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, BuildReviewSession $buildReviewSession, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage): Response
+    public function index(Request $request, BuildReviewSession $buildReviewSession, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
-            return Inertia::render('review/Index', ['cards' => [], 'dueRemaining' => 0]);
+            return Inertia::render('review/Index', ['cards' => [], 'dueRemaining' => 0, 'speechLocale' => null]);
         }
 
         $session = $buildReviewSession->handle($this->currentUser(), $language);
@@ -31,6 +32,7 @@ class ReviewSessionController extends Controller
         return Inertia::render('review/Index', [
             'cards' => $session['cards']->map(fn (SrsCard $card): array => $presentCard->handle($card))->values(),
             'dueRemaining' => $session['dueRemaining'],
+            'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }
 

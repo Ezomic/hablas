@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +43,7 @@ const props = defineProps<{
     vocabularyItems: VocabularyItem[];
     grammarPoints: GrammarPoint[];
     isCompleted: boolean;
+    speechLocale: string | null;
 }>();
 
 defineOptions({
@@ -93,7 +95,15 @@ function complete() {
             <Card v-for="item in props.vocabularyItems" :key="item.id">
                 <CardContent class="flex flex-col gap-1 py-4">
                     <div class="flex items-baseline justify-between gap-4">
-                        <span class="text-lg font-medium">{{ item.term }}</span>
+                        <span
+                            class="flex items-center gap-1 text-lg font-medium"
+                        >
+                            {{ item.term }}
+                            <SpeakButton
+                                :text="item.term"
+                                :locale="props.speechLocale"
+                            />
+                        </span>
                         <span class="text-muted-foreground">{{
                             item.translation
                         }}</span>

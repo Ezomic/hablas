@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOfflineSync } from '@/composables/useOfflineSync';
@@ -118,6 +119,13 @@ async function submitAttempt() {
                 <CardTitle>{{ props.exercise.target_transcript }}</CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
+                <SpeakButton
+                    :text="props.exercise.target_transcript"
+                    :locale="props.speechLocale"
+                    :audio-url="props.exercise.audio_url"
+                    label="Hear it first"
+                />
+
                 <p v-if="!isSupported" class="text-sm text-muted-foreground">
                     Your browser doesn't support speech recognition. Try Chrome
                     on desktop.

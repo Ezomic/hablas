@@ -24,7 +24,7 @@ const card: ReviewCard = {
 
 function mountPage(cards: ReviewCard[]) {
     return mount(WeakSpots, {
-        props: { cards },
+        props: { cards, speechLocale: 'es-ES' },
         global: { stubs: { ReviewDeck: true } },
     });
 }
