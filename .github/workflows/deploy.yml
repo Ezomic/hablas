@@ -4,8 +4,14 @@ name: Deploy to production
 # is kept as a workflow_dispatch escape hatch and never triggers automatically.
 on:
   workflow_dispatch:
+# Not simply "production": a workflow_dispatch from 2026-08-03 (run
+# 30856394728) is wedged in the queued state with no jobs ever created, and
+# both `gh run cancel` and the force-cancel API answer 500. It holds that
+# group forever, so every later deploy queued behind it and never started.
+# The suffix sidesteps it. cancel-in-progress stays false: overlapping
+# deploys to the same droplet must still serialise.
 concurrency:
-  group: production
+  group: production-deploy
   cancel-in-progress: false
 
 jobs:
