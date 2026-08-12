@@ -7,6 +7,7 @@ import type { ReviewCard } from '@/types/review';
 const props = defineProps<{
     cards: ReviewCard[];
     dueRemaining: number;
+    speechLocale: string | null;
 }>();
 
 defineOptions({
@@ -30,6 +31,7 @@ function reviewUrl(cardId: number): string {
             :cards="props.cards"
             :review-url="reviewUrl"
             :due-remaining="props.dueRemaining"
+            :speech-locale="props.speechLocale"
             count-noun="card"
             empty-message="All caught up, no cards due for review."
         />

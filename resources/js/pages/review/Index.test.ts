@@ -22,7 +22,7 @@ const card: ReviewCard = {
 
 function mountPage(cards: ReviewCard[], dueRemaining = 0) {
     return mount(Index, {
-        props: { cards, dueRemaining },
+        props: { cards, dueRemaining, speechLocale: 'es-ES' },
         global: { stubs: { ReviewDeck: true } },
     });
 }

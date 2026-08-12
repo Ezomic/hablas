@@ -66,6 +66,7 @@ function mountPage(overrides: Record<string, unknown> = {}) {
             vocabularyItems,
             grammarPoints,
             isCompleted: false,
+            speechLocale: 'es-ES',
             ...overrides,
         },
     });

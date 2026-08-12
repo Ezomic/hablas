@@ -9,6 +9,7 @@ use App\Enums\UnitProgressStatus;
 use App\Models\GrammarPoint;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,7 +19,7 @@ class UnitController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver): Response
     {
         $this->authorizeUnit($unit, $getCurrentLanguage);
 
@@ -47,6 +48,7 @@ class UnitController extends Controller
                 'explanation' => $point->explanation,
             ])->values(),
             'isCompleted' => $this->isCompleted($unit),
+            'speechLocale' => $unit->language === null ? null : $speechLocaleResolver->forLanguage($unit->language),
         ]);
     }
 

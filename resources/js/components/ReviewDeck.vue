@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOfflineSync } from '@/composables/useOfflineSync';
@@ -14,8 +15,9 @@ const props = withDefaults(
         countNoun: string;
         emptyMessage: string;
         dueRemaining?: number;
+        speechLocale?: string | null;
     }>(),
-    { dueRemaining: 0 },
+    { dueRemaining: 0, speechLocale: null },
 );
 
 const { submitOrQueue } = useOfflineSync();
@@ -169,7 +171,14 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 
     <Card v-if="queue[0]">
         <CardHeader>
-            <CardTitle class="text-2xl">{{ queue[0].front }}</CardTitle>
+            <CardTitle class="flex items-center gap-2 text-2xl">
+                {{ queue[0].front }}
+                <SpeakButton
+                    v-if="queue[0].kind === 'vocabulary'"
+                    :text="queue[0].front"
+                    :locale="props.speechLocale"
+                />
+            </CardTitle>
         </CardHeader>
         <CardContent class="flex flex-col gap-4">
             <p v-if="revealed" class="text-lg text-muted-foreground">

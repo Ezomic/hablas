@@ -6,6 +6,7 @@ import type { ReviewCard } from '@/types/review';
 
 const props = defineProps<{
     cards: ReviewCard[];
+    speechLocale: string | null;
 }>();
 
 defineOptions({
@@ -37,6 +38,7 @@ function reviewUrl(cardId: number): string {
         <ReviewDeck
             :cards="props.cards"
             :review-url="reviewUrl"
+            :speech-locale="props.speechLocale"
             count-noun="weak spot"
             empty-message="No weak spots right now, nicely done."
         />
