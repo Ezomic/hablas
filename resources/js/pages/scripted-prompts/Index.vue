@@ -14,6 +14,7 @@ interface Exercise {
 
 const props = defineProps<{
     exercise: Exercise | null;
+    speechLocale: string | null;
 }>();
 
 defineOptions({
@@ -50,7 +51,13 @@ function startRecording() {
     transcriptGuess.value = null;
 
     const recognition = new SpeechRecognitionCtor();
-    recognition.lang = 'es-ES';
+
+    // Left on the browser default when the server has no tag for this
+    // language, rather than asserting one that would mistranscribe.
+    if (props.speechLocale) {
+        recognition.lang = props.speechLocale;
+    }
+
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 

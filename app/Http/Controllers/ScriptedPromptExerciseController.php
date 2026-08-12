@@ -8,6 +8,7 @@ use App\Actions\SelectExerciseForUser;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreScriptedPromptAttemptRequest;
 use App\Models\ScriptedPromptExercise;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,12 +18,12 @@ class ScriptedPromptExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
-            return Inertia::render('scripted-prompts/Index', ['exercise' => null]);
+            return Inertia::render('scripted-prompts/Index', ['exercise' => null, 'speechLocale' => null]);
         }
 
         $exercise = $selectExercise->handle(
@@ -35,6 +36,7 @@ class ScriptedPromptExerciseController extends Controller
                 'id' => $exercise->id,
                 'prompt_text' => $exercise->prompt_text,
             ],
+            'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }
 
