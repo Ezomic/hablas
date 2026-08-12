@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
 use App\Models\Language;
+use App\Models\ListeningAttempt;
 use App\Models\ReadingAttempt;
 use App\Models\ScriptedPromptAttempt;
 use App\Models\ShadowingAttempt;
@@ -37,9 +38,9 @@ class ReassessSkillLevel
 
     /**
      * Comprehension scores (0-100) at or above this count as a successful
-     * attempt for the reading skill.
+     * attempt for the reading and listening skills.
      */
-    private const READING_SUCCESS_SCORE = 80.0;
+    private const COMPREHENSION_SUCCESS_SCORE = 80.0;
 
     public function handle(User $user, Language $language, Skill $skill): void
     {
@@ -47,9 +48,7 @@ class ReassessSkillLevel
             Skill::Writing => $this->recentWritingOutcomes($user, $language),
             Skill::Speaking => $this->recentSpeakingOutcomes($user, $language),
             Skill::Reading => $this->recentReadingOutcomes($user, $language),
-            // Listening has no live practice mechanism yet — only the
-            // one-time placement test ever sets that skill level.
-            Skill::Listening => collect(),
+            Skill::Listening => $this->recentListeningOutcomes($user, $language),
         };
 
         if ($outcomes->count() < self::ATTEMPT_WINDOW) {
@@ -90,7 +89,19 @@ class ReassessSkillLevel
             ->latest('attempted_at')
             ->limit(self::ATTEMPT_WINDOW)
             ->get()
-            ->map(fn (ReadingAttempt $attempt): bool => $attempt->score >= self::READING_SUCCESS_SCORE);
+            ->map(fn (ReadingAttempt $attempt): bool => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE);
+    }
+
+    /** @return Collection<int, bool> */
+    private function recentListeningOutcomes(User $user, Language $language): Collection
+    {
+        return ListeningAttempt::query()
+            ->where('user_id', $user->id)
+            ->whereHas('listeningExercise', fn ($query) => $query->where('language_id', $language->id))
+            ->latest('attempted_at')
+            ->limit(self::ATTEMPT_WINDOW)
+            ->get()
+            ->map(fn (ListeningAttempt $attempt): bool => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE);
     }
 
     /** @return Collection<int, bool> */

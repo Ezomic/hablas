@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import {
     AudioLines,
     BookOpenText,
+    Headphones,
     Layers,
     LayoutGrid,
     MessagesSquare,
@@ -24,6 +25,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as listeningIndex } from '@/routes/listening';
 import { index as pronunciationDrillsIndex } from '@/routes/pronunciation-drills';
 import { index as readingIndex } from '@/routes/reading';
 import { index as reflectionsIndex } from '@/routes/reflections';
@@ -42,6 +44,7 @@ const studyNavItems: NavItem[] = [
 
 const practiceNavItems: NavItem[] = [
     { title: 'Reading', href: readingIndex(), icon: BookOpenText },
+    { title: 'Listening', href: listeningIndex(), icon: Headphones },
     { title: 'Shadowing', href: shadowingIndex(), icon: Mic },
     { title: 'Writing', href: writingIndex(), icon: PenLine },
     {
