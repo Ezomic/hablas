@@ -8,6 +8,7 @@ use App\Actions\SelectExerciseForUser;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StorePronunciationDrillAttemptRequest;
 use App\Models\PronunciationDrillExercise;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,12 +18,12 @@ class PronunciationDrillExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
-            return Inertia::render('pronunciation-drills/Index', ['exercise' => null]);
+            return Inertia::render('pronunciation-drills/Index', ['exercise' => null, 'speechLocale' => null]);
         }
 
         $exercise = $selectExercise->handle(
@@ -40,6 +41,7 @@ class PronunciationDrillExerciseController extends Controller
                 'target_word' => $exercise->target_word,
                 'audio_url' => $exercise->audio_url,
             ],
+            'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }
 

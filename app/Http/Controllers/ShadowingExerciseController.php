@@ -8,6 +8,7 @@ use App\Actions\SelectExerciseForUser;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreShadowingAttemptRequest;
 use App\Models\ShadowingExercise;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,12 +18,12 @@ class ShadowingExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         if ($language === null) {
-            return Inertia::render('shadowing/Index', ['exercise' => null]);
+            return Inertia::render('shadowing/Index', ['exercise' => null, 'speechLocale' => null]);
         }
 
         $exercise = $selectExercise->handle(
@@ -36,6 +37,7 @@ class ShadowingExerciseController extends Controller
                 'target_transcript' => $exercise->target_transcript,
                 'audio_url' => $exercise->audio_url,
             ],
+            'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }
 
