@@ -3,10 +3,12 @@
 namespace App\Notifications;
 
 use App\Models\User;
+use App\Services\OutboundMailLimit;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Support\Str;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
@@ -15,12 +17,38 @@ class DailyDigestNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /**
+     * Generous, because the rate-limit middleware releases the job back to the
+     * queue when the allowance is spent and every release counts as an
+     * attempt. Three tries would exhaust themselves inside a minute of waiting
+     * rather than surviving to the next window.
+     */
+    public int $tries = 25;
+
+    /**
+     * Long enough that a released job lands in a fresh window rather than
+     * spinning against a spent allowance.
+     */
+    public int $backoff = 60;
+
     public function __construct(
         private readonly string $languageName,
         private readonly int $dueReviewCount,
         private readonly int $streakCurrentLength,
         private readonly bool $hasUnsubmittedWeeklyReflection,
     ) {}
+
+    /**
+     * Digest mail is bulk: it can wait. Throttling it keeps the shared
+     * provider allowance from being spent here, so the inline sign-in code
+     * mail still has room to send. See OutboundMailLimit.
+     *
+     * @return array<int, object>
+     */
+    public function middleware(User $notifiable): array
+    {
+        return [new RateLimited(OutboundMailLimit::RATE_LIMITER)];
+    }
 
     /** @return list<string|class-string> */
     public function via(User $notifiable): array
