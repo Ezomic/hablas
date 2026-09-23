@@ -1,169 +1,29 @@
 name: Deploy to production
 
-# Manual deploys only. Production is deployed by hand over SSH; this workflow
-# is kept as a workflow_dispatch escape hatch and never triggers automatically.
+# The deploy itself runs on the server. This key is pinned to app-deploy on the production
+# box, so the only thing a leaked secret can do is redeploy this app's main branch: no shell,
+# no other app. app-deploy builds the release beside the live one, switches a symlink and
+# switches back if /up fails afterwards. It lives in Ezomic/infra.
 on:
   workflow_dispatch:
-# Not simply "production": a workflow_dispatch from 2026-08-03 (run
-# 30856394728) is wedged in the queued state with no jobs ever created, and
-# both `gh run cancel` and the force-cancel API answer 500. It holds that
-# group forever, so every later deploy queued behind it and never started.
-# The suffix sidesteps it. cancel-in-progress stays false: overlapping
-# deploys to the same droplet must still serialise.
 concurrency:
-  group: production-deploy
+  group: production
   cancel-in-progress: false
 
 jobs:
-  # Build the front-end assets on the runner instead of on the droplet. The
-  # droplet has 2GB RAM and no swap, where `npm ci` alone took ~8m and once hit
-  # the ssh timeout mid-install — leaving a node_modules with no .bin/ and a
-  # half-deployed production (see HAB-41). Building here removes the slowest and
-  # most memory-hungry step from the server entirely; the droplet no longer needs
-  # Node or devDependencies at all, and a failed build never touches production.
-  build:
-    name: Build assets
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
-        with:
-          php-version: '8.4'
-          tools: composer:v2
-
-      - name: Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
-        with:
-          node-version: '22'
-          cache: npm
-
-      # `npm run build` boots artisan via the Wayfinder Vite plugin (it
-      # generates resources/js/routes/* from the route table), so the build
-      # needs a bootable app: PHP deps + an APP_KEY. Mirrors tests.yml.
-      - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: Prepare app for artisan boot
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-
-      - name: Install Node dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Build assets
-        run: npm run build
-
-      # The PWA build emits public/build/ (Vite assets + manifest) and
-      # public/sw.js (the service worker). Under injectManifest — this
-      # project's strategy — workbox is bundled into sw.js, so there is no
-      # separate public/workbox-*.js; ship it only on the chance a future
-      # config switch to generateSW emits one. Stage everything under one dir
-      # preserving the public/ layout so the deploy job can drop it straight in.
-      - name: Stage built assets
-        run: |
-          mkdir -p dist/public
-          cp -r public/build dist/public/build
-          cp public/sw.js dist/public/sw.js
-          cp public/workbox-*.js dist/public/ 2>/dev/null || true
-
-      - name: Upload built assets
-        uses: actions/upload-artifact@v7
-        with:
-          name: public-assets
-          path: dist/public
-          retention-days: 3
-          include-hidden-files: true
-
   deploy:
     name: Deploy
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download built assets
-        uses: actions/download-artifact@v8
-        with:
-          name: public-assets
-          path: dist
-
-      # Ship the built assets into a staging dir on the droplet. rm clears any
-      # leftover from a previous run so no stale files linger.
-      - name: Copy assets to server
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_SSH_HOST }}
-          username: ${{ secrets.DEPLOY_SSH_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: 'dist/*'
-          target: /home/deploy/hablas/deploy-incoming
-          strip_components: 1
-          rm: true
-
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_SSH_HOST }}
-          username: ${{ secrets.DEPLOY_SSH_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          # No npm on the server anymore, so the old 25m headroom for `npm ci`
-          # isn't needed. The remaining steps (composer, migrate, optimize) are
-          # fast; keep a comfortable margin.
-          command_timeout: 10m
-          script: |
-            set -e
-            cd /home/deploy/hablas
-            git fetch origin
-            # Pin to the exact commit the build job built its assets from, not
-            # a moving origin/main. If another push lands on main while this
-            # deploy waits in the production queue, resetting to origin/main
-            # would serve newer PHP/routes against this run's older manifest —
-            # a Vite-manifest miss (500). This keeps code and assets in lockstep.
-            git reset --hard ${{ github.sha }}
-            composer install --no-dev --optimize-autoloader --no-interaction
-            # Clear any stale config/route/view cache from the previous release
-            # before rebuilding it below.
-            php artisan optimize:clear
-            # Locate the assets the build job shipped, tolerant of whether
-            # scp-action stripped the leading dir, and confirm the required
-            # outputs (build/ + sw.js) arrived — BEFORE migrating or touching
-            # the live public/, so a malformed transfer aborts the deploy
-            # instead of leaving a migrated DB or a half-swapped public/.
-            # workbox-*.js is optional (injectManifest bundles it into sw.js).
-            if [ -d deploy-incoming/build ]; then
-              INCOMING=deploy-incoming
-            elif [ -d deploy-incoming/dist/build ]; then
-              INCOMING=deploy-incoming/dist
-            else
-              echo "Shipped build/ not found under deploy-incoming"; exit 1
-            fi
-            test -f "$INCOMING/sw.js"
-            php artisan migrate --force
-            # Course/reference content (languages, units, vocabulary, placement
-            # items, can-do statements). ContentSeeder holds no user fixtures and
-            # every seeder it calls uses updateOrCreate, so running it each
-            # release is idempotent. Without it the app has no course to start.
-            php artisan db:seed --class=ContentSeeder --force
-            php artisan optimize
-            # Swap in the validated assets. Keep the previous build until the
-            # new one is in place, then discard it, so the window where
-            # public/build is absent is a single rename.
-            rm -rf public/build.old
-            [ -d public/build ] && mv public/build public/build.old
-            mv "$INCOMING/build" public/build
-            cp -f "$INCOMING/sw.js" public/sw.js
-            # Clear any stale workbox-*.js (the injectManifest sw.js doesn't
-            # reference one), then ship a new one only if the build produced it.
-            rm -f public/workbox-*.js
-            cp -f "$INCOMING"/workbox-*.js public/ 2>/dev/null || true
-            rm -rf public/build.old deploy-incoming
-            # No `systemctl reload php8.4-fpm` here on purpose. All 21 sites on the
-            # droplet share one php-fpm master and therefore one opcache, so a reload
-            # to deploy this app would discard ~350MB of cached bytecode belonging to
-            # every other app and force them all to recompile. opcache.validate_timestamps
-            # is on, so the new code is picked up on the next request without it.
-            # See INFRA-28. If that setting is ever turned off, this must come back.
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy -o BatchMode=yes "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" deploy
