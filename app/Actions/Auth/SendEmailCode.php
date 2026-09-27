@@ -35,6 +35,7 @@ class SendEmailCode
             'user_id' => $user->id,
             // Hashed at rest: a leaked DB must not hand over live sign-in codes.
             'code_hash' => Hash::make($code),
+            'email' => $user->email,
             'purpose' => $purpose,
             'expires_at' => Date::now()->addMinutes(self::EXPIRES_IN_MINUTES),
         ]);

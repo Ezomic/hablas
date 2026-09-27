@@ -8,15 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store as login } from '@/routes/login';
 import { store as requestCode } from '@/routes/login/code';
+import { redirect as ssoRedirect } from '@/routes/sso';
 
 defineOptions({
     layout: {
         title: 'Log in to your account',
-        description: 'Use a passkey, or we’ll email you a sign-in code',
+        description:
+            'Sign in with Thijssensoftware, a passkey, or an emailed code',
     },
 });
 
@@ -61,6 +64,23 @@ const useDifferentEmail = () => {
         class="mb-4 text-center text-sm font-medium text-green-600"
     >
         {{ status }}
+    </div>
+
+    <Button class="w-full" as-child>
+        <a :href="ssoRedirect().url" data-test="sso-button">
+            Sign in with Thijssensoftware
+        </a>
+    </Button>
+
+    <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center">
+            <Separator class="w-full" />
+        </div>
+        <div class="relative flex justify-center text-xs uppercase">
+            <span class="bg-background px-2 text-muted-foreground">
+                Or continue with
+            </span>
+        </div>
     </div>
 
     <PasskeyVerify />

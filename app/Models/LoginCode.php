@@ -12,13 +12,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $user_id
  * @property string $code_hash
+ * @property string|null $email
  * @property EmailCodePurpose $purpose
  * @property CarbonImmutable $expires_at
  * @property CarbonImmutable|null $consumed_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['user_id', 'code_hash', 'purpose', 'expires_at', 'consumed_at'])]
+#[Fillable(['user_id', 'code_hash', 'email', 'purpose', 'expires_at', 'consumed_at'])]
 class LoginCode extends Model
 {
     protected function casts(): array

@@ -119,3 +119,28 @@ it('throttles how often a code can be requested', function () {
     $this->post(route('login.code.store'), ['email' => $user->email])
         ->assertTooManyRequests();
 });
+
+it('proves the address when a sign-in code is used', function () {
+    $user = User::factory()->unverified()->create();
+    $code = EmailCode::issue($user);
+
+    $this->post(route('login.store'), ['email' => $user->email, 'code' => $code]);
+
+    $this->assertAuthenticatedAs($user);
+    expect($user->fresh()?->email_verified_at)->not->toBeNull();
+});
+
+it('does not prove an address the code was never sent to', function () {
+    $user = User::factory()->create(['email' => 'attacker@example.com']);
+    $code = EmailCode::issue($user);
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), ['name' => $user->name, 'email' => 'victim@example.com'])
+        ->assertSessionHasNoErrors();
+    $this->post(route('logout'));
+
+    $this->post(route('login.store'), ['email' => 'victim@example.com', 'code' => $code]);
+
+    $this->assertAuthenticatedAs($user);
+    expect($user->fresh()?->email_verified_at)->toBeNull();
+});

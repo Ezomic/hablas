@@ -39,6 +39,9 @@ vi.mock('@/routes/login', () => ({ store: () => ({ url: '/login' }) }));
 vi.mock('@/routes/login/code', () => ({
     store: () => ({ url: '/login/code' }),
 }));
+vi.mock('@/routes/sso', () => ({
+    redirect: () => ({ url: '/auth/sso/redirect' }),
+}));
 
 function mountPage() {
     forms.length = 0;
@@ -83,5 +86,19 @@ describe('auth/Login email-code flow', () => {
         );
         expect(codeForm.email).toBe('someone@example.com');
         expect(wrapper.text()).toContain('someone@example.com');
+    });
+});
+
+describe('auth/Login Thijssensoftware ID sign-in', () => {
+    it('links to the ID sign-in next to the email-code form', () => {
+        const { wrapper } = mountPage();
+
+        const sso = wrapper.get('[data-test="sso-button"]');
+
+        expect(sso.attributes('href')).toBe('/auth/sso/redirect');
+        expect(sso.text()).toBe('Sign in with Thijssensoftware');
+        expect(wrapper.find('[data-test="request-code-button"]').exists()).toBe(
+            true,
+        );
     });
 });
