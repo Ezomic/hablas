@@ -21,6 +21,12 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $email = $input['email'] ?? null;
+
+        if (is_string($email)) {
+            $input['email'] = $this->normalizeEmail($email);
+        }
+
         Validator::make($input, $this->profileRules())->validate();
 
         return User::create([

@@ -32,7 +32,21 @@ class VerifyEmailCode
 
         $loginCode->forceFill(['consumed_at' => Date::now()])->save();
 
+        $this->proveAddress($user, $loginCode);
+
         return true;
+    }
+
+    /**
+     * Using the code proves the inbox it was sent to. That is only the current
+     * address if the email has not changed since the code went out; otherwise a
+     * code sent to one's own inbox would prove an address typed in afterwards.
+     */
+    private function proveAddress(User $user, LoginCode $loginCode): void
+    {
+        if ($user->email_verified_at === null && $loginCode->email === $user->email) {
+            $user->forceFill(['email_verified_at' => Date::now()])->save();
+        }
     }
 
     private function outstandingCode(User $user, EmailCodePurpose $purpose): ?LoginCode

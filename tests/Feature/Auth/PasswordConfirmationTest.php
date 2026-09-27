@@ -75,3 +75,30 @@ it('does not accept a login code for confirmation', function () {
 
     expect(session()->has('auth.password_confirmed_at'))->toBeFalse();
 });
+
+it('proves the address when a confirmation code is used', function () {
+    $user = User::factory()->unverified()->create();
+    $code = EmailCode::issue($user, EmailCodePurpose::Confirm);
+
+    $this->actingAs($user)
+        ->post(route('password.confirm.store'), ['password' => $code])
+        ->assertSessionHasNoErrors();
+
+    expect($user->fresh()?->email_verified_at)->not->toBeNull();
+});
+
+it('does not prove an address typed in after the confirmation code went out', function () {
+    $user = User::factory()->create(['email' => 'attacker@example.com']);
+    $code = EmailCode::issue($user, EmailCodePurpose::Confirm);
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), ['name' => $user->name, 'email' => 'victim@example.com'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->post(route('password.confirm.store'), ['password' => $code])
+        ->assertSessionHasNoErrors();
+
+    expect(session()->has('auth.password_confirmed_at'))->toBeTrue()
+        ->and($user->fresh()?->email_verified_at)->toBeNull();
+});

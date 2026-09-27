@@ -2,9 +2,9 @@
 
 namespace App\Concerns;
 
-use App\Models\User;
+use App\Rules\UniqueEmail;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 trait ProfileValidationRules
 {
@@ -19,6 +19,15 @@ trait ProfileValidationRules
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
         ];
+    }
+
+    /**
+     * id-client links an ID sign-in by exact email and Fortify lowercases the
+     * address typed at sign-in, so every stored address takes this one form.
+     */
+    protected function normalizeEmail(string $email): string
+    {
+        return Str::lower(trim($email));
     }
 
     /**
@@ -43,9 +52,7 @@ trait ProfileValidationRules
             'string',
             'email',
             'max:255',
-            $userId === null
-                ? Rule::unique(User::class)
-                : Rule::unique(User::class)->ignore($userId),
+            new UniqueEmail($userId),
         ];
     }
 }
