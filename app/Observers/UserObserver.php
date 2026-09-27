@@ -6,6 +6,7 @@ namespace App\Observers;
 
 use App\Models\LoginCode;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,20 @@ class UserObserver
     {
         if ($user->idp_id !== null) {
             $user->forceFill(['email_verified_at' => Date::now()]);
+        }
+    }
+
+    /**
+     * A user id-client provisions is as new as one who registered, but id-client
+     * saves the row itself and fires nothing, so the new-user listeners (Spanish
+     * unlocked and selected, among them) would never run and the account would
+     * open on a dashboard with no course. Linking an existing row is an update,
+     * so it never lands here.
+     */
+    public function created(User $user): void
+    {
+        if ($user->idp_id !== null) {
+            event(new Registered($user));
         }
     }
 
