@@ -35,4 +35,13 @@ class EmailCode
 
         return $code ?? throw new \RuntimeException('No '.$purpose->value.' code was sent.');
     }
+
+    /**
+     * A six-digit guess that is certain to miss, even when the random code
+     * happens to be 000000.
+     */
+    public static function wrongGuess(string $code): string
+    {
+        return $code === '000000' ? '000001' : '000000';
+    }
 }

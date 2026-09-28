@@ -117,6 +117,15 @@ class FortifyServiceProvider extends ServiceProvider
             ];
         });
 
+        // The confirm route checks a six-digit code, not a password, so it gets
+        // the same budget as signing in. Keyed by user alone, since the route
+        // needs a session and a new IP should not buy more guesses.
+        RateLimiter::for('confirm-password', function (Request $request) {
+            $authId = $request->user()?->getAuthIdentifier();
+
+            return Limit::perMinute(5)->by(is_scalar($authId) ? (string) $authId : $request->ip());
+        });
+
         RateLimiter::for('passkeys', function (Request $request) {
             $identifier = $request->string('credential.id')->value() ?: $request->session()->getId();
 

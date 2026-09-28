@@ -17,6 +17,7 @@ it('updates profile information', function () {
 
     $response = $this
         ->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -38,6 +39,7 @@ it('leaves email verification status unchanged when the email is unchanged', fun
 
     $response = $this
         ->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => $user->email,
@@ -48,6 +50,17 @@ it('leaves email verification status unchanged when the email is unchanged', fun
         ->assertRedirect(route('profile.edit'));
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+it('makes a user confirm it is them before changing their email', function () {
+    $user = User::factory()->create(['email' => 'me@example.com']);
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), ['name' => $user->name, 'email' => 'new@example.com'])
+        ->assertRedirect(route('password.confirm'));
+
+    expect($user->refresh()->email)->toBe('me@example.com')
+        ->and($user->email_verified_at)->not->toBeNull();
 });
 
 it('allows a user to delete their account once they have confirmed it is them', function () {
@@ -84,6 +97,7 @@ it('stores a changed email lowercased and trimmed', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), ['name' => $user->name, 'email' => ' New.Address@Example.COM '])
         ->assertSessionHasNoErrors();
 
@@ -95,6 +109,7 @@ it('rejects an email that differs from another account only in case or padding',
     $user = User::factory()->create(['email' => 'me@example.com']);
 
     $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), ['name' => $user->name, 'email' => $typed])
         ->assertSessionHasErrors('email');
 
@@ -109,6 +124,7 @@ it('does not count the user\'s own address as taken', function () {
     $user = User::factory()->create(['email' => 'me@example.com']);
 
     $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), ['name' => 'New Name', 'email' => 'Me@Example.com'])
         ->assertSessionHasNoErrors();
 
