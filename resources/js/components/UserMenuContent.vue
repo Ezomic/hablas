@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
+import { clearOfflineData } from '@/composables/useOfflineSync';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -44,6 +45,7 @@ defineProps<Props>();
             class="block w-full cursor-pointer"
             :href="logout()"
             @click="handleLogout"
+            @success="clearOfflineData"
             as="button"
             data-test="logout-button"
         >

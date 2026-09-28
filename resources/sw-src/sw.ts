@@ -3,6 +3,7 @@
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
+import { PAGE_CACHE_NAME } from '../js/lib/pageCache';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -16,7 +17,7 @@ cleanupOutdatedCaches();
 registerRoute(
     ({ request }) => request.mode === 'navigate',
     new NetworkFirst({
-        cacheName: 'pages',
+        cacheName: PAGE_CACHE_NAME,
         networkTimeoutSeconds: 3,
     }),
 );

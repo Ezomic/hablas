@@ -121,14 +121,44 @@ describe('useOfflineSync', () => {
         );
     });
 
-    it('stops replaying at the first failure, leaving later items queued', async () => {
+    it.each([500, 503, 401, 408, 419, 429])(
+        'stops replaying at a retryable %i, leaving it and later items queued',
+        async (status) => {
+            const { queuePendingSubmission, getPendingSubmissions } =
+                await import('./../lib/offlineDb');
+            await queuePendingSubmission('/writing/1/attempts', '{"a":1}');
+            await queuePendingSubmission('/writing/2/attempts', '{"a":2}');
+
+            vi.mocked(fetch).mockResolvedValueOnce(
+                new Response('{}', { status }),
+            );
+
+            const { useOfflineSync } = await import('./useOfflineSync');
+            const { sync } = mountOfflineSync(useOfflineSync);
+
+            await vi.waitFor(() => {
+                expect(sync.pendingCount.value).toBe(2);
+            });
+
+            expect(fetch).toHaveBeenCalledTimes(1);
+            expect(sync.rejectedCount.value).toBe(0);
+
+            const pending = await getPendingSubmissions();
+            expect(pending.map((submission) => submission.url)).toEqual([
+                '/writing/1/attempts',
+                '/writing/2/attempts',
+            ]);
+        },
+    );
+
+    it('stops replaying when the network fails, leaving later items queued', async () => {
         const { queuePendingSubmission, getPendingSubmissions } =
             await import('./../lib/offlineDb');
         await queuePendingSubmission('/writing/1/attempts', '{"a":1}');
         await queuePendingSubmission('/writing/2/attempts', '{"a":2}');
 
-        vi.mocked(fetch).mockResolvedValueOnce(
-            new Response('{}', { status: 422 }),
+        vi.mocked(fetch).mockRejectedValueOnce(
+            new TypeError('Failed to fetch'),
         );
 
         const { useOfflineSync } = await import('./useOfflineSync');
@@ -141,5 +171,124 @@ describe('useOfflineSync', () => {
         const pending = await getPendingSubmissions();
         expect(pending).toHaveLength(2);
         expect(pending[0].url).toBe('/writing/1/attempts');
+    });
+
+    it('drops a submission the server rejects outright and replays the rest', async () => {
+        const { queuePendingSubmission, getPendingSubmissions } =
+            await import('./../lib/offlineDb');
+        await queuePendingSubmission('/writing/1/attempts', '{"a":1}');
+        await queuePendingSubmission('/writing/2/attempts', '{"a":2}');
+
+        vi.mocked(fetch)
+            .mockResolvedValueOnce(new Response('{}', { status: 422 }))
+            .mockResolvedValueOnce(new Response('{}', { status: 200 }));
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(sync.rejectedCount.value).toBe(1);
+            expect(sync.pendingCount.value).toBe(0);
+        });
+
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(await getPendingSubmissions()).toEqual([]);
+    });
+
+    it('reads the pending count from IndexedDB when it mounts', async () => {
+        setOnline(false);
+        const { queuePendingSubmission } = await import('./../lib/offlineDb');
+        await queuePendingSubmission('/writing/1/attempts', '{"a":1}');
+        await queuePendingSubmission('/writing/2/attempts', '{"a":2}');
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(sync.pendingCount.value).toBe(2);
+        });
+    });
+
+    it('keeps the pending count after a full reload', async () => {
+        setOnline(false);
+        const first = await import('./useOfflineSync');
+        const { wrapper, sync } = mountOfflineSync(first.useOfflineSync);
+
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'hola' });
+        wrapper.unmount();
+
+        vi.resetModules();
+        const reloaded = await import('./useOfflineSync');
+        const { sync: afterReload } = mountOfflineSync(reloaded.useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(afterReload.pendingCount.value).toBe(1);
+        });
+    });
+
+    it('shares the pending count between every component using it', async () => {
+        setOnline(false);
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync: page } = mountOfflineSync(useOfflineSync);
+        const { sync: banner } = mountOfflineSync(useOfflineSync);
+
+        await page.submitOrQueue('/writing/1/attempts', { response: 'hola' });
+
+        expect(banner.pendingCount.value).toBe(1);
+    });
+
+    it('queues a repeat submission for the same exercise only once', async () => {
+        setOnline(false);
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'hola' });
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'adiós' });
+
+        const { getPendingSubmissions } = await import('./../lib/offlineDb');
+        const pending = await getPendingSubmissions();
+
+        expect(sync.pendingCount.value).toBe(1);
+        expect(pending.map((submission) => submission.body)).toEqual([
+            '{"response":"adiós"}',
+        ]);
+    });
+
+    it('replays each submission once when several components mount together', async () => {
+        const { queuePendingSubmission, getPendingSubmissions } =
+            await import('./../lib/offlineDb');
+        await queuePendingSubmission('/writing/1/attempts', '{"a":1}');
+
+        vi.mocked(fetch).mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        mountOfflineSync(useOfflineSync);
+        mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(async () => {
+            expect(await getPendingSubmissions()).toEqual([]);
+        });
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears the queue, the page cache and the counts', async () => {
+        const deleteCache = vi.fn().mockResolvedValue(true);
+        vi.stubGlobal('caches', { delete: deleteCache });
+        setOnline(false);
+
+        const { useOfflineSync, clearOfflineData } =
+            await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'hola' });
+        sync.rejectedCount.value = 2;
+
+        await clearOfflineData();
+
+        const { getPendingSubmissions } = await import('./../lib/offlineDb');
+        expect(await getPendingSubmissions()).toEqual([]);
+        expect(deleteCache).toHaveBeenCalledWith('pages');
+        expect(sync.pendingCount.value).toBe(0);
+        expect(sync.rejectedCount.value).toBe(0);
     });
 });

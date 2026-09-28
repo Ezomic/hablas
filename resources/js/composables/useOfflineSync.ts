@@ -1,16 +1,37 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { fetchJson } from '@/lib/http';
 import {
+    clearPendingSubmissions,
+    countPendingSubmissions,
     getPendingSubmissions,
     queuePendingSubmission,
     removePendingSubmission,
 } from '@/lib/offlineDb';
+import { clearPageCache } from '@/lib/pageCache';
 
 export type SubmitResult =
     { queued: true } | { queued: false; response: Response };
 
+// Module-level so the layout's sync banner and the page that queued an
+// attempt read the same numbers.
+const pendingCount = ref(0);
+const rejectedCount = ref(0);
+
+let replayInFlight: Promise<void> | null = null;
+
 function postJson(url: string, body: string): Promise<Response> {
     return fetchJson(url, 'POST', body);
+}
+
+// A server error, an expired session or CSRF token, a timeout or rate
+// limiting can all succeed on a later attempt. Any other 4xx fails the same
+// way every time, so keeping it would wedge everything queued behind it.
+function isRetryable(status: number): boolean {
+    return status >= 500 || [401, 408, 419, 429].includes(status);
+}
+
+async function refreshPendingCount(): Promise<void> {
+    pendingCount.value = await countPendingSubmissions();
 }
 
 // Web Locks isn't supported in every browser (or test environment) — fall
@@ -25,6 +46,56 @@ async function withReplayLock(callback: () => Promise<void>): Promise<void> {
     await navigator.locks.request('hablas-offline-replay', callback);
 }
 
+async function drainQueue(): Promise<void> {
+    const pending = await getPendingSubmissions();
+    pendingCount.value = pending.length;
+
+    for (const submission of pending) {
+        let response: Response;
+
+        try {
+            response = await postJson(submission.url, submission.body);
+        } catch {
+            // Still offline, so stop here rather than replaying out of order.
+            break;
+        }
+
+        if (isRetryable(response.status)) {
+            break;
+        }
+
+        await removePendingSubmission(submission.id);
+
+        if (!response.ok) {
+            rejectedCount.value++;
+        }
+    }
+
+    await refreshPendingCount();
+}
+
+// The lock guards against two tabs racing to replay the same queued rows; the
+// in-flight promise does the same for the several components in one tab that
+// mount together.
+function replayQueue(): Promise<void> {
+    replayInFlight ??= withReplayLock(drainQueue).finally(() => {
+        replayInFlight = null;
+    });
+
+    return replayInFlight;
+}
+
+/**
+ * Forgets everything this device holds for the signed-in user: attempts
+ * still waiting to sync, which would otherwise replay under whoever signs in
+ * next, and the cached pages rendered with their data.
+ */
+export async function clearOfflineData(): Promise<void> {
+    await Promise.all([clearPendingSubmissions(), clearPageCache()]);
+    pendingCount.value = 0;
+    rejectedCount.value = 0;
+}
+
 /**
  * Submits a POST as JSON, falling back to an IndexedDB queue when offline
  * (or when the request fails outright) rather than losing the attempt. The
@@ -33,31 +104,11 @@ async function withReplayLock(callback: () => Promise<void>): Promise<void> {
 export function useOfflineSync() {
     const isOnline = ref(navigator.onLine);
 
-    async function replayQueue(): Promise<void> {
-        // Guards against two tabs both reconnecting and racing to replay the
-        // same queued rows before either has deleted them.
-        await withReplayLock(async () => {
-            const pending = await getPendingSubmissions();
+    async function queue(url: string, body: string): Promise<SubmitResult> {
+        await queuePendingSubmission(url, body);
+        await refreshPendingCount();
 
-            for (const submission of pending) {
-                try {
-                    const response = await postJson(
-                        submission.url,
-                        submission.body,
-                    );
-
-                    if (!response.ok) {
-                        break;
-                    }
-
-                    await removePendingSubmission(submission.id);
-                } catch {
-                    // Still offline, or the request failed again — stop here
-                    // rather than replaying out of order.
-                    break;
-                }
-            }
-        });
+        return { queued: true };
     }
 
     async function submitOrQueue(
@@ -67,9 +118,7 @@ export function useOfflineSync() {
         const body = JSON.stringify(payload);
 
         if (!navigator.onLine) {
-            await queuePendingSubmission(url, body);
-
-            return { queued: true };
+            return queue(url, body);
         }
 
         try {
@@ -77,9 +126,7 @@ export function useOfflineSync() {
 
             return { queued: false, response };
         } catch {
-            await queuePendingSubmission(url, body);
-
-            return { queued: true };
+            return queue(url, body);
         }
     }
 
@@ -98,6 +145,8 @@ export function useOfflineSync() {
 
         if (isOnline.value) {
             void replayQueue();
+        } else {
+            void refreshPendingCount();
         }
     });
 
@@ -106,5 +155,5 @@ export function useOfflineSync() {
         window.removeEventListener('offline', handleOffline);
     });
 
-    return { isOnline, submitOrQueue };
+    return { isOnline, pendingCount, rejectedCount, submitOrQueue };
 }
