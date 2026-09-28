@@ -11,7 +11,7 @@ use App\Models\WritingAttempt;
 use App\Models\WritingExercise;
 use RuntimeException;
 
-class RecordWritingAttempt
+final class RecordWritingAttempt
 {
     public function __construct(
         private readonly GradeWritingAttempt $gradeWritingAttempt = new GradeWritingAttempt,

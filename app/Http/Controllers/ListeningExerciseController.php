@@ -22,7 +22,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ListeningExerciseController extends Controller
+final class ListeningExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

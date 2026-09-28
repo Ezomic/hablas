@@ -13,7 +13,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 
-class BuildProgressSnapshot
+final class BuildProgressSnapshot
 {
     public function __construct(
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,

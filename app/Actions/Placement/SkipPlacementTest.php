@@ -9,7 +9,7 @@ use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use App\Models\User;
 
-class SkipPlacementTest
+final class SkipPlacementTest
 {
     public function __construct(
         private readonly FinalizePlacementAttempt $finalizePlacementAttempt = new FinalizePlacementAttempt,

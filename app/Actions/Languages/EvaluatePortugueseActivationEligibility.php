@@ -10,7 +10,7 @@ use App\Enums\CefrLevel;
 use App\Models\Language;
 use App\Models\User;
 
-class EvaluatePortugueseActivationEligibility
+final class EvaluatePortugueseActivationEligibility
 {
     public function __construct(
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,

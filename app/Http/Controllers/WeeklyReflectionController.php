@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class WeeklyReflectionController extends Controller
+final class WeeklyReflectionController extends Controller
 {
     use InteractsWithCurrentUser;
 

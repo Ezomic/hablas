@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Services\AdaptiveNewItemCap;
 use Illuminate\Support\Collection;
 
-class BuildReviewSession
+final class BuildReviewSession
 {
     public function __construct(
         private readonly AdaptiveNewItemCap $adaptiveNewItemCap = new AdaptiveNewItemCap,

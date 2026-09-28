@@ -8,7 +8,7 @@ use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
 
-class GetCurrentPlacementItem
+final class GetCurrentPlacementItem
 {
     public function __construct(
         private readonly SelectNextPlacementItem $selectNextPlacementItem = new SelectNextPlacementItem,

@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class LearningController extends Controller
+final class LearningController extends Controller
 {
     use InteractsWithCurrentUser;
 

@@ -9,7 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateCurrentLanguageRequest extends FormRequest
+final class UpdateCurrentLanguageRequest extends FormRequest
 {
     use InteractsWithCurrentUser;
 

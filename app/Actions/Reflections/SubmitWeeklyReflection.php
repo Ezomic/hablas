@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\WeeklyReflection;
 use Carbon\CarbonImmutable;
 
-class SubmitWeeklyReflection
+final class SubmitWeeklyReflection
 {
     /**
      * @param  array<int, int>  $statementIds  every statement id presented to the user this week

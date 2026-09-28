@@ -15,7 +15,7 @@ use Laravel\Fortify\Http\Requests\LoginRequest;
  *
  * Bound over the vendor class in FortifyServiceProvider::register().
  */
-class LoginCodeRequest extends LoginRequest
+final class LoginCodeRequest extends LoginRequest
 {
     /**
      * @return array<string, array<int, string>>

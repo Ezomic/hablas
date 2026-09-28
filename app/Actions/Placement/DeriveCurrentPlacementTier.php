@@ -10,7 +10,7 @@ use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestResponse;
 use Illuminate\Support\Collection;
 
-class DeriveCurrentPlacementTier
+final class DeriveCurrentPlacementTier
 {
     public const CefrSubLevel STARTING_TIER = CefrSubLevel::A1_3;
 

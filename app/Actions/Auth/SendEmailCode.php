@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 use Random\RandomException;
 
-class SendEmailCode
+final class SendEmailCode
 {
     public const int LENGTH = 6;
 

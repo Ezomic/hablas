@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ScriptedPromptExerciseController extends Controller
+final class ScriptedPromptExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

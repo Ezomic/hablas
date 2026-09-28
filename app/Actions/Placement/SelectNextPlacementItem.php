@@ -10,7 +10,7 @@ use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
 use Illuminate\Support\Collection;
 
-class SelectNextPlacementItem
+final class SelectNextPlacementItem
 {
     public const int MAX_ITEMS_PER_SKILL = 8;
 

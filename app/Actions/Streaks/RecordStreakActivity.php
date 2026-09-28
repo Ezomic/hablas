@@ -8,7 +8,7 @@ use App\Models\Streak;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
-class RecordStreakActivity
+final class RecordStreakActivity
 {
     public function __construct(
         private readonly ReconcileStreak $reconcileStreak = new ReconcileStreak,

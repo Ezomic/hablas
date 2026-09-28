@@ -8,7 +8,7 @@ use App\Enums\InterestTag;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class UpdateInterestPreferences
+final class UpdateInterestPreferences
 {
     /**
      * @param  list<InterestTag>  $interestTags

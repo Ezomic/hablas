@@ -15,7 +15,7 @@ use App\Models\VocabularyItem;
 use App\Services\AdaptiveNewItemCap;
 use Illuminate\Support\Collection;
 
-class EnrollPendingUnitContent
+final class EnrollPendingUnitContent
 {
     public function __construct(
         private readonly AdaptiveNewItemCap $adaptiveNewItemCap = new AdaptiveNewItemCap,

@@ -11,7 +11,7 @@ use App\Models\ShadowingExercise;
 use App\Models\User;
 use RuntimeException;
 
-class RecordShadowingAttempt
+final class RecordShadowingAttempt
 {
     public function __construct(
         private readonly GradeShadowingAttempt $gradeShadowingAttempt = new GradeShadowingAttempt,

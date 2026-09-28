@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
-class GetWeakSpotCards
+final class GetWeakSpotCards
 {
     /**
      * Weak-spot cards for a single language deck — cards benched from the

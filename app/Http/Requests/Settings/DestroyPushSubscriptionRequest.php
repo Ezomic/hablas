@@ -7,7 +7,7 @@ namespace App\Http\Requests\Settings;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class DestroyPushSubscriptionRequest extends FormRequest
+final class DestroyPushSubscriptionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

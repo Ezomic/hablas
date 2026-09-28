@@ -9,7 +9,7 @@ use App\Enums\NotificationFrequency;
 use App\Models\User;
 use App\Models\UserSetting;
 
-class UpdateUserSettings
+final class UpdateUserSettings
 {
     public function __construct(
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,

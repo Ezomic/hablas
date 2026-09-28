@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class WritingExerciseController extends Controller
+final class WritingExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

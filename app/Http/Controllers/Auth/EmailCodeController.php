@@ -11,7 +11,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class EmailCodeController extends Controller
+final class EmailCodeController extends Controller
 {
     /**
      * Email a sign-in code to a guest.

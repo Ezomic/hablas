@@ -12,7 +12,7 @@ use App\Http\Requests\Settings\UpdateInterestPreferencesRequest;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
-class InterestPreferencesController extends Controller
+final class InterestPreferencesController extends Controller
 {
     use InteractsWithCurrentUser;
 

@@ -6,7 +6,7 @@ namespace App\Actions\Srs;
 
 use App\Models\SrsCard;
 
-class ResolveWeakSpot
+final class ResolveWeakSpot
 {
     /**
      * Called once the remedial drill for a weak-spot card is completed,

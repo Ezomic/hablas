@@ -22,7 +22,7 @@ use Scottlaurent\FSRS\State as VendorState;
  * translates to/from our own SrsCard model, so the rest of the app never
  * touches the vendor package's types directly.
  */
-class FsrsScheduler
+final class FsrsScheduler
 {
     private Manager $manager;
 

@@ -10,7 +10,7 @@ use App\Http\Requests\Settings\DestroyPushSubscriptionRequest;
 use App\Http\Requests\Settings\StorePushSubscriptionRequest;
 use Illuminate\Http\JsonResponse;
 
-class PushSubscriptionController extends Controller
+final class PushSubscriptionController extends Controller
 {
     use InteractsWithCurrentUser;
 

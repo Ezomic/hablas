@@ -8,7 +8,7 @@ use App\Enums\Skill;
 use App\Models\UserSkillLevel;
 use Illuminate\Support\Collection;
 
-class IdentifyBlendedLevelCeiling
+final class IdentifyBlendedLevelCeiling
 {
     /**
      * The blended headline level is deliberately the minimum across all four

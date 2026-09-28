@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PronunciationDrillExerciseController extends Controller
+final class PronunciationDrillExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

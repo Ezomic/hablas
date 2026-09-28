@@ -11,7 +11,7 @@ use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestResponse;
 use Illuminate\Support\Collection;
 
-class BuildPlacementResult
+final class BuildPlacementResult
 {
     /**
      * Assemble the review payload for a completed placement attempt: the

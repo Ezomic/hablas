@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 
-class VerifyEmailCode
+final class VerifyEmailCode
 {
     /**
      * Check a plaintext code against the user's outstanding code for $purpose

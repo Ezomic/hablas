@@ -11,7 +11,7 @@ use App\Models\ListeningExercise;
 use App\Models\User;
 use RuntimeException;
 
-class RecordListeningAttempt
+final class RecordListeningAttempt
 {
     public function __construct(
         private readonly GradeListeningAttempt $gradeListeningAttempt = new GradeListeningAttempt,

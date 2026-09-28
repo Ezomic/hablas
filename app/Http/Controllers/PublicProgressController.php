@@ -9,7 +9,7 @@ use App\Models\ProgressShare;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PublicProgressController extends Controller
+final class PublicProgressController extends Controller
 {
     public function show(string $token, BuildProgressSnapshot $buildProgressSnapshot): Response
     {

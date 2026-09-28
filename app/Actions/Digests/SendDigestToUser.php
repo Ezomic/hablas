@@ -14,7 +14,7 @@ use App\Models\User;
 use App\Models\UserSetting;
 use App\Notifications\DailyDigestNotification;
 
-class SendDigestToUser
+final class SendDigestToUser
 {
     /**
      * How many days must pass since the last digest before a Weekly user is

@@ -21,7 +21,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ReadingExerciseController extends Controller
+final class ReadingExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

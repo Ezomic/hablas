@@ -7,7 +7,7 @@ namespace App\Actions\Languages;
 use App\Models\Language;
 use App\Models\User;
 
-class SwitchCurrentLanguage
+final class SwitchCurrentLanguage
 {
     /**
      * Scopes the lookup through the user's own unlocked languages rather

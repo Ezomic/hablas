@@ -11,7 +11,7 @@ use App\Models\ScriptedPromptExercise;
 use App\Models\User;
 use RuntimeException;
 
-class RecordScriptedPromptAttempt
+final class RecordScriptedPromptAttempt
 {
     public function __construct(
         private readonly GradeScriptedPromptAttempt $gradeScriptedPromptAttempt = new GradeScriptedPromptAttempt,

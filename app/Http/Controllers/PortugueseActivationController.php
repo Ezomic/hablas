@@ -10,7 +10,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class PortugueseActivationController extends Controller
+final class PortugueseActivationController extends Controller
 {
     use InteractsWithCurrentUser;
 

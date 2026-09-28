@@ -11,7 +11,7 @@ use App\Models\ReadingPassage;
 use App\Models\User;
 use RuntimeException;
 
-class RecordReadingAttempt
+final class RecordReadingAttempt
 {
     public function __construct(
         private readonly GradeReadingAttempt $gradeReadingAttempt = new GradeReadingAttempt,

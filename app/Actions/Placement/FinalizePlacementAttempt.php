@@ -11,7 +11,7 @@ use App\Models\UserSkillLevel;
 use Closure;
 use Illuminate\Support\Facades\DB;
 
-class FinalizePlacementAttempt
+final class FinalizePlacementAttempt
 {
     public function __construct(
         private readonly DeriveCurrentPlacementTier $deriveCurrentPlacementTier = new DeriveCurrentPlacementTier,

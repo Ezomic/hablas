@@ -16,7 +16,7 @@ use App\Models\User;
 use App\Models\UserInterestPreference;
 use Illuminate\Support\Collection;
 
-class SelectNextUnit
+final class SelectNextUnit
 {
     public function __construct(
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,

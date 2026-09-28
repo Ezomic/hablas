@@ -9,7 +9,7 @@ use App\Models\ShadowingExercise;
 use App\Services\TextNormalizerResolver;
 use RuntimeException;
 
-class GradeShadowingAttempt
+final class GradeShadowingAttempt
 {
     public function __construct(
         private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,

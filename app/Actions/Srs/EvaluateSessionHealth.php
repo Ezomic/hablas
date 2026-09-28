@@ -9,7 +9,7 @@ use App\Models\Language;
 use App\Models\SrsReview;
 use App\Models\User;
 
-class EvaluateSessionHealth
+final class EvaluateSessionHealth
 {
     /**
      * How many of the user's most recent reviews to look at — a rolling

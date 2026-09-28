@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\WeeklyReflection;
 use Carbon\CarbonImmutable;
 
-class HasSubmittedReflectionThisWeek
+final class HasSubmittedReflectionThisWeek
 {
     public function handle(User $user, Language $language): bool
     {

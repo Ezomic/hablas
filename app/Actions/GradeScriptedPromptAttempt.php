@@ -9,7 +9,7 @@ use App\Models\ScriptedPromptExercise;
 use App\Services\TextNormalizerResolver;
 use RuntimeException;
 
-class GradeScriptedPromptAttempt
+final class GradeScriptedPromptAttempt
 {
     public function __construct(
         private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,

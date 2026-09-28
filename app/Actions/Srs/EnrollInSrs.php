@@ -10,7 +10,7 @@ use App\Models\SrsCard;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-class EnrollInSrs
+final class EnrollInSrs
 {
     public function handle(User $user, Language $language, Model $cardable): SrsCard
     {

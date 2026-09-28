@@ -25,7 +25,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PlacementTestController extends Controller
+final class PlacementTestController extends Controller
 {
     use InteractsWithCurrentUser;
 

@@ -8,7 +8,7 @@ use App\Enums\CefrLevel;
 use App\Models\UserSkillLevel;
 use Illuminate\Support\Collection;
 
-class ComputeBlendedCefrLevel
+final class ComputeBlendedCefrLevel
 {
     /** @param  Collection<int, UserSkillLevel>  $skillLevels */
     public function handle(Collection $skillLevels): ?CefrLevel

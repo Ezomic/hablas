@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\UserSkillLevel;
 use Illuminate\Database\Eloquent\Collection;
 
-class GetUserSkillLevels
+final class GetUserSkillLevels
 {
     /** @return Collection<int, UserSkillLevel> */
     public function handle(User $user, Language $language): Collection

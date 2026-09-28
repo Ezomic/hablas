@@ -12,7 +12,7 @@ use App\Models\User;
 use App\Models\UserUnitProgress;
 use RuntimeException;
 
-class CompleteUnit
+final class CompleteUnit
 {
     public function __construct(
         private readonly EnrollPendingUnitContent $enrollPendingUnitContent = new EnrollPendingUnitContent,

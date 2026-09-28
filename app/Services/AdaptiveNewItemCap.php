@@ -17,7 +17,7 @@ use App\Models\User;
  * throttle-state is persisted). An explicit per-user override in their
  * settings always takes precedence over the computed cap.
  */
-class AdaptiveNewItemCap
+final class AdaptiveNewItemCap
 {
     private const BASE_CAP = 10;
 

@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ReviewSessionController extends Controller
+final class ReviewSessionController extends Controller
 {
     use InteractsWithCurrentUser;
 

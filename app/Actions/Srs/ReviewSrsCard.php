@@ -12,7 +12,7 @@ use App\Models\SrsReview;
 use App\Services\FsrsScheduler;
 use RuntimeException;
 
-class ReviewSrsCard
+final class ReviewSrsCard
 {
     /**
      * An item failed 3+ times in a row escalates out of normal rotation into

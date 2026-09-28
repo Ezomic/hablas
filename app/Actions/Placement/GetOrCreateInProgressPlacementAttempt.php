@@ -9,7 +9,7 @@ use App\Models\PlacementTestAttempt;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class GetOrCreateInProgressPlacementAttempt
+final class GetOrCreateInProgressPlacementAttempt
 {
     public function handle(User $user, Language $language): PlacementTestAttempt
     {

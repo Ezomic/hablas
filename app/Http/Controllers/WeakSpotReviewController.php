@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class WeakSpotReviewController extends Controller
+final class WeakSpotReviewController extends Controller
 {
     use InteractsWithCurrentUser;
 

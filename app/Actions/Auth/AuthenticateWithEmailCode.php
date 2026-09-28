@@ -26,7 +26,7 @@ use Illuminate\Http\Request;
  * a later request with an already-consumed code under a persistent runtime
  * (Octane), and across requests within a single test.
  */
-class AuthenticateWithEmailCode
+final class AuthenticateWithEmailCode
 {
     private const MEMO_KEY = 'email_code_authenticated_user';
 
