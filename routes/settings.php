@@ -13,7 +13,11 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // Saving the profile can change the address, which is the only
+    // credential, so it needs the same confirmation as deleting the account.
+    Route::patch('settings/profile', [ProfileController::class, 'update'])
+        ->middleware(RequirePassword::class)
+        ->name('profile.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

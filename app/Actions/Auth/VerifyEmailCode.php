@@ -22,7 +22,7 @@ class VerifyEmailCode
     {
         $loginCode = $this->outstandingCode($user, $purpose);
 
-        if ($loginCode === null || ! $loginCode->isUsable()) {
+        if ($loginCode === null || ! $loginCode->isUsable() || ! $this->claimAttempt($loginCode)) {
             return false;
         }
 
@@ -35,6 +35,19 @@ class VerifyEmailCode
         $this->proveAddress($user, $loginCode);
 
         return true;
+    }
+
+    /**
+     * Counts the guess in one conditional UPDATE before the slow hash check,
+     * so guesses sent in parallel cannot all read the same count and slip
+     * past LoginCode::MAX_ATTEMPTS.
+     */
+    private function claimAttempt(LoginCode $loginCode): bool
+    {
+        return LoginCode::query()
+            ->whereKey($loginCode->id)
+            ->where('attempts', '<', LoginCode::MAX_ATTEMPTS)
+            ->increment('attempts') > 0;
     }
 
     /**

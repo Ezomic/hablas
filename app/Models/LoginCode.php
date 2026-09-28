@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $code_hash
  * @property string|null $email
  * @property EmailCodePurpose $purpose
+ * @property int $attempts
  * @property CarbonImmutable $expires_at
  * @property CarbonImmutable|null $consumed_at
  * @property CarbonImmutable|null $created_at
@@ -22,6 +23,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['user_id', 'code_hash', 'email', 'purpose', 'expires_at', 'consumed_at'])]
 class LoginCode extends Model
 {
+    /**
+     * Six digits fall to guessing if every guess gets a fresh try, so a code
+     * takes this many guesses and then only a newly requested one works.
+     */
+    public const int MAX_ATTEMPTS = 5;
+
     protected function casts(): array
     {
         return [
@@ -39,6 +46,8 @@ class LoginCode extends Model
 
     public function isUsable(): bool
     {
-        return $this->consumed_at === null && $this->expires_at->isFuture();
+        return $this->consumed_at === null
+            && $this->attempts < self::MAX_ATTEMPTS
+            && $this->expires_at->isFuture();
     }
 }

@@ -120,6 +120,38 @@ it('throttles how often a code can be requested', function () {
         ->assertTooManyRequests();
 });
 
+it('voids a sign-in code after five wrong guesses until a new one is requested', function () {
+    $user = User::factory()->create();
+    $code = EmailCode::issue($user);
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->post(route('login.store'), ['email' => $user->email, 'code' => EmailCode::wrongGuess($code)]);
+    }
+
+    // Past Fortify's login throttle, so only the cap on the code can refuse it.
+    $this->travel(1)->minutes();
+
+    $this->post(route('login.store'), ['email' => $user->email, 'code' => $code])
+        ->assertSessionHasErrors('email');
+    $this->assertGuest();
+
+    $this->post(route('login.store'), ['email' => $user->email, 'code' => EmailCode::issue($user)]);
+    $this->assertAuthenticatedAs($user);
+});
+
+it('still signs in with the right code after four wrong guesses', function () {
+    $user = User::factory()->create();
+    $code = EmailCode::issue($user);
+
+    for ($i = 0; $i < 4; $i++) {
+        $this->post(route('login.store'), ['email' => $user->email, 'code' => EmailCode::wrongGuess($code)]);
+    }
+
+    $this->post(route('login.store'), ['email' => $user->email, 'code' => $code]);
+
+    $this->assertAuthenticatedAs($user);
+});
+
 it('proves the address when a sign-in code is used', function () {
     $user = User::factory()->unverified()->create();
     $code = EmailCode::issue($user);
@@ -135,6 +167,7 @@ it('does not prove an address the code was never sent to', function () {
     $code = EmailCode::issue($user);
 
     $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), ['name' => $user->name, 'email' => 'victim@example.com'])
         ->assertSessionHasNoErrors();
     $this->post(route('logout'));

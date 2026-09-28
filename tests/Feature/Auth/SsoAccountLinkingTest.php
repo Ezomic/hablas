@@ -98,6 +98,7 @@ it('takes every local way in from an attacker who changed their email to the vic
     $codeToOwnInbox = EmailCode::issue($attacker);
 
     $this->actingAs($attacker)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->patch(route('profile.update'), ['name' => $attacker->name, 'email' => 'victim@example.com'])
         ->assertSessionHasNoErrors();
 
