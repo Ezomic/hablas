@@ -24,7 +24,7 @@ it('resolves the action layer through the container without a cycle', function (
     AdaptiveNewItemCap::class,
 ]);
 
-it('uses a collaborator swapped in through the container', function () {
+it('builds its collaborator through the container', function () {
     $built = 0;
 
     $this->app->bind(GetUserSettings::class, function () use (&$built): GetUserSettings {
