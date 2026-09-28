@@ -134,7 +134,7 @@ const useDifferentEmail = () => {
 
         <div class="text-center text-sm text-muted-foreground">
             Don't have an account?
-            <TextLink :href="register()" :tabindex="3">Sign up</TextLink>
+            <TextLink :href="register()" :tabindex="4">Sign up</TextLink>
         </div>
     </form>
 

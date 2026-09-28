@@ -166,6 +166,22 @@ describe('auth/Login Remember me', () => {
         expect(wrapper.findAll('#remember')).toHaveLength(1);
     });
 
+    it('gives every tab stop its own position on both steps', async () => {
+        const { wrapper, emailForm } = mountPage();
+        const positions = () =>
+            wrapper
+                .findAll('[tabindex]')
+                .map((element) => element.attributes('tabindex'))
+                .filter((position) => Number(position) > 0);
+
+        expect(positions()).toEqual([...new Set(positions())]);
+
+        emailForm.email = 'someone@example.com';
+        await wrapper.get('form').trigger('submit');
+
+        expect(positions()).toEqual([...new Set(positions())]);
+    });
+
     it.each([
         ['ticked', true, '/passkeys/login?remember=1'],
         ['left unticked', false, '/passkeys/login?remember=0'],
