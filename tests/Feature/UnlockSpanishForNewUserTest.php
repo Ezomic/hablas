@@ -74,3 +74,14 @@ it('logs an error when Spanish is missing in production so the misconfig is visi
     // Still a no-op for the account itself — loud in logs, not a hard failure.
     expect($user->unlockedLanguages()->count())->toBe(0);
 });
+
+it('runs once per sign-up', function () {
+    app()->detectEnvironment(fn () => 'production');
+    Log::spy();
+    $user = User::create(['name' => 'New User', 'email' => 'new@example.com']);
+
+    event(new Registered($user));
+
+    // Each run reports the missing Spanish row, so a listener registered twice logs twice.
+    Log::shouldHaveReceived('error')->once();
+});

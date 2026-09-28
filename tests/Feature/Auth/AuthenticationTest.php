@@ -82,6 +82,25 @@ it('sends a sign-in code for a known email', function () {
     );
 });
 
+it('sends a sign-in code to a known email typed with capitals, and the code signs in', function () {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'learner@example.com']);
+
+    $this->post(route('login.code.store'), ['email' => 'Learner@Example.com'])
+        ->assertSessionHasNoErrors();
+
+    $code = null;
+    Notification::assertSentTo($user, function (EmailCodeNotification $notification) use (&$code) {
+        $code = $notification->code;
+
+        return $notification->purpose === EmailCodePurpose::Login;
+    });
+
+    $this->post(route('login.store'), ['email' => 'Learner@Example.com', 'code' => $code]);
+
+    $this->assertAuthenticatedAs($user);
+});
+
 it('does not reveal whether an email has an account', function () {
     Notification::fake();
     $user = User::factory()->create();
