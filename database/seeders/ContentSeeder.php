@@ -10,9 +10,10 @@ use Illuminate\Database\Seeder;
  * placement items, exercises and CEFR can-do statements.
  *
  * Deliberately contains NO user fixtures, so it is safe to run against
- * production — unlike DatabaseSeeder, which also creates a Test User. The
- * deploy runs this on every release; every seeder it calls uses updateOrCreate,
- * so it is idempotent and re-running only brings content up to date.
+ * production, unlike DatabaseSeeder, which also creates a Test User. Every
+ * successful `artisan migrate` runs this (SeedCourseContentAfterMigrating), and
+ * that is how each release brings production up to date. Every seeder it calls
+ * uses updateOrCreate, so it is idempotent.
  */
 class ContentSeeder extends Seeder
 {
