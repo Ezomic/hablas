@@ -60,6 +60,18 @@ class User extends Authenticatable implements PasskeyUser
         ];
     }
 
+    /**
+     * Users sign in with a code, a passkey or ID and have no password, and
+     * since Laravel 13.32 the remember-me cookie only restores a user whose
+     * password is a string.
+     */
+    public function getAuthPassword(): string
+    {
+        $password = $this->getAttribute($this->getAuthPasswordName());
+
+        return is_string($password) ? $password : '';
+    }
+
     /** @return HasMany<UserSkillLevel, $this> */
     public function skillLevels(): HasMany
     {
