@@ -20,15 +20,18 @@ type Props = {
 
 const props = defineProps<Props>();
 
+// usePasskeyVerify reads its routes when a sign-in starts, so these getters
+// follow a routes prop that changed after mount, like Login's Remember me.
+// Left undefined, the package falls back to its default routes.
 const { verify, isLoading, error, isSupported } = usePasskeyVerify({
-    ...(props.routes
-        ? {
-              routes: {
-                  options: props.routes.options.url,
-                  submit: props.routes.submit.url,
-              },
-          }
-        : {}),
+    routes: {
+        get options() {
+            return props.routes?.options.url;
+        },
+        get submit() {
+            return props.routes?.submit.url;
+        },
+    },
     onSuccess: (response) => {
         router.visit(response.redirect ?? '/dashboard');
     },

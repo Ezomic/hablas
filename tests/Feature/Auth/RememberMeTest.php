@@ -3,13 +3,23 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use CBOR\ByteStringObject;
+use CBOR\MapObject;
+use CBOR\NegativeIntegerObject;
+use CBOR\UnsignedIntegerObject;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Testing\TestResponse;
+use Laravel\Passkeys\Passkeys;
+use Laravel\Passkeys\Support\WebAuthn;
 use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
+use ParagonIE\ConstantTime\Base64UrlSafe;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Uuid;
 use Tests\Support\EmailCode;
+use Webauthn\CredentialRecord;
+use Webauthn\TrustPath\EmptyTrustPath;
 
 /**
  * The remember-me cookie a sign-in hands the browser, exactly as it arrives.
@@ -36,6 +46,89 @@ function rememberCookieAfterIdSignIn(): string
     expect($cookie)->not->toBeNull();
 
     return (string) $cookie;
+}
+
+const SOFTWARE_PASSKEY_ID = 'software-authenticator';
+
+/**
+ * A user with a passkey held by a software authenticator: a real P-256 key
+ * pair, stored the way a registration ceremony would store its public half.
+ *
+ * @return array{0: User, 1: OpenSSLAsymmetricKey}
+ */
+function passkeyHolder(): array
+{
+    $user = User::factory()->create();
+
+    $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+    $point = openssl_pkey_get_details($key)['ec'];
+
+    // COSE_Key: EC2, ES256, P-256, then the x and y coordinates.
+    $publicKey = (string) MapObject::create()
+        ->add(UnsignedIntegerObject::create(1), UnsignedIntegerObject::create(2))
+        ->add(UnsignedIntegerObject::create(3), NegativeIntegerObject::create(-7))
+        ->add(NegativeIntegerObject::create(-1), UnsignedIntegerObject::create(1))
+        ->add(NegativeIntegerObject::create(-2), ByteStringObject::create(str_pad($point['x'], 32, "\0", STR_PAD_LEFT)))
+        ->add(NegativeIntegerObject::create(-3), ByteStringObject::create(str_pad($point['y'], 32, "\0", STR_PAD_LEFT)));
+
+    $record = CredentialRecord::create(
+        publicKeyCredentialId: SOFTWARE_PASSKEY_ID,
+        type: 'public-key',
+        transports: [],
+        attestationType: 'none',
+        trustPath: EmptyTrustPath::create(),
+        aaguid: Uuid::fromString('00000000-0000-0000-0000-000000000000'),
+        credentialPublicKey: $publicKey,
+        userHandle: $user->getPasskeyUserHandle(),
+        counter: 0,
+    );
+
+    $user->passkeys()->create([
+        'name' => 'Laptop',
+        'credential_id' => Base64UrlSafe::encodeUnpadded(SOFTWARE_PASSKEY_ID),
+        'credential' => json_decode(WebAuthn::toJson($record), true, flags: JSON_THROW_ON_ERROR),
+    ]);
+
+    return [$user, $key];
+}
+
+/**
+ * What the browser does: fetch a challenge, have the authenticator sign it,
+ * and post the assertion the way @laravel/passkeys does. Its body carries
+ * only the credential, so "Remember me" travels on the URL.
+ *
+ * @param  array<string, mixed>  $query
+ * @return TestResponse<Response>
+ */
+function signInWithPasskey(User $user, OpenSSLAsymmetricKey $key, array $query = []): TestResponse
+{
+    $challenge = test()->getJson(route('passkey.login-options'))->assertOk()->json('options.challenge');
+
+    $clientData = json_encode([
+        'type' => 'webauthn.get',
+        'challenge' => $challenge,
+        'origin' => config('app.url'),
+        'crossOrigin' => false,
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+    // RP ID hash, flags (user present and verified), signature counter.
+    $authenticatorData = hash('sha256', Passkeys::relyingPartyId(), true)."\x05".pack('N', 1);
+
+    openssl_sign($authenticatorData.hash('sha256', $clientData, true), $signature, $key, OPENSSL_ALGO_SHA256);
+
+    return test()->postJson(route('passkey.login', $query), [
+        'credential' => [
+            'id' => Base64UrlSafe::encodeUnpadded(SOFTWARE_PASSKEY_ID),
+            'rawId' => Base64UrlSafe::encodeUnpadded(SOFTWARE_PASSKEY_ID),
+            'type' => 'public-key',
+            'response' => [
+                'clientDataJSON' => Base64UrlSafe::encodeUnpadded($clientData),
+                'authenticatorData' => Base64UrlSafe::encodeUnpadded($authenticatorData),
+                'signature' => Base64UrlSafe::encodeUnpadded($signature),
+                'userHandle' => Base64UrlSafe::encodeUnpadded($user->getPasskeyUserHandle()),
+            ],
+        ],
+    ]);
 }
 
 /**
@@ -103,4 +196,35 @@ it('does not remember a code sign-in with "Remember me" left unticked', function
     $response = $this->post(route('login.store'), ['email' => $user->email, 'code' => EmailCode::issue($user)]);
 
     expect(rememberCookieFrom($response->assertRedirect(route('dashboard', absolute: false))))->toBeNull();
+});
+
+it('keeps a browser signed in after a passkey sign-in with "Remember me" ticked', function () {
+    [$user, $key] = passkeyHolder();
+
+    $cookie = rememberCookieFrom(signInWithPasskey($user, $key, ['remember' => 1])->assertOk());
+
+    expect($cookie)->not->toBeNull();
+
+    returnWithOnlyTheRememberCookie((string) $cookie)->assertOk();
+    $this->assertAuthenticatedAs($user);
+});
+
+it('does not remember a passkey sign-in without "Remember me"', function (array $query) {
+    [$user, $key] = passkeyHolder();
+
+    $response = signInWithPasskey($user, $key, $query)->assertOk();
+
+    $this->assertAuthenticatedAs($user);
+    expect(rememberCookieFrom($response))->toBeNull();
+})->with([
+    'unticked' => [['remember' => 0]],
+    'left out' => [[]],
+]);
+
+it('refuses a passkey sign-in whose "Remember me" is not a yes or no', function () {
+    [$user, $key] = passkeyHolder();
+
+    signInWithPasskey($user, $key, ['remember' => 'forever'])->assertJsonValidationErrors('remember');
+
+    $this->assertGuest();
 });
