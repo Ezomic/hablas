@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Auth\EmailCodeController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;

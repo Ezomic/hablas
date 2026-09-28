@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
-class PortugueseTextNormalizer extends AccentFoldingTextNormalizer
+final class PortugueseTextNormalizer extends AccentFoldingTextNormalizer
 {
     /**
      * Only non-nasal vowel accents are folded. 'ã'/'õ' and 'ç' are

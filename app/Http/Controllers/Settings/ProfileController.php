@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Concerns\InteractsWithCurrentUser;
@@ -13,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProfileController extends Controller
+final class ProfileController extends Controller
 {
     use InteractsWithCurrentUser;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Placement\GetOrCreateInProgressPlacementAttempt;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;

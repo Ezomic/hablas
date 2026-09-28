@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Srs;
 
 use App\Enums\SrsCardState;
@@ -8,7 +10,7 @@ use App\Models\SrsCard;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-class EnrollInSrs
+final class EnrollInSrs
 {
     public function handle(User $user, Language $language, Model $cardable): SrsCard
     {

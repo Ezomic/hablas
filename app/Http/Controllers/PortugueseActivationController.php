@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\ActivatePortuguese;
@@ -8,7 +10,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class PortugueseActivationController extends Controller
+final class PortugueseActivationController extends Controller
 {
     use InteractsWithCurrentUser;
 

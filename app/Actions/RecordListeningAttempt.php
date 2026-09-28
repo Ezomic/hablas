@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Actions\Streaks\RecordStreakActivity;
@@ -9,7 +11,7 @@ use App\Models\ListeningExercise;
 use App\Models\User;
 use RuntimeException;
 
-class RecordListeningAttempt
+final class RecordListeningAttempt
 {
     public function __construct(
         private readonly GradeListeningAttempt $gradeListeningAttempt = new GradeListeningAttempt,

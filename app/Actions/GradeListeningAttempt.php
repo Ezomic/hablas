@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Models\ListeningExercise;
 
-class GradeListeningAttempt
+final class GradeListeningAttempt
 {
     /**
      * Percentage of comprehension questions answered correctly. Multiple

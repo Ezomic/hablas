@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Contracts\TextNormalizer;
 use App\Models\Language;
 use RuntimeException;
 
-class TextNormalizerResolver
+final class TextNormalizerResolver
 {
     public function forLanguage(Language $language): TextNormalizer
     {

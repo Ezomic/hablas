@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Concerns\InteractsWithCurrentUser;
@@ -7,7 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateCurrentLanguageRequest extends FormRequest
+final class UpdateCurrentLanguageRequest extends FormRequest
 {
     use InteractsWithCurrentUser;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Actions\Settings\UpdateInterestPreferences;
@@ -10,7 +12,7 @@ use App\Http\Requests\Settings\UpdateInterestPreferencesRequest;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
-class InterestPreferencesController extends Controller
+final class InterestPreferencesController extends Controller
 {
     use InteractsWithCurrentUser;
 

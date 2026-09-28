@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\SwitchCurrentLanguage;
@@ -7,7 +9,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\UpdateCurrentLanguageRequest;
 use Illuminate\Http\RedirectResponse;
 
-class LanguageSwitchController extends Controller
+final class LanguageSwitchController extends Controller
 {
     use InteractsWithCurrentUser;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Contracts\TextNormalizer;
@@ -8,7 +10,7 @@ use App\Models\WritingExercise;
 use App\Services\TextNormalizerResolver;
 use RuntimeException;
 
-class GradeWritingAttempt
+final class GradeWritingAttempt
 {
     public function __construct(
         private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,

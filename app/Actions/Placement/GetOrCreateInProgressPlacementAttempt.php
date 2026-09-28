@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Placement;
 
 use App\Models\Language;
@@ -7,7 +9,7 @@ use App\Models\PlacementTestAttempt;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class GetOrCreateInProgressPlacementAttempt
+final class GetOrCreateInProgressPlacementAttempt
 {
     public function handle(User $user, Language $language): PlacementTestAttempt
     {

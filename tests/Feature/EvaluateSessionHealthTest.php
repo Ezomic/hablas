@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Srs\EvaluateSessionHealth;
 use App\Enums\SrsRating;
 use App\Models\Language;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
@@ -14,7 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ShadowingExerciseController extends Controller
+final class ShadowingExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\CompleteUnit;
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Actions\SelectNextUnit;

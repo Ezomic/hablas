@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Progress;
 
 use App\Models\Language;
@@ -8,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class GetOrCreateProgressShare
+final class GetOrCreateProgressShare
 {
     public function handle(User $user, Language $language): ProgressShare
     {

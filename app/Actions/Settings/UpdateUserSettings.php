@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Settings;
 
 use App\Enums\ContextTag;
@@ -7,7 +9,7 @@ use App\Enums\NotificationFrequency;
 use App\Models\User;
 use App\Models\UserSetting;
 
-class UpdateUserSettings
+final class UpdateUserSettings
 {
     public function __construct(
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,

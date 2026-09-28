@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Enums\CefrLevel;
@@ -7,7 +9,7 @@ use App\Models\Language;
 use App\Models\User;
 use Closure;
 
-class NotifyOnBlendedLevelIncrease
+final class NotifyOnBlendedLevelIncrease
 {
     public function __construct(
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,

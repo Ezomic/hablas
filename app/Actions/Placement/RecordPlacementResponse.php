@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Placement;
 
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
 use App\Models\PlacementTestResponse;
 
-class RecordPlacementResponse
+final class RecordPlacementResponse
 {
     public function __construct(
         private readonly DeriveCurrentPlacementTier $deriveCurrentPlacementTier = new DeriveCurrentPlacementTier,

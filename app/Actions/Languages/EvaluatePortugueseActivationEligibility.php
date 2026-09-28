@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Languages;
 
 use App\Actions\ComputeBlendedCefrLevel;
@@ -8,7 +10,7 @@ use App\Enums\CefrLevel;
 use App\Models\Language;
 use App\Models\User;
 
-class EvaluatePortugueseActivationEligibility
+final class EvaluatePortugueseActivationEligibility
 {
     public function __construct(
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,

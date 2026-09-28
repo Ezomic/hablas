@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Settings;
 
 use App\Enums\NotificationFrequency;
 use App\Models\User;
 use App\Models\UserSetting;
 
-class GetUserSettings
+final class GetUserSettings
 {
     /**
      * Read-only: uses firstOrNew rather than createOrFirst so callers that

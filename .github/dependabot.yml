@@ -10,3 +10,41 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  # Minor and patch land as one grouped PR per ecosystem per week. Majors are
+  # split out one PR at a time on purpose: a Laravel, Vite or Tailwind major is
+  # a migration, and burying it in a group of twenty routine bumps is how it
+  # gets merged without anyone reading the upgrade guide.
+  - package-ecosystem: "composer"
+    # Resolves on config.platform.php from composer.json. Without it Dependabot
+    # takes the floor of require.php, PHP 8.4.0, and cannot resolve the locked
+    # Symfony 8.1, which needs 8.4.1 (web-template hit this in WEB-33). Raise
+    # the platform when a locked package needs a newer patch.
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 5
+    groups:
+      composer-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

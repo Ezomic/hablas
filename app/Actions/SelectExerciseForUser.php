@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class SelectExerciseForUser
+final class SelectExerciseForUser
 {
     /**
      * Prefers an exercise the user hasn't attempted yet, falling back to any

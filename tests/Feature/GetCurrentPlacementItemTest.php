@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Enums\CefrSubLevel;
 use App\Enums\Skill;

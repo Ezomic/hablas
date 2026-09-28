@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\Auth\SendEmailCode;
@@ -9,7 +11,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class EmailCodeController extends Controller
+final class EmailCodeController extends Controller
 {
     /**
      * Email a sign-in code to a guest.

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Languages;
 
 use App\Models\Language;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class ActivatePortuguese
+final class ActivatePortuguese
 {
     public function __construct(
         private readonly SwitchCurrentLanguage $switchCurrentLanguage = new SwitchCurrentLanguage,

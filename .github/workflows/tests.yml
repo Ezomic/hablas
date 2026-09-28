@@ -31,7 +31,7 @@ jobs:
         with:
           php-version: '8.4'
           tools: composer:v2
-          coverage: none
+          coverage: pcov
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -61,8 +61,8 @@ jobs:
       - name: Build Assets
         run: npm run build
 
-      - name: Run Type Analysis
-        run: composer types:check
+      - name: Run CI Checks
+        run: composer ci:check
 
-      - name: Tests
-        run: php artisan test
+      - name: Enforce Test Coverage
+        run: composer test:coverage

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Languages;
 
 use App\Models\Language;
 use App\Models\User;
 
-class GetCurrentLanguage
+final class GetCurrentLanguage
 {
     /**
      * The user's explicitly selected language, if set and still unlocked

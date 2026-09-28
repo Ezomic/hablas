@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\CefrLevel;
 
 it('orders levels from A1 to C2', function () {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Settings\GetUserSettings;
 use App\Enums\NotificationFrequency;
 use App\Models\User;

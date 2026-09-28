@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\CefrSubLevel;
 
 it('returns the lowest of several tiers regardless of argument order', function () {

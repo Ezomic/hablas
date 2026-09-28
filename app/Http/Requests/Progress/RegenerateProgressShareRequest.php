@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Progress;
 
 use App\Concerns\InteractsWithCurrentUser;
@@ -7,7 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class RegenerateProgressShareRequest extends FormRequest
+final class RegenerateProgressShareRequest extends FormRequest
 {
     use InteractsWithCurrentUser;
 

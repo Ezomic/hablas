@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Enums\CefrLevel;
 use App\Models\UserSkillLevel;
 use Illuminate\Support\Collection;
 
-class ComputeBlendedCefrLevel
+final class ComputeBlendedCefrLevel
 {
     /** @param  Collection<int, UserSkillLevel>  $skillLevels */
     public function handle(Collection $skillLevels): ?CefrLevel

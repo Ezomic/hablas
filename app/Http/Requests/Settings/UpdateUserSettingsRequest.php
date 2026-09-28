@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Settings;
 
 use App\Enums\ContextTag;
@@ -8,7 +10,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateUserSettingsRequest extends FormRequest
+final class UpdateUserSettingsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

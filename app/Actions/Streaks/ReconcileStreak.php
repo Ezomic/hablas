@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Streaks;
 
 use App\Models\Streak;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
-class ReconcileStreak
+final class ReconcileStreak
 {
     /**
      * Passively rolls a streak forward for elapsed calendar days without any

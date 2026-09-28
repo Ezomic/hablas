@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Srs\PresentSrsCardForReview;
 use App\Enums\ErrorTagCategory;
 use App\Models\GrammarPoint;

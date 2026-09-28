@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Actions\Streaks\RecordStreakActivity;
@@ -9,7 +11,7 @@ use App\Models\WritingAttempt;
 use App\Models\WritingExercise;
 use RuntimeException;
 
-class RecordWritingAttempt
+final class RecordWritingAttempt
 {
     public function __construct(
         private readonly GradeWritingAttempt $gradeWritingAttempt = new GradeWritingAttempt,

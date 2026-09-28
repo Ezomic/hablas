@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
@@ -13,7 +15,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class WritingExerciseController extends Controller
+final class WritingExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

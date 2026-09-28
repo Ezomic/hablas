@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Settings;
 
 use App\Enums\InterestTag;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class UpdateInterestPreferences
+final class UpdateInterestPreferences
 {
     /**
      * @param  list<InterestTag>  $interestTags

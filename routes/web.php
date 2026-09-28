@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\EnsurePlacementTestCompleted;
 use Illuminate\Support\Facades\Route;

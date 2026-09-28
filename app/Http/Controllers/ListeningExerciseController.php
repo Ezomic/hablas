@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\GetUserSkillLevels;
@@ -20,7 +22,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ListeningExerciseController extends Controller
+final class ListeningExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 

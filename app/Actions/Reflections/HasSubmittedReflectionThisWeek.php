@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Reflections;
 
 use App\Models\Language;
@@ -7,7 +9,7 @@ use App\Models\User;
 use App\Models\WeeklyReflection;
 use Carbon\CarbonImmutable;
 
-class HasSubmittedReflectionThisWeek
+final class HasSubmittedReflectionThisWeek
 {
     public function handle(User $user, Language $language): bool
     {

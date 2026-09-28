@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Settings;
 
 use App\Enums\InterestTag;
@@ -7,7 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateInterestPreferencesRequest extends FormRequest
+final class UpdateInterestPreferencesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Placement;
 
 use App\Enums\CefrSubLevel;
@@ -9,7 +11,7 @@ use App\Models\UserSkillLevel;
 use Closure;
 use Illuminate\Support\Facades\DB;
 
-class FinalizePlacementAttempt
+final class FinalizePlacementAttempt
 {
     public function __construct(
         private readonly DeriveCurrentPlacementTier $deriveCurrentPlacementTier = new DeriveCurrentPlacementTier,

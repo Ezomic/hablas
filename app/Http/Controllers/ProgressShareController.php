@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
@@ -14,7 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProgressShareController extends Controller
+final class ProgressShareController extends Controller
 {
     use InteractsWithCurrentUser;
 

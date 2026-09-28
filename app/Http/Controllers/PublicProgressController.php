@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Progress\BuildProgressSnapshot;
@@ -7,7 +9,7 @@ use App\Models\ProgressShare;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PublicProgressController extends Controller
+final class PublicProgressController extends Controller
 {
     public function show(string $token, BuildProgressSnapshot $buildProgressSnapshot): Response
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Actions\Streaks\RecordStreakActivity;
@@ -9,7 +11,7 @@ use App\Models\PronunciationDrillExercise;
 use App\Models\User;
 use RuntimeException;
 
-class RecordPronunciationDrillAttempt
+final class RecordPronunciationDrillAttempt
 {
     public function __construct(
         private readonly GradePronunciationDrillAttempt $gradePronunciationDrillAttempt = new GradePronunciationDrillAttempt,

@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Models\ReadingPassage;
 
-class GradeReadingAttempt
+final class GradeReadingAttempt
 {
     /**
      * Percentage of comprehension questions answered correctly. Multiple

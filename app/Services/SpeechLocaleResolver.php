@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Language;
@@ -13,7 +15,7 @@ use App\Models\Language;
  * the wrong locale actively mistranscribes, which is the bug this exists to
  * prevent.
  */
-class SpeechLocaleResolver
+final class SpeechLocaleResolver
 {
     /** @var array<string, string> */
     private const LOCALES = [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Srs;
 
 use App\Enums\SrsCardState;
@@ -9,7 +11,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
-class GetDueSrsCards
+final class GetDueSrsCards
 {
     /**
      * Cards due for the normal review queue, scoped to a single language deck

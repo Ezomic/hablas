@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\ComputeBlendedCefrLevel;
 use App\Enums\CefrLevel;
 use App\Models\UserSkillLevel;

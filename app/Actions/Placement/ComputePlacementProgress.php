@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Placement;
 
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 
-class ComputePlacementProgress
+final class ComputePlacementProgress
 {
     public function __construct(
         private readonly SelectNextPlacementItem $selectNextPlacementItem = new SelectNextPlacementItem,

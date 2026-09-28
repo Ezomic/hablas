@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Srs\EnrollInSrs;
 use App\Enums\SrsCardState;
 use App\Models\GrammarPoint;

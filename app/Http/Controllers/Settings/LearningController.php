@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Actions\Settings\GetUserSettings;
@@ -15,7 +17,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class LearningController extends Controller
+final class LearningController extends Controller
 {
     use InteractsWithCurrentUser;
 

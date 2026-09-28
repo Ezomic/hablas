@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\Language;
 use App\Services\PortugueseTextNormalizer;
 use App\Services\SpanishTextNormalizer;

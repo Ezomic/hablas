@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Progress;
 
 use App\Models\Language;
 use App\Models\ProgressShare;
 use App\Models\User;
 
-class RevokeProgressShare
+final class RevokeProgressShare
 {
     /**
      * No-ops if the user has no active share for this language — callers

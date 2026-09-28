@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions;
 
 use App\Enums\CefrLevel;
@@ -14,7 +16,7 @@ use App\Models\UserSkillLevel;
 use App\Models\WritingAttempt;
 use Illuminate\Support\Collection;
 
-class ReassessSkillLevel
+final class ReassessSkillLevel
 {
     /**
      * How many of the user's most recent graded attempts for a skill to look

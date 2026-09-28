@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Reflections\SubmitWeeklyReflection;
 use App\Models\CefrCanDoStatement;
 use App\Models\Language;

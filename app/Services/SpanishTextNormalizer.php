@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
-class SpanishTextNormalizer extends AccentFoldingTextNormalizer
+final class SpanishTextNormalizer extends AccentFoldingTextNormalizer
 {
     /**
      * Only vowel accents are folded — 'ñ' is deliberately left alone, since

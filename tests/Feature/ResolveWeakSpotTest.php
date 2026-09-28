@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Srs\ResolveWeakSpot;
 use App\Models\SrsCard;

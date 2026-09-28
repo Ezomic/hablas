@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Auth\SendEmailCode;
 use App\Enums\EmailCodePurpose;
 use App\Models\LoginCode;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\ProgressShareController;
 use App\Http\Controllers\PublicProgressController;
 use Illuminate\Support\Facades\Route;

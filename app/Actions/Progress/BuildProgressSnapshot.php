@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Progress;
 
 use App\Actions\ComputeBlendedCefrLevel;
@@ -11,7 +13,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 
-class BuildProgressSnapshot
+final class BuildProgressSnapshot
 {
     public function __construct(
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,

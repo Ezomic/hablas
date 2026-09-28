@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\WritingExerciseType;
 use App\Models\Language;
 use App\Models\User;

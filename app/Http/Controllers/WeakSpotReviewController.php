@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\GetCurrentLanguage;
@@ -17,7 +19,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class WeakSpotReviewController extends Controller
+final class WeakSpotReviewController extends Controller
 {
     use InteractsWithCurrentUser;
 

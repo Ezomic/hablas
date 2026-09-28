@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Srs;
 
 use App\Actions\Streaks\RecordStreakActivity;
@@ -10,7 +12,7 @@ use App\Models\SrsReview;
 use App\Services\FsrsScheduler;
 use RuntimeException;
 
-class ReviewSrsCard
+final class ReviewSrsCard
 {
     /**
      * An item failed 3+ times in a row escalates out of normal rotation into

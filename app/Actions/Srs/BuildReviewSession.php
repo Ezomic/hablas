@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Srs;
 
 use App\Models\Language;
@@ -8,7 +10,7 @@ use App\Models\User;
 use App\Services\AdaptiveNewItemCap;
 use Illuminate\Support\Collection;
 
-class BuildReviewSession
+final class BuildReviewSession
 {
     public function __construct(
         private readonly AdaptiveNewItemCap $adaptiveNewItemCap = new AdaptiveNewItemCap,

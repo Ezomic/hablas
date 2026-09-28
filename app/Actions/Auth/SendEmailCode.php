@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Auth;
 
 use App\Enums\EmailCodePurpose;
@@ -10,7 +12,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 use Random\RandomException;
 
-class SendEmailCode
+final class SendEmailCode
 {
     public const int LENGTH = 6;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Streaks\RecordStreakActivity;
 use App\Models\Streak;
 use App\Models\User;

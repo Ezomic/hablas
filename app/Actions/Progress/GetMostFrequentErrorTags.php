@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Progress;
 
 use App\Enums\ErrorTagCategory;
@@ -8,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class GetMostFrequentErrorTags
+final class GetMostFrequentErrorTags
 {
     /** @return Collection<int, array{error_tag_category: ErrorTagCategory, count: int}> */
     public function handle(User $user, Language $language, int $limit = 3): Collection

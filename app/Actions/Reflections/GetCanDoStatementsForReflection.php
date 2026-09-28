@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Reflections;
 
 use App\Actions\GetUserSkillLevels;
@@ -10,7 +12,7 @@ use App\Models\User;
 use App\Models\UserSkillLevel;
 use Illuminate\Database\Eloquent\Collection;
 
-class GetCanDoStatementsForReflection
+final class GetCanDoStatementsForReflection
 {
     public function __construct(
         private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,

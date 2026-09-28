@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Placement;
 
 use App\Enums\CefrSubLevel;
@@ -7,7 +9,7 @@ use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use App\Models\User;
 
-class SkipPlacementTest
+final class SkipPlacementTest
 {
     public function __construct(
         private readonly FinalizePlacementAttempt $finalizePlacementAttempt = new FinalizePlacementAttempt,

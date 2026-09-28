@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Srs;
 
 use App\Models\GrammarPoint;
@@ -8,7 +10,7 @@ use App\Models\VocabularyItem;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
-class PresentSrsCardForReview
+final class PresentSrsCardForReview
 {
     /**
      * @return array{id: int, front: string, back: string, kind: string, suggestedErrorTag: string|null}

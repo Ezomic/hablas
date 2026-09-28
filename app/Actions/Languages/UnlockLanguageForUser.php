@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Languages;
 
 use App\Models\Language;
 use App\Models\User;
 
-class UnlockLanguageForUser
+final class UnlockLanguageForUser
 {
     /**
      * The single place that ever writes to the user_languages pivot —

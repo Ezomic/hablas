@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9433a6a9ee5ae16ab35e7d9e81fbef69",
+    "content-hash": "89c6fca516187d56c8df3491fcf70934",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7901,7 +7901,7 @@
             "version": "0.3.4",
             "source": {
                 "type": "git",
-                "url": "git@github.com:Ezomic/flare-client.git",
+                "url": "https://github.com/Ezomic/flare-client.git",
                 "reference": "bd766d6240f4e89b03294b6002f884699bdc6861"
             },
             "dist": {
@@ -8035,7 +8035,7 @@
             "version": "0.1.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:Ezomic/request-id.git",
+                "url": "https://github.com/Ezomic/request-id.git",
                 "reference": "7220761b0cd9c0ccee9e29e82355dfe0deade1bb"
             },
             "dist": {
@@ -8093,7 +8093,7 @@
             "version": "0.1.0",
             "source": {
                 "type": "git",
-                "url": "git@github.com:Ezomic/snag-client.git",
+                "url": "https://github.com/Ezomic/snag-client.git",
                 "reference": "0d03249afe5ecf9d706913d7c8e18df5d348e8ee"
             },
             "dist": {
@@ -12249,5 +12249,8 @@
         "php": "^8.4"
     },
     "platform-dev": {},
+    "platform-overrides": {
+        "php": "8.4.1"
+    },
     "plugin-api-version": "2.9.0"
 }

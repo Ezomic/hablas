@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Placement\FinalizePlacementAttempt;
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Auth;
 
 use App\Enums\EmailCodePurpose;
@@ -8,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 
-class VerifyEmailCode
+final class VerifyEmailCode
 {
     /**
      * Check a plaintext code against the user's outstanding code for $purpose
