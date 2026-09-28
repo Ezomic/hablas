@@ -23,19 +23,19 @@ it('resolves the action layer through the container without a cycle', function (
 ]);
 
 it('uses a collaborator swapped in through the container', function () {
-    $fake = new class extends GetUserSettings
-    {
-        public function handle(User $user): UserSetting
-        {
-            return new UserSetting(['new_item_cap_override' => 42]);
-        }
-    };
+    $built = 0;
 
-    $this->app->instance(GetUserSettings::class, $fake);
+    $this->app->bind(GetUserSettings::class, function () use (&$built): GetUserSettings {
+        $built++;
 
-    $cap = app(AdaptiveNewItemCap::class);
+        return new GetUserSettings;
+    });
 
-    expect($cap->forUser(User::factory()->create(), Language::factory()->create()))->toBe(42);
+    $user = User::factory()->create();
+    UserSetting::factory()->for($user)->create(['new_item_cap_override' => 42]);
+
+    expect(app(AdaptiveNewItemCap::class)->forUser($user, Language::factory()->create()))->toBe(42)
+        ->and($built)->toBe(1);
 });
 
 it('still works when built directly with no arguments', function () {
