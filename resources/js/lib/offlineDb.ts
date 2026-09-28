@@ -64,10 +64,12 @@ export async function queuePendingSubmission(
 }
 
 /** Returns queued submissions oldest-first, so replay preserves order. */
-export async function getPendingSubmissions(): Promise<PendingSubmission[]> {
+export async function getPendingSubmissions(
+    limit?: number,
+): Promise<PendingSubmission[]> {
     const db = await getDb();
 
-    return db.getAll('pendingSubmissions');
+    return db.getAll('pendingSubmissions', undefined, limit);
 }
 
 export async function countPendingSubmissions(): Promise<number> {
@@ -76,10 +78,27 @@ export async function countPendingSubmissions(): Promise<number> {
     return db.count('pendingSubmissions');
 }
 
-export async function removePendingSubmission(id: number): Promise<void> {
+/**
+ * Removes a submission once replay has sent it, unless its url was queued
+ * again with a different answer while the request was in flight. That answer
+ * took over the same row and hasn't been sent yet. Returns whether the row
+ * was removed.
+ */
+export async function removeSentSubmission(
+    sent: PendingSubmission,
+): Promise<boolean> {
     const db = await getDb();
+    const transaction = db.transaction('pendingSubmissions', 'readwrite');
+    const current = await transaction.store.get(sent.id);
+    const unchanged = current?.body === sent.body;
 
-    await db.delete('pendingSubmissions', id);
+    if (unchanged) {
+        await transaction.store.delete(sent.id);
+    }
+
+    await transaction.done;
+
+    return unchanged;
 }
 
 export async function clearPendingSubmissions(): Promise<void> {

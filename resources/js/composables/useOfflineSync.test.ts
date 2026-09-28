@@ -20,6 +20,19 @@ function mountOfflineSync(useOfflineSync: typeof UseOfflineSync) {
     return { wrapper, sync: exposed };
 }
 
+function deferredResponse() {
+    let resolve!: (response: Response) => void;
+    const promise = new Promise<Response>((settle) => {
+        resolve = settle;
+    });
+
+    return { promise, resolve };
+}
+
+function postedBodies() {
+    return vi.mocked(fetch).mock.calls.map(([, init]) => init?.body);
+}
+
 function setOnline(value: boolean) {
     Object.defineProperty(navigator, 'onLine', {
         configurable: true,
@@ -81,8 +94,11 @@ describe('useOfflineSync', () => {
             new TypeError('Failed to fetch'),
         );
 
+        // Mounted offline so no replay runs alongside the submission.
+        setOnline(false);
         const { useOfflineSync } = await import('./useOfflineSync');
         const { sync } = mountOfflineSync(useOfflineSync);
+        setOnline(true);
 
         const result = await sync.submitOrQueue('/writing/1/attempts', {
             response: 'hola',
@@ -252,6 +268,136 @@ describe('useOfflineSync', () => {
         expect(pending.map((submission) => submission.body)).toEqual([
             '{"response":"adiós"}',
         ]);
+    });
+
+    it('replays a newer answer queued while the older one was being sent', async () => {
+        const { queuePendingSubmission, getPendingSubmissions } =
+            await import('./../lib/offlineDb');
+        await queuePendingSubmission(
+            '/writing/1/attempts',
+            '{"response":"old"}',
+        );
+
+        const inFlight = deferredResponse();
+        vi.mocked(fetch)
+            .mockReturnValueOnce(inFlight.promise)
+            .mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(fetch).toHaveBeenCalledTimes(1);
+        });
+
+        setOnline(false);
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'new' });
+        inFlight.resolve(new Response('{}', { status: 200 }));
+
+        await vi.waitFor(async () => {
+            expect(await getPendingSubmissions()).toEqual([]);
+        });
+
+        expect(postedBodies()).toEqual([
+            '{"response":"old"}',
+            '{"response":"new"}',
+        ]);
+    });
+
+    it('replays the latest answer for a row requeued while an earlier row was being sent', async () => {
+        const { queuePendingSubmission, getPendingSubmissions } =
+            await import('./../lib/offlineDb');
+        await queuePendingSubmission('/writing/1/attempts', '{"a":1}');
+        await queuePendingSubmission(
+            '/writing/2/attempts',
+            '{"response":"old"}',
+        );
+
+        const inFlight = deferredResponse();
+        vi.mocked(fetch)
+            .mockReturnValueOnce(inFlight.promise)
+            .mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(fetch).toHaveBeenCalledTimes(1);
+        });
+
+        setOnline(false);
+        await sync.submitOrQueue('/writing/2/attempts', { response: 'new' });
+        inFlight.resolve(new Response('{}', { status: 200 }));
+
+        await vi.waitFor(async () => {
+            expect(await getPendingSubmissions()).toEqual([]);
+        });
+
+        expect(postedBodies()).toEqual(['{"a":1}', '{"response":"new"}']);
+    });
+
+    it('does not count a rejected answer as discarded once a newer one replaced it', async () => {
+        const { queuePendingSubmission, getPendingSubmissions } =
+            await import('./../lib/offlineDb');
+        await queuePendingSubmission(
+            '/writing/1/attempts',
+            '{"response":"old"}',
+        );
+
+        const inFlight = deferredResponse();
+        vi.mocked(fetch)
+            .mockReturnValueOnce(inFlight.promise)
+            .mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(fetch).toHaveBeenCalledTimes(1);
+        });
+
+        setOnline(false);
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'new' });
+        inFlight.resolve(new Response('{}', { status: 422 }));
+
+        await vi.waitFor(async () => {
+            expect(await getPendingSubmissions()).toEqual([]);
+        });
+
+        expect(postedBodies()).toEqual([
+            '{"response":"old"}',
+            '{"response":"new"}',
+        ]);
+        expect(sync.rejectedCount.value).toBe(0);
+    });
+
+    it('does not resend an identical answer queued while it was being sent', async () => {
+        const { queuePendingSubmission, getPendingSubmissions } =
+            await import('./../lib/offlineDb');
+        await queuePendingSubmission(
+            '/writing/1/attempts',
+            '{"response":"hola"}',
+        );
+
+        const inFlight = deferredResponse();
+        vi.mocked(fetch).mockReturnValueOnce(inFlight.promise);
+
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        await vi.waitFor(() => {
+            expect(fetch).toHaveBeenCalledTimes(1);
+        });
+
+        setOnline(false);
+        await sync.submitOrQueue('/writing/1/attempts', { response: 'hola' });
+        inFlight.resolve(new Response('{}', { status: 200 }));
+
+        await vi.waitFor(async () => {
+            expect(await getPendingSubmissions()).toEqual([]);
+        });
+
+        expect(fetch).toHaveBeenCalledTimes(1);
     });
 
     it('replays each submission once when several components mount together', async () => {

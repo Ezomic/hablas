@@ -35,7 +35,24 @@ describe('offlineDb', () => {
         ]);
     });
 
-    it('removes a submission by id without disturbing the others', async () => {
+    it('returns only the oldest submissions when given a limit', async () => {
+        await offlineDb.queuePendingSubmission(
+            '/writing/1/attempts',
+            '{"a":1}',
+        );
+        await offlineDb.queuePendingSubmission(
+            '/writing/2/attempts',
+            '{"a":2}',
+        );
+
+        const pending = await offlineDb.getPendingSubmissions(1);
+
+        expect(pending.map((submission) => submission.url)).toEqual([
+            '/writing/1/attempts',
+        ]);
+    });
+
+    it('removes a sent submission without disturbing the others', async () => {
         await offlineDb.queuePendingSubmission(
             '/writing/1/attempts',
             '{"a":1}',
@@ -46,11 +63,33 @@ describe('offlineDb', () => {
         );
 
         const [first, second] = await offlineDb.getPendingSubmissions();
-        await offlineDb.removePendingSubmission(first.id);
+        const removed = await offlineDb.removeSentSubmission(first);
 
         const remaining = await offlineDb.getPendingSubmissions();
 
+        expect(removed).toBe(true);
         expect(remaining).toEqual([second]);
+    });
+
+    it('keeps a sent submission whose row was requeued with a different answer', async () => {
+        await offlineDb.queuePendingSubmission(
+            '/writing/1/attempts',
+            '{"a":1}',
+        );
+
+        const [sent] = await offlineDb.getPendingSubmissions();
+        await offlineDb.queuePendingSubmission(
+            '/writing/1/attempts',
+            '{"a":2}',
+        );
+        const removed = await offlineDb.removeSentSubmission(sent);
+
+        const pending = await offlineDb.getPendingSubmissions();
+
+        expect(removed).toBe(false);
+        expect(
+            pending.map((submission) => [submission.id, submission.body]),
+        ).toEqual([[sent.id, '{"a":2}']]);
     });
 
     it('replaces an earlier queued submission for the same url in place', async () => {

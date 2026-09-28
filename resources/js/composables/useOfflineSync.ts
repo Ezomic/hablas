@@ -5,7 +5,7 @@ import {
     countPendingSubmissions,
     getPendingSubmissions,
     queuePendingSubmission,
-    removePendingSubmission,
+    removeSentSubmission,
 } from '@/lib/offlineDb';
 import { clearPageCache } from '@/lib/pageCache';
 
@@ -46,11 +46,19 @@ async function withReplayLock(callback: () => Promise<void>): Promise<void> {
     await navigator.locks.request('hablas-offline-replay', callback);
 }
 
+// Reads the oldest row afresh on every pass instead of working from a
+// snapshot: an answer queued while a request is in flight replaces its url's
+// row, and that newer answer is what has to be sent.
 async function drainQueue(): Promise<void> {
-    const pending = await getPendingSubmissions();
-    pendingCount.value = pending.length;
+    await refreshPendingCount();
 
-    for (const submission of pending) {
+    for (;;) {
+        const [submission] = await getPendingSubmissions(1);
+
+        if (!submission) {
+            break;
+        }
+
         let response: Response;
 
         try {
@@ -64,9 +72,9 @@ async function drainQueue(): Promise<void> {
             break;
         }
 
-        await removePendingSubmission(submission.id);
+        const removed = await removeSentSubmission(submission);
 
-        if (!response.ok) {
+        if (removed && !response.ok) {
             rejectedCount.value++;
         }
     }
