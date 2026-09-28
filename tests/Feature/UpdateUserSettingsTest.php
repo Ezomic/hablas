@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Settings\UpdateUserSettings;
 use App\Enums\ContextTag;
 use App\Enums\NotificationFrequency;

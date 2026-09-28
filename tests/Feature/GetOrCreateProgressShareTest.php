@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Progress\GetOrCreateProgressShare;
 use App\Models\Language;
 use App\Models\ProgressShare;

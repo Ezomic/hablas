@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\NotifyOnBlendedLevelIncrease;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;

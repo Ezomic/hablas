@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Services\PortugueseTextNormalizer;
 
 it('folds non-nasal vowel accents but leaves nasal marks alone', function () {

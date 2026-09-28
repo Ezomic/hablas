@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\ContextTag;
 use App\Enums\InterestTag;
 use App\Enums\NotificationFrequency;

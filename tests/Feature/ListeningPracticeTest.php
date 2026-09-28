@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\GradeListeningAttempt;
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Enums\CefrLevel;

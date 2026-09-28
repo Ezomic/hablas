@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
 use App\Models\CefrCanDoStatement;

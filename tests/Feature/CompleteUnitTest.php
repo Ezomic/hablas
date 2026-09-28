@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\CompleteUnit;
 use App\Enums\UnitProgressStatus;
 use App\Models\Unit;

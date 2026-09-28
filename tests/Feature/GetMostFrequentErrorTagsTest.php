@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Progress\GetMostFrequentErrorTags;
 use App\Enums\ErrorTagCategory;
 use App\Models\Language;

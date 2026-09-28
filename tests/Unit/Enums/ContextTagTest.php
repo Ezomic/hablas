@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\ContextTag;
 
 it('orders travel before everyday-social and professional', function () {

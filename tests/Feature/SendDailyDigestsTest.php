@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Console\Commands\SendDailyDigests;
 use App\Enums\NotificationFrequency;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Placement\DeriveCurrentPlacementTier;
 use App\Actions\Placement\SelectNextPlacementItem;
 use App\Enums\CefrSubLevel;

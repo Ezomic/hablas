@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Placement\SkipPlacementTest;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;

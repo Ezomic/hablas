@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\RecordScriptedPromptAttempt;
 use App\Models\ScriptedPromptAttempt;
 use App\Models\ScriptedPromptExercise;

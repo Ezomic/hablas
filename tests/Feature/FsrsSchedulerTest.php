@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\SrsCardState;
 use App\Enums\SrsRating;
 use App\Models\SrsCard;

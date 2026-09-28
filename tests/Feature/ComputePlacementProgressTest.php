@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Placement\ComputePlacementProgress;
 use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Actions\Placement\RecordPlacementResponse;

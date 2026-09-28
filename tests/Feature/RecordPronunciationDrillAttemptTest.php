@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\RecordPronunciationDrillAttempt;
 use App\Models\PronunciationDrillAttempt;
 use App\Models\PronunciationDrillExercise;

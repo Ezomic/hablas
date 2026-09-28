@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\Srs\ReviewSrsCard;
 use App\Enums\ErrorTagCategory;
 use App\Enums\SrsCardState;

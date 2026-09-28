@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Services\SpanishTextNormalizer;
 
 it('folds vowel accents but leaves ñ alone', function () {

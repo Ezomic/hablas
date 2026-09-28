@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\PronunciationDrillExerciseController;
 use Illuminate\Support\Facades\Route;
 

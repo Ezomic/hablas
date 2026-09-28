@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Actions\CompleteUnit;
 use App\Actions\RecordShadowingAttempt;
 use App\Actions\SelectNextUnit;
