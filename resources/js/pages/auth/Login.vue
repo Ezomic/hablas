@@ -13,6 +13,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store as login } from '@/routes/login';
 import { store as requestCode } from '@/routes/login/code';
+import {
+    login as passkeyLogin,
+    loginOptions as passkeyLoginOptions,
+} from '@/routes/passkey';
 import { redirect as ssoRedirect } from '@/routes/sso';
 
 defineOptions({
@@ -83,7 +87,19 @@ const useDifferentEmail = () => {
         </div>
     </div>
 
-    <PasskeyVerify />
+    <div class="mb-6 flex items-center">
+        <Label for="remember" class="flex items-center space-x-3">
+            <Checkbox id="remember" v-model="codeForm.remember" :tabindex="3" />
+            <span>Remember me</span>
+        </Label>
+    </div>
+
+    <PasskeyVerify
+        :routes="{
+            options: passkeyLoginOptions(),
+            submit: passkeyLogin({ query: { remember: codeForm.remember } }),
+        }"
+    />
 
     <form
         v-if="step === 'email'"
@@ -143,17 +159,6 @@ const useDifferentEmail = () => {
             </p>
             <InputError :message="codeForm.errors.code" />
             <InputError :message="codeForm.errors.email" />
-        </div>
-
-        <div class="flex items-center justify-between">
-            <Label for="remember" class="flex items-center space-x-3">
-                <Checkbox
-                    id="remember"
-                    v-model="codeForm.remember"
-                    :tabindex="3"
-                />
-                <span>Remember me</span>
-            </Label>
         </div>
 
         <Button
