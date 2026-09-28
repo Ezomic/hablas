@@ -1,14 +1,16 @@
-import { mount } from '@vue/test-utils';
-import { describe, expect, it, vi } from 'vitest';
+import { flushPromises, mount } from '@vue/test-utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { reactive } from 'vue';
 import Login from './Login.vue';
 
-const { forms } = vi.hoisted(() => ({
+const { forms, visit } = vi.hoisted(() => ({
     forms: [] as Record<string, unknown>[],
+    visit: vi.fn(),
 }));
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    router: { visit },
     // TextLink renders an Inertia Link; stub it so it doesn't need a router.
     Link: { template: '<a><slot /></a>' },
     useForm: (data: Record<string, unknown>) => {
@@ -29,11 +31,6 @@ vi.mock('@inertiajs/vue3', () => ({
     },
 }));
 
-// PasskeyVerify talks to WebAuthn via @laravel/passkeys; not under test here.
-vi.mock('@/components/PasskeyVerify.vue', () => ({
-    default: { render: () => null },
-}));
-
 vi.mock('@/routes', () => ({ register: () => ({ url: '/register' }) }));
 vi.mock('@/routes/login', () => ({ store: () => ({ url: '/login' }) }));
 vi.mock('@/routes/login/code', () => ({
@@ -41,6 +38,12 @@ vi.mock('@/routes/login/code', () => ({
 }));
 vi.mock('@/routes/sso', () => ({
     redirect: () => ({ url: '/auth/sso/redirect' }),
+}));
+vi.mock('@/routes/passkey', () => ({
+    loginOptions: () => ({ url: '/passkeys/login/options' }),
+    login: (options: { query: { remember: boolean } }) => ({
+        url: `/passkeys/login?remember=${Number(options.query.remember)}`,
+    }),
 }));
 
 function mountPage() {
@@ -54,9 +57,54 @@ function mountPage() {
             email: string;
             post: ReturnType<typeof vi.fn>;
         },
-        codeForm: forms[1] as { email: string; code: string },
+        codeForm: forms[1] as {
+            email: string;
+            code: string;
+            remember: boolean;
+            post: ReturnType<typeof vi.fn>;
+        },
     };
 }
+
+/**
+ * A browser with a passkey: @laravel/passkeys runs for real, with WebAuthn
+ * answering straight away and fetch standing in for the server.
+ */
+function stubPasskeyBrowser() {
+    vi.stubGlobal('PublicKeyCredential', class {});
+    vi.spyOn(navigator, 'credentials', 'get').mockReturnValue({
+        get: async () => ({
+            id: 'credential',
+            rawId: new ArrayBuffer(8),
+            type: 'public-key',
+            response: {
+                clientDataJSON: new ArrayBuffer(8),
+                authenticatorData: new ArrayBuffer(8),
+                signature: new ArrayBuffer(8),
+                userHandle: null,
+            },
+            authenticatorAttachment: null,
+            getClientExtensionResults: () => ({}),
+        }),
+    } as unknown as CredentialsContainer);
+
+    const fetch = vi.fn(async (url: string) => ({
+        ok: true,
+        json: async () =>
+            url === '/passkeys/login/options'
+                ? { options: { challenge: 'Y2hhbGxlbmdl' } }
+                : { redirect: '/dashboard' },
+    }));
+    vi.stubGlobal('fetch', fetch);
+
+    return fetch;
+}
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    visit.mockClear();
+});
 
 describe('auth/Login email-code flow', () => {
     it('asks for an email first, and no password field exists', () => {
@@ -100,5 +148,78 @@ describe('auth/Login Thijssensoftware ID sign-in', () => {
         expect(wrapper.find('[data-test="request-code-button"]').exists()).toBe(
             true,
         );
+    });
+});
+
+describe('auth/Login Remember me', () => {
+    it('offers one Remember me, unticked, on both steps', async () => {
+        const { wrapper, emailForm } = mountPage();
+
+        expect(wrapper.findAll('#remember')).toHaveLength(1);
+        expect(wrapper.get('#remember').attributes('aria-checked')).toBe(
+            'false',
+        );
+
+        emailForm.email = 'someone@example.com';
+        await wrapper.get('form').trigger('submit');
+
+        expect(wrapper.findAll('#remember')).toHaveLength(1);
+    });
+
+    it('gives every tab stop its own position on both steps', async () => {
+        const { wrapper, emailForm } = mountPage();
+        const positions = () =>
+            wrapper
+                .findAll('[tabindex]')
+                .map((element) => element.attributes('tabindex'))
+                .filter((position) => Number(position) > 0);
+
+        expect(positions()).toEqual([...new Set(positions())]);
+
+        emailForm.email = 'someone@example.com';
+        await wrapper.get('form').trigger('submit');
+
+        expect(positions()).toEqual([...new Set(positions())]);
+    });
+
+    it.each([
+        ['ticked', true, '/passkeys/login?remember=1'],
+        ['left unticked', false, '/passkeys/login?remember=0'],
+    ])(
+        'sends Remember me %s with a passkey sign-in',
+        async (_label, tick, submitUrl) => {
+            const fetch = stubPasskeyBrowser();
+            const { wrapper } = mountPage();
+            await flushPromises();
+
+            if (tick) {
+                await wrapper.get('#remember').trigger('click');
+            }
+
+            const passkey = wrapper
+                .findAll('button')
+                .find((button) => button.text() === 'Sign in with a passkey');
+            await passkey?.trigger('click');
+            await flushPromises();
+
+            expect(fetch).toHaveBeenLastCalledWith(
+                submitUrl,
+                expect.objectContaining({ method: 'POST' }),
+            );
+            expect(visit).toHaveBeenCalledWith('/dashboard');
+        },
+    );
+
+    it('sends the same Remember me with a code sign-in', async () => {
+        const { wrapper, emailForm, codeForm } = mountPage();
+
+        await wrapper.get('#remember').trigger('click');
+        emailForm.email = 'someone@example.com';
+        await wrapper.get('form').trigger('submit');
+        codeForm.code = '123456';
+        await wrapper.get('form').trigger('submit');
+
+        expect(codeForm.post).toHaveBeenCalledWith('/login', expect.anything());
+        expect(codeForm.remember).toBe(true);
     });
 });
