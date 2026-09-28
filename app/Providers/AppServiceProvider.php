@@ -2,14 +2,11 @@
 
 namespace App\Providers;
 
-use App\Listeners\UnlockSpanishForNewUser;
 use App\Services\OutboundMailLimit;
 use Carbon\CarbonImmutable;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,8 +27,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureOutboundMailLimit();
-
-        Event::listen(Registered::class, UnlockSpanishForNewUser::class);
     }
 
     /**

@@ -24,7 +24,7 @@ class EmailCodeController extends Controller
             'email' => ['required', 'string', 'email', 'max:255'],
         ]);
 
-        $user = User::query()->where('email', $request->string('email')->toString())->first();
+        $user = User::query()->where('email', $request->string('email')->lower()->toString())->first();
 
         if ($user !== null) {
             $sendEmailCode->handle($user, EmailCodePurpose::Login);
