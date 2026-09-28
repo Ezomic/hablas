@@ -24,10 +24,12 @@ final class RecordStreakActivity
         }
 
         $newLength = $streak->current_length + 1;
+        $earnsFreezeDay = $newLength % Streak::ACTIVE_DAYS_PER_FREEZE_DAY === 0 && ! $streak->hasFullFreezeAllowance();
 
         $streak->forceFill([
             'current_length' => $newLength,
             'longest_length' => max($streak->longest_length, $newLength),
+            'freeze_days_remaining' => $streak->freeze_days_remaining + ($earnsFreezeDay ? 1 : 0),
             'last_activity_date' => $today,
         ])->save();
 

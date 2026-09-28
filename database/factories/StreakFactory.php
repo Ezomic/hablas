@@ -24,7 +24,7 @@ class StreakFactory extends Factory
             'user_id' => User::factory(),
             'current_length' => 0,
             'longest_length' => 0,
-            'freeze_days_remaining' => 2,
+            'freeze_days_remaining' => Streak::STARTING_FREEZE_DAYS,
             'last_activity_date' => null,
         ];
     }

@@ -30,6 +30,7 @@ interface Streak {
     currentLength: number;
     longestLength: number;
     freezeDaysRemaining: number;
+    daysUntilNextFreezeDay: number | null;
 }
 
 interface NextUnit {
@@ -239,6 +240,17 @@ const ceilingSkillNames = computed(() =>
                 <span
                     >Freeze days remaining:
                     {{ props.streak.freezeDaysRemaining }}</span
+                >
+                <span
+                    >A missed day uses a freeze day instead of breaking your
+                    streak.</span
+                >
+                <span v-if="props.streak.daysUntilNextFreezeDay !== null"
+                    >Earn one back in
+                    {{ props.streak.daysUntilNextFreezeDay }} more active
+                    {{
+                        pluralizeDays(props.streak.daysUntilNextFreezeDay)
+                    }}.</span
                 >
             </CardContent>
         </Card>

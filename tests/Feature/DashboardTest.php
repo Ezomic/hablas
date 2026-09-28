@@ -10,10 +10,12 @@ use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use App\Models\SrsCard;
 use App\Models\SrsReview;
+use App\Models\Streak;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Models\VocabularyItem;
+use Carbon\CarbonImmutable;
 
 it('redirects guests to the login page', function () {
     $response = $this->get(route('dashboard'));
@@ -215,5 +217,42 @@ it('renders a graceful empty state when there is no active language', function (
             ->component('Dashboard')
             ->where('language', null)
             ->where('streak.currentLength', 0),
+        );
+});
+
+it('tells the learner how many more active days earn the next freeze day', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 9,
+        'longest_length' => 9,
+        'freeze_days_remaining' => 1,
+        'last_activity_date' => CarbonImmutable::yesterday(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('streak.freezeDaysRemaining', 1)
+            ->where('streak.daysUntilNextFreezeDay', 5),
+        );
+});
+
+it('has no next freeze day to earn while the allowance is full', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 9,
+        'longest_length' => 9,
+        'freeze_days_remaining' => Streak::STARTING_FREEZE_DAYS,
+        'last_activity_date' => CarbonImmutable::yesterday(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('streak.daysUntilNextFreezeDay', null),
         );
 });

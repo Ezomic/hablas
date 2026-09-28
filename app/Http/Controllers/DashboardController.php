@@ -46,6 +46,7 @@ final class DashboardController extends Controller
             'currentLength' => $streak->current_length,
             'longestLength' => $streak->longest_length,
             'freezeDaysRemaining' => $streak->freeze_days_remaining,
+            'daysUntilNextFreezeDay' => $streak->daysUntilNextFreezeDay(),
         ];
 
         if ($language === null) {
