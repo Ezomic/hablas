@@ -27,6 +27,11 @@ class Streak extends Model
     /** @use HasFactory<StreakFactory> */
     use HasFactory;
 
+    /** Also the cap on earned freeze days, so they cannot be stockpiled. */
+    public const int STARTING_FREEZE_DAYS = 2;
+
+    public const int ACTIVE_DAYS_PER_FREEZE_DAY = 7;
+
     protected function casts(): array
     {
         return [
@@ -35,6 +40,20 @@ class Streak extends Model
             'freeze_days_remaining' => 'integer',
             'last_activity_date' => 'date',
         ];
+    }
+
+    public function hasFullFreezeAllowance(): bool
+    {
+        return $this->freeze_days_remaining >= self::STARTING_FREEZE_DAYS;
+    }
+
+    public function daysUntilNextFreezeDay(): ?int
+    {
+        if ($this->hasFullFreezeAllowance()) {
+            return null;
+        }
+
+        return self::ACTIVE_DAYS_PER_FREEZE_DAY - ($this->current_length % self::ACTIVE_DAYS_PER_FREEZE_DAY);
     }
 
     /** @return BelongsTo<User, $this> */

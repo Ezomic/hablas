@@ -91,3 +91,99 @@ it('breaks the streak when too many days are missed for the available freeze day
     expect($streak->current_length)->toBe(1)
         ->and($streak->freeze_days_remaining)->toBe(1);
 });
+
+it('earns back a freeze day when the run reaches a full week of active days', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 6,
+        'longest_length' => 6,
+        'freeze_days_remaining' => 0,
+        'last_activity_date' => CarbonImmutable::yesterday(),
+    ]);
+
+    $streak = (new RecordStreakActivity)->handle($user);
+
+    expect($streak->current_length)->toBe(7)
+        ->and($streak->freeze_days_remaining)->toBe(1);
+});
+
+it('earns another freeze day at every further full week', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 13,
+        'longest_length' => 13,
+        'freeze_days_remaining' => 1,
+        'last_activity_date' => CarbonImmutable::yesterday(),
+    ]);
+
+    $streak = (new RecordStreakActivity)->handle($user);
+
+    expect($streak->current_length)->toBe(14)
+        ->and($streak->freeze_days_remaining)->toBe(2);
+});
+
+it('does not earn a freeze day between full weeks', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 7,
+        'longest_length' => 7,
+        'freeze_days_remaining' => 1,
+        'last_activity_date' => CarbonImmutable::yesterday(),
+    ]);
+
+    $streak = (new RecordStreakActivity)->handle($user);
+
+    expect($streak->current_length)->toBe(8)
+        ->and($streak->freeze_days_remaining)->toBe(1);
+});
+
+it('does not earn freeze days beyond the starting allowance', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 6,
+        'longest_length' => 6,
+        'freeze_days_remaining' => Streak::STARTING_FREEZE_DAYS,
+        'last_activity_date' => CarbonImmutable::yesterday(),
+    ]);
+
+    $streak = (new RecordStreakActivity)->handle($user);
+
+    expect($streak->current_length)->toBe(7)
+        ->and($streak->freeze_days_remaining)->toBe(Streak::STARTING_FREEZE_DAYS);
+});
+
+it('earns back the freeze day it spent bridging a gap once the week completes', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 6,
+        'longest_length' => 6,
+        'freeze_days_remaining' => 1,
+        'last_activity_date' => CarbonImmutable::today()->subDays(2),
+    ]);
+
+    $streak = (new RecordStreakActivity)->handle($user);
+
+    expect($streak->current_length)->toBe(7)
+        ->and($streak->freeze_days_remaining)->toBe(1);
+});
+
+it('does not earn a freeze day for a run that broke before the week completed', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 6,
+        'longest_length' => 6,
+        'freeze_days_remaining' => 0,
+        'last_activity_date' => CarbonImmutable::today()->subDays(2),
+    ]);
+
+    $streak = (new RecordStreakActivity)->handle($user);
+
+    expect($streak->current_length)->toBe(1)
+        ->and($streak->freeze_days_remaining)->toBe(0);
+});

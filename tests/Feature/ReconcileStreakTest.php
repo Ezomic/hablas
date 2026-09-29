@@ -76,3 +76,26 @@ it('is idempotent when called multiple times without new activity', function () 
     expect($streak->current_length)->toBe(4)
         ->and($streak->freeze_days_remaining)->toBe(0);
 });
+
+it('seeds a new streak with the starting freeze allowance', function () {
+    $user = User::factory()->create();
+
+    $streak = (new ReconcileStreak)->handle($user);
+
+    expect($streak->freeze_days_remaining)->toBe(Streak::STARTING_FREEZE_DAYS);
+});
+
+it('does not earn a freeze day from days bridged by a freeze', function () {
+    $user = User::factory()->create();
+    Streak::factory()->create([
+        'user_id' => $user->id,
+        'current_length' => 7,
+        'freeze_days_remaining' => 2,
+        'last_activity_date' => CarbonImmutable::today()->subDays(2),
+    ]);
+
+    $streak = (new ReconcileStreak)->handle($user);
+
+    expect($streak->current_length)->toBe(7)
+        ->and($streak->freeze_days_remaining)->toBe(1);
+});

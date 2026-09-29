@@ -22,7 +22,7 @@ final class ReconcileStreak
     {
         $streak = Streak::query()->createOrFirst(
             ['user_id' => $user->id],
-            ['current_length' => 0, 'longest_length' => 0, 'freeze_days_remaining' => 2, 'last_activity_date' => null],
+            ['current_length' => 0, 'longest_length' => 0, 'freeze_days_remaining' => Streak::STARTING_FREEZE_DAYS, 'last_activity_date' => null],
         );
 
         if ($streak->last_activity_date === null) {
