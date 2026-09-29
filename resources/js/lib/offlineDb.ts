@@ -3,6 +3,7 @@ import type { DBSchema, IDBPDatabase } from 'idb';
 
 export interface PendingSubmission {
     id: number;
+    userId: number;
     url: string;
     body: string;
     queuedAt: number;
@@ -42,20 +43,24 @@ function getDb(): Promise<IDBPDatabase<HablasOfflineDb>> {
 }
 
 /**
- * Each queued url is one exercise's or card's attempt endpoint, so queuing it
- * again replaces the earlier answer in its original place in the queue rather
- * than replaying both and recording the attempt twice.
+ * Each queued url is one exercise's or card's attempt endpoint, so the same
+ * user queuing it again replaces their earlier answer in its original place in
+ * the queue rather than replaying both and recording the attempt twice.
  */
 export async function queuePendingSubmission(
+    userId: number,
     url: string,
     body: string,
 ): Promise<void> {
     const db = await getDb();
     const transaction = db.transaction('pendingSubmissions', 'readwrite');
-    const existing = await transaction.store.index('url').get(url);
+    const existing = (await transaction.store.index('url').getAll(url)).find(
+        (submission) => submission.userId === userId,
+    );
 
     await transaction.store.put({
         ...(existing ? { id: existing.id } : {}),
+        userId,
         url,
         body,
         queuedAt: Date.now(),
@@ -63,19 +68,40 @@ export async function queuePendingSubmission(
     await transaction.done;
 }
 
-/** Returns queued submissions oldest-first, so replay preserves order. */
+/** Returns a user's queued submissions oldest-first, so replay preserves order. */
 export async function getPendingSubmissions(
+    userId: number,
     limit?: number,
 ): Promise<PendingSubmission[]> {
     const db = await getDb();
+    const submissions = await db.getAll('pendingSubmissions');
 
-    return db.getAll('pendingSubmissions', undefined, limit);
+    return submissions
+        .filter((submission) => submission.userId === userId)
+        .slice(0, limit);
 }
 
-export async function countPendingSubmissions(): Promise<number> {
-    const db = await getDb();
+export async function countPendingSubmissions(userId: number): Promise<number> {
+    return (await getPendingSubmissions(userId)).length;
+}
 
-    return db.count('pendingSubmissions');
+/**
+ * Drops everything queued by anyone but this user, including rows from
+ * before submissions carried a user, whose owner is unknown.
+ */
+export async function removeOtherUsersSubmissions(
+    userId: number,
+): Promise<void> {
+    const db = await getDb();
+    const transaction = db.transaction('pendingSubmissions', 'readwrite');
+
+    for await (const cursor of transaction.store) {
+        if (cursor.value.userId !== userId) {
+            await cursor.delete();
+        }
+    }
+
+    await transaction.done;
 }
 
 /**
