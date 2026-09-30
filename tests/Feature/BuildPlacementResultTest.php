@@ -35,7 +35,7 @@ it('builds the blended level, per-skill levels, and a per-question breakdown', f
     PlacementTestResponse::factory()->create(['attempt_id' => $attempt->id, 'item_id' => $wrong->id, 'skill' => Skill::Reading, 'response' => 'era', 'is_correct' => false]);
     PlacementTestResponse::factory()->create(['attempt_id' => $attempt->id, 'item_id' => $unsure->id, 'skill' => Skill::Reading, 'response' => PlacementTestResponse::DONT_KNOW, 'is_correct' => false]);
 
-    $result = (new BuildPlacementResult)->handle($attempt);
+    $result = (new BuildPlacementResult)->handle(collect([$attempt]));
 
     // Blended is the lowest sub-level of the four skills.
     expect($result['blendedLevel'])->toBe('A2.1')
@@ -70,9 +70,47 @@ it('flags a skipped attempt that has no responses', function () {
         ],
     ]);
 
-    $result = (new BuildPlacementResult)->handle($attempt);
+    $result = (new BuildPlacementResult)->handle(collect([$attempt]));
 
     expect($result['skipped'])->toBeTrue()
         ->and($result['blendedLevel'])->toBe('A1.1')
         ->and($result['skills'])->toHaveCount(4);
+});
+
+it('takes each skill from the newest attempt that covered it', function () {
+    $full = PlacementTestAttempt::factory()->create([
+        'language_id' => $this->spanish->id,
+        'started_at' => '2026-09-01 10:00:00',
+        'completed_at' => '2026-09-01 10:10:00',
+        'resulting_skill_levels' => [
+            'reading' => ['cefr_level' => 'A2', 'sub_level' => 'A2.2'],
+            'listening' => ['cefr_level' => 'A2', 'sub_level' => 'A2.1'],
+            'speaking' => 'B1',
+            'writing' => ['cefr_level' => 'A1', 'sub_level' => 'A1.3'],
+        ],
+    ]);
+    $retake = PlacementTestAttempt::factory()->create([
+        'user_id' => $full->user_id,
+        'language_id' => $this->spanish->id,
+        'skill' => Skill::Writing,
+        'started_at' => '2026-09-20 10:00:00',
+        'completed_at' => '2026-09-20 10:05:00',
+        'resulting_skill_levels' => ['writing' => ['cefr_level' => 'B1', 'sub_level' => 'B1.1']],
+    ]);
+
+    $fullItem = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Writing, 'prompt' => 'Old']);
+    $retakeItem = PlacementTestItem::factory()->create(['language_id' => $this->spanish->id, 'skill' => Skill::Writing, 'prompt' => 'New']);
+    PlacementTestResponse::factory()->create(['attempt_id' => $full->id, 'item_id' => $fullItem->id, 'skill' => Skill::Writing]);
+    PlacementTestResponse::factory()->create(['attempt_id' => $retake->id, 'item_id' => $retakeItem->id, 'skill' => Skill::Writing]);
+
+    $result = (new BuildPlacementResult)->handle(collect([$retake, $full]));
+    $skills = collect($result['skills'])->keyBy('skill');
+
+    expect($result['completedAt'])->toBe($retake->completed_at?->toIso8601String())
+        ->and($result['blendedLevel'])->toBe('A2')
+        ->and($result['skipped'])->toBeFalse()
+        ->and($skills['writing']['level'])->toBe('B1.1')
+        ->and(array_column($skills['writing']['items'], 'prompt'))->toBe(['New'])
+        ->and($skills['reading']['level'])->toBe('A2.2')
+        ->and($skills['speaking']['level'])->toBe('B1');
 });

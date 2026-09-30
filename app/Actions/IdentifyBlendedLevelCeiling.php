@@ -12,15 +12,12 @@ final class IdentifyBlendedLevelCeiling
 {
     /**
      * The blended headline level is deliberately the minimum across all four
-     * skills. When that floor is pinned by a placement-only skill (Reading or
-     * Listening, which have no daily practice in Milestone 1) while another
-     * skill has climbed above it, the headline number sits frozen no matter
-     * how much the learner practices — and the level-up notice never fires.
+     * skills, so the skills sitting at that floor hold it while another skill
+     * has climbed above it. The dashboard names them, so the learner knows
+     * which skill to practice, or to re-take if its placement landed wrong.
      *
-     * Returns the placement-only skills sitting at that floor so the dashboard
-     * can explain the ceiling instead of leaving it silent. Returns an empty
-     * collection when nothing is capping progress (all skills level, or the
-     * floor is a skill that practice can still move).
+     * Returns an empty collection when nothing is held back (every skill at
+     * the same level).
      *
      * @param  Collection<int, UserSkillLevel>  $skillLevels
      * @return Collection<int, Skill>
@@ -39,8 +36,7 @@ final class IdentifyBlendedLevelCeiling
         }
 
         return $skillLevels
-            ->filter(fn (UserSkillLevel $skillLevel): bool => $skillLevel->skill->isPlacementOnly()
-                && $skillLevel->cefr_level->sortOrder() === $orders->min())
+            ->filter(fn (UserSkillLevel $skillLevel): bool => $skillLevel->cefr_level->sortOrder() === $orders->min())
             ->map(fn (UserSkillLevel $skillLevel): Skill => $skillLevel->skill)
             ->values();
     }

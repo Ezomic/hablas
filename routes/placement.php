@@ -10,4 +10,5 @@ Route::middleware(['auth', 'verified'])->prefix('placement')->name('placement.')
     Route::get('/results', [PlacementTestController::class, 'results'])->name('results');
     Route::post('/{item}/answer', [PlacementTestController::class, 'answer'])->name('answer');
     Route::post('/skip', [PlacementTestController::class, 'skip'])->name('skip');
+    Route::post('/skills/{skill}', [PlacementTestController::class, 'retake'])->name('skills.store');
 });

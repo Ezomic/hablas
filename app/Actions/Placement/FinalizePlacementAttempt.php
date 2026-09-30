@@ -18,6 +18,9 @@ final class FinalizePlacementAttempt
     ) {}
 
     /**
+     * Writes the level of each skill the attempt covers, and only those: a
+     * re-take leaves the other three skills and their practice windows alone.
+     *
      * @param  (Closure(Skill): CefrSubLevel)|null  $resolveTier  Defaults to replaying the attempt's response history via DeriveCurrentPlacementTier. SkipPlacementTest passes a resolver that always returns the A1 floor instead.
      */
     public function handle(PlacementTestAttempt $attempt, ?Closure $resolveTier = null): PlacementTestAttempt
@@ -31,7 +34,7 @@ final class FinalizePlacementAttempt
         return DB::transaction(function () use ($attempt, $resolveTier): PlacementTestAttempt {
             $resultingLevels = [];
 
-            foreach (Skill::cases() as $skill) {
+            foreach ($attempt->skills() as $skill) {
                 $tier = $resolveTier($skill);
 
                 $resultingLevels[$skill->value] = [

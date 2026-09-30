@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions\Placement;
 
-use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
 
@@ -21,7 +20,7 @@ final class GetCurrentPlacementItem
      */
     public function handle(PlacementTestAttempt $attempt): ?PlacementTestItem
     {
-        foreach (Skill::cases() as $skill) {
+        foreach ($attempt->skills() as $skill) {
             $item = $this->selectNextPlacementItem->handle($attempt, $skill);
 
             if ($item !== null) {

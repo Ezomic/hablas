@@ -60,3 +60,22 @@ it('returns null once every skill has settled', function () {
 
     expect($item)->toBeNull();
 });
+
+it('serves only the skill of a one-skill attempt', function () {
+    $language = Language::factory()->create();
+    $attempt = PlacementTestAttempt::factory()->create(['language_id' => $language->id, 'skill' => Skill::Writing]);
+    PlacementTestItem::factory()->tier(CefrSubLevel::A1_3)->create(['language_id' => $language->id, 'skill' => Skill::Reading]);
+    $writingItem = PlacementTestItem::factory()->tier(CefrSubLevel::A1_3)->create(['language_id' => $language->id, 'skill' => Skill::Writing]);
+
+    expect((new GetCurrentPlacementItem)->handle($attempt)?->id)->toBe($writingItem->id);
+
+    for ($i = 0; $i < 8; $i++) {
+        PlacementTestResponse::factory()->create([
+            'attempt_id' => $attempt->id,
+            'skill' => Skill::Writing,
+            'is_correct' => true,
+        ]);
+    }
+
+    expect((new GetCurrentPlacementItem)->handle($attempt))->toBeNull();
+});

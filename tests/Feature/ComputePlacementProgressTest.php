@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Placement\ComputePlacementProgress;
 use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Actions\Placement\RecordPlacementResponse;
+use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
 use Database\Seeders\LanguageSeeder;
@@ -56,3 +57,21 @@ function walkTheStaircase(PlacementTestAttempt $attempt): void
         $guard++;
     }
 }
+
+it('fills the whole bar with the one skill of a re-take', function () {
+    $retake = PlacementTestAttempt::factory()->create([
+        'language_id' => $this->spanish->id,
+        'skill' => Skill::Speaking,
+    ]);
+
+    expect((new ComputePlacementProgress)->handle($retake))->toBe(0);
+
+    $item = (new GetCurrentPlacementItem)->handle($retake);
+    (new RecordPlacementResponse)->handle($retake, $item, $item->correct_answer);
+
+    expect((new ComputePlacementProgress)->handle($retake))->toBe(13);
+
+    walkTheStaircase($retake);
+
+    expect((new ComputePlacementProgress)->handle($retake))->toBe(100);
+});
