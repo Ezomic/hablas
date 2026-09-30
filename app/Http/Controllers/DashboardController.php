@@ -11,6 +11,7 @@ use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\SelectNextUnit;
 use App\Actions\Srs\EvaluateSessionHealth;
+use App\Actions\Srs\ForecastReviewLoad;
 use App\Actions\Srs\GetDueSrsCards;
 use App\Actions\Srs\GetWeakSpotCards;
 use App\Actions\Streaks\ReconcileStreak;
@@ -33,6 +34,7 @@ final class DashboardController extends Controller
         ReconcileStreak $reconcileStreak,
         GetDueSrsCards $getDueSrsCards,
         GetWeakSpotCards $getWeakSpotCards,
+        ForecastReviewLoad $forecastReviewLoad,
         GetCurrentLanguage $getCurrentLanguage,
         EvaluateSessionHealth $evaluateSessionHealth,
         SelectNextUnit $selectNextUnit,
@@ -75,6 +77,7 @@ final class DashboardController extends Controller
             'streak' => $streakProp,
             'dueReviewCount' => $getDueSrsCards->count($this->currentUser(), $language),
             'weakSpotReviewCount' => $getWeakSpotCards->count($this->currentUser(), $language),
+            'reviewForecast' => $forecastReviewLoad->handle($this->currentUser(), $language),
             'sessionNeedsRemediation' => $sessionNeedsRemediation,
             'nextUnit' => $nextUnit === null ? null : [
                 'id' => $nextUnit->id,
