@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Placement\FinalizePlacementAttempt;
+use App\Enums\CefrLevel;
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestResponse;
@@ -47,4 +48,29 @@ it('writes a UserSkillLevel row for all four skills independently', function () 
     expect($levels)->toHaveCount(4)
         ->and($levels[Skill::Speaking->value]->cefr_level->value)->toBe('A2')
         ->and($levels[Skill::Reading->value]->cefr_level->value)->toBe('A1');
+});
+
+it('records when it set each skill level, including a level it left unchanged', function () {
+    $attempt = PlacementTestAttempt::factory()->create();
+    $unchanged = UserSkillLevel::factory()->create([
+        'user_id' => $attempt->user_id,
+        'language_id' => $attempt->language_id,
+        'skill' => Skill::Writing,
+        'cefr_level' => CefrLevel::A1,
+        'level_set_at' => now()->subWeek(),
+    ]);
+
+    $this->travel(1)->minutes();
+
+    (new FinalizePlacementAttempt)->handle($attempt);
+
+    $setAt = UserSkillLevel::query()
+        ->where('user_id', $attempt->user_id)
+        ->where('language_id', $attempt->language_id)
+        ->get()
+        ->map(fn (UserSkillLevel $level): ?string => $level->level_set_at?->toDateTimeString());
+
+    expect($setAt)->toHaveCount(4)
+        ->each->toBe(now()->toDateTimeString())
+        ->and($unchanged->fresh()?->cefr_level)->toBe(CefrLevel::A1);
 });

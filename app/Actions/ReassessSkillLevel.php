@@ -14,15 +14,16 @@ use App\Models\ShadowingAttempt;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Models\WritingAttempt;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 final class ReassessSkillLevel
 {
     /**
      * How many of the user's most recent graded attempts for a skill to look
-     * at — a rolling window, not the full attempt history. Milestone 1 only
-     * ever sets a skill level once, via the placement test; this is what lets
-     * it move again from ongoing practice.
+     * at, counting only attempts made since the level was last set. Without
+     * that bound, the attempts that earned one level would earn the next one
+     * too, and every further good attempt would raise the level again.
      */
     private const ATTEMPT_WINDOW = 20;
 
@@ -46,11 +47,23 @@ final class ReassessSkillLevel
 
     public function handle(User $user, Language $language, Skill $skill): void
     {
+        $skillLevel = UserSkillLevel::query()->firstWhere([
+            'user_id' => $user->id,
+            'language_id' => $language->id,
+            'skill' => $skill,
+        ]);
+
+        if ($skillLevel === null) {
+            return;
+        }
+
+        $since = $skillLevel->level_set_at;
+
         $outcomes = match ($skill) {
-            Skill::Writing => $this->recentWritingOutcomes($user, $language),
-            Skill::Speaking => $this->recentSpeakingOutcomes($user, $language),
-            Skill::Reading => $this->recentReadingOutcomes($user, $language),
-            Skill::Listening => $this->recentListeningOutcomes($user, $language),
+            Skill::Writing => $this->recentWritingOutcomes($user, $language, $since),
+            Skill::Speaking => $this->recentSpeakingOutcomes($user, $language, $since),
+            Skill::Reading => $this->recentReadingOutcomes($user, $language, $since),
+            Skill::Listening => $this->recentListeningOutcomes($user, $language, $since),
         };
 
         if ($outcomes->count() < self::ATTEMPT_WINDOW) {
@@ -63,31 +76,22 @@ final class ReassessSkillLevel
             return;
         }
 
-        $skillLevel = UserSkillLevel::query()->firstWhere([
-            'user_id' => $user->id,
-            'language_id' => $language->id,
-            'skill' => $skill,
-        ]);
-
-        if ($skillLevel === null) {
-            return;
-        }
-
         $nextLevel = CefrLevel::cases()[$skillLevel->cefr_level->sortOrder() + 1] ?? null;
 
         if ($nextLevel === null) {
             return;
         }
 
-        $skillLevel->forceFill(['cefr_level' => $nextLevel])->save();
+        $skillLevel->forceFill(['cefr_level' => $nextLevel, 'level_set_at' => now()])->save();
     }
 
     /** @return Collection<int, bool> */
-    private function recentReadingOutcomes(User $user, Language $language): Collection
+    private function recentReadingOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
     {
         return ReadingAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('readingPassage', fn ($query) => $query->where('language_id', $language->id))
+            ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
             ->limit(self::ATTEMPT_WINDOW)
             ->get()
@@ -95,11 +99,12 @@ final class ReassessSkillLevel
     }
 
     /** @return Collection<int, bool> */
-    private function recentListeningOutcomes(User $user, Language $language): Collection
+    private function recentListeningOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
     {
         return ListeningAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('listeningExercise', fn ($query) => $query->where('language_id', $language->id))
+            ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
             ->limit(self::ATTEMPT_WINDOW)
             ->get()
@@ -107,11 +112,12 @@ final class ReassessSkillLevel
     }
 
     /** @return Collection<int, bool> */
-    private function recentWritingOutcomes(User $user, Language $language): Collection
+    private function recentWritingOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
     {
         return WritingAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('writingExercise', fn ($query) => $query->where('language_id', $language->id))
+            ->when($since, fn ($query) => $query->where('submitted_at', '>', $since))
             ->latest('submitted_at')
             ->limit(self::ATTEMPT_WINDOW)
             ->get()
@@ -125,11 +131,12 @@ final class ReassessSkillLevel
      *
      * @return Collection<int, bool>
      */
-    private function recentSpeakingOutcomes(User $user, Language $language): Collection
+    private function recentSpeakingOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
     {
         $shadowing = ShadowingAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('shadowingExercise', fn ($query) => $query->where('language_id', $language->id))
+            ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
             ->limit(self::ATTEMPT_WINDOW)
             ->get(['score', 'attempted_at']);
@@ -137,6 +144,7 @@ final class ReassessSkillLevel
         $scriptedPrompts = ScriptedPromptAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('scriptedPromptExercise', fn ($query) => $query->where('language_id', $language->id))
+            ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
             ->limit(self::ATTEMPT_WINDOW)
             ->get(['score', 'attempted_at']);
