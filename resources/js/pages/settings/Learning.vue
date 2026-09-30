@@ -22,6 +22,7 @@ interface Settings {
     notificationFrequency: 'daily' | 'weekly' | 'never';
     newItemCapOverride: number | null;
     contextEmphasis: 'travel' | 'everyday_social' | 'professional' | null;
+    reviewMode: 'recognition' | 'production' | 'mix';
 }
 
 type InterestTag =
@@ -60,6 +61,12 @@ const contextEmphasisLabels: Record<
     professional: 'Professional',
 };
 
+const reviewModeLabels: Record<Settings['reviewMode'], string> = {
+    recognition: 'Recognise: read, then reveal',
+    production: 'Produce: type the word',
+    mix: 'Mix',
+};
+
 const interestTagLabels: Record<InterestTag, string> = {
     football: 'Football',
     cooking: 'Cooking',
@@ -76,6 +83,7 @@ const form = useForm({
             ? ''
             : String(props.settings.newItemCapOverride),
     context_emphasis: props.settings.contextEmphasis ?? 'none',
+    review_mode: props.settings.reviewMode,
 });
 
 function submit() {
@@ -91,6 +99,7 @@ function submit() {
                     : parsedCapOverride,
             context_emphasis:
                 data.context_emphasis === 'none' ? null : data.context_emphasis,
+            review_mode: data.review_mode,
         };
     }).patch(update().url, { preserveScroll: true });
 }
@@ -216,6 +225,30 @@ async function togglePush(checked: boolean) {
                     </SelectContent>
                 </Select>
                 <InputError :message="form.errors.context_emphasis" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="review_mode">Review style</Label>
+                <Select v-model="form.review_mode">
+                    <SelectTrigger id="review_mode" class="w-full max-w-xs">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="(label, value) in reviewModeLabels"
+                            :key="value"
+                            :value="value"
+                        >
+                            {{ label }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+                <p class="text-sm text-muted-foreground">
+                    Producing asks you to type each word from its English
+                    meaning. Mix does that only for words you already know well.
+                    Grammar cards are always read, then revealed.
+                </p>
+                <InputError :message="form.errors.review_mode" />
             </div>
 
             <div class="flex items-center gap-4">

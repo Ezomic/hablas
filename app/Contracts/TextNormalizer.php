@@ -30,6 +30,14 @@ interface TextNormalizer
     public function uniqueWords(string $text): Collection;
 
     /**
+     * For grading a whole typed answer: folds what grading folds and treats
+     * punctuation as a break between words, but keeps every word in order,
+     * so a missing or repeated word still counts ("poco a" is not "poco a
+     * poco").
+     */
+    public function answerKey(string $text): string;
+
+    /**
      * For looking things up, never for grading: folds the marks grading keeps
      * distinct as well (ñ, ç, ã, õ), so a query typed without them still
      * matches, and turns punctuation into spaces. Words keep their order and

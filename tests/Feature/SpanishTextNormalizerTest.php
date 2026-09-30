@@ -55,3 +55,11 @@ it('drops a leading article from the sort key', function (string $term, string $
     ['¿cómo estás?', 'como estas'],
     ['¡hola!', 'hola'],
 ]);
+
+it('keeps every word in order for comparing a whole answer', function () {
+    $normalizer = new SpanishTextNormalizer;
+
+    expect($normalizer->answerKey('¡Poco a poco!'))->toBe('poco a poco')
+        ->and($normalizer->answerKey('  ¿Dónde   ESTÁ...? '))->toBe('donde esta')
+        ->and($normalizer->answerKey('El Año'))->toBe('el año');
+});

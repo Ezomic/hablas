@@ -14,11 +14,17 @@ vi.mock('@/routes/review/weak-spots/reviews', () => ({
     }),
 }));
 
+vi.mock('@/routes/review/answers', () => ({
+    check: (cardId: number) => ({ url: `/review/${cardId}/answers` }),
+}));
+
 const card: ReviewCard = {
     id: 5,
     front: 'Ser vs estar',
     back: 'Ser is for permanent traits.',
     kind: 'grammar',
+    direction: 'recognition',
+    needsArticle: false,
     suggestedErrorTag: 'ser_estar_confusion',
 };
 
@@ -34,6 +40,12 @@ describe('weak spots page', () => {
         const deck = mountPage([card]).findComponent(ReviewDeck);
 
         expect(deck.props('reviewUrl')(5)).toBe('/review/weak-spots/5/reviews');
+    });
+
+    it('checks typed answers at the shared endpoint', () => {
+        const deck = mountPage([card]).findComponent(ReviewDeck);
+
+        expect(deck.props('answerUrl')(5)).toBe('/review/5/answers');
     });
 
     it('labels the deck for weak spots', () => {

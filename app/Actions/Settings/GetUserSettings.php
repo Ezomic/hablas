@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Settings;
 
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use App\Models\User;
 use App\Models\UserSetting;
 
@@ -20,7 +21,7 @@ final class GetUserSettings
     {
         return UserSetting::query()->firstOrNew(
             ['user_id' => $user->id],
-            ['notification_frequency' => NotificationFrequency::Daily, 'new_item_cap_override' => null, 'context_emphasis' => null],
+            ['notification_frequency' => NotificationFrequency::Daily, 'new_item_cap_override' => null, 'context_emphasis' => null, 'review_mode' => ReviewMode::Recognition],
         );
     }
 }

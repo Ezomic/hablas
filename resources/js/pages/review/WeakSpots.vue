@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import ReviewDeck from '@/components/ReviewDeck.vue';
+import { check as checkAnswer } from '@/routes/review/answers';
 import { store as storeReview } from '@/routes/review/weak-spots/reviews';
 import type { ReviewCard } from '@/types/review';
 
@@ -21,6 +22,10 @@ defineOptions({
 function reviewUrl(cardId: number): string {
     return storeReview(cardId).url;
 }
+
+function answerUrl(cardId: number): string {
+    return checkAnswer(cardId).url;
+}
 </script>
 
 <template>
@@ -38,6 +43,7 @@ function reviewUrl(cardId: number): string {
         <ReviewDeck
             :cards="props.cards"
             :review-url="reviewUrl"
+            :answer-url="answerUrl"
             :speech-locale="props.speechLocale"
             count-noun="weak spot"
             empty-message="No weak spots right now, nicely done."

@@ -1,16 +1,20 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import type { ReviewCard } from '@/types/review';
 import ReviewDeck from './ReviewDeck.vue';
+import SpeakButton from './SpeakButton.vue';
 
-const { submitOrQueue } = vi.hoisted(() => ({
+const { submitOrQueue, fetchJson } = vi.hoisted(() => ({
     submitOrQueue: vi.fn(),
+    fetchJson: vi.fn(),
 }));
 
 vi.mock('@/composables/useOfflineSync', () => ({
     useOfflineSync: () => ({ submitOrQueue }),
 }));
+
+vi.mock('@/lib/http', () => ({ fetchJson }));
 
 function vocabularyCard(id: number): ReviewCard {
     return {
@@ -18,6 +22,8 @@ function vocabularyCard(id: number): ReviewCard {
         front: `front ${id}`,
         back: `back ${id}`,
         kind: 'vocabulary',
+        direction: 'recognition',
+        needsArticle: false,
         suggestedErrorTag: null,
     };
 }
@@ -28,7 +34,21 @@ function grammarCard(id: number): ReviewCard {
         front: `grammar ${id}`,
         back: `explanation ${id}`,
         kind: 'grammar',
+        direction: 'recognition',
+        needsArticle: false,
         suggestedErrorTag: 'ser_estar_confusion',
+    };
+}
+
+function productionCard(id: number): ReviewCard {
+    return {
+        id,
+        front: 'airport',
+        back: 'el aeropuerto',
+        kind: 'vocabulary',
+        direction: 'production',
+        needsArticle: true,
+        suggestedErrorTag: null,
     };
 }
 
@@ -41,6 +61,7 @@ function mountDeck(cards: ReviewCard[]) {
         props: {
             cards,
             reviewUrl: (cardId: number) => `/review/${cardId}/reviews`,
+            answerUrl: (cardId: number) => `/review/${cardId}/answers`,
             countNoun: 'card',
             emptyMessage: 'All caught up.',
         },
@@ -68,6 +89,7 @@ beforeEach(() => {
         queued: false,
         response: { ok: true } as Response,
     });
+    fetchJson.mockReset();
 });
 
 describe('keyboard shortcuts', () => {
@@ -311,6 +333,7 @@ describe('review flow', () => {
             props: {
                 cards: [vocabularyCard(1)],
                 reviewUrl: (cardId: number) => `/review/${cardId}/reviews`,
+                answerUrl: (cardId: number) => `/review/${cardId}/answers`,
                 countNoun: 'card',
                 emptyMessage: 'All caught up.',
                 dueRemaining: 12,
@@ -379,5 +402,258 @@ describe('review flow', () => {
             rating: 'again',
             error_tag_category: null,
         });
+    });
+});
+
+describe('typed recall', () => {
+    function checksAs(correct: boolean) {
+        fetchJson.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ correct }),
+        } as Response);
+    }
+
+    async function answer(
+        wrapper: ReturnType<typeof mountDeck>,
+        typed: string,
+    ) {
+        await wrapper.find('input').setValue(typed);
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+    }
+
+    function ratingButton(
+        wrapper: ReturnType<typeof mountDeck>,
+        label: string,
+    ) {
+        const button = wrapper
+            .findAll('button')
+            .find((candidate) => candidate.text().startsWith(label));
+
+        if (!button) {
+            throw new Error(`No ${label} button`);
+        }
+
+        return button;
+    }
+
+    it('shows the translation and a focused input instead of the word', () => {
+        const wrapper = mountDeck([productionCard(5)]);
+
+        expect(wrapper.text()).toContain('airport');
+        expect(wrapper.text()).toContain('Type the word, with its article');
+        expect(wrapper.text()).not.toContain('el aeropuerto');
+        expect(document.activeElement).toBe(wrapper.find('input').element);
+    });
+
+    it('only mentions the article for a noun', () => {
+        const wrapper = mountDeck([
+            { ...productionCard(5), needsArticle: false },
+        ]);
+
+        expect(wrapper.text()).toContain('Type the word');
+        expect(wrapper.text()).not.toContain('article');
+    });
+
+    it('checks the typed answer with the server', async () => {
+        checksAs(true);
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await answer(wrapper, ' el aeropuerto ');
+
+        expect(fetchJson).toHaveBeenCalledWith(
+            '/review/5/answers',
+            'POST',
+            JSON.stringify({ answer: 'el aeropuerto' }),
+        );
+    });
+
+    it('does not check a blank answer', async () => {
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await answer(wrapper, '   ');
+
+        expect(fetchJson).not.toHaveBeenCalled();
+        expect(wrapper.text()).not.toContain('el aeropuerto');
+    });
+
+    it('leaves enter and the rating keys to the input while typing', async () => {
+        const wrapper = mountDeck([productionCard(5)]);
+        const input = wrapper.find('input').element;
+
+        for (const key of ['Enter', ' ', '1', '3']) {
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key, bubbles: true }),
+            );
+        }
+
+        await nextTick();
+
+        expect(wrapper.text()).not.toContain('el aeropuerto');
+        expect(submitOrQueue).not.toHaveBeenCalled();
+    });
+
+    it('does not reveal a production card through the space or enter shortcut', async () => {
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await press(' ');
+        await press('Enter');
+
+        expect(wrapper.text()).not.toContain('el aeropuerto');
+    });
+
+    it('reveals the word and pre-selects Good for a correct answer', async () => {
+        checksAs(true);
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await answer(wrapper, 'el aeropuerto');
+
+        expect(wrapper.text()).toContain('Correct');
+        expect(wrapper.text()).toContain('el aeropuerto');
+        expect(wrapper.find('input').exists()).toBe(false);
+        expect(ratingButton(wrapper, 'Good').attributes('data-variant')).toBe(
+            'default',
+        );
+        expect(ratingButton(wrapper, 'Again').attributes('data-variant')).toBe(
+            'outline',
+        );
+
+        await press('Enter');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/5/reviews', {
+            rating: 'good',
+            error_tag_category: null,
+        });
+    });
+
+    it('shows what was typed next to the word and pre-selects Again for a wrong answer', async () => {
+        checksAs(false);
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await answer(wrapper, 'aeropuerto');
+
+        expect(wrapper.text()).toContain('el aeropuerto');
+        expect(wrapper.text()).toContain('You wrote “aeropuerto”');
+        expect(wrapper.text()).not.toContain('Correct');
+        expect(ratingButton(wrapper, 'Again').attributes('data-variant')).toBe(
+            'default',
+        );
+
+        await press('Enter');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/5/reviews', {
+            rating: 'again',
+            error_tag_category: null,
+        });
+    });
+
+    it.each([
+        [
+            'offline',
+            () => fetchJson.mockRejectedValue(new TypeError('offline')),
+        ],
+        [
+            'refused',
+            () => fetchJson.mockResolvedValue({ ok: false } as Response),
+        ],
+    ])(
+        'reveals the word with nothing pre-selected when the check is %s',
+        async (_, failCheck) => {
+            failCheck();
+            const wrapper = mountDeck([productionCard(5)]);
+
+            await answer(wrapper, 'el aeropuerto');
+
+            expect(wrapper.text()).toContain("Couldn't check your answer");
+            expect(wrapper.text()).toContain('el aeropuerto');
+            expect(
+                wrapper
+                    .findAll('[data-variant="default"]')
+                    .filter((button) => button.text().match(/Again|Good/)),
+            ).toHaveLength(0);
+
+            await press('Enter');
+            await nextTick();
+
+            expect(submitOrQueue).not.toHaveBeenCalled();
+
+            await press('3');
+            await nextTick();
+
+            expect(submitOrQueue).toHaveBeenCalledWith('/review/5/reviews', {
+                rating: 'good',
+                error_tag_category: null,
+            });
+        },
+    );
+
+    it('ignores enter and a second submit while the check is in flight', async () => {
+        fetchJson.mockReturnValue(new Promise(() => {}));
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await wrapper.find('input').setValue('el aeropuerto');
+        await wrapper.find('form').trigger('submit');
+        await wrapper.find('form').trigger('submit');
+        await press('Enter');
+        await press('1');
+
+        expect(fetchJson).toHaveBeenCalledTimes(1);
+        expect(wrapper.text()).not.toContain('el aeropuerto');
+        expect(submitOrQueue).not.toHaveBeenCalled();
+    });
+
+    it('lets the learner give up and pre-selects Again', async () => {
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await ratingButton(wrapper, 'Show answer').trigger('click');
+
+        expect(fetchJson).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain('el aeropuerto');
+        expect(ratingButton(wrapper, 'Again').attributes('data-variant')).toBe(
+            'default',
+        );
+    });
+
+    it('keeps the speak button hidden until the word is revealed', async () => {
+        checksAs(true);
+        const wrapper = mount(ReviewDeck, {
+            props: {
+                cards: [productionCard(5)],
+                reviewUrl: (cardId: number) => `/review/${cardId}/reviews`,
+                answerUrl: (cardId: number) => `/review/${cardId}/answers`,
+                countNoun: 'card',
+                emptyMessage: 'All caught up.',
+                speechLocale: 'es-ES',
+            },
+            attachTo: document.body,
+            global: { stubs: { SpeakButton: true } },
+        });
+        mounted.push(wrapper);
+
+        expect(wrapper.findComponent(SpeakButton).exists()).toBe(false);
+
+        await answer(wrapper, 'el aeropuerto');
+
+        expect(wrapper.findComponent(SpeakButton).props('text')).toBe(
+            'el aeropuerto',
+        );
+    });
+
+    it('starts the next production card with an empty, focused input', async () => {
+        checksAs(true);
+        const wrapper = mountDeck([productionCard(5), productionCard(6)]);
+
+        await answer(wrapper, 'el aeropuerto');
+        await press('Enter');
+        await flushPromises();
+
+        const input = wrapper.find('input');
+
+        expect(fetchJson).toHaveBeenCalledTimes(1);
+        expect(input.element.value).toBe('');
+        expect(document.activeElement).toBe(input.element);
+        expect(wrapper.text()).not.toContain('Correct');
     });
 });

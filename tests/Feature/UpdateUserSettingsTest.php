@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Settings\UpdateUserSettings;
 use App\Enums\ContextTag;
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use App\Models\User;
 use App\Models\UserSetting;
 
@@ -16,11 +17,13 @@ it('updates a user without existing settings', function () {
         notificationFrequency: NotificationFrequency::Weekly,
         newItemCapOverride: 20,
         contextEmphasis: ContextTag::Travel,
+        reviewMode: ReviewMode::Production,
     );
 
     expect($settings->notification_frequency)->toBe(NotificationFrequency::Weekly)
         ->and($settings->new_item_cap_override)->toBe(20)
-        ->and($settings->context_emphasis)->toBe(ContextTag::Travel);
+        ->and($settings->context_emphasis)->toBe(ContextTag::Travel)
+        ->and($settings->fresh()?->review_mode)->toBe(ReviewMode::Production);
 });
 
 it('updates existing settings in place rather than creating a duplicate row', function () {
@@ -32,6 +35,7 @@ it('updates existing settings in place rather than creating a duplicate row', fu
         notificationFrequency: NotificationFrequency::Never,
         newItemCapOverride: null,
         contextEmphasis: null,
+        reviewMode: ReviewMode::Recognition,
     );
 
     expect(UserSetting::query()->where('user_id', $user->id)->count())->toBe(1)
@@ -47,7 +51,23 @@ it('clears an override by passing null', function () {
         notificationFrequency: NotificationFrequency::Daily,
         newItemCapOverride: null,
         contextEmphasis: null,
+        reviewMode: ReviewMode::Recognition,
     );
 
     expect($settings->new_item_cap_override)->toBeNull();
+});
+
+it('switches the review style of existing settings', function () {
+    $user = User::factory()->create();
+    UserSetting::factory()->create(['user_id' => $user->id, 'review_mode' => ReviewMode::Production]);
+
+    (new UpdateUserSettings)->handle(
+        $user,
+        notificationFrequency: NotificationFrequency::Daily,
+        newItemCapOverride: null,
+        contextEmphasis: null,
+        reviewMode: ReviewMode::Mix,
+    );
+
+    expect(UserSetting::query()->where('user_id', $user->id)->sole()->review_mode)->toBe(ReviewMode::Mix);
 });

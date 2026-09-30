@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Settings\GetUserSettings;
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use App\Models\User;
 use App\Models\UserSetting;
 
@@ -15,6 +16,7 @@ it('returns in-memory default settings for a user with no saved settings, withou
     expect($settings->notification_frequency)->toBe(NotificationFrequency::Daily)
         ->and($settings->new_item_cap_override)->toBeNull()
         ->and($settings->context_emphasis)->toBeNull()
+        ->and($settings->review_mode)->toBe(ReviewMode::Recognition)
         ->and($settings->exists)->toBeFalse()
         ->and(UserSetting::query()->where('user_id', $user->id)->exists())->toBeFalse();
 });

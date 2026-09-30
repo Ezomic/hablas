@@ -12,11 +12,17 @@ vi.mock('@/routes/review/reviews', () => ({
     store: (cardId: number) => ({ url: `/review/${cardId}/reviews` }),
 }));
 
+vi.mock('@/routes/review/answers', () => ({
+    check: (cardId: number) => ({ url: `/review/${cardId}/answers` }),
+}));
+
 const card: ReviewCard = {
     id: 3,
     front: 'hola',
     back: 'hello',
     kind: 'vocabulary',
+    direction: 'recognition',
+    needsArticle: false,
     suggestedErrorTag: null,
 };
 
@@ -33,6 +39,12 @@ describe('review page', () => {
         const deck = wrapper.findComponent(ReviewDeck);
 
         expect(deck.props('reviewUrl')(3)).toBe('/review/3/reviews');
+    });
+
+    it('hands the deck the answer check endpoint', () => {
+        const deck = mountPage([card]).findComponent(ReviewDeck);
+
+        expect(deck.props('answerUrl')(3)).toBe('/review/3/answers');
     });
 
     it('passes the cards and remaining count through', () => {
