@@ -1,6 +1,10 @@
 import { mount } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import RetakeSkillButton from './RetakeSkillButton.vue';
+
+// West of UTC, midnight UTC is still the day before, so a date labelled in
+// local time would name the wrong day. Set before the formatter is built.
+vi.hoisted(() => vi.stubEnv('TZ', 'America/Los_Angeles'));
 
 const form = vi.hoisted(() => ({
     processing: false,
@@ -28,6 +32,10 @@ describe('re-take skill button', () => {
         form.processing = false;
         form.errors = {};
         form.post.mockReset();
+    });
+
+    afterAll(() => {
+        vi.unstubAllEnvs();
     });
 
     it('starts a re-take of its skill', async () => {

@@ -380,6 +380,48 @@ it('still offers the full test after a skip pressed mid-test, without starting a
         );
 });
 
+it('resumes a full test left open after a taken placement, without a skip', function () {
+    $user = retakeLearner($this->spanish);
+    $leftover = PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $this->spanish->id,
+        'started_at' => '2026-09-02 10:00:00',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('placement.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('placement/Index')
+            ->where('skill', null)
+            ->where('canSkip', false),
+        );
+
+    $this->actingAs($user)
+        ->post(route('placement.skip'))
+        ->assertRedirect(route('placement.index'));
+
+    $this->actingAs($user)
+        ->post(route('placement.skills.store', Skill::Reading))
+        ->assertRedirect(route('placement.index'));
+
+    expect(openAttemptsOf($user)->sole()->is($leftover))->toBeTrue()
+        ->and(retakeLevelsOf($user)->every(fn (UserSkillLevel $level): bool => $level->cefr_level === CefrLevel::A2))->toBeTrue();
+
+    $this->actingAs($user)
+        ->get(route('placement.results'))
+        ->assertInertia(fn ($page) => $page->where('openAttempt', ['skill' => null]));
+
+    retakeAnswerAll($this, $user, correct: true);
+
+    expect($leftover->fresh()?->completed_at)->not->toBeNull()
+        ->and(retakeLevelsOf($user)->every(fn (UserSkillLevel $level): bool => $level->cefr_level === CefrLevel::B2))->toBeTrue();
+
+    $this->actingAs($user)
+        ->get(route('placement.index'))
+        ->assertRedirect(route('placement.results'));
+});
+
 it('does not skip a one-skill re-take', function () {
     $user = retakeLearner($this->spanish);
 
