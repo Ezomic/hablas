@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $new_item_cap_override
  * @property ContextTag|null $context_emphasis
  * @property CarbonImmutable|null $last_digest_sent_at
+ * @property CarbonImmutable|null $last_due_reminder_sent_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
@@ -35,6 +36,7 @@ class UserSetting extends Model
             'notification_frequency' => NotificationFrequency::class,
             'context_emphasis' => ContextTag::class,
             'last_digest_sent_at' => 'datetime',
+            'last_due_reminder_sent_at' => 'datetime',
         ];
     }
 
