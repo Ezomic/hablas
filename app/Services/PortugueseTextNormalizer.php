@@ -27,4 +27,12 @@ final class PortugueseTextNormalizer extends AccentFoldingTextNormalizer
             'ú' => 'u', 'ü' => 'u',
         ];
     }
+
+    /**
+     * @return list<string>
+     */
+    protected function articles(): array
+    {
+        return ['o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas'];
+    }
 }

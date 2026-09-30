@@ -15,10 +15,18 @@ use Illuminate\Support\Str;
  */
 abstract class AccentFoldingTextNormalizer implements TextNormalizer
 {
+    /** @var array<string, string> */
+    private const SEARCH_ONLY_FOLDS = ['ñ' => 'n', 'ç' => 'c', 'ã' => 'a', 'õ' => 'o'];
+
     /**
      * @return array<string, string>
      */
     abstract protected function vowelAccentFolds(): array;
+
+    /**
+     * @return list<string>
+     */
+    abstract protected function articles(): array;
 
     public function foldAccents(string $text): string
     {
@@ -39,5 +47,33 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
         $words = preg_split('/\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         return collect($words)->unique();
+    }
+
+    public function searchKey(string $text): string
+    {
+        return implode(' ', $this->words(strtr($this->foldAccents($text), self::SEARCH_ONLY_FOLDS)));
+    }
+
+    /**
+     * The article is matched before folding, so "él" (he) and Portuguese "à"
+     * are not mistaken for "el" and "a".
+     */
+    public function sortKey(string $text): string
+    {
+        $words = $this->words(Str::lower($text));
+
+        if (count($words) > 1 && in_array($words[0], $this->articles(), true)) {
+            array_shift($words);
+        }
+
+        return $this->searchKey(implode(' ', $words));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function words(string $text): array
+    {
+        return preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
     }
 }

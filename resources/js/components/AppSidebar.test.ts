@@ -47,6 +47,7 @@ describe('app sidebar', () => {
         expect(links).toContain('/dashboard');
         expect(links).toContain('/review');
         expect(links).toContain('/review/weak-spots');
+        expect(links).toContain('/vocabulary');
     });
 
     it('links every practice surface', () => {
@@ -66,6 +67,7 @@ describe('app sidebar', () => {
             'Dashboard',
             'Review',
             'Weak spots',
+            'Vocabulary',
             'Shadowing',
             'Writing',
             'Scripted prompts',
