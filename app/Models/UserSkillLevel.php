@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
+use Carbon\CarbonImmutable;
 use Database\Factories\UserSkillLevelFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,10 +20,11 @@ use Illuminate\Support\Carbon;
  * @property int $language_id
  * @property Skill $skill
  * @property CefrLevel $cefr_level
+ * @property CarbonImmutable|null $level_set_at When placement or practice last set the level; practice counts only attempts after it. Null counts every attempt.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'language_id', 'skill', 'cefr_level'])]
+#[Fillable(['user_id', 'language_id', 'skill', 'cefr_level', 'level_set_at'])]
 class UserSkillLevel extends Model
 {
     /** @use HasFactory<UserSkillLevelFactory> */
@@ -33,6 +35,7 @@ class UserSkillLevel extends Model
         return [
             'skill' => Skill::class,
             'cefr_level' => CefrLevel::class,
+            'level_set_at' => 'datetime',
         ];
     }
 
