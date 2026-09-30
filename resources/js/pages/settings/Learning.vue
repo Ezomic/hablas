@@ -229,6 +229,11 @@ async function togglePush(checked: boolean) {
                 Get a browser notification for your daily digest instead of (or
                 alongside) email.
             </p>
+            <p class="text-sm text-muted-foreground">
+                With Daily reminders, you also get at most one push a day,
+                between noon and 9 pm, when your due reviews climb to 20 or
+                more.
+            </p>
             <div class="flex items-center gap-3 pt-2">
                 <Checkbox
                     id="push-enabled"
