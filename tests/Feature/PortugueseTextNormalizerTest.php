@@ -63,3 +63,11 @@ it('drops a leading article from the sort key', function (string $term, string $
     ['à direita', 'a direita'],
     ['a', 'a'],
 ]);
+
+it('keeps the nasal marks and ç when comparing a whole answer', function () {
+    $normalizer = new PortugueseTextNormalizer;
+
+    expect($normalizer->answerKey('O Pão'))->toBe('o pão')
+        ->and($normalizer->answerKey('a praça'))->toBe('a praça')
+        ->and($normalizer->answerKey('Levantar-se'))->toBe('levantar se');
+});

@@ -10,6 +10,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\ContextTag;
 use App\Enums\InterestTag;
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateUserSettingsRequest;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +31,7 @@ final class LearningController extends Controller
                 'notificationFrequency' => $settings->notification_frequency->value,
                 'newItemCapOverride' => $settings->new_item_cap_override,
                 'contextEmphasis' => $settings->context_emphasis?->value,
+                'reviewMode' => $settings->review_mode->value,
             ],
             'interestTags' => $this->currentUser()->interestPreferences()->get()
                 ->map(fn ($preference): string => $preference->interest_tag->value),
@@ -48,6 +50,7 @@ final class LearningController extends Controller
             notificationFrequency: NotificationFrequency::from($request->string('notification_frequency')->toString()),
             newItemCapOverride: $request->filled('new_item_cap_override') ? $request->integer('new_item_cap_override') : null,
             contextEmphasis: $contextEmphasis === null ? null : ContextTag::from($contextEmphasis),
+            reviewMode: ReviewMode::from($request->string('review_mode')->toString()),
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Learning settings updated.')]);

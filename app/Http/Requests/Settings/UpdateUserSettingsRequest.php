@@ -6,6 +6,7 @@ namespace App\Http\Requests\Settings;
 
 use App\Enums\ContextTag;
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,6 +32,7 @@ final class UpdateUserSettingsRequest extends FormRequest
             'notification_frequency' => ['required', Rule::enum(NotificationFrequency::class)],
             'new_item_cap_override' => ['nullable', 'integer', 'min:0', 'max:100'],
             'context_emphasis' => ['nullable', Rule::enum(ContextTag::class)],
+            'review_mode' => ['required', Rule::enum(ReviewMode::class)],
         ];
     }
 }

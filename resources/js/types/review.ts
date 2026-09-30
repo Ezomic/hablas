@@ -13,5 +13,7 @@ export interface ReviewCard {
     front: string;
     back: string;
     kind: 'vocabulary' | 'grammar';
+    direction: 'recognition' | 'production';
+    needsArticle: boolean;
     suggestedErrorTag: ErrorTag | null;
 }

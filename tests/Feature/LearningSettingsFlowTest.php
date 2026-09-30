@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Enums\ContextTag;
 use App\Enums\InterestTag;
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use App\Models\User;
 use App\Models\UserInterestPreference;
 use App\Models\UserSetting;
+use Illuminate\Support\Facades\DB;
 
 it('renders the learning settings page with the current settings', function () {
     $user = User::factory()->create();
@@ -16,6 +18,7 @@ it('renders the learning settings page with the current settings', function () {
         'notification_frequency' => NotificationFrequency::Weekly,
         'new_item_cap_override' => 7,
         'context_emphasis' => ContextTag::Professional,
+        'review_mode' => ReviewMode::Mix,
     ]);
 
     $this->actingAs($user)
@@ -25,7 +28,8 @@ it('renders the learning settings page with the current settings', function () {
             ->component('settings/Learning')
             ->where('settings.notificationFrequency', 'weekly')
             ->where('settings.newItemCapOverride', 7)
-            ->where('settings.contextEmphasis', 'professional'),
+            ->where('settings.contextEmphasis', 'professional')
+            ->where('settings.reviewMode', 'mix'),
         );
 });
 
@@ -37,7 +41,8 @@ it('shows in-memory default settings on first visit without persisting a row', f
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('settings.notificationFrequency', 'daily')
-            ->where('settings.newItemCapOverride', null),
+            ->where('settings.newItemCapOverride', null)
+            ->where('settings.reviewMode', 'recognition'),
         );
 
     expect(UserSetting::query()->where('user_id', $user->id)->exists())->toBeFalse();
@@ -51,6 +56,7 @@ it('updates settings and redirects back to the settings page', function () {
             'notification_frequency' => 'never',
             'new_item_cap_override' => 3,
             'context_emphasis' => 'travel',
+            'review_mode' => 'production',
         ])
         ->assertRedirect(route('learning.edit'));
 
@@ -58,7 +64,8 @@ it('updates settings and redirects back to the settings page', function () {
 
     expect($settings->notification_frequency)->toBe(NotificationFrequency::Never)
         ->and($settings->new_item_cap_override)->toBe(3)
-        ->and($settings->context_emphasis)->toBe(ContextTag::Travel);
+        ->and($settings->context_emphasis)->toBe(ContextTag::Travel)
+        ->and($settings->review_mode)->toBe(ReviewMode::Production);
 });
 
 it('rejects an out-of-range new item cap override', function () {
@@ -68,8 +75,38 @@ it('rejects an out-of-range new item cap override', function () {
         ->patch(route('learning.update'), [
             'notification_frequency' => 'daily',
             'new_item_cap_override' => 500,
+            'review_mode' => 'recognition',
         ])
         ->assertInvalid(['new_item_cap_override']);
+});
+
+it('rejects a missing or unknown review style', function (array $payload) {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('learning.update'), ['notification_frequency' => 'daily', ...$payload])
+        ->assertInvalid(['review_mode']);
+})->with([
+    'missing' => [[]],
+    'unknown' => [['review_mode' => 'flashcards']],
+]);
+
+it('keeps learners who saved settings before review styles existed on recognition', function () {
+    $user = User::factory()->create();
+    DB::table('user_settings')->insert([
+        'user_id' => $user->id,
+        'notification_frequency' => 'weekly',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('learning.edit'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('settings.notificationFrequency', 'weekly')
+            ->where('settings.reviewMode', 'recognition'),
+        );
 });
 
 it('includes the users current interest preferences and available options on the learning page', function () {

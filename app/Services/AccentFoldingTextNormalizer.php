@@ -49,6 +49,11 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
         return collect($words)->unique();
     }
 
+    public function answerKey(string $text): string
+    {
+        return implode(' ', $this->words($this->foldAccents($text)));
+    }
+
     public function searchKey(string $text): string
     {
         return implode(' ', $this->words(strtr($this->foldAccents($text), self::SEARCH_ONLY_FOLDS)));

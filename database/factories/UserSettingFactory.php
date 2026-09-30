@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\NotificationFrequency;
+use App\Enums\ReviewMode;
 use App\Models\User;
 use App\Models\UserSetting;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,6 +27,7 @@ class UserSettingFactory extends Factory
             'notification_frequency' => NotificationFrequency::Daily,
             'new_item_cap_override' => null,
             'context_emphasis' => null,
+            'review_mode' => ReviewMode::Recognition,
             'last_digest_sent_at' => null,
         ];
     }
