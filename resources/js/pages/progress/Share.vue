@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import ProgressSnapshotSummary from '@/components/ProgressSnapshotSummary.vue';
 import type { ProgressSnapshot } from '@/components/ProgressSnapshotSummary.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    progressCardFileName,
+    progressCardText,
+    renderProgressCard,
+} from '@/lib/progressCard';
 import { regenerate } from '@/routes/progress/share';
 
 const props = defineProps<{
@@ -23,6 +28,44 @@ defineOptions({
 });
 
 const copied = ref(false);
+const image = ref<{ file: File; url: string; description: string } | null>(
+    null,
+);
+const canShareImage = ref(false);
+const imageError = ref<string | null>(null);
+
+// Drawn on page load rather than on click: Safari only opens the share sheet
+// while the tap that asked for it is still fresh.
+onMounted(async () => {
+    if (!props.snapshot) {
+        return;
+    }
+
+    try {
+        const blob = await renderProgressCard(props.snapshot);
+        const file = new File([blob], progressCardFileName(props.snapshot), {
+            type: 'image/png',
+        });
+        const text = progressCardText(props.snapshot);
+
+        image.value = {
+            file,
+            url: URL.createObjectURL(file),
+            description: `Hablas progress in ${text.language}. CEFR level: ${text.level}. Streak: ${text.streak}. Units completed: ${text.completion}.`,
+        };
+        canShareImage.value =
+            typeof navigator.canShare === 'function' &&
+            navigator.canShare({ files: [file] });
+    } catch {
+        imageError.value = "Couldn't create the image.";
+    }
+});
+
+onBeforeUnmount(() => {
+    if (image.value) {
+        URL.revokeObjectURL(image.value.url);
+    }
+});
 
 async function copyLink() {
     if (!props.shareUrl) {
@@ -31,6 +74,22 @@ async function copyLink() {
 
     await navigator.clipboard.writeText(props.shareUrl);
     copied.value = true;
+}
+
+async function shareImage() {
+    if (!image.value) {
+        return;
+    }
+
+    imageError.value = null;
+
+    try {
+        await navigator.share({ files: [image.value.file] });
+    } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            imageError.value = "Couldn't share the image.";
+        }
+    }
 }
 
 function regenerateLink() {
@@ -73,6 +132,36 @@ function regenerateLink() {
                 >
                 <p class="text-sm text-muted-foreground">
                     Regenerating replaces this link — the old one stops working.
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <Heading
+                    variant="small"
+                    title="Share an image"
+                    description="A picture of your level, streak and units completed. Your name isn't on it."
+                />
+                <img
+                    v-if="image"
+                    :src="image.url"
+                    :alt="image.description"
+                    class="aspect-[1200/630] w-full max-w-md rounded-lg border"
+                />
+                <div v-if="image" class="flex flex-wrap gap-2">
+                    <Button as-child variant="outline">
+                        <a :href="image.url" :download="image.file.name"
+                            >Download image</a
+                        >
+                    </Button>
+                    <Button
+                        v-if="canShareImage"
+                        variant="outline"
+                        @click="shareImage"
+                        >Share image</Button
+                    >
+                </div>
+                <p v-if="imageError" class="text-sm text-destructive">
+                    {{ imageError }}
                 </p>
             </div>
 
