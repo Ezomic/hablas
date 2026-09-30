@@ -45,6 +45,7 @@ describe('app sidebar', () => {
         const links = hrefs(mountSidebar());
 
         expect(links).toContain('/dashboard');
+        expect(links).toContain('/units');
         expect(links).toContain('/review');
         expect(links).toContain('/review/weak-spots');
     });
@@ -64,6 +65,7 @@ describe('app sidebar', () => {
 
         for (const label of [
             'Dashboard',
+            'Units',
             'Review',
             'Weak spots',
             'Shadowing',

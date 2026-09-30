@@ -36,9 +36,7 @@ final class SelectNextUnit
             $this->getUserSkillLevels->handle($user, $language),
         ) ?? CefrLevel::A1;
 
-        $eligibleLevels = collect(CefrLevel::cases())
-            ->filter(fn (CefrLevel $level): bool => $level->sortOrder() <= $blendedLevel->sortOrder())
-            ->map(fn (CefrLevel $level): string => $level->value);
+        $eligibleLevels = array_map(fn (CefrLevel $level): string => $level->value, CefrLevel::upTo($blendedLevel));
 
         $completedUnitIds = $user->unitProgress()
             ->where('status', UnitProgressStatus::Completed)
