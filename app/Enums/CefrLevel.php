@@ -31,6 +31,15 @@ enum CefrLevel: string
         throw new LogicException('Unreachable: enum case not found in its own cases() list.');
     }
 
+    /** @return list<self> */
+    public static function upTo(self $ceiling): array
+    {
+        return array_values(array_filter(
+            self::cases(),
+            fn (self $level): bool => $level->sortOrder() <= $ceiling->sortOrder(),
+        ));
+    }
+
     public static function lowest(CefrLevel ...$levels): self
     {
         if ($levels === []) {

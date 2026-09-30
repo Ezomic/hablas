@@ -8,6 +8,8 @@ use App\Enums\SrsCardState;
 use Carbon\CarbonImmutable;
 use Database\Factories\SrsCardFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,5 +72,23 @@ class SrsCard extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(SrsReview::class);
+    }
+
+    /**
+     * The cards in one learner's language deck that FSRS schedules by due_at.
+     * New cards are left out because the daily new-item cap releases them,
+     * and weak spots because they wait for their remedial drill instead.
+     *
+     * @param  Builder<SrsCard>  $query
+     * @return Builder<SrsCard>
+     */
+    #[Scope]
+    protected function repetitionsInDeck(Builder $query, User $user, Language $language): Builder
+    {
+        return $query
+            ->where('user_id', $user->id)
+            ->where('language_id', $language->id)
+            ->where('is_weak_spot', false)
+            ->where('state', '!=', SrsCardState::New);
     }
 }

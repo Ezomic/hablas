@@ -17,6 +17,10 @@ vi.mock('@inertiajs/vue3', () => ({
     },
 }));
 
+vi.mock('@/routes/units', () => ({
+    index: () => ({ url: '/units', method: 'get' }),
+}));
+
 vi.mock('@/routes/units/completion', () => ({
     store: (unitId: number) => ({ url: `/units/${unitId}/completion` }),
 }));

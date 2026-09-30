@@ -23,3 +23,15 @@ it('returns the single level when given only one', function () {
 it('throws a clear exception when called with no levels', function () {
     CefrLevel::lowest();
 })->throws(InvalidArgumentException::class, 'CefrLevel::lowest() requires at least one level.');
+
+it('lists every level from A1 up to and including the ceiling', function () {
+    expect(CefrLevel::upTo(CefrLevel::B1))->toBe([CefrLevel::A1, CefrLevel::A2, CefrLevel::B1]);
+});
+
+it('lists only A1 when A1 is the ceiling', function () {
+    expect(CefrLevel::upTo(CefrLevel::A1))->toBe([CefrLevel::A1]);
+});
+
+it('lists the whole scale when C2 is the ceiling', function () {
+    expect(CefrLevel::upTo(CefrLevel::C2))->toBe(CefrLevel::cases());
+});
