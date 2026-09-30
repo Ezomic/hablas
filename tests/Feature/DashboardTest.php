@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Actions\Languages\UnlockLanguageForUser;
+use App\Actions\Srs\ForecastReviewLoad;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
+use App\Enums\SrsCardState;
 use App\Enums\SrsRating;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
@@ -154,6 +156,36 @@ it('shows the count of weak-spot cards for the active language', function () {
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard')
             ->where('weakSpotReviewCount', 1),
+        );
+});
+
+it('forecasts the review load for the active language', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-10-01 15:00:00'));
+    $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
+    $user = User::factory()->create();
+    (new UnlockLanguageForUser)->handle($user, $language);
+    PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+    SrsCard::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'state' => SrsCardState::Review,
+        'due_at' => CarbonImmutable::parse('2026-10-03 09:00:00'),
+    ]);
+    SrsCard::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'state' => SrsCardState::New]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->has('reviewForecast.days', ForecastReviewLoad::DAYS)
+            ->where('reviewForecast.days.0', ['date' => '2026-10-01', 'cards' => 0])
+            ->where('reviewForecast.days.2', ['date' => '2026-10-03', 'cards' => 1])
+            ->where('reviewForecast.newWaiting', 1),
         );
 });
 

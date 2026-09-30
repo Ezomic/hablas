@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import ReviewForecast from '@/components/ReviewForecast.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -25,6 +26,7 @@ import { index as reviewIndex } from '@/routes/review';
 import { index as weakSpotIndex } from '@/routes/review/weak-spots';
 import { show as showUnit } from '@/routes/units';
 import type { LanguageOption } from '@/types';
+import type { ReviewForecast as Forecast } from '@/types/forecast';
 
 interface Streak {
     currentLength: number;
@@ -47,6 +49,7 @@ interface Props {
     streak?: Streak;
     dueReviewCount?: number;
     weakSpotReviewCount?: number;
+    reviewForecast?: Forecast;
     sessionNeedsRemediation?: boolean;
     nextUnit?: NextUnit | null;
     canActivatePortuguese?: boolean;
@@ -201,6 +204,12 @@ const ceilingSkillNames = computed(() =>
                 </Button>
             </CardContent>
         </Card>
+
+        <ReviewForecast
+            v-if="props.reviewForecast"
+            :forecast="props.reviewForecast"
+            :weak-spots="props.weakSpotReviewCount ?? 0"
+        />
 
         <Card v-if="props.weakSpotReviewCount">
             <CardHeader>
