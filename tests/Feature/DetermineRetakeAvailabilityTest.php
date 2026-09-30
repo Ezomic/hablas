@@ -17,7 +17,7 @@ beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-09-30 12:00:00'));
 });
 
-function placementFinishedAt(User $user, Language $language, string $at, ?Skill $skill = null, bool $answered = true): PlacementTestAttempt
+function placementFinishedAt(User $user, Language $language, string $at, ?Skill $skill = null, bool $answered = true, bool $skipped = false): PlacementTestAttempt
 {
     $attempt = PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
@@ -25,6 +25,7 @@ function placementFinishedAt(User $user, Language $language, string $at, ?Skill 
         'skill' => $skill,
         'started_at' => $at,
         'completed_at' => $at,
+        'skipped' => $skipped,
     ]);
 
     if ($answered) {
@@ -45,6 +46,12 @@ it('lets every skill be re-taken when nothing was placed yet', function () {
 
 it('does not start a cooldown for a skipped test', function () {
     placementFinishedAt($this->user, $this->language, '2026-09-30 11:00:00', answered: false);
+
+    expect(array_filter((new DetermineRetakeAvailability)->handle($this->user, $this->language)))->toBe([]);
+});
+
+it('does not start a cooldown for a skip pressed after some answers', function () {
+    placementFinishedAt($this->user, $this->language, '2026-09-30 11:00:00', skipped: true);
 
     expect(array_filter((new DetermineRetakeAvailability)->handle($this->user, $this->language)))->toBe([]);
 });
@@ -97,6 +104,7 @@ it('knows whether the learner has taken a placement test rather than skipped it'
     expect($hasTaken())->toBeFalse();
 
     placementFinishedAt($this->user, $this->language, '2026-09-01 10:00:00', answered: false);
+    placementFinishedAt($this->user, $this->language, '2026-09-01 10:30:00', skipped: true);
     expect($hasTaken())->toBeFalse();
 
     placementFinishedAt(User::factory()->create(), $this->language, '2026-09-01 10:00:00');

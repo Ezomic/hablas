@@ -17,7 +17,8 @@ it('sets all four skills to A1 and marks the attempt completed', function () {
 
     $attempt = (new SkipPlacementTest)->handle($user, $language);
 
-    expect($attempt?->completed_at)->not->toBeNull();
+    expect($attempt?->completed_at)->not->toBeNull()
+        ->and($attempt?->fresh()?->skipped)->toBeTrue();
 
     foreach (Skill::cases() as $skill) {
         expect($attempt?->resulting_skill_levels[$skill->value] ?? null)->toBe(['cefr_level' => 'A1', 'sub_level' => 'A1.1']);
@@ -49,6 +50,7 @@ it('finalizes an already in-progress attempt instead of creating a second one', 
     $attempt = (new SkipPlacementTest)->handle($user, $language);
 
     expect($attempt?->id)->toBe($existing->id)
+        ->and($attempt?->fresh()?->skipped)->toBeTrue()
         ->and(PlacementTestAttempt::query()->where('user_id', $user->id)->count())->toBe(1);
 });
 

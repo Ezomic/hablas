@@ -347,6 +347,39 @@ it('still offers the full test after a skip', function () {
     expect(openAttemptsOf($user)->sole()->skill)->toBeNull();
 });
 
+it('still offers the full test after a skip pressed mid-test, without starting a cooldown', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('placement.index'))->assertOk();
+    $item = (new GetCurrentPlacementItem)->handle(openAttemptsOf($user)->sole());
+    $this->actingAs($user)
+        ->postJson(route('placement.answer', $item), ['response' => $item?->correct_answer])
+        ->assertJson(['done' => false]);
+
+    $this->actingAs($user)
+        ->post(route('placement.skip'))
+        ->assertRedirect(route('dashboard'));
+
+    expect(retakeLevelsOf($user)->every(fn (UserSkillLevel $level): bool => $level->cefr_level === CefrLevel::A1))->toBeTrue();
+
+    $this->actingAs($user)
+        ->get(route('placement.results'))
+        ->assertInertia(fn ($page) => $page
+            ->where('result.skipped', true)
+            ->where('retakeAvailableOn', array_fill_keys(array_column(Skill::cases(), 'value'), null)),
+        );
+
+    $this->actingAs($user)
+        ->get(route('placement.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('placement/Index')
+            ->where('skill', null)
+            ->where('canSkip', true)
+            ->where('progress', 0),
+        );
+});
+
 it('does not skip a one-skill re-take', function () {
     $user = retakeLearner($this->spanish);
 

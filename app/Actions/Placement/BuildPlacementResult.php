@@ -76,9 +76,18 @@ final class BuildPlacementResult
         ];
     }
 
-    /** @return Collection<array-key, EloquentCollection<int, PlacementTestResponse>> */
+    /**
+     * A skip placed nothing from the answers given before it, so they neither
+     * show in the breakdown nor make the result a taken test.
+     *
+     * @return Collection<array-key, EloquentCollection<int, PlacementTestResponse>>
+     */
     private function responsesBySkill(PlacementTestAttempt $attempt): Collection
     {
+        if ($attempt->skipped) {
+            return new Collection;
+        }
+
         return $attempt->responses()
             ->with('item')
             ->orderBy('id')

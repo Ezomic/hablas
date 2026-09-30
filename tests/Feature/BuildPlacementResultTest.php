@@ -77,6 +77,27 @@ it('flags a skipped attempt that has no responses', function () {
         ->and($result['skills'])->toHaveCount(4);
 });
 
+it('flags a skip pressed after some answers, and leaves those answers out', function () {
+    $attempt = PlacementTestAttempt::factory()->create([
+        'language_id' => $this->spanish->id,
+        'completed_at' => now(),
+        'skipped' => true,
+        'resulting_skill_levels' => [
+            'reading' => ['cefr_level' => 'A1', 'sub_level' => 'A1.1'],
+            'listening' => ['cefr_level' => 'A1', 'sub_level' => 'A1.1'],
+            'speaking' => ['cefr_level' => 'A1', 'sub_level' => 'A1.1'],
+            'writing' => ['cefr_level' => 'A1', 'sub_level' => 'A1.1'],
+        ],
+    ]);
+    PlacementTestResponse::factory()->create(['attempt_id' => $attempt->id, 'skill' => Skill::Reading]);
+
+    $result = (new BuildPlacementResult)->handle(collect([$attempt]));
+
+    expect($result['skipped'])->toBeTrue()
+        ->and($result['blendedLevel'])->toBe('A1.1')
+        ->and(array_merge(...array_column($result['skills'], 'items')))->toBe([]);
+});
+
 it('takes each skill from the newest attempt that covered it', function () {
     $full = PlacementTestAttempt::factory()->create([
         'language_id' => $this->spanish->id,

@@ -21,8 +21,9 @@ final class DetermineRetakeAvailability
 
     /**
      * The UTC date from which each skill can be re-taken, or null when it can
-     * be re-taken now. Only answered placements count: a skip sets the floor,
-     * and there is nothing to farm below it.
+     * be re-taken now. Only answered placements count, not skips (with or
+     * without answers): a skip sets the floor, and there is nothing to farm
+     * below it.
      *
      * @return array<string, string|null>
      */
@@ -32,6 +33,7 @@ final class DetermineRetakeAvailability
             ->where('user_id', $user->id)
             ->where('language_id', $language->id)
             ->whereNotNull('completed_at')
+            ->where('skipped', false)
             ->whereHas('responses')
             ->get(['skill', 'completed_at']);
 
