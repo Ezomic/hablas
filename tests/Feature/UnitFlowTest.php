@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Languages\UnlockLanguageForUser;
+use App\Enums\CefrLevel;
 use App\Enums\UnitProgressStatus;
 use App\Models\GrammarPoint;
 use App\Models\Language;
@@ -18,7 +19,7 @@ beforeEach(function () {
     $this->spanish = Language::query()->where('code', 'es')->sole();
     $this->user = User::factory()->create(['current_language_id' => $this->spanish->id]);
     (new UnlockLanguageForUser)->handle($this->user, $this->spanish);
-    $this->unit = Unit::factory()->create(['language_id' => $this->spanish->id, 'title' => 'Ordering coffee']);
+    $this->unit = Unit::factory()->create(['language_id' => $this->spanish->id, 'cefr_level' => CefrLevel::A1, 'title' => 'Ordering coffee']);
 });
 
 it('renders a unit with its vocabulary and grammar', function () {

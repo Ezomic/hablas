@@ -6,6 +6,7 @@ import {
     Headphones,
     Layers,
     LayoutGrid,
+    Library,
     MessagesSquare,
     Mic,
     NotebookPen,
@@ -33,11 +34,13 @@ import { index as reviewIndex } from '@/routes/review';
 import { index as weakSpotsIndex } from '@/routes/review/weak-spots';
 import { index as scriptedPromptsIndex } from '@/routes/scripted-prompts';
 import { index as shadowingIndex } from '@/routes/shadowing';
+import { index as unitsIndex } from '@/routes/units';
 import { index as writingIndex } from '@/routes/writing';
 import type { NavItem } from '@/types';
 
 const studyNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+    { title: 'Units', href: unitsIndex(), icon: Library },
     { title: 'Review', href: reviewIndex(), icon: Layers },
     { title: 'Weak spots', href: weakSpotsIndex(), icon: TriangleAlert },
 ];

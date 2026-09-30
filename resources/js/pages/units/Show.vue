@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { skillLabels } from '@/lib/skillLabels';
+import { index as unitsIndex } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 
 interface Unit {
@@ -48,7 +49,7 @@ const props = defineProps<{
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Unit', href: '/dashboard' }],
+        breadcrumbs: [{ title: 'Units', href: unitsIndex() }],
     },
 });
 

@@ -6,8 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\CompleteUnit;
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\Units\DetermineUnitAvailability;
+use App\Actions\Units\ListUnitLibrary;
 use App\Concerns\InteractsWithCurrentUser;
-use App\Enums\UnitProgressStatus;
+use App\Enums\UnitAvailability;
 use App\Models\GrammarPoint;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
@@ -21,9 +23,19 @@ final class UnitController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver): Response
+    public function index(GetCurrentLanguage $getCurrentLanguage, ListUnitLibrary $listUnitLibrary): Response
     {
-        $this->authorizeUnit($unit, $getCurrentLanguage);
+        $language = $getCurrentLanguage->handle($this->currentUser());
+
+        return Inertia::render('units/Index', [
+            'language' => $language === null ? null : ['name' => $language->name],
+            'units' => $language === null ? [] : $listUnitLibrary->handle($this->currentUser(), $language),
+        ]);
+    }
+
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver): Response
+    {
+        $availability = $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
 
         $unit->load(['vocabularyItems', 'grammarPoints']);
 
@@ -49,14 +61,14 @@ final class UnitController extends Controller
                 'title' => $point->title,
                 'explanation' => $point->explanation,
             ])->values(),
-            'isCompleted' => $this->isCompleted($unit),
+            'isCompleted' => $availability === UnitAvailability::Completed,
             'speechLocale' => $unit->language === null ? null : $speechLocaleResolver->forLanguage($unit->language),
         ]);
     }
 
-    public function store(Request $request, Unit $unit, CompleteUnit $completeUnit, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
+    public function store(Request $request, Unit $unit, CompleteUnit $completeUnit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability): RedirectResponse
     {
-        $this->authorizeUnit($unit, $getCurrentLanguage);
+        $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
 
         $result = $completeUnit->handle($this->currentUser(), $unit);
 
@@ -68,13 +80,22 @@ final class UnitController extends Controller
     /**
      * A unit is only reachable on the deck the user is currently studying:
      * serving one from the other language would put its vocabulary into the
-     * wrong deck on completion, which the separate-decks rule forbids.
+     * wrong deck on completion, which the separate-decks rule forbids. A unit
+     * above the learner's level is refused too, because completing it would
+     * enroll cards they are not ready for. A held-back unit is not refused:
+     * like the dashboard, the library defers it by not offering it.
      */
-    private function authorizeUnit(Unit $unit, GetCurrentLanguage $getCurrentLanguage): void
+    private function authorizeUnit(Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability): UnitAvailability
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         abort_if($language === null || $unit->language_id !== $language->id, 404);
+
+        $availability = $determineUnitAvailability->handle($this->currentUser(), $language, collect([$unit]))[$unit->id];
+
+        abort_if($availability === UnitAvailability::Locked, 403);
+
+        return $availability;
     }
 
     /**
@@ -92,13 +113,5 @@ final class UnitController extends Controller
         }
 
         return __('Unit complete. :enrolled cards added, :deferred held back until you have cleared more reviews.', ['enrolled' => $enrolled, 'deferred' => $deferred]);
-    }
-
-    private function isCompleted(Unit $unit): bool
-    {
-        return $unit->userProgress()
-            ->where('user_id', $this->currentUser()->id)
-            ->where('status', UnitProgressStatus::Completed)
-            ->exists();
     }
 }
