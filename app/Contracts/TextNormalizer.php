@@ -28,4 +28,18 @@ interface TextNormalizer
      * @return Collection<int, non-empty-string>
      */
     public function uniqueWords(string $text): Collection;
+
+    /**
+     * For looking things up, never for grading: folds the marks grading keeps
+     * distinct as well (ñ, ç, ã, õ), so a query typed without them still
+     * matches, and turns punctuation into spaces. Words keep their order and
+     * repeats, so a run of words can be found inside a phrase.
+     */
+    public function searchKey(string $text): string;
+
+    /**
+     * The search key without a leading article, so an alphabetical list files
+     * "el aeropuerto" under "a" instead of grouping every noun by its article.
+     */
+    public function sortKey(string $text): string;
 }

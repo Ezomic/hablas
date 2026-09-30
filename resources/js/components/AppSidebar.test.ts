@@ -48,6 +48,7 @@ describe('app sidebar', () => {
         expect(links).toContain('/units');
         expect(links).toContain('/review');
         expect(links).toContain('/review/weak-spots');
+        expect(links).toContain('/vocabulary');
     });
 
     it('links every practice surface', () => {
@@ -68,6 +69,7 @@ describe('app sidebar', () => {
             'Units',
             'Review',
             'Weak spots',
+            'Vocabulary',
             'Shadowing',
             'Writing',
             'Scripted prompts',

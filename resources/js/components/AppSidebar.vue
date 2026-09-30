@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     AudioLines,
+    BookA,
     BookOpenText,
     Headphones,
     Layers,
@@ -35,6 +36,7 @@ import { index as weakSpotsIndex } from '@/routes/review/weak-spots';
 import { index as scriptedPromptsIndex } from '@/routes/scripted-prompts';
 import { index as shadowingIndex } from '@/routes/shadowing';
 import { index as unitsIndex } from '@/routes/units';
+import { index as vocabularyIndex } from '@/routes/vocabulary';
 import { index as writingIndex } from '@/routes/writing';
 import type { NavItem } from '@/types';
 
@@ -43,6 +45,7 @@ const studyNavItems: NavItem[] = [
     { title: 'Units', href: unitsIndex(), icon: Library },
     { title: 'Review', href: reviewIndex(), icon: Layers },
     { title: 'Weak spots', href: weakSpotsIndex(), icon: TriangleAlert },
+    { title: 'Vocabulary', href: vocabularyIndex(), icon: BookA },
 ];
 
 const practiceNavItems: NavItem[] = [

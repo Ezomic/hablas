@@ -36,3 +36,30 @@ it('treats a nasal word and its oral-vowel minimal pair as distinct tokens', fun
         ->and($words)->toContain('pão')
         ->and($words)->not->toContain('pao');
 });
+
+it('folds the nasal marks and ç for search, but not for grading', function () {
+    $normalizer = new PortugueseTextNormalizer;
+
+    expect($normalizer->searchKey('Ação'))->toBe('acao')
+        ->and($normalizer->searchKey('PÃO'))->toBe('pao')
+        ->and($normalizer->searchKey('lições'))->toBe('licoes')
+        ->and($normalizer->foldAccents('ação'))->toBe('ação');
+});
+
+it('turns punctuation into spaces for search', function () {
+    $normalizer = new PortugueseTextNormalizer;
+
+    expect($normalizer->searchKey('o pequeno-almoço'))->toBe('o pequeno almoco')
+        ->and($normalizer->searchKey('Onde fica...?'))->toBe('onde fica');
+});
+
+it('drops a leading article from the sort key', function (string $term, string $key) {
+    expect((new PortugueseTextNormalizer)->sortKey($term))->toBe($key);
+})->with([
+    ['o aeroporto', 'aeroporto'],
+    ['a mala', 'mala'],
+    ['As calças', 'calcas'],
+    ['uma casa', 'casa'],
+    ['à direita', 'a direita'],
+    ['a', 'a'],
+]);

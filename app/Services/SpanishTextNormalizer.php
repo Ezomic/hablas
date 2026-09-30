@@ -20,4 +20,12 @@ final class SpanishTextNormalizer extends AccentFoldingTextNormalizer
             'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
         ];
     }
+
+    /**
+     * @return list<string>
+     */
+    protected function articles(): array
+    {
+        return ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas'];
+    }
 }
