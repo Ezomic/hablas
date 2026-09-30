@@ -10,6 +10,7 @@ use App\Enums\SrsCardState;
 use App\Enums\SrsRating;
 use App\Models\Language;
 use App\Models\PlacementTestAttempt;
+use App\Models\PlacementTestResponse;
 use App\Models\SrsCard;
 use App\Models\SrsReview;
 use App\Models\Streak;
@@ -59,20 +60,29 @@ it('shows the blended headline level and per-skill breakdown for the active lang
         );
 });
 
-it('explains the ceiling when a placement-only skill pins the blended level', function () {
+it('explains the ceiling and when the skill holding it can be re-taken', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-09-30 12:00:00'));
     $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();
     (new UnlockLanguageForUser)->handle($user, $language);
-    PlacementTestAttempt::factory()->create([
+    $placement = PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,
-        'completed_at' => now(),
+        'completed_at' => '2026-09-01 10:00:00',
     ]);
+    PlacementTestResponse::factory()->create(['attempt_id' => $placement->id]);
+    $writingRetake = PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'skill' => Skill::Writing,
+        'completed_at' => '2026-09-28 10:00:00',
+    ]);
+    PlacementTestResponse::factory()->create(['attempt_id' => $writingRetake->id, 'skill' => Skill::Writing]);
 
     UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Reading, 'cefr_level' => CefrLevel::A1]);
     UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Listening, 'cefr_level' => CefrLevel::B1]);
     UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Speaking, 'cefr_level' => CefrLevel::B1]);
-    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Writing, 'cefr_level' => CefrLevel::B2]);
+    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Writing, 'cefr_level' => CefrLevel::A1]);
 
     $this->actingAs($user)
         ->get(route('dashboard'))
@@ -80,11 +90,17 @@ it('explains the ceiling when a placement-only skill pins the blended level', fu
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard')
             ->where('blendedLevel', CefrLevel::A1->value)
-            ->where('blendedLevelCeiling', [Skill::Reading->value]),
+            ->where('blendedLevelCeiling', [Skill::Reading->value, Skill::Writing->value])
+            ->where('retakeAvailableOn', [
+                Skill::Reading->value => null,
+                Skill::Listening->value => null,
+                Skill::Speaking->value => null,
+                Skill::Writing->value => '2026-10-05',
+            ]),
         );
 });
 
-it('reports no ceiling when a practice-progressable skill is the floor', function () {
+it('reports no ceiling when every skill is level', function () {
     $language = Language::factory()->create(['code' => 'es', 'name' => 'Spanish']);
     $user = User::factory()->create();
     (new UnlockLanguageForUser)->handle($user, $language);
@@ -94,17 +110,17 @@ it('reports no ceiling when a practice-progressable skill is the floor', functio
         'completed_at' => now(),
     ]);
 
-    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Reading, 'cefr_level' => CefrLevel::B1]);
-    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Listening, 'cefr_level' => CefrLevel::B1]);
-    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Speaking, 'cefr_level' => CefrLevel::A2]);
-    UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Writing, 'cefr_level' => CefrLevel::B2]);
+    foreach (Skill::cases() as $skill) {
+        UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => $skill, 'cefr_level' => CefrLevel::A2]);
+    }
 
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard')
-            ->where('blendedLevelCeiling', []),
+            ->where('blendedLevelCeiling', [])
+            ->where('retakeAvailableOn', []),
         );
 });
 

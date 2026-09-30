@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions\Placement;
 
-use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 
 final class ComputePlacementProgress
@@ -22,7 +21,7 @@ final class ComputePlacementProgress
      */
     public function handle(PlacementTestAttempt $attempt): int
     {
-        $skills = Skill::cases();
+        $skills = $attempt->skills();
         $perSkillShare = 1 / count($skills);
 
         $completion = 0.0;

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { Check, Minus, X } from '@lucide/vue';
+import RetakeSkillButton from '@/components/RetakeSkillButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { dashboard } from '@/routes';
+import { index as placementIndex } from '@/routes/placement';
 
 interface BreakdownItem {
     prompt: string;
@@ -26,6 +28,8 @@ const props = defineProps<{
         skipped: boolean;
         skills: SkillResult[];
     };
+    retakeAvailableOn: Record<string, string | null>;
+    openAttempt: { skill: string | null } | null;
 }>();
 
 defineOptions({
@@ -63,6 +67,10 @@ const statusMeta: Record<
 const skillsWithItems = props.result.skills.filter(
     (skill) => skill.items.length > 0,
 );
+
+const openAttemptName = props.openAttempt?.skill
+    ? `${(skillLabels[props.openAttempt.skill] ?? props.openAttempt.skill).toLowerCase()} re-take`
+    : 'placement test';
 </script>
 
 <template>
@@ -103,14 +111,44 @@ const skillsWithItems = props.result.skills.filter(
                         <span class="font-medium">{{
                             skill.level ?? '—'
                         }}</span>
+                        <RetakeSkillButton
+                            v-if="!props.openAttempt"
+                            class="mt-2"
+                            :skill="skill.skill"
+                            :available-on="
+                                props.retakeAvailableOn[skill.skill] ?? null
+                            "
+                        />
                     </div>
+                </div>
+                <p
+                    v-if="!props.openAttempt"
+                    class="text-sm text-muted-foreground"
+                >
+                    If a level looks wrong, re-take that skill on its own. The
+                    new result replaces the old one, up or down, and each skill
+                    can be re-taken once a week.
+                </p>
+                <div
+                    v-else
+                    class="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3 text-sm"
+                >
+                    <span>Your {{ openAttemptName }} is still open.</span>
+                    <Button size="sm" as-child>
+                        <Link :href="placementIndex().url">Continue</Link>
+                    </Button>
                 </div>
             </CardContent>
         </Card>
 
         <p v-if="props.result.skipped" class="text-muted-foreground">
-            You skipped the placement test, so every skill starts at A1. Take
-            the test any time to set a more accurate level.
+            You skipped the placement test, so every skill starts at A1.
+            <Link
+                :href="placementIndex().url"
+                class="text-foreground underline underline-offset-4"
+                >Take the test</Link
+            >
+            any time to set a more accurate level.
         </p>
 
         <div v-else class="flex flex-col gap-6">

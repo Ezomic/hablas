@@ -9,6 +9,7 @@ use App\Actions\GetUserSkillLevels;
 use App\Actions\IdentifyBlendedLevelCeiling;
 use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\Placement\DetermineRetakeAvailability;
 use App\Actions\SelectNextUnit;
 use App\Actions\Srs\EvaluateSessionHealth;
 use App\Actions\Srs\ForecastReviewLoad;
@@ -39,6 +40,7 @@ final class DashboardController extends Controller
         EvaluateSessionHealth $evaluateSessionHealth,
         SelectNextUnit $selectNextUnit,
         EvaluatePortugueseActivationEligibility $evaluatePortugueseActivationEligibility,
+        DetermineRetakeAvailability $determineRetakeAvailability,
     ): Response {
         $language = $getCurrentLanguage->handle($this->currentUser());
         $streak = $reconcileStreak->handle($this->currentUser());
@@ -62,15 +64,15 @@ final class DashboardController extends Controller
         }
 
         $skillLevels = $getUserSkillLevels->handle($this->currentUser(), $language);
+        $ceiling = $identifyBlendedLevelCeiling->handle($skillLevels);
         $sessionNeedsRemediation = $evaluateSessionHealth->handle($this->currentUser(), $language);
         $nextUnit = $sessionNeedsRemediation ? null : $selectNextUnit->handle($this->currentUser(), $language);
 
         return Inertia::render('Dashboard', [
             'language' => ['code' => $language->code, 'name' => $language->name],
             'blendedLevel' => $computeBlendedCefrLevel->handle($skillLevels)?->value,
-            'blendedLevelCeiling' => $identifyBlendedLevelCeiling->handle($skillLevels)
-                ->map(fn (Skill $skill): string => $skill->value)
-                ->all(),
+            'blendedLevelCeiling' => $ceiling->map(fn (Skill $skill): string => $skill->value)->all(),
+            'retakeAvailableOn' => $ceiling->isEmpty() ? [] : $determineRetakeAvailability->handle($this->currentUser(), $language),
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
                 $skillLevel->skill->value => $skillLevel->cefr_level->value,
             ]),

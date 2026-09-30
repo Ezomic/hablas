@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import RetakeSkillButton from '@/components/RetakeSkillButton.vue';
 import ReviewForecast from '@/components/ReviewForecast.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,7 @@ interface Props {
     language: Pick<LanguageOption, 'code' | 'name'> | null;
     blendedLevel?: string | null;
     blendedLevelCeiling?: string[];
+    retakeAvailableOn?: Record<string, string | null>;
     skillLevels?: Record<string, string>;
     streak?: Streak;
     dueReviewCount?: number;
@@ -74,11 +76,17 @@ defineOptions({
 
 const breakdownOpen = ref(false);
 
-const ceilingSkillNames = computed(() =>
-    (props.blendedLevelCeiling ?? [])
-        .map((skill) => skillLabels[skill] ?? skill)
-        .join(' and '),
-);
+const ceilingSkills = computed(() => props.blendedLevelCeiling ?? []);
+
+const ceilingSkillNames = computed(() => {
+    const names = ceilingSkills.value.map((skill) =>
+        (skillLabels[skill] ?? skill).toLowerCase(),
+    );
+
+    return names.length > 1
+        ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+        : (names[0] ?? '');
+});
 </script>
 
 <template>
@@ -93,14 +101,32 @@ const ceilingSkillNames = computed(() =>
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <p
-                    v-if="ceilingSkillNames"
-                    class="mb-4 text-sm text-muted-foreground"
+                <div
+                    v-if="ceilingSkills.length"
+                    class="mb-4 flex flex-col gap-3 text-sm text-muted-foreground"
                 >
-                    Your overall level is held by {{ ceilingSkillNames }}, which
-                    the placement test sets and daily practice doesn't yet move.
-                    Your other skills have already climbed higher.
-                </p>
+                    <p v-if="ceilingSkills.length === 1">
+                        Your overall level is held by {{ ceilingSkillNames }}.
+                        Practice {{ ceilingSkillNames }} to move it, or re-take
+                        the {{ ceilingSkillNames }} placement if that level
+                        looks wrong.
+                    </p>
+                    <p v-else>
+                        Your overall level is held by {{ ceilingSkillNames }}.
+                        Practice them to move it, or re-take a placement if one
+                        of those levels looks wrong.
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <RetakeSkillButton
+                            v-for="skill in ceilingSkills"
+                            :key="skill"
+                            :skill="skill"
+                            :available-on="
+                                props.retakeAvailableOn?.[skill] ?? null
+                            "
+                        />
+                    </div>
+                </div>
                 <Collapsible v-model:open="breakdownOpen">
                     <CollapsibleTrigger
                         class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

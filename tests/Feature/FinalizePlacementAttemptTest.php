@@ -74,3 +74,29 @@ it('records when it set each skill level, including a level it left unchanged', 
         ->each->toBe(now()->toDateTimeString())
         ->and($unchanged->fresh()?->cefr_level)->toBe(CefrLevel::A1);
 });
+
+it('writes only the skill of a one-skill attempt, and records only when that one was set', function () {
+    $attempt = PlacementTestAttempt::factory()->create(['skill' => Skill::Listening]);
+    $reading = UserSkillLevel::factory()->create([
+        'user_id' => $attempt->user_id,
+        'language_id' => $attempt->language_id,
+        'skill' => Skill::Reading,
+        'cefr_level' => CefrLevel::B1,
+        'level_set_at' => '2026-09-01 10:00:00',
+    ]);
+    PlacementTestResponse::factory()->count(2)->create([
+        'attempt_id' => $attempt->id,
+        'skill' => Skill::Listening,
+        'is_correct' => true,
+    ]);
+
+    $finalized = (new FinalizePlacementAttempt)->handle($attempt);
+
+    $levels = UserSkillLevel::query()->where('user_id', $attempt->user_id)->where('language_id', $attempt->language_id)->get();
+
+    expect($finalized->resulting_skill_levels)->toBe(['listening' => ['cefr_level' => 'A2', 'sub_level' => 'A2.2']])
+        ->and($levels)->toHaveCount(2)
+        ->and($levels->firstWhere('skill', Skill::Listening)?->cefr_level)->toBe(CefrLevel::A2)
+        ->and($reading->fresh()?->cefr_level)->toBe(CefrLevel::B1)
+        ->and($reading->fresh()?->level_set_at?->toDateTimeString())->toBe('2026-09-01 10:00:00');
+});

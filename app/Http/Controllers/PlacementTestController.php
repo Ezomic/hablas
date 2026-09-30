@@ -8,12 +8,16 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\NotifyOnBlendedLevelIncrease;
 use App\Actions\Placement\BuildPlacementResult;
 use App\Actions\Placement\ComputePlacementProgress;
+use App\Actions\Placement\DetermineRetakeAvailability;
 use App\Actions\Placement\FinalizePlacementAttempt;
 use App\Actions\Placement\GetCurrentPlacementItem;
 use App\Actions\Placement\GetOrCreateInProgressPlacementAttempt;
+use App\Actions\Placement\HasTakenPlacementTest;
 use App\Actions\Placement\RecordPlacementResponse;
 use App\Actions\Placement\SkipPlacementTest;
+use App\Actions\Placement\StartSkillPlacement;
 use App\Concerns\InteractsWithCurrentUser;
+use App\Enums\Skill;
 use App\Http\Requests\AnswerPlacementItemRequest;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestItem;
@@ -37,10 +41,16 @@ final class PlacementTestController extends Controller
         FinalizePlacementAttempt $finalizePlacementAttempt,
         NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease,
         ComputePlacementProgress $computePlacementProgress,
+        HasTakenPlacementTest $hasTakenPlacementTest,
     ): Response|RedirectResponse {
         $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
         $attempt = $getOrCreateInProgressPlacementAttempt->handle($this->currentUser(), $language);
+
+        if ($attempt === null) {
+            return redirect()->route('placement.results');
+        }
+
         $item = $getCurrentPlacementItem->handle($attempt);
 
         if ($item === null) {
@@ -63,7 +73,18 @@ final class PlacementTestController extends Controller
             'language' => ['code' => $language->code, 'name' => $language->name],
             'dontKnowResponse' => PlacementTestResponse::DONT_KNOW,
             'progress' => $computePlacementProgress->handle($attempt),
+            'skill' => $attempt->skill?->value,
+            'canSkip' => $attempt->skill === null && ! $hasTakenPlacementTest->handle($this->currentUser(), $language),
         ]);
+    }
+
+    public function retake(Request $request, Skill $skill, GetCurrentLanguage $getCurrentLanguage, StartSkillPlacement $startSkillPlacement): RedirectResponse
+    {
+        $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
+
+        $startSkillPlacement->handle($this->currentUser(), $language, $skill);
+
+        return redirect()->route('placement.index');
     }
 
     public function answer(
@@ -120,34 +141,49 @@ final class PlacementTestController extends Controller
         ]);
     }
 
-    public function results(Request $request, GetCurrentLanguage $getCurrentLanguage, BuildPlacementResult $buildPlacementResult): Response|RedirectResponse
-    {
+    public function results(
+        Request $request,
+        GetCurrentLanguage $getCurrentLanguage,
+        BuildPlacementResult $buildPlacementResult,
+        DetermineRetakeAvailability $determineRetakeAvailability,
+    ): Response|RedirectResponse {
         $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
-        $attempt = PlacementTestAttempt::query()
+        $attempts = PlacementTestAttempt::query()
             ->where('user_id', $this->currentUser()->id)
-            ->where('language_id', $language->id)
+            ->where('language_id', $language->id);
+
+        $completed = (clone $attempts)
             ->whereNotNull('completed_at')
             ->latest('completed_at')
-            ->first();
+            ->latest('id')
+            ->get();
 
-        if ($attempt === null) {
+        if ($completed->isEmpty()) {
             return redirect()->route('placement.index');
         }
 
+        $inProgress = (clone $attempts)->whereNull('completed_at')->first();
+
         return Inertia::render('placement/Results', [
             'language' => ['code' => $language->code, 'name' => $language->name],
-            'result' => $buildPlacementResult->handle($attempt),
+            'result' => $buildPlacementResult->handle($completed),
+            'retakeAvailableOn' => $determineRetakeAvailability->handle($this->currentUser(), $language),
+            'openAttempt' => $inProgress === null ? null : ['skill' => $inProgress->skill?->value],
         ]);
     }
 
+    /**
+     * Skipping is refused once a placement was taken and during a re-take;
+     * the placement page then shows whichever of the two applies.
+     */
     public function skip(Request $request, SkipPlacementTest $skipPlacementTest, GetCurrentLanguage $getCurrentLanguage): RedirectResponse
     {
         $language = $getCurrentLanguage->handle($this->currentUser()) ?? abort(404);
 
-        $skipPlacementTest->handle($this->currentUser(), $language);
+        $skipped = $skipPlacementTest->handle($this->currentUser(), $language);
 
-        return redirect()->route('dashboard');
+        return redirect()->route($skipped === null ? 'placement.index' : 'dashboard');
     }
 
     /** @return array{id: int, skill: string, prompt: string, options: array<int, string>} */

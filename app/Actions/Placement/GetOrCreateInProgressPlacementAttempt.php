@@ -11,9 +11,19 @@ use Illuminate\Support\Facades\DB;
 
 final class GetOrCreateInProgressPlacementAttempt
 {
-    public function handle(User $user, Language $language): PlacementTestAttempt
+    public function __construct(
+        private readonly HasTakenPlacementTest $hasTakenPlacementTest = new HasTakenPlacementTest,
+    ) {}
+
+    /**
+     * The attempt in progress, full test or re-take, or else a new full test.
+     * The full test places a learner once, or replaces a skip: null once they
+     * have taken a placement, since from then on a skill is re-placed on its
+     * own, under StartSkillPlacement's cooldown.
+     */
+    public function handle(User $user, Language $language): ?PlacementTestAttempt
     {
-        return DB::transaction(function () use ($user, $language): PlacementTestAttempt {
+        return DB::transaction(function () use ($user, $language): ?PlacementTestAttempt {
             $attempt = PlacementTestAttempt::query()
                 ->where('user_id', $user->id)
                 ->where('language_id', $language->id)
@@ -23,6 +33,10 @@ final class GetOrCreateInProgressPlacementAttempt
 
             if ($attempt !== null) {
                 return $attempt;
+            }
+
+            if ($this->hasTakenPlacementTest->handle($user, $language)) {
+                return null;
             }
 
             return PlacementTestAttempt::query()->create([

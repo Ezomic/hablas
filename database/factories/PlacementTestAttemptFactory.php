@@ -26,6 +26,7 @@ class PlacementTestAttemptFactory extends Factory
             'language_id' => Language::factory(),
             'started_at' => now(),
             'completed_at' => null,
+            'skipped' => false,
             'resulting_skill_levels' => null,
         ];
     }

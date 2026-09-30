@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,8 @@ const props = defineProps<{
     language: { code: string; name: string };
     dontKnowResponse: string;
     progress: number;
+    skill: string | null;
+    canSkip: boolean;
 }>();
 
 defineOptions({
@@ -36,6 +38,18 @@ const skillLabels: Record<string, string> = {
     speaking: 'Speaking',
     writing: 'Writing',
 };
+
+const retakeSkillName = computed(() =>
+    props.skill
+        ? (skillLabels[props.skill] ?? props.skill).toLowerCase()
+        : null,
+);
+
+const title = computed(() =>
+    retakeSkillName.value
+        ? `${props.language.name} ${retakeSkillName.value} re-placement`
+        : `${props.language.name} placement test`,
+);
 
 const currentItem = ref(props.item);
 const progress = ref(props.progress);
@@ -101,14 +115,17 @@ function skipTest() {
 </script>
 
 <template>
-    <Head :title="`${props.language.name} placement test`" />
+    <Head :title="title" />
 
     <div class="mx-auto flex max-w-2xl flex-col gap-8 p-4">
         <div>
-            <h1 class="text-2xl font-semibold">
-                {{ props.language.name }} placement test
-            </h1>
-            <p class="mt-1 text-muted-foreground">
+            <h1 class="text-2xl font-semibold">{{ title }}</h1>
+            <p v-if="retakeSkillName" class="mt-1 text-muted-foreground">
+                Answer each question, and the next one adjusts to how you're
+                doing. This sets your {{ retakeSkillName }} level again, up or
+                down. Your other skills keep theirs.
+            </p>
+            <p v-else class="mt-1 text-muted-foreground">
                 Answer each question — the next one adjusts to how you're doing.
                 This sets your starting CEFR level for reading, listening,
                 speaking, and writing separately.
@@ -176,7 +193,10 @@ function skipTest() {
             </div>
         </div>
 
-        <div class="border-t pt-6 text-center text-sm text-muted-foreground">
+        <div
+            v-if="props.canSkip"
+            class="border-t pt-6 text-center text-sm text-muted-foreground"
+        >
             Not ready for a test?
             <button
                 type="button"

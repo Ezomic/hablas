@@ -17,10 +17,11 @@ it('sets all four skills to A1 and marks the attempt completed', function () {
 
     $attempt = (new SkipPlacementTest)->handle($user, $language);
 
-    expect($attempt->completed_at)->not->toBeNull();
+    expect($attempt?->completed_at)->not->toBeNull()
+        ->and($attempt?->fresh()?->skipped)->toBeTrue();
 
     foreach (Skill::cases() as $skill) {
-        expect($attempt->resulting_skill_levels[$skill->value])->toBe(['cefr_level' => 'A1', 'sub_level' => 'A1.1']);
+        expect($attempt?->resulting_skill_levels[$skill->value] ?? null)->toBe(['cefr_level' => 'A1', 'sub_level' => 'A1.1']);
 
         $skillLevel = UserSkillLevel::query()
             ->where('user_id', $user->id)
@@ -48,6 +49,36 @@ it('finalizes an already in-progress attempt instead of creating a second one', 
 
     $attempt = (new SkipPlacementTest)->handle($user, $language);
 
-    expect($attempt->id)->toBe($existing->id)
+    expect($attempt?->id)->toBe($existing->id)
+        ->and($attempt?->fresh()?->skipped)->toBeTrue()
         ->and(PlacementTestAttempt::query()->where('user_id', $user->id)->count())->toBe(1);
+});
+
+it('does not skip a one-skill re-take', function () {
+    $language = Language::factory()->create();
+    $user = User::factory()->create();
+    $retake = PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'skill' => Skill::Reading,
+    ]);
+
+    expect((new SkipPlacementTest)->handle($user, $language))->toBeNull()
+        ->and($retake->fresh()?->completed_at)->toBeNull()
+        ->and(UserSkillLevel::query()->where('user_id', $user->id)->exists())->toBeFalse();
+});
+
+it('does not skip once a placement was taken', function () {
+    $language = Language::factory()->create();
+    $user = User::factory()->create();
+    $taken = PlacementTestAttempt::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'completed_at' => now(),
+    ]);
+    PlacementTestResponse::factory()->create(['attempt_id' => $taken->id]);
+
+    expect((new SkipPlacementTest)->handle($user, $language))->toBeNull()
+        ->and(PlacementTestAttempt::query()->where('user_id', $user->id)->count())->toBe(1)
+        ->and(UserSkillLevel::query()->where('user_id', $user->id)->exists())->toBeFalse();
 });

@@ -9,17 +9,21 @@ use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestResponse;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 final class BuildPlacementResult
 {
     /**
-     * Assemble the review payload for a completed placement attempt: the
-     * blended level, the per-skill CEFR level it set (as a sub-level like
-     * "A2.1" when available), and a per-question breakdown (prompt, the
+     * Assemble the review payload for a learner's completed placement
+     * attempts: the blended level, the per-skill CEFR level (as a sub-level
+     * like "A2.1" when available), and a per-question breakdown (prompt, the
      * learner's answer, the correct answer, and whether they got it right,
-     * wrong, or abstained).
+     * wrong, or abstained). Each skill comes from the newest attempt that
+     * placed it, so a one-skill re-take shows beside the full test's other
+     * three skills.
      *
+     * @param  Collection<int, PlacementTestAttempt>  $attempts  Completed, newest first.
      * @return array{
      *     completedAt: string|null,
      *     blendedLevel: string|null,
@@ -31,21 +35,21 @@ final class BuildPlacementResult
      *     }>
      * }
      */
-    public function handle(PlacementTestAttempt $attempt): array
+    public function handle(Collection $attempts): array
     {
-        $resulting = $attempt->resulting_skill_levels ?? [];
-
-        $responsesBySkill = $attempt->responses()
-            ->with('item')
-            ->orderBy('id')
-            ->get()
-            ->groupBy(fn (PlacementTestResponse $response): string => $response->skill->value);
-
         $subLevels = [];
         $parentLevels = [];
         $skills = [];
+        $responsesByAttempt = [];
 
         foreach (Skill::cases() as $skill) {
+            $attempt = $attempts->first(fn (PlacementTestAttempt $attempt): bool => in_array($skill, $attempt->skills(), true));
+            $resulting = $attempt->resulting_skill_levels ?? [];
+
+            if ($attempt !== null) {
+                $responsesByAttempt[$attempt->id] ??= $this->responsesBySkill($attempt);
+            }
+
             $subLevel = $this->subLevelFor($resulting, $skill);
             $parentLevel = $this->parentLevelFor($resulting, $skill);
 
@@ -60,28 +64,48 @@ final class BuildPlacementResult
             $skills[] = [
                 'skill' => $skill->value,
                 'level' => $subLevel !== null ? $subLevel->value : $parentLevel?->value,
-                'items' => $this->breakdownFor($responsesBySkill->get($skill->value)),
+                'items' => $this->breakdownFor($attempt === null ? null : $responsesByAttempt[$attempt->id]->get($skill->value)),
             ];
         }
 
         return [
-            'completedAt' => $attempt->completed_at?->toIso8601String(),
+            'completedAt' => $attempts->first()?->completed_at?->toIso8601String(),
             'blendedLevel' => $this->blendedLevel($subLevels, $parentLevels),
-            'skipped' => $attempt->responses()->doesntExist(),
+            'skipped' => collect($responsesByAttempt)->every(fn (Collection $responses): bool => $responses->isEmpty()),
             'skills' => $skills,
         ];
     }
 
     /**
-     * Prefer the finer sub-level scale ("A2.1") when the attempt recorded it;
-     * fall back to the parent level for old attempts that only stored "A2".
+     * A skip placed nothing from the answers given before it, so they neither
+     * show in the breakdown nor make the result a taken test.
+     *
+     * @return Collection<array-key, EloquentCollection<int, PlacementTestResponse>>
+     */
+    private function responsesBySkill(PlacementTestAttempt $attempt): Collection
+    {
+        if ($attempt->skipped) {
+            return new Collection;
+        }
+
+        return $attempt->responses()
+            ->with('item')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (PlacementTestResponse $response): string => $response->skill->value);
+    }
+
+    /**
+     * Prefer the finer sub-level scale ("A2.1") when every skill recorded it;
+     * fall back to the parent level when any skill comes from an old attempt
+     * that only stored "A2", so that skill still counts towards the minimum.
      *
      * @param  list<CefrSubLevel>  $subLevels
      * @param  list<CefrLevel>  $parentLevels
      */
     private function blendedLevel(array $subLevels, array $parentLevels): ?string
     {
-        if ($subLevels !== []) {
+        if ($subLevels !== [] && count($subLevels) === count($parentLevels)) {
             return CefrSubLevel::lowest(...$subLevels)->value;
         }
 
