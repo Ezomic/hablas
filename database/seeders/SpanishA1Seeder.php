@@ -177,7 +177,7 @@ class SpanishA1Seeder extends Seeder
                 'interest_tags' => [InterestTag::Food, InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'el restaurante', 'translation_en' => 'restaurant', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'el menú', 'translation_en' => 'menu', 'is_cognate' => true, 'part_of_speech' => 'noun', 'contrast_note' => 'This is the list of dishes. In Spain la carta means the same and is also accepted.'],
+                    ['term' => 'el menú', 'translation_en' => 'menu', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'la cuenta', 'translation_en' => 'bill / check', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'quisiera', 'translation_en' => 'I would like', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'para beber', 'translation_en' => 'to drink', 'is_cognate' => false, 'part_of_speech' => 'phrase'],

@@ -26,7 +26,7 @@ final class OrderingFoodAtARestaurant implements UnitContent
     {
         return [
             new WordData('el restaurante', cue: 'restaurant'),
-            new WordData('el menú', cue: 'menu (the list of dishes)', accepted: ['la carta']),
+            new WordData('el menú', cue: 'menu (the list of dishes)', accepted: ['la carta'], note: 'This is the list of dishes. In Spain la carta means the same and is also accepted.'),
             new WordData('la cuenta', cue: 'bill (to pay at the end)'),
             new WordData('quisiera', cue: 'I would like', accepted: ['me gustaría', 'yo quisiera']),
             new WordData('para beber', cue: 'to drink (as in something to drink)', accepted: ['de beber', 'algo de beber', 'algo para beber']),

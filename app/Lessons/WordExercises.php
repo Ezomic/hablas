@@ -47,7 +47,7 @@ final class WordExercises
                     'translation' => $info->item->translation_en,
                     'part_of_speech' => $info->partOfSpeech(),
                     'is_cognate' => $info->item->is_cognate,
-                    'contrast_note' => $info->item->contrast_note,
+                    'contrast_note' => $info->data->note ?? $info->item->contrast_note,
                 ], [$this->target($info)]);
             }
 
