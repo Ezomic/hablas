@@ -34,6 +34,6 @@ final class SpanishTextNormalizer extends AccentFoldingTextNormalizer
      */
     public function accentWords(): array
     {
-        return ['él', 'tú', 'mí', 'sí', 'té', 'más', 'sé', 'dé', 'qué', 'cómo', 'dónde', 'cuándo', 'quién', 'cuál', 'cuánto', 'está', 'estás', 'papá', 'mamá'];
+        return ['él', 'tú', 'mí', 'sí', 'té', 'más', 'sé', 'dé', 'qué', 'cómo', 'dónde', 'cuándo', 'quién', 'cuál', 'cuánto', 'está', 'estás', 'papá', 'mamá', 'habló', 'aún'];
     }
 }

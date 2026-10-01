@@ -41,6 +41,6 @@ final class PortugueseTextNormalizer extends AccentFoldingTextNormalizer
      */
     public function accentWords(): array
     {
-        return ['é', 'à', 'está', 'estás', 'lá', 'têm', 'vêm', 'pôr', 'quê', 'porquê', 'más', 'avó', 'avô'];
+        return ['é', 'à', 'está', 'estás', 'lá', 'têm', 'vêm', 'pôr', 'quê', 'porquê', 'más', 'avó', 'avô', 'país', 'dá', 'nós', 'às', 'pôde'];
     }
 }

@@ -69,6 +69,32 @@ describe('AccentComparer', function () {
         'nasal marks are never forgiven' => ['pt', 'pão', 'pao', null],
         'ç is never forgiven' => ['pt', 'maçã', 'maca', null],
         'a different word' => ['es', 'baño', 'llave', null],
+        'país is not pais' => ['pt', 'país', 'pais', AccentVerdict::OtherWord],
+        'dá is not da' => ['pt', 'dá', 'da', AccentVerdict::OtherWord],
+        'nós is not nos' => ['pt', 'nós', 'nos', AccentVerdict::OtherWord],
+        'às is not as' => ['pt', 'às', 'as', AccentVerdict::OtherWord],
+        'pôde is not pode' => ['pt', 'pôde', 'pode', AccentVerdict::OtherWord],
+        'habló is not hablo' => ['es', 'habló', 'hablo', AccentVerdict::OtherWord],
+        'aún is not aun' => ['es', 'aún', 'aun', AccentVerdict::OtherWord],
+    ]);
+
+    it('is wrong at every stage when the accent that tells two words apart is dropped', function (string $code, string $expected, string $given) {
+        $language = $code === 'es' ? LessonWorld::spanish() : Language::factory()->create(['code' => $code]);
+
+        foreach ([LessonStage::Recall, LessonStage::Task, LessonStage::Check] as $stage) {
+            $exercise = typedExercise($language, $stage, [$expected]);
+
+            expect(gradeText($exercise, $expected)->correct)->toBeTrue()
+                ->and(gradeText($exercise, $given)->correct)->toBeFalse();
+        }
+    })->with([
+        ['pt', 'o país', 'o pais'],
+        ['pt', 'dá', 'da'],
+        ['pt', 'nós', 'nos'],
+        ['pt', 'às', 'as'],
+        ['pt', 'pôde', 'pode'],
+        ['es', 'habló', 'hablo'],
+        ['es', 'aún', 'aun'],
     ]);
 
     it('keeps accents in the exact key and folds them in the answer key', function () {
@@ -236,6 +262,14 @@ describe('Portuguese', function () {
         expect(gradeText($pao, 'o pao')->correct)->toBeFalse()
             ->and(gradeText($pao, 'o pão')->correct)->toBeTrue();
     });
+
+    it('does not accept an extra typed word, in a lesson or a check', function (LessonStage $stage) {
+        $exercise = typedExercise(LessonWorld::spanish(), $stage, ['el desayuno']);
+
+        expect(gradeText($exercise, 'el desayuno')->correct)->toBeTrue()
+            ->and(gradeText($exercise, 'el desayuno incluido')->correct)->toBeFalse()
+            ->and(gradeText($exercise, 'muy el desayuno')->correct)->toBeFalse();
+    })->with([LessonStage::Recall, LessonStage::Check]);
 
     it('treats ano as another word than año in Spanish', function () {
         $exercise = typedExercise(LessonWorld::spanish(), LessonStage::Recall, ['el año']);
