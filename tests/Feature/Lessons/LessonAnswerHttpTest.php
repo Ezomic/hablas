@@ -151,3 +151,25 @@ it('still records an answer queued before the learner switched language', functi
     expect(Unit::query()->find($this->unit->id)->language_id)->not->toBe($portuguese->id)
         ->and(LessonAnswer::query()->count())->toBe(1);
 });
+
+it('refuses an oversized response instead of storing it', function (array $response) {
+    $exercise = ($this->exercise)('type_word');
+
+    ($this->post)(['exercise_id' => $exercise->id, 'response' => $response])->assertUnprocessable();
+
+    expect(LessonAnswer::query()->count())->toBe(0);
+})->with([
+    'a long choice' => [['choice' => str_repeat('a', 501)]],
+    'a long text' => [['text' => str_repeat('a', 1001)]],
+    'too many wrong tiles' => [['wrong' => array_fill(0, 41, 'a')]],
+    'a long wrong tile' => [['wrong' => [str_repeat('a', 201)]]],
+    'too many choices' => [['choices' => array_fill(0, 21, 'a')]],
+    'a long choice in a passage' => [['choices' => [str_repeat('a', 501)]]],
+    'too many keys' => [array_fill_keys(array_map(fn (int $index): string => "k{$index}", range(1, 11)), 'a')],
+]);
+
+it('accepts a response at the size limits', function () {
+    $exercise = ($this->exercise)('type_word');
+
+    ($this->post)(['exercise_id' => $exercise->id, 'response' => ['text' => str_repeat('a', 1000), 'choice' => str_repeat('a', 500), 'wrong' => array_fill(0, 40, str_repeat('a', 200)), 'choices' => array_fill(0, 20, str_repeat('a', 500))]])->assertOk();
+});

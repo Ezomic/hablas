@@ -21,19 +21,25 @@ describe('lessons:review-sheet', function () {
         $this->seed(SpanishA1Seeder::class);
     });
 
-    it('renders the words, their open questions, the grammar card and the generated exercises', function () {
+    it('renders the words, the grammar card and the generated exercises, with no questions section once every question is answered', function () {
         $this->artisan('lessons:review-sheet', ['language' => 'es', 'unit' => 'checking-into-a-hotel'])->assertSuccessful();
         Artisan::call('lessons:review-sheet', ['language' => 'es', 'unit' => 'checking-into-a-hotel']);
 
         expect(Artisan::output())->toContain(
             '# Review sheet: Checking into a hotel',
             '| el recepcionista | noun | receptionist | receptionist (at the hotel desk) |  |  | yes |',
-            '## Questions for the reviewer',
-            '- el recepcionista: Common gender',
             '- El hotel está cerca. (The hotel is near.)',
             '- choose_meaning: el hotel | options:',
             '- type_word (check set a): hotel | accepted: el hotel',
-        );
+        )->not->toContain('## Questions for the reviewer');
+    });
+
+    it('prints the open questions of a word under their own heading', function () {
+        app()->instance(UnitContentRegistry::class, new UnitContentRegistry([new ArrayContent(words: [new WordData('el recepcionista', questions: ['Common gender: is la recepcionista also right?'])])]));
+
+        Artisan::call('lessons:review-sheet', ['language' => 'es', 'unit' => 'checking-into-a-hotel']);
+
+        expect(Artisan::output())->toContain('## Questions for the reviewer', '- el recepcionista: Common gender: is la recepcionista also right?');
     });
 
     it('leaves the check out of the owner sheet, so no answer key is read before the check is taken', function () {

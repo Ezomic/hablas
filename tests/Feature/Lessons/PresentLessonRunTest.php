@@ -11,6 +11,7 @@ use App\Enums\LessonRunKind;
 use App\Enums\LessonStage;
 use App\Models\LessonExercise;
 use App\Models\LessonRun;
+use Illuminate\Support\Str;
 use Tests\Fixtures\Lessons\HotelContent;
 use Tests\Fixtures\Lessons\LessonWorld;
 
@@ -86,6 +87,28 @@ it('leaves the answer keys out of a check, which gives no verdict', function () 
     LessonWorld::answer($this->user, $run, LessonExercise::query()->findOrFail($run->plan[0]['id']));
 
     expect((new PresentLessonRun)->handle($run->fresh())['answers'][0]['correct'])->toBeNull();
+});
+
+it('does not leak the answer through the exercise keys of a check', function () {
+    LessonWorld::finishTeachingLessons($this->user, $this->unit);
+    $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check);
+    $props = (new PresentLessonRun)->handle($run);
+    $exercises = LessonExercise::query()->whereIn('id', $run->planExerciseIds())->where('format', 'type_word')->get();
+
+    expect($exercises)->not->toBeEmpty();
+
+    foreach ($exercises as $exercise) {
+        $entry = collect($props['plan'])->firstWhere('id', $exercise->id);
+        $json = json_encode($entry, JSON_THROW_ON_ERROR);
+
+        foreach ($exercise->payload['accepted'] as $accepted) {
+            $answer = is_array($accepted) ? (string) $accepted['text'] : (string) $accepted;
+
+            expect($json)->not->toContain(Str::slug($answer))->not->toContain($answer);
+        }
+
+        expect($entry['key'])->toBe((string) $exercise->id);
+    }
 });
 
 it('presents a passage\'s questions without their answers in a check', function () {

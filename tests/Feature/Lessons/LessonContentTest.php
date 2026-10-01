@@ -10,6 +10,9 @@ use App\Enums\LessonExerciseFormat as Format;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonStage;
 use App\Enums\MasteryScope;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseDefinition;
 use App\Lessons\LessonDefinition;
 use App\Lessons\PreviewContent;
@@ -25,6 +28,7 @@ use App\Services\UnitContentRegistry;
 use Database\Seeders\ContentSeeder;
 use Database\Seeders\LanguageSeeder;
 use Database\Seeders\SpanishA1Seeder;
+use Tests\Fixtures\Lessons\ArrayContent;
 use Tests\Fixtures\Lessons\LessonWorld;
 
 const SPANISH_FAMILIES = [ExerciseFamily::Choice, ExerciseFamily::Writing];
@@ -157,17 +161,39 @@ describe('the Spanish word data', function () {
 });
 
 describe('the review gate', function () {
-    it('leaves every unit unreviewed, so its content is not reachable', function () {
+    it('releases the words of every unit on its independent AI review, and no unit lessons yet', function () {
         foreach ($this->contents as $content) {
-            expect($content->reviews())->toBe([])
-                ->and(ReviewGate::wordsReleased($content))->toBeFalse();
+            expect(ReviewGate::wordsReleased($content))->toBeTrue()
+                ->and(ReviewGate::lessonsReleased($content))->toBeFalse()
+                ->and(collect($content->reviews())->contains(fn ($review): bool => $review->kind === ReviewKind::IndependentAi && $review->scope === ReviewScope::Words))->toBeTrue();
         }
     });
 
-    it('seeds no lesson through ContentSeeder while no review is recorded', function () {
+    it('releases nothing on any review other than the independent AI review of the words', function (array $reviews) {
+        $content = new ArrayContent(reviews: $reviews);
+
+        expect(ReviewGate::wordsReleased($content))->toBeFalse()
+            ->and(ReviewGate::lessonsReleased($content))->toBeFalse();
+    })->with([
+        'no review' => [[]],
+        'the owner on the words' => [[new ContentReview(ReviewKind::Owner, ReviewScope::Words, 'owner', '2026-10-01')]],
+        'the independent AI on the lessons' => [[new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'ai', '2026-10-01')]],
+    ]);
+
+    it('seeds the words-only lessons of every released unit through ContentSeeder', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(0);
+        expect(Lesson::query()->count())->toBe(24)
+            ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall']);
+    });
+
+    it('seeds nothing for a unit that has no review recorded, and it stays unreachable', function () {
+        app()->instance(UnitContentRegistry::class, new UnitContentRegistry([new ArrayContent(words: [], reviews: [])]));
+
+        $this->seed(ContentSeeder::class);
+
+        expect(Lesson::query()->count())->toBe(0)
+            ->and(Lesson::query()->playable()->count())->toBe(0);
     });
 });
 

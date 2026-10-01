@@ -162,11 +162,24 @@ it('skips content for a unit that is not in the database', function () {
     expect(Lesson::query()->count())->toBe(0);
 });
 
-it('seeds nothing and breaks nothing when no unit has content yet', function () {
+it('seeds nothing and breaks nothing when no unit has content', function () {
+    app()->instance(UnitContentRegistry::class, new UnitContentRegistry([]));
+
     $this->seed(ContentSeeder::class);
 
     expect(Lesson::query()->count())->toBe(0)
         ->and(User::query()->count())->toBe(0);
+});
+
+it('seeds the same lessons on a second pass over the real content, and writes nothing', function () {
+    $this->seed(ContentSeeder::class);
+    $before = [Lesson::query()->count(), LessonExercise::query()->count()];
+    $writes = writesDuring(fn () => $this->seed(LessonSeeder::class));
+
+    expect($before[0])->toBe(24)
+        ->and($before[1])->toBeGreaterThan(0)
+        ->and([Lesson::query()->count(), LessonExercise::query()->count()])->toBe($before)
+        ->and($writes)->toBe([]);
 });
 
 it('finds no content classes in an empty content folder', function () {

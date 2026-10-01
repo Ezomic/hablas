@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Actions\Lessons\ReopenUncheckedUnits;
 use App\Actions\Lessons\StartLessonRun;
 use App\Enums\LessonRunKind;
+use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
 use App\Enums\UnitProgressStatus;
+use App\Models\LessonRun;
 use App\Models\SrsCard;
 use App\Models\UserUnitProgress;
 use App\Services\UnitContentRegistry;
@@ -52,6 +54,38 @@ it('leaves a unit completed through its check alone', function () {
     expect(UserUnitProgress::query()->sole()->status)->toBe(UnitProgressStatus::Completed)
         ->and((new ReopenUncheckedUnits)->handle())->toBe(0);
 });
+
+it('leaves a unit completed through a test-out or a retake alone', function (LessonRunKind $kind) {
+    [$unit] = LessonWorld::seededHotel();
+    $this->unit = $unit;
+    ($this->completed)();
+    LessonRun::factory()->create([
+        'user_id' => $this->user->id,
+        'lesson_id' => LessonWorld::lesson($unit, LessonStage::Check)->id,
+        'kind' => $kind,
+        'status' => LessonRunStatus::Completed,
+    ]);
+
+    expect((new ReopenUncheckedUnits)->handle())->toBe(0)
+        ->and(UserUnitProgress::query()->sole()->status)->toBe(UnitProgressStatus::Completed);
+})->with([LessonRunKind::TestOut, LessonRunKind::Retake]);
+
+it('still reopens a unit whose only completed run is a plain lesson or an unfinished check', function (LessonRunKind $kind, LessonRunStatus $status) {
+    [$unit] = LessonWorld::seededHotel();
+    $this->unit = $unit;
+    ($this->completed)();
+    LessonRun::factory()->create([
+        'user_id' => $this->user->id,
+        'lesson_id' => LessonWorld::lesson($unit, LessonStage::Meet)->id,
+        'kind' => $kind,
+        'status' => $status,
+    ]);
+
+    expect((new ReopenUncheckedUnits)->handle())->toBe(1);
+})->with([
+    'a completed lesson' => [LessonRunKind::Lesson, LessonRunStatus::Completed],
+    'an unfinished test-out' => [LessonRunKind::TestOut, LessonRunStatus::InProgress],
+]);
 
 it('does nothing on a second pass', function () {
     [$this->unit] = LessonWorld::seededHotel();

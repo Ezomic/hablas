@@ -29,7 +29,8 @@ final class PresentLessonRun
      * stage's settings and, once completed, the stored result.
      *
      * A check-kind run gives no verdict, so its payloads carry no answer
-     * keys: nothing on the device can show or grade them. Once a run is
+     * keys: nothing on the device can show or grade them, and the exercise
+     * key, which names the word, is replaced by the id. Once a run is
      * completed it also carries its summary and the lesson to play next.
      *
      * @return array<string, mixed>
@@ -131,7 +132,7 @@ final class PresentLessonRun
     {
         return [
             'id' => $exercise->id,
-            'key' => $exercise->key,
+            'key' => $hidesAnswers ? (string) $exercise->id : $exercise->key,
             'block' => $exercise->block,
             'format' => $exercise->format->value,
             'payload' => $hidesAnswers ? $this->withoutKeys($exercise->payload) : $this->withoutSpans($exercise->payload),
