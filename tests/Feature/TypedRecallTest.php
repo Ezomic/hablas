@@ -56,6 +56,17 @@ it('rejects an answer that misses what the language keeps apart', function (stri
     'word order counts' => ['buenos días', 'días buenos'],
 ]);
 
+it('grades the same whether accents arrive composed or decomposed', function (string $term, string $answer, bool $correct) {
+    $item = VocabularyItem::factory()->create(['language_id' => $this->spanish->id, 'term' => $term]);
+
+    expect((new GradeTypedRecall)->handle($item, $answer))->toBe($correct);
+})->with([
+    'decomposed ñ typed for a composed term' => ["a\u{F1}o", "an\u{303}o", true],
+    'composed ñ typed for a decomposed term' => ["an\u{303}o", "a\u{F1}o", true],
+    'decomposed vowel accent is still forgiven' => ['adiós', "adio\u{301}s", true],
+    'decomposed ñ is still not an n' => ["a\u{F1}o", 'ano', false],
+]);
+
 it('keeps portuguese nasal marks distinct', function () {
     $item = VocabularyItem::factory()->create(['language_id' => $this->portuguese->id, 'term' => 'o pão']);
 

@@ -25,6 +25,8 @@ const props = withDefaults(
     { dueRemaining: 0, speechLocale: null },
 );
 
+const CHECK_TIMEOUT_MS = 8000;
+
 type Verdict = 'correct' | 'wrong' | 'unchecked';
 
 const { submitOrQueue } = useOfflineSync();
@@ -146,9 +148,11 @@ function advance(rating: Rating) {
     suggestedRating.value = null;
 }
 
-// Giving up on a word is a miss, so Again is the likely rating.
+// Giving up on a word is a miss, so Again is the likely rating. It also
+// works while a check is hanging, so a dead connection never freezes the card.
 function showAnswer() {
     revealed.value = true;
+    isChecking.value = false;
 
     if (isProduction.value) {
         suggestedRating.value = 'again';
@@ -164,21 +168,38 @@ async function checkAnswer() {
     }
 
     isChecking.value = true;
-    verdict.value = await grade(card, answer);
-    suggestedRating.value = verdictRatings[verdict.value];
+
+    const result = await grade(card, answer);
+
+    if (queue.value[0] !== card || revealed.value) {
+        return;
+    }
+
+    verdict.value = result;
+    suggestedRating.value = verdictRatings[result];
     revealed.value = true;
     isChecking.value = false;
 }
 
-// Offline or failing, the learner still sees the word and rates it
+// Offline, failing or too slow, the learner still sees the word and rates it
 // themselves, as on a recognition card.
 async function grade(card: ReviewCard, answer: string): Promise<Verdict> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
     try {
-        const response = await fetchJson(
-            props.answerUrl(card.id),
-            'POST',
-            JSON.stringify({ answer }),
-        );
+        const response = await Promise.race([
+            fetchJson(
+                props.answerUrl(card.id),
+                'POST',
+                JSON.stringify({ answer }),
+            ),
+            new Promise<never>((_, reject) => {
+                timer = setTimeout(
+                    () => reject(new Error('timeout')),
+                    CHECK_TIMEOUT_MS,
+                );
+            }),
+        ]);
 
         if (!response.ok) {
             return 'unchecked';
@@ -189,6 +210,8 @@ async function grade(card: ReviewCard, answer: string): Promise<Verdict> {
         return result.correct ? 'correct' : 'wrong';
     } catch {
         return 'unchecked';
+    } finally {
+        clearTimeout(timer);
     }
 }
 
@@ -196,8 +219,18 @@ async function grade(card: ReviewCard, answer: string): Promise<Verdict> {
 // reachable from the keyboard: space or enter reveals, then 1 to 4 rate.
 // A production card is answered in its own field instead, and once checked,
 // enter takes the suggested rating.
+// A held key repeats, which would rate every card in the queue unseen, and
+// enter on a focused button is that button's own click, so it must not also
+// take the suggested rating.
 function handleKeydown(event: KeyboardEvent) {
-    if (event.metaKey || event.ctrlKey || event.altKey || isTyping(event)) {
+    if (
+        event.repeat ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        isTyping(event) ||
+        (event.key === 'Enter' && event.target instanceof HTMLButtonElement)
+    ) {
         return;
     }
 
@@ -339,7 +372,6 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
             <Button
                 v-if="!revealed"
                 :variant="isProduction ? 'ghost' : 'default'"
-                :disabled="isChecking"
                 @click="showAnswer"
             >
                 Show answer
