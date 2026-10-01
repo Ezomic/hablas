@@ -19,16 +19,19 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
+        {{-- Paints the page before the stylesheet lands, so these must stay equal to
+             --background in resources/css/app.css. --}}
         <style>
             html {
-                background-color: oklch(1 0 0);
+                background-color: #fbf5f8;
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: #171115;
             }
         </style>
+
+        <meta name="theme-color" content="#be185d">
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

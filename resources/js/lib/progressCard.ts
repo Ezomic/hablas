@@ -18,11 +18,11 @@ const SEMIBOLD = 600;
 // Fixed rather than read from the theme, so a card downloaded in dark mode
 // looks the same as one downloaded in light mode.
 const PALETTE = {
-    background: '#171717',
-    foreground: '#fafafa',
-    muted: '#a3a3a3',
-    divider: '#404040',
-    accent: '#e76e50',
+    background: '#171115',
+    foreground: '#f3eaef',
+    muted: '#b8a0ad',
+    divider: '#40313a',
+    accent: '#f472b6',
 };
 
 const MARGIN = 80;

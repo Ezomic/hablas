@@ -63,8 +63,8 @@ export default defineConfig({
                 name: 'Hablas',
                 short_name: 'Hablas',
                 description: 'Spanish/Portuguese learning app',
-                theme_color: '#0a0a0a',
-                background_color: '#0a0a0a',
+                theme_color: '#be185d',
+                background_color: '#be185d',
                 display: 'standalone',
                 start_url: '/dashboard',
                 // Without these the PWA install prompt has no icon at all.
