@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Actions\Lessons\BuildUnitLessons;
 use App\Actions\Lessons\SyncUnitLessons;
+use App\Enums\ExerciseFamily;
 use App\Models\Unit;
 use App\Services\UnitContentRegistry;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -20,6 +21,8 @@ class LessonSeeder extends Seeder
 {
     use WithoutModelEvents;
 
+    private const array GRADED_FAMILIES = [ExerciseFamily::Choice, ExerciseFamily::Writing, ExerciseFamily::Listening];
+
     public function run(UnitContentRegistry $registry, BuildUnitLessons $buildUnitLessons, SyncUnitLessons $syncUnitLessons): void
     {
         foreach ($registry->all() as $content) {
@@ -32,7 +35,7 @@ class LessonSeeder extends Seeder
                 continue;
             }
 
-            $definitions = $buildUnitLessons->handle($unit, $content);
+            $definitions = $buildUnitLessons->handle($unit, $content, self::GRADED_FAMILIES);
 
             if ($definitions === []) {
                 continue;

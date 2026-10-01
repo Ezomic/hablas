@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Lessons\BuildUnitLessons;
 use App\Actions\Lessons\SyncUnitLessons;
+use App\Enums\ExerciseFamily;
 use App\Enums\LessonStage;
 use App\Lessons\ExerciseDefinition;
 use App\Lessons\LessonDefinition;
@@ -63,6 +64,16 @@ it('points every substitute at its original', function () {
 
     expect($substitute->substitute_for_id)->toBe($original->id)
         ->and($original->substitute?->id)->toBe($substitute->id);
+});
+
+it('seeds no speaking exercise, since speaking is graded from a later release', function () {
+    seedWith(new HotelContent);
+
+    $formats = LessonExercise::query()->get()->map(fn (LessonExercise $exercise): ?ExerciseFamily => $exercise->format->family());
+
+    expect($formats->contains(ExerciseFamily::Speaking))->toBeFalse()
+        ->and($formats->contains(ExerciseFamily::Listening))->toBeTrue()
+        ->and(LessonExercise::query()->where('key', 'like', '%speak%')->count())->toBe(0);
 });
 
 it('creates the same rows on a second pass and writes nothing', function () {
