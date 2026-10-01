@@ -34,7 +34,8 @@ final class GetUnitLessonOverview
      *     lessons: list<array{stage: string, title: string, position: int, lessonId: int|null, state: string, bestAccuracy: float|null}>,
      *     mastery: array{mastered: int, total: int},
      *     skipped: array{listening: int, speaking: int},
-     *     contentPending: bool
+     *     contentPending: bool,
+     *     canTestOut: bool
      * }
      */
     public function handle(User $user, Unit $unit): array
@@ -64,7 +65,27 @@ final class GetUnitLessonOverview
             'mastery' => ['mastered' => count($items) - count($this->unitMasteryReader->missing($user, $unit)), 'total' => count($items)],
             'skipped' => $this->skipped($user, $unit),
             'contentPending' => $lessons->isNotEmpty() && $this->unitMasteryReader->scope($unit) === MasteryScope::Words,
+            'canTestOut' => $this->canTestOut($user, $unit, $lessons->get(LessonStage::Check->value), $states),
         ];
+    }
+
+    /**
+     * "Take the unit check now" is offered for a unit that has not been
+     * started: nothing in it completed yet, and the check not already passed.
+     *
+     * @param  array<int, LessonState>  $states
+     */
+    private function canTestOut(User $user, Unit $unit, ?Lesson $check, array $states): bool
+    {
+        if ($check === null || ($states[$check->id] ?? null) === LessonState::Completed) {
+            return false;
+        }
+
+        return ! LessonRun::query()
+            ->where('user_id', $user->id)
+            ->where('status', LessonRunStatus::Completed)
+            ->whereHas('lesson', fn ($query) => $query->where('unit_id', $unit->id))
+            ->exists();
     }
 
     private function bestAccuracy(User $user, Lesson $lesson): ?float

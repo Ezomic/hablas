@@ -9,6 +9,8 @@ use App\Actions\GetUserSkillLevels;
 use App\Actions\IdentifyBlendedLevelCeiling;
 use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\Lessons\DescribeNextLesson;
+use App\Actions\Lessons\GetUnseenLessonResults;
 use App\Actions\Placement\DetermineRetakeAvailability;
 use App\Actions\SelectNextUnit;
 use App\Actions\Srs\EvaluateSessionHealth;
@@ -18,6 +20,8 @@ use App\Actions\Srs\GetWeakSpotCards;
 use App\Actions\Streaks\ReconcileStreak;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\Skill;
+use App\Enums\UnitProgressStatus;
+use App\Models\Unit;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -41,6 +45,8 @@ final class DashboardController extends Controller
         SelectNextUnit $selectNextUnit,
         EvaluatePortugueseActivationEligibility $evaluatePortugueseActivationEligibility,
         DetermineRetakeAvailability $determineRetakeAvailability,
+        DescribeNextLesson $describeNextLesson,
+        GetUnseenLessonResults $getUnseenLessonResults,
     ): Response {
         $language = $getCurrentLanguage->handle($this->currentUser());
         $streak = $reconcileStreak->handle($this->currentUser());
@@ -66,7 +72,13 @@ final class DashboardController extends Controller
         $skillLevels = $getUserSkillLevels->handle($this->currentUser(), $language);
         $ceiling = $identifyBlendedLevelCeiling->handle($skillLevels);
         $sessionNeedsRemediation = $evaluateSessionHealth->handle($this->currentUser(), $language);
-        $nextUnit = $sessionNeedsRemediation ? null : $selectNextUnit->handle($this->currentUser(), $language);
+        $nextUnit = $selectNextUnit->handle($this->currentUser(), $language);
+
+        if ($nextUnit !== null && $sessionNeedsRemediation && ! $this->isInProgress($nextUnit)) {
+            $nextUnit = null;
+        }
+
+        $nextLesson = $nextUnit === null ? null : $describeNextLesson->handle($this->currentUser(), $nextUnit);
 
         return Inertia::render('Dashboard', [
             'language' => ['code' => $language->code, 'name' => $language->name],
@@ -85,8 +97,22 @@ final class DashboardController extends Controller
                 'id' => $nextUnit->id,
                 'title' => $nextUnit->title,
                 'taskDescription' => $nextUnit->task_description,
+                'lesson' => $nextLesson,
             ],
+            'unseenLessonResults' => $getUnseenLessonResults->handle($this->currentUser(), $language),
             'canActivatePortuguese' => $canActivatePortuguese,
         ]);
+    }
+
+    /**
+     * Remediation only holds back a new unit: one the learner already
+     * started stays on the dashboard so they can finish what they began.
+     */
+    private function isInProgress(Unit $unit): bool
+    {
+        return $this->currentUser()->unitProgress()
+            ->where('unit_id', $unit->id)
+            ->where('status', UnitProgressStatus::InProgress)
+            ->exists();
     }
 }

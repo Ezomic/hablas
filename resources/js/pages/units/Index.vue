@@ -50,6 +50,7 @@ const completionOptions: Record<CompletionFilter, string> = {
 
 const availabilityLabels: Record<UnitAvailability, string> = {
     completed: 'Completed',
+    in_progress: 'In progress',
     available: 'Available',
     held_back: 'After review',
     locked: 'Locked',
@@ -58,6 +59,7 @@ const availabilityLabels: Record<UnitAvailability, string> = {
 const availabilityVariants: Record<UnitAvailability, BadgeVariants['variant']> =
     {
         completed: 'secondary',
+        in_progress: 'default',
         available: 'default',
         held_back: 'outline',
         locked: 'outline',
@@ -80,12 +82,16 @@ const hasHeldBackUnits = computed(() =>
 );
 
 function opens(unit: LibraryUnit): boolean {
-    return (
-        unit.availability === 'completed' || unit.availability === 'available'
+    return ['completed', 'in_progress', 'available'].includes(
+        unit.availability,
     );
 }
 
 function note(unit: LibraryUnit): string | null {
+    if (unit.availability === 'in_progress' && unit.lessonCount > 0) {
+        return `Lesson ${Math.min(unit.lessonsCompleted + 1, unit.lessonCount)} of ${unit.lessonCount}`;
+    }
+
     if (unit.availability === 'locked') {
         return `Unlocks when your overall level reaches ${unit.cefrLevel}.`;
     }

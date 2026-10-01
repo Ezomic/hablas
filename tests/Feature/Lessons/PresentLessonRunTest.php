@@ -60,7 +60,7 @@ it('lists the answers so far, and the stored result once completed', function ()
     $props = (new PresentLessonRun)->handle($run->fresh());
 
     expect($props['answers'])->toHaveCount(1)
-        ->and($props['answers'][0])->toMatchArray(['exerciseId' => $exercise->id, 'attempt' => 1, 'hinted' => false, 'skipped' => false, 'correct' => true, 'flagged' => false]);
+        ->and($props['answers'][0])->toMatchArray(['exerciseId' => $exercise->id, 'attempt' => 1, 'hinted' => false, 'skipped' => false, 'correct' => true, 'flagged' => false, 'settled' => true]);
 
     $done = LessonWorld::play($this->user, $run);
     $props = (new PresentLessonRun)->handle($done);
@@ -180,4 +180,29 @@ it('leaves out a plan entry whose exercise no longer exists', function () {
 
     expect(array_column($props['plan'], 'id'))->not->toContain(999999)
         ->and($props['plan'])->toHaveCount(count($plan) - 1);
+});
+
+it('marks a self-checked or flagged answer as settled and a wrong one as not', function () {
+    [$run] = lessonWithSubstitute($this);
+    $typed = LessonExercise::query()->whereIn('id', $run->planExerciseIds())->where('format', 'type_word')->firstOrFail();
+
+    $wrong = LessonWorld::answer($this->user, $run, $typed, ['response' => ['text' => 'zzz']])['answer'];
+    $selfChecked = LessonWorld::answer($this->user, $run, $typed, ['response' => ['text' => 'zzz'], 'self_graded_correct' => true])['answer'];
+
+    $props = (new PresentLessonRun)->handle($run->fresh());
+
+    expect(array_column($props['answers'], 'settled'))->toBe([false, true])
+        ->and($wrong->settlesExercise())->toBeFalse()
+        ->and($selfChecked->settlesExercise())->toBeTrue();
+});
+
+it('marks every answer of a check as settled and gives it no verdict', function () {
+    LessonWorld::finishTeachingLessons($this->user, $this->unit);
+    $check = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check);
+    LessonWorld::answer($this->user, $check, LessonExercise::query()->findOrFail($check->plan[0]['id']), ['response' => ['text' => 'zzz']]);
+
+    $answer = (new PresentLessonRun)->handle($check->fresh())['answers'][0];
+
+    expect($answer['settled'])->toBeTrue()
+        ->and($answer['correct'])->toBeNull();
 });

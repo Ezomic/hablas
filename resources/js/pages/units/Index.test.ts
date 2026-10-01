@@ -34,6 +34,9 @@ function unit(
         cefrLevel,
         primarySkill,
         availability,
+        lessonCount: 0,
+        lessonsCompleted: 0,
+        masteredCount: 0,
     };
 }
 
@@ -133,5 +136,26 @@ describe('unit library page', () => {
 
     it('explains a missing language', () => {
         expect(mountPage([], null).text()).toContain('No active language yet.');
+    });
+
+    it('opens a unit in progress and says which lesson is next', () => {
+        const wrapper = mountPage([
+            {
+                ...unit(1, 'A1', 'in_progress'),
+                lessonCount: 5,
+                lessonsCompleted: 2,
+                masteredCount: 0,
+            },
+        ]);
+
+        expect(hrefs(wrapper)).toContain('/units/1');
+        expect(wrapper.text()).toContain('In progress');
+        expect(wrapper.text()).toContain('Lesson 3 of 5');
+    });
+
+    it('treats a unit in progress as not completed in the filter', () => {
+        const wrapper = mountPage([unit(1, 'A1', 'in_progress')]);
+
+        expect(wrapper.text()).toContain('Unit 1');
     });
 });

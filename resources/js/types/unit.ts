@@ -1,5 +1,5 @@
 export type UnitAvailability =
-    'completed' | 'available' | 'held_back' | 'locked';
+    'completed' | 'in_progress' | 'available' | 'held_back' | 'locked';
 
 export interface LibraryUnit {
     id: number;
@@ -8,4 +8,7 @@ export interface LibraryUnit {
     cefrLevel: string;
     primarySkill: string;
     availability: UnitAvailability;
+    lessonCount: number;
+    lessonsCompleted: number;
+    masteredCount: number;
 }

@@ -8,8 +8,12 @@ use App\Actions\NotifyOnBlendedLevelIncrease;
 use App\Actions\ReassessSkillLevel;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
+use App\Enums\LessonStage;
+use App\Enums\MasteryScope;
 use App\Models\LessonRun;
+use App\Models\Unit;
 use App\Services\RunOutcomes;
+use App\Services\UnitMasteryReader;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -21,6 +25,7 @@ final class CompleteLessonRun
         private readonly NotifyOnBlendedLevelIncrease $notifyOnBlendedLevelIncrease = new NotifyOnBlendedLevelIncrease,
         private readonly ReassessSkillLevel $reassessSkillLevel = new ReassessSkillLevel,
         private readonly EvaluateUnitMastery $evaluateUnitMastery = new EvaluateUnitMastery,
+        private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
     ) {}
 
     /**
@@ -55,7 +60,7 @@ final class CompleteLessonRun
         $weight = array_sum(array_column($outcomes, 'weight'));
         $accuracy = $weight === 0 ? null : round(array_sum(array_column($outcomes, 'correct')) / $weight, 4);
 
-        $evidence = $this->isEvidence($run, $lesson->stage->isEvidenceStage());
+        $evidence = $this->isEvidence($run, $unit, $lesson->stage);
         $milestone = null;
 
         if ($evidence) {
@@ -88,9 +93,19 @@ final class CompleteLessonRun
         return $result;
     }
 
-    private function isEvidence(LessonRun $run, bool $evidenceStage): bool
+    /**
+     * Evidence is the first completed run of lessons 3 to 5, and only a full
+     * check counts as the check: a check that holds only typed word recall is
+     * recall of single words, not sentence-level production, so it is no
+     * evidence and leaves the later full check as the first one that is.
+     */
+    private function isEvidence(LessonRun $run, Unit $unit, LessonStage $stage): bool
     {
-        if (! $evidenceStage || ! in_array($run->kind, [LessonRunKind::Lesson, LessonRunKind::Check, LessonRunKind::TestOut], true)) {
+        if (! $stage->isEvidenceStage() || ! in_array($run->kind, [LessonRunKind::Lesson, LessonRunKind::Check, LessonRunKind::TestOut], true)) {
+            return false;
+        }
+
+        if ($stage === LessonStage::Check && $this->unitMasteryReader->scope($unit) === MasteryScope::Words) {
             return false;
         }
 
@@ -98,7 +113,7 @@ final class CompleteLessonRun
             ->where('user_id', $run->user_id)
             ->where('lesson_id', $run->lesson_id)
             ->where('status', LessonRunStatus::Completed)
-            ->whereIn('kind', [LessonRunKind::Lesson, LessonRunKind::Check, LessonRunKind::TestOut])
+            ->where('counts_as_evidence', true)
             ->whereKeyNot($run->id)
             ->exists();
     }

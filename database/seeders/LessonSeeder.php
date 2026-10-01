@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Actions\Lessons\BuildUnitLessons;
+use App\Actions\Lessons\ReopenUncheckedUnits;
 use App\Actions\Lessons\SyncUnitLessons;
 use App\Enums\ExerciseFamily;
 use App\Models\Unit;
@@ -21,9 +22,9 @@ class LessonSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    private const array GRADED_FAMILIES = [ExerciseFamily::Choice, ExerciseFamily::Writing, ExerciseFamily::Listening];
+    private const array GRADED_FAMILIES = [ExerciseFamily::Choice, ExerciseFamily::Writing];
 
-    public function run(UnitContentRegistry $registry, BuildUnitLessons $buildUnitLessons, SyncUnitLessons $syncUnitLessons): void
+    public function run(UnitContentRegistry $registry, BuildUnitLessons $buildUnitLessons, SyncUnitLessons $syncUnitLessons, ReopenUncheckedUnits $reopenUncheckedUnits): void
     {
         foreach ($registry->all() as $content) {
             $unit = Unit::query()
@@ -43,5 +44,7 @@ class LessonSeeder extends Seeder
 
             $syncUnitLessons->handle($unit, $definitions);
         }
+
+        $reopenUncheckedUnits->handle();
     }
 }

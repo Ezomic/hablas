@@ -15,6 +15,9 @@ function unit(
         cefrLevel,
         primarySkill,
         availability,
+        lessonCount: 0,
+        lessonsCompleted: 0,
+        masteredCount: 0,
     };
 }
 

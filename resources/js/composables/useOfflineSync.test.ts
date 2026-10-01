@@ -478,11 +478,23 @@ describe('useOfflineSync', () => {
         const { sync } = mountOfflineSync(useOfflineSync);
         await sync.submitOrQueue('/writing/1/attempts', { response: 'hola' });
         sync.rejectedCount.value = 2;
+        const { recordJournal, readJournal } =
+            await import('./../lib/lessonJournal');
+        await recordJournal(1, 7, {
+            step: 'a',
+            exerciseId: 1,
+            hinted: false,
+            skipped: false,
+            correct: true,
+            settled: true,
+            flagged: false,
+        });
 
         await clearOfflineData();
 
         const { getPendingSubmissions } = await import('./../lib/offlineDb');
         expect(await getPendingSubmissions(1)).toEqual([]);
+        expect(await readJournal(1, 7)).toEqual([]);
         expect(deleteCache).toHaveBeenCalledWith('pages');
         expect(sync.pendingCount.value).toBe(0);
         expect(sync.rejectedCount.value).toBe(0);
