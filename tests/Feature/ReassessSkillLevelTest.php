@@ -543,6 +543,24 @@ describe('lesson skill scores', function () {
         expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
     });
 
+    it('ignores scores that do not count toward the level, on their own', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        lessonScores($user, $language, 10, counts: false);
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
+    });
+
+    it('ignores another learner\'s scores', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        lessonScores(User::factory()->create(), $language, 10);
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
+    });
+
     it('ignores another language\'s and another skill\'s scores', function () {
         [$user, $language, $level] = lessonScoreSetup();
         lessonScores($user, Language::factory()->create(), 10);

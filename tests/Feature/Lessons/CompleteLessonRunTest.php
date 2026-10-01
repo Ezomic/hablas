@@ -318,6 +318,29 @@ describe('evidence for skill levels', function () {
     });
 });
 
+describe('the minimum of graded answers for a skill score', function () {
+    it('scores a skill on three graded answers and not on two', function (int $answers, int $scores) {
+        $keys = array_slice(['sentences.translate.desayuno', 'sentences.type_gap.llave', 'task.transform.plural'], 0, $answers);
+        $lesson = LessonWorld::lesson($this->unit, LessonStage::Sentences);
+        $run = LessonRun::factory()->create([
+            'user_id' => $this->user->id,
+            'lesson_id' => $lesson->id,
+            'open_lesson_id' => $lesson->id,
+            'plan' => array_map(fn (string $key): array => ['id' => LessonExercise::query()->where('key', $key)->value('id'), 'origin' => 'lesson'], $keys),
+        ]);
+
+        foreach ($keys as $key) {
+            LessonWorld::answer($this->user, $run, LessonExercise::query()->where('key', $key)->firstOrFail());
+        }
+
+        expect($run->fresh()->status)->toBe(LessonRunStatus::Completed)
+            ->and(LessonSkillScore::query()->where('lesson_run_id', $run->id)->count())->toBe($scores);
+    })->with([
+        'two answers' => [2, 0],
+        'three answers' => [3, 1],
+    ]);
+});
+
 describe('a run that is completed twice', function () {
     it('returns the stored result and writes no second set of skill scores', function () {
         foreach ([LessonStage::Meet, LessonStage::Recall] as $stage) {
@@ -356,3 +379,32 @@ it('refuses a second answer with the same attempt number for an exercise in a ru
 
     LessonAnswer::factory()->create(['lesson_run_id' => $run->id, 'lesson_exercise_id' => $exercise->id, 'attempt' => 1]);
 })->throws(UniqueConstraintViolationException::class);
+
+it('rolls back everything its own transaction wrote when completing fails', function () {
+    foreach ([LessonStage::Meet, LessonStage::Recall] as $stage) {
+        LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, $stage)));
+    }
+
+    $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Sentences));
+
+    foreach ($run->planExerciseIds() as $id) {
+        $exercise = LessonExercise::query()->with('substitute')->findOrFail($id);
+
+        if ($exercise->format->isSpeaking()) {
+            LessonAnswer::factory()->create(['lesson_run_id' => $run->id, 'lesson_exercise_id' => $id, 'skipped' => true, 'is_correct' => null]);
+            $exercise = $exercise->substitute;
+        }
+
+        LessonAnswer::factory()->create(['lesson_run_id' => $run->id, 'lesson_exercise_id' => $exercise->id, 'is_correct' => true, 'response' => LessonWorld::rightResponse($exercise)]);
+    }
+
+    LessonRun::saving(function (LessonRun $saving): void {
+        if ($saving->status === LessonRunStatus::Completed) {
+            throw new RuntimeException('boom');
+        }
+    });
+
+    expect(fn () => (new CompleteLessonRun)->handle($run->fresh()))->toThrow(RuntimeException::class)
+        ->and(LessonSkillScore::query()->count())->toBe(0)
+        ->and($run->fresh()->status)->toBe(LessonRunStatus::InProgress);
+});

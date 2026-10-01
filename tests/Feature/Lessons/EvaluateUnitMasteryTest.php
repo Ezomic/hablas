@@ -21,6 +21,7 @@ use App\Models\UnitItemMastery;
 use App\Models\UserUnitProgress;
 use App\Models\VocabularyItem;
 use App\Services\UnitMasteryReader;
+use Illuminate\Support\Facades\DB;
 use Tests\Fixtures\Lessons\HotelContent;
 use Tests\Fixtures\Lessons\LessonWorld;
 
@@ -107,6 +108,16 @@ describe('the grammar point', function () {
         playCheck($this, $run, ['check.a.translate.0']);
 
         expect(UnitItemMastery::query()->where('masterable_type', (new GrammarPoint)->getMorphClass())->where('scope', MasteryScope::Full)->count())->toBe(1);
+    });
+
+    it('is never mastered without a contrast probe, even when every other probe is right', function () {
+        DB::table('lesson_exercise_targets')->where('targetable_type', (new GrammarPoint)->getMorphClass())->update(['is_contrast' => false]);
+
+        $run = startCheck($this);
+        playCheck($this, $run, []);
+
+        expect(UnitItemMastery::query()->where('masterable_type', (new GrammarPoint)->getMorphClass())->exists())->toBeFalse()
+            ->and(masteredTerms($this))->toHaveCount(10);
     });
 
     it('needs the contrast probes: a wrong contrast item keeps it missing', function (string $wrong) {
