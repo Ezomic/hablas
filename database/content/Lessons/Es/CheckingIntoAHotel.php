@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Content\Lessons\Es;
 
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
+use App\Lessons\ContentReview;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 
@@ -26,10 +29,10 @@ final class CheckingIntoAHotel implements UnitContent
             new WordData('la habitación', cue: 'room (in a hotel)'),
             new WordData('la reserva', cue: 'reservation (booking)'),
             new WordData('la llave', cue: 'key (for your room)'),
-            new WordData('el recepcionista', cue: 'receptionist (at the hotel desk)', commonGender: true, questions: ['Common gender: "la recepcionista" is accepted too. Confirm the spelling and the gender in the RAE dictionary.']),
+            new WordData('el recepcionista', cue: 'receptionist (at the hotel desk)', commonGender: true),
             new WordData('disponible', cue: 'available'),
             new WordData('la noche', cue: 'night'),
-            new WordData('el baño', cue: 'bathroom', accepted: ['el cuarto de baño'], questions: ['"el cuarto de baño" is accepted as the longer form. Is "el aseo" a needed variant for "bathroom" in Spain?']),
+            new WordData('el baño', cue: 'bathroom', accepted: ['el cuarto de baño', 'el aseo']),
             new WordData('incluido', cue: 'included (masculine)', forms: ['incluida']),
             new WordData('el desayuno', cue: 'breakfast'),
         ];
@@ -50,6 +53,8 @@ final class CheckingIntoAHotel implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: DLE (recepcionista m. y f.), Wikcionario. Fixed: accepted el aseo for bathroom. el recepcionista and la recepcionista both accepted, spelling confirmed. Open questions answered and removed.'),
+        ];
     }
 }

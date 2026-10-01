@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Content\Lessons\Es;
 
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
+use App\Lessons\ContentReview;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 
@@ -24,13 +27,13 @@ final class ShoppingForClothes implements UnitContent
         return [
             new WordData('la ropa', cue: 'clothes'),
             new WordData('la camisa', cue: 'shirt'),
-            new WordData('los pantalones', cue: 'trousers (pants)', accepted: ['el pantalón'], questions: ['The seeder glosses this as "pants", which is American. The cue says "trousers (pants)" and the singular "el pantalón" is accepted too. Confirm.']),
+            new WordData('los pantalones', cue: 'trousers (pants)', accepted: ['el pantalón']),
             new WordData('el precio', cue: 'price'),
             new WordData('la talla', cue: 'size (of clothes)'),
             new WordData('el color', cue: 'color'),
             new WordData('caro', cue: 'expensive (masculine)', forms: ['cara']),
             new WordData('barato', cue: 'cheap (masculine)', forms: ['barata']),
-            new WordData('probarse', cue: 'to try on (clothes)', forms: ['me pruebo'], questions: ['The wrong-person distractor "me pruebo" is shown against the infinitive. Confirm it cannot be read as a right answer to "to try on".']),
+            new WordData('probarse', cue: 'to try on (clothes)', forms: ['me pruebo']),
             new WordData('el descuento', cue: 'discount'),
         ];
     }
@@ -50,6 +53,8 @@ final class ShoppingForClothes implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), WordReference. los pantalones with el pantalón accepted; me pruebo is a finite form so it is definitely wrong against the infinitive cue. No data fixes. Open questions answered and removed. The seeder gloss pants (American) is outside this file.'),
+        ];
     }
 }

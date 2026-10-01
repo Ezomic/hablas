@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Content\Lessons\Es;
 
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
+use App\Lessons\ContentReview;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 
@@ -22,7 +25,7 @@ final class DescribingYourDailyRoutine implements UnitContent
     public function words(): array
     {
         return [
-            new WordData('levantarse', cue: 'to get up', forms: ['me levanto'], questions: ['The wrong-person distractors are first-person forms such as "me levanto", shown against the infinitive. Confirm none can be read as a right answer to the infinitive cue.']),
+            new WordData('levantarse', cue: 'to get up', forms: ['me levanto']),
             new WordData('despertarse', cue: 'to wake up', forms: ['me despierto']),
             new WordData('ducharse', cue: 'to shower', forms: ['me ducho']),
             new WordData('desayunar', cue: 'to have breakfast', forms: ['desayuno']),
@@ -30,7 +33,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             new WordData('acostarse', cue: 'to go to bed', forms: ['me acuesto']),
             new WordData('temprano', cue: 'early'),
             new WordData('tarde', cue: 'late (not early)'),
-            new WordData('todos los días', cue: 'every day'),
+            new WordData('todos los días', cue: 'every day', accepted: ['cada día']),
             new WordData('normalmente', cue: 'normally'),
         ];
     }
@@ -50,6 +53,8 @@ final class DescribingYourDailyRoutine implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), WordReference. Fixed: accepted cada día for todos los días. First-person distractors are finite forms, definitely wrong against infinitive cues. Open question answered and removed.'),
+        ];
     }
 }

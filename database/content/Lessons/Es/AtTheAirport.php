@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Content\Lessons\Es;
 
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
+use App\Lessons\ContentReview;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 
@@ -26,8 +29,8 @@ final class AtTheAirport implements UnitContent
             new WordData('el vuelo', cue: 'flight'),
             new WordData('la maleta', cue: 'suitcase'),
             new WordData('el pasaporte', cue: 'passport'),
-            new WordData('la puerta', cue: 'gate (at an airport)', questions: ['The gloss is "gate / door" and the cue asks for the airport sense. Is "la puerta" right for an airport gate in Spain, or is "la puerta de embarque" expected?']),
-            new WordData('la salida', cue: 'exit, or departure (on an airport board)', questions: ['The gloss is "departure / exit". Spanish airport boards read "Salidas" for departures, so the word is right. Is the double gloss a problem for a single typed answer?']),
+            new WordData('la puerta', cue: 'gate (at an airport)', accepted: ['la puerta de embarque']),
+            new WordData('la salida', cue: 'exit, or departure (on an airport board)'),
             new WordData('la llegada', cue: 'arrival'),
             new WordData('el billete', cue: 'ticket (for a flight or train)'),
             new WordData('retrasado', cue: 'delayed (masculine)', forms: ['retrasada']),
@@ -50,6 +53,8 @@ final class AtTheAirport implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), Aena boards and site. Fixed: accepted la puerta de embarque for the gate cue. la salida covers exit and departure (boards read Salidas), kept. retrasado is the Aena board wording for a delayed flight (offensive only said of people). Open questions answered and removed.'),
+        ];
     }
 }
