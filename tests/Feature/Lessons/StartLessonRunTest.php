@@ -370,6 +370,16 @@ describe('remediation', function () {
         }
     });
 
+    it('refuses a retake while a practice run is open instead of silently resuming the practice', function () {
+        finishedCheck($this, ['check.a.type_word.la-llave']);
+        $practice = (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Practice);
+        $this->travel(1)->days();
+
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake)))->toBe('Finish the run you have open for this lesson first.')
+            ->and((new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Practice)->id)->toBe($practice->id)
+            ->and(LessonRun::query()->where('open_lesson_id', $this->check->id)->count())->toBe(1);
+    });
+
     it('refuses the retake when everything is mastered', function () {
         finishedCheck($this, []);
 

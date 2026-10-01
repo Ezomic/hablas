@@ -35,7 +35,8 @@ final class StartLessonRun
     /**
      * Starts a run of the lesson, or resumes the one in progress: there is at
      * most one open run per lesson, so two quick taps on "Start" open the same
-     * run. The unique index decides it, not a lock, because SQLite has none.
+     * run. Asking for another kind of run while one is open is refused, so a
+     * retake is never answered with a practice run. The unique index decides it, not a lock, because SQLite has none.
      */
     public function handle(User $user, Lesson $lesson, LessonRunKind $kind = LessonRunKind::Lesson): LessonRun
     {
@@ -51,6 +52,10 @@ final class StartLessonRun
         $open = $this->openRun($user, $lesson);
 
         if ($open !== null) {
+            if ($open->kind !== $kind) {
+                throw $this->refuse('Finish the run you have open for this lesson first.');
+            }
+
             return $open;
         }
 
