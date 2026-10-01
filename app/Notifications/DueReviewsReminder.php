@@ -21,6 +21,8 @@ class DueReviewsReminder extends Notification implements ShouldQueue
      */
     public int $tries = 1;
 
+    private const int TTL_SECONDS = 4 * 3600;
+
     public function __construct(
         private readonly string $languageName,
         private readonly int $dueRepetitionCount,
@@ -37,6 +39,7 @@ class DueReviewsReminder extends Notification implements ShouldQueue
         return (new WebPushMessage)
             ->title('Reviews are due')
             ->body("{$this->dueRepetitionCount} {$this->languageName} cards are ready to review")
-            ->data(['url' => route('review.index', absolute: false)]);
+            ->data(['url' => route('review.index', absolute: false)])
+            ->options(['TTL' => self::TTL_SECONDS]);
     }
 }

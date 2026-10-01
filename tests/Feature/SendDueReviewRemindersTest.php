@@ -52,6 +52,7 @@ function dueReviewReminderEventAt(string $utc): Event
 
 it('reminds subscribed learners and passes over the rest', function () {
     Notification::fake();
+    $this->travelTo(CarbonImmutable::parse('2026-09-30 14:00:00'));
     $language = Language::factory()->create();
     $subscribed = learnerWithTwentyDue($language, subscribed: true);
     $unsubscribed = learnerWithTwentyDue($language, subscribed: false);
@@ -64,17 +65,40 @@ it('reminds subscribed learners and passes over the rest', function () {
     Notification::assertNotSentTo($unsubscribed, DueReviewsReminder::class);
 });
 
-it('runs hourly from noon to nine in the evening, Amsterdam time, after the morning digest', function (string $utc, bool $runs) {
+it('runs every hour on the hour and leaves the time-of-day window to the action', function (string $utc, bool $runs) {
     $event = dueReviewReminderEventAt($utc);
 
     expect($event->isDue(app()) && $event->filtersPass(app()))->toBe($runs);
 })->with([
-    'before noon in summer' => ['2026-09-30 09:00:00', false],
-    'noon in summer' => ['2026-09-30 10:00:00', true],
-    'nine in the evening in winter' => ['2026-12-01 20:00:00', true],
-    'ten in the evening in winter' => ['2026-12-01 21:00:00', false],
+    'on the hour' => ['2026-09-30 19:00:00', true],
+    'the nine o\'clock slot, which a between() window would drop' => ['2026-09-30 19:00:00.350', true],
     'not on the half hour' => ['2026-09-30 12:30:00', false],
 ]);
+
+it('sends nothing from a manual run at night', function () {
+    Notification::fake();
+    $this->travelTo(CarbonImmutable::parse('2026-09-30 22:30:00'));
+    learnerWithTwentyDue(Language::factory()->create(), subscribed: true);
+
+    $this->artisan(SendDueReviewReminders::class)
+        ->expectsOutput('Sent 0 due-review reminders.')
+        ->assertExitCode(0);
+
+    Notification::assertNothingSent();
+});
+
+it('counts every learner it reminded', function () {
+    Notification::fake();
+    $this->travelTo(CarbonImmutable::parse('2026-09-30 14:00:00'));
+    $language = Language::factory()->create();
+    learnerWithTwentyDue($language, subscribed: true);
+    learnerWithTwentyDue($language, subscribed: true);
+    learnerWithTwentyDue($language, subscribed: false);
+
+    $this->artisan(SendDueReviewReminders::class)
+        ->expectsOutput('Sent 2 due-review reminders.')
+        ->assertExitCode(0);
+});
 
 it('never runs twice at once', function () {
     expect(dueReviewReminderEventAt('2026-09-30 10:00:00')->withoutOverlapping)->toBeTrue();

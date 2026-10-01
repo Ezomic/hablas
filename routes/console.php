@@ -14,10 +14,9 @@ Artisan::command('inspire', function () {
 
 Schedule::command(SendDailyDigests::class)->dailyAt('08:00')->withoutOverlapping();
 
-// Starts after the 08:00 UTC digest (10:00 or 09:00 in Amsterdam), so a
-// reminder never lands just before it, and stops before the evening is over.
+// The noon-to-evening window is enforced by the action itself, so a manual
+// run honours it too. A between() filter here would drop the 21:00 slot, as
+// the clock is already a few milliseconds past it when the scheduler asks.
 Schedule::command(SendDueReviewReminders::class)
     ->hourly()
-    ->between('12:00', '21:00')
-    ->timezone('Europe/Amsterdam')
     ->withoutOverlapping();
