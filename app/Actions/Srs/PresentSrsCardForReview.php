@@ -15,7 +15,10 @@ final class PresentSrsCardForReview
 {
     /**
      * A production card turns the word around: the translation is shown, and
-     * the word is what the learner types and then sees revealed.
+     * the word is what the learner types and then sees revealed. The word is
+     * therefore already in the page props before the learner answers: the deck
+     * has to reveal it with no round trip when the check cannot be reached. A
+     * known and accepted trade-off, as typing from memory is self-discipline.
      *
      * @return array{id: int, front: string, back: string, kind: string, direction: string, needsArticle: bool, suggestedErrorTag: string|null}
      */

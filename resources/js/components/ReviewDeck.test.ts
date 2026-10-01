@@ -92,6 +92,13 @@ beforeEach(() => {
     fetchJson.mockReset();
 });
 
+function checksAs(correct: boolean) {
+    fetchJson.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ correct }),
+    } as Response);
+}
+
 describe('keyboard shortcuts', () => {
     it('reveals the answer on space', async () => {
         const wrapper = mountDeck([vocabularyCard(1)]);
@@ -195,6 +202,101 @@ describe('keyboard shortcuts', () => {
         expect(submitOrQueue).not.toHaveBeenCalled();
 
         await press('2');
+
+        expect(submitOrQueue).not.toHaveBeenCalled();
+    });
+
+    it('ignores a key that is held down and repeating', async () => {
+        const wrapper = mountDeck([vocabularyCard(1), vocabularyCard(2)]);
+
+        window.dispatchEvent(
+            new KeyboardEvent('keydown', { key: ' ', repeat: true }),
+        );
+        await nextTick();
+
+        expect(wrapper.text()).not.toContain('back 1');
+
+        await press(' ');
+        window.dispatchEvent(
+            new KeyboardEvent('keydown', { key: '3', repeat: true }),
+        );
+        await nextTick();
+
+        expect(submitOrQueue).not.toHaveBeenCalled();
+    });
+
+    it.each([['ctrlKey'], ['altKey']])(
+        'ignores shortcuts with %s held',
+        async (modifier) => {
+            const wrapper = mountDeck([vocabularyCard(1)]);
+
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: ' ', [modifier]: true }),
+            );
+            await nextTick();
+
+            expect(wrapper.text()).not.toContain('back 1');
+        },
+    );
+
+    it('leaves shortcuts alone while typing in an editable element', async () => {
+        const editable = document.createElement('div');
+        editable.contentEditable = 'true';
+        Object.defineProperty(editable, 'isContentEditable', { value: true });
+        document.body.appendChild(editable);
+
+        const wrapper = mountDeck([vocabularyCard(1)]);
+
+        editable.dispatchEvent(
+            new KeyboardEvent('keydown', { key: ' ', bubbles: true }),
+        );
+        await nextTick();
+
+        expect(wrapper.text()).not.toContain('back 1');
+
+        editable.remove();
+    });
+
+    it('lets a focused rating button take enter instead of the suggested rating', async () => {
+        checksAs(true);
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await wrapper.find('input').setValue('el aeropuerto');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+
+        const hard = wrapper
+            .findAll('button')
+            .find((button) => button.text().startsWith('Hard'));
+        hard?.element.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+        );
+        await nextTick();
+
+        expect(submitOrQueue).not.toHaveBeenCalled();
+
+        await hard?.trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledTimes(1);
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/5/reviews', {
+            rating: 'hard',
+            error_tag_category: null,
+        });
+    });
+
+    it('does not take the suggested rating again on a repeating enter', async () => {
+        checksAs(true);
+        const wrapper = mountDeck([productionCard(5), productionCard(6)]);
+
+        await wrapper.find('input').setValue('el aeropuerto');
+        await wrapper.find('form').trigger('submit');
+        await flushPromises();
+
+        window.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter', repeat: true }),
+        );
+        await nextTick();
 
         expect(submitOrQueue).not.toHaveBeenCalled();
     });
@@ -405,14 +507,107 @@ describe('review flow', () => {
     });
 });
 
-describe('typed recall', () => {
-    function checksAs(correct: boolean) {
-        fetchJson.mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve({ correct }),
-        } as Response);
+describe('card presentation', () => {
+    function mountOne(card: ReviewCard, speechLocale: string | null = 'es-ES') {
+        const wrapper = mount(ReviewDeck, {
+            props: {
+                cards: [card],
+                reviewUrl: (cardId: number) => `/review/${cardId}/reviews`,
+                answerUrl: (cardId: number) => `/review/${cardId}/answers`,
+                countNoun: 'card',
+                emptyMessage: 'All caught up.',
+                speechLocale,
+            },
+            attachTo: document.body,
+            global: { stubs: { SpeakButton: true } },
+        });
+        mounted.push(wrapper);
+
+        return wrapper;
     }
 
+    it('speaks the front of a recognition vocabulary card', () => {
+        const wrapper = mountOne(vocabularyCard(1));
+
+        expect(wrapper.findComponent(SpeakButton).props('text')).toBe(
+            'front 1',
+        );
+        expect(wrapper.findComponent(SpeakButton).props('locale')).toBe(
+            'es-ES',
+        );
+    });
+
+    it('offers no speech on a grammar card', () => {
+        expect(
+            mountOne(grammarCard(1)).findComponent(SpeakButton).exists(),
+        ).toBe(false);
+    });
+
+    it('shows the space hint only on a recognition card', () => {
+        expect(mountOne(vocabularyCard(1)).find('kbd').text()).toBe('space');
+        expect(mountOne(productionCard(2)).find('kbd').exists()).toBe(false);
+    });
+
+    it('highlights the suggested error tag when a grammar card is missed', async () => {
+        const wrapper = mountOne(grammarCard(9));
+
+        await wrapper.find('button').trigger('click');
+        await wrapper.findAll('button')[0].trigger('click');
+        await nextTick();
+
+        const variants = Object.fromEntries(
+            wrapper
+                .findAll('button')
+                .map((button) => [
+                    button.text(),
+                    button.attributes('data-variant'),
+                ]),
+        );
+
+        expect(variants['Ser vs estar']).toBe('default');
+        expect(variants['Not sure']).toBe('ghost');
+        expect(
+            Object.values(variants).filter((variant) => variant === 'default'),
+        ).toHaveLength(1);
+    });
+
+    it('shows the number keys as hints on every rating button of a recognition card', async () => {
+        const wrapper = mountOne(vocabularyCard(1));
+
+        await wrapper.find('button').trigger('click');
+
+        expect(wrapper.findAll('kbd').map((hint) => hint.text())).toEqual([
+            '1',
+            '2',
+            '3',
+            '4',
+        ]);
+    });
+
+    it('breaks the session summary down per rating', async () => {
+        const wrapper = mountOne(vocabularyCard(1));
+
+        await wrapper.find('button').trigger('click');
+        await wrapper.findAll('button')[3].trigger('click');
+        await nextTick();
+
+        const cells = wrapper
+            .findAll('.rounded-md.border')
+            .map((cell) => [
+                cell.find('.text-xs').text(),
+                cell.find('.text-xl').text(),
+            ]);
+
+        expect(cells).toEqual([
+            ['Again', '0'],
+            ['Hard', '0'],
+            ['Good', '0'],
+            ['Easy', '1'],
+        ]);
+    });
+});
+
+describe('typed recall', () => {
     async function answer(
         wrapper: ReturnType<typeof mountDeck>,
         typed: string,
@@ -639,6 +834,125 @@ describe('typed recall', () => {
         expect(wrapper.findComponent(SpeakButton).props('text')).toBe(
             'el aeropuerto',
         );
+    });
+
+    describe('a check that never answers', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('gives up after the timeout and leaves the rating to the learner', async () => {
+            fetchJson.mockReturnValue(new Promise(() => {}));
+            const wrapper = mountDeck([productionCard(5)]);
+
+            await wrapper.find('input').setValue('el aeropuerto');
+            await wrapper.find('form').trigger('submit');
+
+            await vi.advanceTimersByTimeAsync(7999);
+
+            expect(wrapper.text()).not.toContain('el aeropuerto');
+
+            await vi.advanceTimersByTimeAsync(1);
+            await flushPromises();
+
+            expect(wrapper.text()).toContain("Couldn't check your answer");
+            expect(wrapper.text()).toContain('el aeropuerto');
+
+            await press('Enter');
+
+            expect(submitOrQueue).not.toHaveBeenCalled();
+        });
+
+        it('does not let a timed-out check overwrite a revealed answer later', async () => {
+            fetchJson.mockReturnValue(new Promise(() => {}));
+            const wrapper = mountDeck([productionCard(5)]);
+
+            await wrapper.find('input').setValue('el aeropuerto');
+            await wrapper.find('form').trigger('submit');
+            await ratingButton(wrapper, 'Show answer').trigger('click');
+            await vi.advanceTimersByTimeAsync(10000);
+
+            expect(wrapper.text()).not.toContain("Couldn't check your answer");
+            expect(wrapper.text()).toContain('el aeropuerto');
+        });
+    });
+
+    it('lets the learner reveal the word while the check is still running', async () => {
+        fetchJson.mockReturnValue(new Promise(() => {}));
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await wrapper.find('input').setValue('el aeropuerto');
+        await wrapper.find('form').trigger('submit');
+
+        const show = ratingButton(wrapper, 'Show answer');
+
+        expect(show.attributes('disabled')).toBeUndefined();
+
+        await show.trigger('click');
+
+        expect(wrapper.text()).toContain('el aeropuerto');
+        expect(ratingButton(wrapper, 'Again').attributes('data-variant')).toBe(
+            'default',
+        );
+
+        await press('Enter');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/5/reviews', {
+            rating: 'again',
+            error_tag_category: null,
+        });
+    });
+
+    it('drops a late answer that belongs to a card already moved past', async () => {
+        let resolveCheck: (response: Response) => void = () => {};
+        fetchJson.mockReturnValue(
+            new Promise<Response>((resolve) => {
+                resolveCheck = resolve;
+            }),
+        );
+        const wrapper = mountDeck([productionCard(5), productionCard(6)]);
+
+        await wrapper.find('input').setValue('el aeropuerto');
+        await wrapper.find('form').trigger('submit');
+        await ratingButton(wrapper, 'Show answer').trigger('click');
+        await press('Enter');
+        await flushPromises();
+
+        resolveCheck({
+            ok: true,
+            json: () => Promise.resolve({ correct: true }),
+        } as Response);
+        await flushPromises();
+
+        expect(wrapper.find('input').exists()).toBe(true);
+        expect(wrapper.text()).not.toContain('Correct');
+    });
+
+    it('disables Check for a blank answer and caps the length', async () => {
+        const wrapper = mountDeck([productionCard(5)]);
+
+        expect(ratingButton(wrapper, 'Check').attributes('disabled')).toBe('');
+        expect(wrapper.find('input').attributes('maxlength')).toBe('200');
+
+        await wrapper.find('input').setValue('el');
+
+        expect(
+            ratingButton(wrapper, 'Check').attributes('disabled'),
+        ).toBeUndefined();
+    });
+
+    it('shows the typed answer for an unchecked card', async () => {
+        fetchJson.mockRejectedValue(new TypeError('offline'));
+        const wrapper = mountDeck([productionCard(5)]);
+
+        await answer(wrapper, ' aeropuerto ');
+
+        expect(wrapper.text()).toContain('You wrote “aeropuerto”');
     });
 
     it('starts the next production card with an empty, focused input', async () => {

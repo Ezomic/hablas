@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Contracts\TextNormalizer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Normalizer;
 
 /**
  * The folding, whitespace and tokenization mechanics shared by every language.
@@ -30,7 +31,7 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
 
     public function foldAccents(string $text): string
     {
-        return strtr(Str::lower(trim($text)), $this->vowelAccentFolds());
+        return strtr(Str::lower(trim($this->composed($text))), $this->vowelAccentFolds());
     }
 
     public function collapseWhitespace(string $text): string
@@ -72,6 +73,17 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
         }
 
         return $this->searchKey(implode(' ', $words));
+    }
+
+    /**
+     * The fold maps and ñ are single composed characters, so text typed or
+     * pasted with a combining accent (NFD) would otherwise never match.
+     */
+    private function composed(string $text): string
+    {
+        $composed = Normalizer::normalize($text, Normalizer::FORM_C);
+
+        return is_string($composed) ? $composed : $text;
     }
 
     /**
