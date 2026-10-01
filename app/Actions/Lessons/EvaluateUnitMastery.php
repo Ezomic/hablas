@@ -9,6 +9,8 @@ use App\Actions\Srs\EnrollPendingUnitContent;
 use App\Enums\MasteryScope;
 use App\Enums\UnitProgressStatus;
 use App\Lessons\TargetRef;
+use App\Models\LessonAnswer;
+use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\UnitItemMastery;
 use App\Models\UserUnitProgress;
@@ -122,11 +124,16 @@ final class EvaluateUnitMastery
     private function unansweredProbeTargets(LessonRun $run): array
     {
         $planIds = $run->planExerciseIds();
-        $originals = DB::table('lesson_exercises')->whereIn('substitute_for_id', $planIds)->pluck('substitute_for_id', 'id');
+        $originals = [];
+
+        foreach (LessonExercise::query()->whereIn('substitute_for_id', $planIds)->get(['id', 'substitute_for_id']) as $substitute) {
+            $originals[$substitute->id] = (int) $substitute->substitute_for_id;
+        }
+
         $covered = [];
 
-        foreach (DB::table('lesson_answers')->where('lesson_run_id', $run->id)->where('skipped', false)->pluck('lesson_exercise_id') as $exerciseId) {
-            $covered[(int) ($originals[$exerciseId] ?? $exerciseId)] = true;
+        foreach (LessonAnswer::query()->where('lesson_run_id', $run->id)->where('skipped', false)->get(['id', 'lesson_exercise_id']) as $answer) {
+            $covered[$originals[$answer->lesson_exercise_id] ?? $answer->lesson_exercise_id] = true;
         }
 
         $unanswered = array_values(array_filter($planIds, fn (int $id): bool => ! isset($covered[$id])));
