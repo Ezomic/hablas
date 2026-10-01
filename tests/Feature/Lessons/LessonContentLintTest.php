@@ -205,7 +205,7 @@ describe('plans without a previous lesson', function () {
 
 describe('the content registry', function () {
     it('finds content classes in a folder of language folders and ignores other classes', function () {
-        $registry = new UnitContentRegistry(path: __DIR__.'/../../Fixtures/lessons/content', namespace: 'Tests\\Fixtures\\Lessons\\Content\\');
+        $registry = new UnitContentRegistry(path: __DIR__.'/../../Fixtures/Lessons/content', namespace: 'Tests\\Fixtures\\Lessons\\Content\\');
 
         expect($registry->all())->toHaveCount(1)
             ->and($registry->all()[0]->unitSlug())->toBe('checking-into-a-hotel');

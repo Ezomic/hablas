@@ -80,7 +80,7 @@ it('settles a run by the shared cases', function (array $case) {
         ->and($run->fresh()->status === LessonRunStatus::Completed)->toBe($case['settled']);
 })->with(array_map(
     fn (array $case): array => [$case],
-    json_decode((string) file_get_contents(__DIR__.'/../../Fixtures/lessons/settle-cases.json'), true, 512, JSON_THROW_ON_ERROR)['cases'],
+    json_decode((string) file_get_contents(__DIR__.'/../../Fixtures/Lessons/settle-cases.json'), true, 512, JSON_THROW_ON_ERROR)['cases'],
 ));
 
 it('is idempotent once completed', function () {
