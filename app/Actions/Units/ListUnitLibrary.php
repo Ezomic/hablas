@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Actions\Units;
 
-use App\Enums\LessonRunKind;
-use App\Enums\LessonRunStatus;
+use App\Enums\LessonState;
 use App\Models\Language;
-use App\Models\Lesson;
-use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Models\UnitItemMastery;
 use App\Models\User;
+use App\Services\LessonProgress;
 
 final class ListUnitLibrary
 {
     public function __construct(
         private readonly DetermineUnitAvailability $determineUnitAvailability = new DetermineUnitAvailability,
+        private readonly LessonProgress $lessonProgress = new LessonProgress,
     ) {}
 
     /**
@@ -33,14 +32,12 @@ final class ListUnitLibrary
             ->values();
 
         $availability = $this->determineUnitAvailability->handle($user, $language, $units);
-        $lessons = Lesson::query()->whereIn('unit_id', $units->pluck('id'))->get(['id', 'unit_id']);
-        $completedLessonIds = LessonRun::query()
-            ->where('user_id', $user->id)
-            ->where('status', LessonRunStatus::Completed)
-            ->where('kind', LessonRunKind::Lesson)
-            ->whereIn('lesson_id', $lessons->pluck('id'))
-            ->distinct()
-            ->pluck('lesson_id');
+        $states = [];
+
+        foreach ($units as $unit) {
+            $states[$unit->id] = array_values($this->lessonProgress->states($user, $unit));
+        }
+
         $mastered = [];
 
         foreach (UnitItemMastery::query()->where('user_id', $user->id)->whereIn('unit_id', $units->pluck('id'))->get(['unit_id', 'masterable_type', 'masterable_id']) as $row) {
@@ -54,8 +51,8 @@ final class ListUnitLibrary
             'cefrLevel' => $unit->cefr_level->value,
             'primarySkill' => $unit->primary_skill->value,
             'availability' => $availability[$unit->id]->value,
-            'lessonCount' => $lessons->where('unit_id', $unit->id)->count(),
-            'lessonsCompleted' => $lessons->where('unit_id', $unit->id)->whereIn('id', $completedLessonIds)->count(),
+            'lessonCount' => count($states[$unit->id]),
+            'lessonsCompleted' => count(array_filter($states[$unit->id], fn (LessonState $state): bool => $state === LessonState::Completed)),
             'masteredCount' => count($mastered[$unit->id] ?? []),
         ])->all());
     }
