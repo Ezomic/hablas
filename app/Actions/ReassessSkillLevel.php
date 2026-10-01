@@ -8,6 +8,7 @@ use App\Enums\CefrLevel;
 use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
+use App\Models\LessonSkillScore;
 use App\Models\ListeningAttempt;
 use App\Models\ReadingAttempt;
 use App\Models\ScriptedPromptAttempt;
@@ -51,6 +52,12 @@ final class ReassessSkillLevel
      */
     private const COMPREHENSION_SUCCESS_SCORE = 80.0;
 
+    /**
+     * Lesson skill scores (0-100) at or above this count as a successful
+     * outcome, like the other sources.
+     */
+    private const LESSON_SUCCESS_SCORE = 80.0;
+
     public function handle(User $user, Language $language, Skill $skill): void
     {
         $skillLevel = UserSkillLevel::query()->firstWhere([
@@ -78,6 +85,13 @@ final class ReassessSkillLevel
             Skill::Reading => $this->recentReadingOutcomes($user, $language, $since, $window),
             Skill::Listening => $this->recentListeningOutcomes($user, $language, $since, $window),
         };
+
+        $outcomes = $outcomes
+            ->concat($this->recentLessonOutcomes($user, $language, $skill, $since, $window))
+            ->sortByDesc('at')
+            ->take($window)
+            ->map(fn (array $outcome): bool => $outcome['ok'])
+            ->values();
 
         if ($outcomes->count() < $window) {
             return;
@@ -119,7 +133,7 @@ final class ReassessSkillLevel
         ];
     }
 
-    /** @return Collection<int, bool> */
+    /** @return Collection<int, array{at: CarbonImmutable, ok: bool}> */
     private function recentReadingOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         return ReadingAttempt::query()
@@ -129,10 +143,10 @@ final class ReassessSkillLevel
             ->latest('attempted_at')
             ->limit($window)
             ->get()
-            ->map(fn (ReadingAttempt $attempt): bool => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE);
+            ->map(fn (ReadingAttempt $attempt): array => ['at' => $attempt->attempted_at, 'ok' => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE]);
     }
 
-    /** @return Collection<int, bool> */
+    /** @return Collection<int, array{at: CarbonImmutable, ok: bool}> */
     private function recentListeningOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         return ListeningAttempt::query()
@@ -142,10 +156,10 @@ final class ReassessSkillLevel
             ->latest('attempted_at')
             ->limit($window)
             ->get()
-            ->map(fn (ListeningAttempt $attempt): bool => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE);
+            ->map(fn (ListeningAttempt $attempt): array => ['at' => $attempt->attempted_at, 'ok' => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE]);
     }
 
-    /** @return Collection<int, bool> */
+    /** @return Collection<int, array{at: CarbonImmutable, ok: bool}> */
     private function recentWritingOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         return WritingAttempt::query()
@@ -155,7 +169,7 @@ final class ReassessSkillLevel
             ->latest('submitted_at')
             ->limit($window)
             ->get()
-            ->map(fn (WritingAttempt $attempt): bool => $attempt->is_correct);
+            ->map(fn (WritingAttempt $attempt): array => ['at' => $attempt->submitted_at, 'ok' => $attempt->is_correct]);
     }
 
     /**
@@ -163,7 +177,7 @@ final class ReassessSkillLevel
      * one rolling window, since both are speaking practice for the same
      * skill — just interleaved by recency rather than treated separately.
      *
-     * @return Collection<int, bool>
+     * @return Collection<int, array{at: CarbonImmutable, ok: bool}>
      */
     private function recentSpeakingOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
@@ -186,7 +200,27 @@ final class ReassessSkillLevel
         return $shadowing->concat($scriptedPrompts)
             ->sortByDesc('attempted_at')
             ->take($window)
-            ->map(fn ($attempt): bool => $attempt->score >= self::SPEAKING_SUCCESS_SCORE)
+            ->map(fn (ShadowingAttempt|ScriptedPromptAttempt $attempt): array => ['at' => $attempt->attempted_at, 'ok' => $attempt->score >= self::SPEAKING_SUCCESS_SCORE])
             ->values();
+    }
+
+    /**
+     * Lesson scores that count toward the level, one outcome per score, so a
+     * lesson with many answers moves a skill no faster than one with few.
+     *
+     * @return Collection<int, array{at: CarbonImmutable, ok: bool}>
+     */
+    private function recentLessonOutcomes(User $user, Language $language, Skill $skill, ?CarbonImmutable $since, int $window): Collection
+    {
+        return LessonSkillScore::query()
+            ->where('user_id', $user->id)
+            ->where('language_id', $language->id)
+            ->where('skill', $skill)
+            ->where('counts_toward_level', true)
+            ->when($since, fn ($query) => $query->where('scored_at', '>', $since))
+            ->latest('scored_at')
+            ->limit($window)
+            ->get()
+            ->map(fn (LessonSkillScore $score): array => ['at' => $score->scored_at, 'ok' => $score->score >= self::LESSON_SUCCESS_SCORE]);
     }
 }

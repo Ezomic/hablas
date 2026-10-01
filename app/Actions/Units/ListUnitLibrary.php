@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Units;
 
+use App\Enums\LessonRunKind;
+use App\Enums\LessonRunStatus;
 use App\Models\Language;
+use App\Models\Lesson;
+use App\Models\LessonRun;
 use App\Models\Unit;
+use App\Models\UnitItemMastery;
 use App\Models\User;
 
 final class ListUnitLibrary
@@ -15,7 +20,7 @@ final class ListUnitLibrary
     ) {}
 
     /**
-     * @return list<array{id: int, title: string, taskDescription: string, cefrLevel: string, primarySkill: string, availability: string}>
+     * @return list<array{id: int, title: string, taskDescription: string, cefrLevel: string, primarySkill: string, availability: string, lessonCount: int, lessonsCompleted: int, masteredCount: int}>
      */
     public function handle(User $user, Language $language): array
     {
@@ -28,6 +33,19 @@ final class ListUnitLibrary
             ->values();
 
         $availability = $this->determineUnitAvailability->handle($user, $language, $units);
+        $lessons = Lesson::query()->whereIn('unit_id', $units->pluck('id'))->get(['id', 'unit_id']);
+        $completedLessonIds = LessonRun::query()
+            ->where('user_id', $user->id)
+            ->where('status', LessonRunStatus::Completed)
+            ->where('kind', LessonRunKind::Lesson)
+            ->whereIn('lesson_id', $lessons->pluck('id'))
+            ->distinct()
+            ->pluck('lesson_id');
+        $mastered = [];
+
+        foreach (UnitItemMastery::query()->where('user_id', $user->id)->whereIn('unit_id', $units->pluck('id'))->get(['unit_id', 'masterable_type', 'masterable_id']) as $row) {
+            $mastered[$row->unit_id][$row->masterable_type.':'.$row->masterable_id] = true;
+        }
 
         return array_values($units->map(fn (Unit $unit): array => [
             'id' => $unit->id,
@@ -36,6 +54,9 @@ final class ListUnitLibrary
             'cefrLevel' => $unit->cefr_level->value,
             'primarySkill' => $unit->primary_skill->value,
             'availability' => $availability[$unit->id]->value,
+            'lessonCount' => $lessons->where('unit_id', $unit->id)->count(),
+            'lessonsCompleted' => $lessons->where('unit_id', $unit->id)->whereIn('id', $completedLessonIds)->count(),
+            'masteredCount' => count($mastered[$unit->id] ?? []),
         ])->all());
     }
 }

@@ -27,6 +27,8 @@ final class DetermineUnitAvailability
      * The first rule that applies wins:
      * - a completed unit stays open as a reference, even when a later
      *   placement puts the learner below its level;
+     * - a unit with a lesson started stays open until it is finished, never
+     *   locked or held back, whatever the review deck or a re-placement says;
      * - a unit above the blended level is locked, on the same ceiling
      *   SelectNextUnit picks from (A1 before any placement);
      * - while recent reviews need remediation, new units are held back, just
@@ -45,15 +47,19 @@ final class DetermineUnitAvailability
             $this->computeBlendedCefrLevel->handle($this->getUserSkillLevels->handle($user, $language)) ?? CefrLevel::A1,
         );
 
-        $completedUnitIds = $user->unitProgress()
-            ->where('status', UnitProgressStatus::Completed)
+        $progress = $user->unitProgress()
+            ->whereIn('status', [UnitProgressStatus::Completed, UnitProgressStatus::InProgress])
             ->whereIn('unit_id', $units->pluck('id'))
-            ->pluck('unit_id');
+            ->get(['unit_id', 'status']);
+
+        $completedUnitIds = $progress->where('status', UnitProgressStatus::Completed)->pluck('unit_id');
+        $inProgressUnitIds = $progress->where('status', UnitProgressStatus::InProgress)->pluck('unit_id');
 
         $heldBack = $this->evaluateSessionHealth->handle($user, $language);
 
         return $units->mapWithKeys(fn (Unit $unit): array => [$unit->id => match (true) {
             $completedUnitIds->contains($unit->id) => UnitAvailability::Completed,
+            $inProgressUnitIds->contains($unit->id) => UnitAvailability::InProgress,
             ! in_array($unit->cefr_level, $unlockedLevels, true) => UnitAvailability::Locked,
             $heldBack => UnitAvailability::HeldBack,
             default => UnitAvailability::Available,

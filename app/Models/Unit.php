@@ -64,6 +64,12 @@ class Unit extends Model
         return $this->hasMany(GrammarPoint::class);
     }
 
+    /** @return HasMany<Lesson, $this> */
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class)->orderBy('position');
+    }
+
     /** @return HasMany<UserUnitProgress, $this> */
     public function userProgress(): HasMany
     {

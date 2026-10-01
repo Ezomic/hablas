@@ -10,8 +10,10 @@ use App\Enums\ContextTag;
 use App\Enums\Skill;
 use App\Models\GrammarPoint;
 use App\Models\Language;
+use App\Models\LessonRun;
 use App\Models\SrsCard;
 use App\Models\Unit;
+use App\Models\UnitItemMastery;
 use App\Models\User;
 use App\Models\UserSetting;
 use App\Models\VocabularyItem;
@@ -163,4 +165,80 @@ it('tops up automatically when the next review session is built', function () {
     $this->actingAs($this->user)->get(route('review.index'))->assertOk();
 
     expect(SrsCard::query()->count())->toBe(4);
+});
+
+it('enrols items mastered in a unit check at once, without the unit being completed', function () {
+    $unit = unitWithVocabulary($this->spanish, 3);
+    $items = $unit->vocabularyItems()->orderBy('id')->get();
+    $run = LessonRun::factory()->create(['user_id' => $this->user->id]);
+
+    foreach ($items->take(2) as $item) {
+        UnitItemMastery::factory()->create([
+            'user_id' => $this->user->id,
+            'unit_id' => $unit->id,
+            'masterable_type' => $item->getMorphClass(),
+            'masterable_id' => $item->id,
+            'lesson_run_id' => $run->id,
+        ]);
+    }
+
+    $result = (new EnrollPendingUnitContent)->handle($this->user, $this->spanish);
+
+    expect($result)->toBe(['enrolled' => 2, 'deferred' => 0])
+        ->and(SrsCard::query()->where('user_id', $this->user->id)->pluck('cardable_id')->sort()->values()->all())->toBe($items->take(2)->pluck('id')->all());
+});
+
+it('enrols a mastered grammar point too, and never enrols the same item twice', function () {
+    $unit = unitWithVocabulary($this->spanish, 1);
+    $point = GrammarPoint::factory()->create(['language_id' => $this->spanish->id, 'unit_id' => $unit->id]);
+    $run = LessonRun::factory()->create(['user_id' => $this->user->id]);
+
+    foreach ([$unit->vocabularyItems()->firstOrFail(), $point] as $item) {
+        UnitItemMastery::factory()->create([
+            'user_id' => $this->user->id,
+            'unit_id' => $unit->id,
+            'masterable_type' => $item->getMorphClass(),
+            'masterable_id' => $item->id,
+            'lesson_run_id' => $run->id,
+        ]);
+    }
+
+    (new CompleteUnit)->handle($this->user, $unit);
+    (new EnrollPendingUnitContent)->handle($this->user, $this->spanish);
+
+    expect(SrsCard::query()->where('user_id', $this->user->id)->count())->toBe(2);
+});
+
+it('does not enrol items mastered in another language\'s unit', function () {
+    $portuguese = Language::query()->where('code', 'pt')->sole();
+    $unit = unitWithVocabulary($portuguese, 2);
+    $item = $unit->vocabularyItems()->firstOrFail();
+    UnitItemMastery::factory()->create([
+        'user_id' => $this->user->id,
+        'unit_id' => $unit->id,
+        'masterable_type' => $item->getMorphClass(),
+        'masterable_id' => $item->id,
+        'lesson_run_id' => LessonRun::factory()->create(['user_id' => $this->user->id])->id,
+    ]);
+
+    expect((new EnrollPendingUnitContent)->handle($this->user, $this->spanish))->toBe(['enrolled' => 0, 'deferred' => 0])
+        ->and(SrsCard::query()->count())->toBe(0);
+});
+
+it('lets the daily cap hold mastered items back too', function () {
+    $unit = unitWithVocabulary($this->spanish, 3);
+    UserSetting::factory()->for($this->user)->create(['new_item_cap_override' => 2]);
+    $run = LessonRun::factory()->create(['user_id' => $this->user->id]);
+
+    foreach ($unit->vocabularyItems as $item) {
+        UnitItemMastery::factory()->create([
+            'user_id' => $this->user->id,
+            'unit_id' => $unit->id,
+            'masterable_type' => $item->getMorphClass(),
+            'masterable_id' => $item->id,
+            'lesson_run_id' => $run->id,
+        ]);
+    }
+
+    expect((new EnrollPendingUnitContent)->handle($this->user, $this->spanish))->toBe(['enrolled' => 2, 'deferred' => 1]);
 });

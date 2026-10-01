@@ -9,6 +9,7 @@ use App\Enums\CefrLevel;
 use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
+use App\Models\LessonSkillScore;
 use App\Models\ListeningAttempt;
 use App\Models\ListeningExercise;
 use App\Models\PlacementTestAttempt;
@@ -22,6 +23,7 @@ use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Models\WritingAttempt;
 use App\Models\WritingExercise;
+use Carbon\CarbonInterface;
 
 it('bumps writing up one CEFR level after a high-success attempt streak', function () {
     $user = User::factory()->create();
@@ -471,3 +473,107 @@ it('starts a row with no stored tier from the first tier of its level', function
     [CefrLevel::A2, CefrSubLevel::A2_2],
     [CefrLevel::B1, CefrSubLevel::B1_2],
 ]);
+
+describe('lesson skill scores', function () {
+    function lessonScoreSetup(CefrSubLevel $tier = CefrSubLevel::A1_3): array
+    {
+        $user = User::factory()->create();
+        $language = Language::factory()->create();
+        $level = UserSkillLevel::factory()->create([
+            'user_id' => $user->id,
+            'language_id' => $language->id,
+            'skill' => Skill::Writing,
+            'cefr_level' => CefrLevel::A1,
+            'sub_level' => $tier,
+            'level_set_at' => now()->subDay(),
+        ]);
+
+        return [$user, $language, $level];
+    }
+
+    function lessonScores(User $user, Language $language, int $count, float $score = 100.0, bool $counts = true, ?CarbonInterface $at = null): void
+    {
+        LessonSkillScore::factory()->count($count)->create([
+            'user_id' => $user->id,
+            'language_id' => $language->id,
+            'skill' => Skill::Writing,
+            'score' => $score,
+            'counts_toward_level' => $counts,
+            'scored_at' => $at ?? now(),
+        ]);
+    }
+
+    it('raises a level once ten lesson scores at 80 or more have counted', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        lessonScores($user, $language, 10);
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+        $first = $level->fresh();
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($first->cefr_level)->toBe(CefrLevel::A2)
+            ->and($level->fresh()->sub_level)->toBe(CefrSubLevel::A2_1)
+            ->and($level->fresh()->level_set_at->equalTo($first->level_set_at))->toBeTrue();
+    });
+
+    it('does not raise a level on nine scores, or on scores below 80', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        lessonScores($user, $language, 9);
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
+
+        LessonSkillScore::query()->delete();
+        lessonScores($user, $language, 7);
+        lessonScores($user, $language, 3, 79.0);
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
+    });
+
+    it('ignores scores that do not count toward the level and scores from before the level was set', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        lessonScores($user, $language, 5, counts: false);
+        lessonScores($user, $language, 5, at: now()->subDays(3));
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
+    });
+
+    it('ignores another language\'s and another skill\'s scores', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        lessonScores($user, Language::factory()->create(), 10);
+        LessonSkillScore::factory()->count(10)->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => Skill::Reading, 'counts_toward_level' => true]);
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A1);
+    });
+
+    it('merges lesson scores with practice attempts by recency', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        $exercise = WritingExercise::factory()->create(['language_id' => $language->id]);
+
+        WritingAttempt::factory()->count(5)->create(['user_id' => $user->id, 'writing_exercise_id' => $exercise->id, 'is_correct' => true, 'submitted_at' => now()->subHours(5)]);
+        lessonScores($user, $language, 5, at: now()->subHour());
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A2);
+    });
+
+    it('lets the newest ten outcomes decide when old failures are outside the window', function () {
+        [$user, $language, $level] = lessonScoreSetup();
+        $exercise = WritingExercise::factory()->create(['language_id' => $language->id]);
+
+        WritingAttempt::factory()->count(5)->create(['user_id' => $user->id, 'writing_exercise_id' => $exercise->id, 'is_correct' => false, 'submitted_at' => now()->subHours(9)]);
+        lessonScores($user, $language, 10, at: now()->subHour());
+
+        (new ReassessSkillLevel)->handle($user, $language, Skill::Writing);
+
+        expect($level->fresh()->cefr_level)->toBe(CefrLevel::A2);
+    });
+});

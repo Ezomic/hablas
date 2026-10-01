@@ -9,6 +9,7 @@ use App\Models\GrammarPoint;
 use App\Models\Language;
 use App\Models\SrsCard;
 use App\Models\Unit;
+use App\Models\UnitItemMastery;
 use App\Models\User;
 use App\Models\UserUnitProgress;
 use App\Models\VocabularyItem;
@@ -24,7 +25,8 @@ final class EnrollPendingUnitContent
 
     /**
      * Enrols whatever the daily new-item cap has not let through yet from the
-     * units this user has already completed, oldest completion first.
+     * units this user has already completed, oldest completion first, and then
+     * from the items they have mastered in a unit check.
      *
      * The cap paces new material, it does not discard it: a unit finished on a
      * heavy-backlog day would otherwise leave most of its vocabulary stranded
@@ -88,7 +90,65 @@ final class EnrollPendingUnitContent
             }
         }
 
+        $queued = [];
+
+        foreach ($pending as $cardable) {
+            $queued[$this->keyOf($cardable)] = true;
+        }
+
+        foreach ($this->masteredContent($user, $language) as $cardable) {
+            $key = $this->keyOf($cardable);
+
+            if (! isset($queued[$key]) && ! in_array($cardable->getKey(), $alreadyEnrolled[$cardable->getMorphClass()] ?? [], true)) {
+                $queued[$key] = true;
+                $pending[] = $cardable;
+            }
+        }
+
         return collect($pending);
+    }
+
+    private function keyOf(GrammarPoint|VocabularyItem $cardable): string
+    {
+        return $cardable->getMorphClass().':'.$cardable->id;
+    }
+
+    /**
+     * Items the learner has proven in a unit check join the deck at once,
+     * without waiting for the unit to complete. Only this language's units
+     * count, so the decks stay separate.
+     *
+     * @return list<GrammarPoint|VocabularyItem>
+     */
+    private function masteredContent(User $user, Language $language): array
+    {
+        $masteries = UnitItemMastery::query()
+            ->where('user_id', $user->id)
+            ->whereHas('unit', fn ($query) => $query->where('language_id', $language->id))
+            ->orderBy('mastered_at')
+            ->orderBy('id')
+            ->get(['masterable_type', 'masterable_id']);
+
+        $content = [];
+
+        foreach ([VocabularyItem::class, GrammarPoint::class] as $model) {
+            $ids = $masteries->where('masterable_type', (new $model)->getMorphClass())->pluck('masterable_id');
+            $found[$model] = $model::query()->whereKey($ids)->get()->keyBy('id');
+        }
+
+        foreach ($masteries as $mastery) {
+            $item = match ($mastery->masterable_type) {
+                (new VocabularyItem)->getMorphClass() => $found[VocabularyItem::class]->get($mastery->masterable_id),
+                (new GrammarPoint)->getMorphClass() => $found[GrammarPoint::class]->get($mastery->masterable_id),
+                default => null,
+            };
+
+            if ($item !== null) {
+                $content[] = $item;
+            }
+        }
+
+        return $content;
     }
 
     /**
