@@ -132,7 +132,7 @@ it('sends at most one reminder a day, and again the next day', function () {
 
     expect(remindOfDueReviews($this->user))->toBeTrue();
 
-    $this->travelTo(CarbonImmutable::parse('2026-09-30 20:00:00'));
+    $this->travelTo(CarbonImmutable::parse('2026-09-30 19:45:00'));
     reviewedDeckAt($this->user, $this->language, '2026-09-30 15:30:00');
     SrsCard::query()->where('due_at', '2026-09-30 13:00:00')->update(['due_at' => '2026-10-05 00:00:00']);
     repetitionsComingDueAt($this->user, $this->language, '2026-09-30 19:30:00', 20);
@@ -210,4 +210,36 @@ it('sends nothing to a learner with no unlocked language', function () {
     expect(remindOfDueReviews($this->user))->toBeFalse();
 
     Notification::assertNothingSent();
+});
+
+it('only pushes from noon to the end of the nine o\'clock hour, Amsterdam time', function (string $utc, bool $sends) {
+    $this->travelTo(CarbonImmutable::parse($utc));
+    reviewedDeckAt($this->user, $this->language, '2026-09-29 08:00:00');
+    repetitionsComingDueAt($this->user, $this->language, '2026-09-30 01:00:00', 20);
+
+    expect(remindOfDueReviews($this->user))->toBe($sends);
+})->with([
+    'before noon in summer' => ['2026-09-30 09:59:00', false],
+    'noon in summer' => ['2026-09-30 10:00:00', true],
+    'the last minute of nine in summer' => ['2026-09-30 19:59:59', true],
+    'ten in the evening in summer' => ['2026-09-30 20:00:00', false],
+    'noon in winter' => ['2026-12-01 11:00:00', true],
+    'the last minute of nine in winter' => ['2026-12-01 20:59:59', true],
+    'the middle of the night' => ['2026-09-30 01:00:00', false],
+]);
+
+it('reads the last review only from this learner and this deck', function () {
+    $other = User::factory()->create();
+    reviewedDeckAt($other, $this->language, '2026-09-30 14:00:00');
+    reviewedDeckAt($this->user, Language::factory()->create(), '2026-09-30 14:00:00');
+    reviewedDeckAt($this->user, $this->language, '2026-09-30 08:30:00');
+    repetitionsComingDueAt($this->user, $this->language, '2026-09-30 13:00:00', 20);
+
+    expect(remindOfDueReviews($this->user))->toBeTrue();
+});
+
+it('lets a push that sat undelivered for hours expire at the push service', function () {
+    $options = (new DueReviewsReminder('Spanish', 23))->toWebPush($this->user)->getOptions();
+
+    expect($options['TTL'])->toBe(4 * 3600);
 });

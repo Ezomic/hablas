@@ -19,6 +19,12 @@ final class SendDueReviewReminder
 
     private const int HOURS_AFTER_LAST_REVIEW = 4;
 
+    private const string TIMEZONE = 'Europe/Amsterdam';
+
+    private const int FIRST_HOUR = 12;
+
+    private const int LAST_HOUR = 21;
+
     public function __construct(
         private readonly GetCurrentLanguage $getCurrentLanguage = new GetCurrentLanguage,
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,
@@ -33,6 +39,10 @@ final class SendDueReviewReminder
      */
     public function handle(User $user): bool
     {
+        if (! $this->withinReminderHours()) {
+            return false;
+        }
+
         $settings = $this->getUserSettings->handle($user);
 
         if ($settings->notification_frequency !== NotificationFrequency::Daily
@@ -65,6 +75,17 @@ final class SendDueReviewReminder
         $settings->forceFill(['last_due_reminder_sent_at' => now()])->save();
 
         return true;
+    }
+
+    /**
+     * Starts after the 08:00 UTC digest (10:00 or 09:00 in Amsterdam), so a
+     * reminder never lands just before it, and stops before the night.
+     */
+    private function withinReminderHours(): bool
+    {
+        $hour = now(self::TIMEZONE)->hour;
+
+        return $hour >= self::FIRST_HOUR && $hour <= self::LAST_HOUR;
     }
 
     private function lastReviewedAt(User $user, Language $language): ?CarbonImmutable
