@@ -18,6 +18,14 @@ export function recordJournal(
 ): Promise<void> {
     return putLessonAnswer({
         ...entry,
+        // Plain data only: a body built from reactive state cannot be cloned
+        // into IndexedDB, which would lose the whole row.
+        request: entry.request
+            ? {
+                  url: entry.request.url,
+                  body: JSON.parse(JSON.stringify(entry.request.body)),
+              }
+            : null,
         userId,
         runId,
         answeredAt: Date.now(),
