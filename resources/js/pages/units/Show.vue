@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import SpeakButton from '@/components/SpeakButton.vue';
+import { ChevronDown } from '@lucide/vue';
+import { ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,12 +9,23 @@ import {
     CardContent,
     CardDescription,
     CardHeader,
-    CardTitle,
 } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Spinner } from '@/components/ui/spinner';
+import UnitLessonList from '@/components/UnitLessonList.vue';
+import type {
+    UnitGrammarPoint,
+    UnitVocabularyItem,
+} from '@/components/UnitReference.vue';
+import UnitReference from '@/components/UnitReference.vue';
 import { skillLabels } from '@/lib/skillLabels';
 import { index as unitsIndex } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
+import type { UnitLessonOverview } from '@/types/lesson';
 
 interface Unit {
     id: number;
@@ -24,26 +36,13 @@ interface Unit {
     contrastNote: string | null;
 }
 
-interface VocabularyItem {
-    id: number;
-    term: string;
-    translation: string;
-    partOfSpeech: string;
-    isCognate: boolean;
-    contrastNote: string | null;
-}
-
-interface GrammarPoint {
-    id: number;
-    title: string;
-    explanation: string;
-}
-
 const props = defineProps<{
     unit: Unit;
-    vocabularyItems: VocabularyItem[];
-    grammarPoints: GrammarPoint[];
+    vocabularyItems: UnitVocabularyItem[];
+    grammarPoints: UnitGrammarPoint[];
     isCompleted: boolean;
+    availability?: string;
+    lessons?: UnitLessonOverview | null;
     speechLocale: string | null;
 }>();
 
@@ -54,6 +53,7 @@ defineOptions({
 });
 
 const form = useForm({});
+const referenceOpen = ref(false);
 
 function complete() {
     form.post(completeUnit(props.unit.id).url);
@@ -87,68 +87,56 @@ function complete() {
             </CardContent>
         </Card>
 
-        <section
-            v-if="props.vocabularyItems.length"
-            class="flex flex-col gap-3"
-        >
-            <h2 class="text-lg font-medium">Vocabulary</h2>
+        <template v-if="props.lessons">
+            <UnitLessonList
+                :unit-id="props.unit.id"
+                :overview="props.lessons"
+                :is-held-back="props.availability === 'held_back'"
+            />
 
-            <Card v-for="item in props.vocabularyItems" :key="item.id">
-                <CardContent class="flex flex-col gap-1 py-4">
-                    <div class="flex items-baseline justify-between gap-4">
-                        <span
-                            class="flex items-center gap-1 text-lg font-medium"
-                        >
-                            {{ item.term }}
-                            <SpeakButton
-                                :text="item.term"
-                                :locale="props.speechLocale"
-                            />
-                        </span>
-                        <span class="text-muted-foreground">{{
-                            item.translation
-                        }}</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 text-xs text-muted-foreground"
-                    >
-                        <span>{{ item.partOfSpeech }}</span>
-                        <Badge v-if="item.isCognate" variant="outline"
-                            >cognate</Badge
-                        >
-                    </div>
-                    <p v-if="item.contrastNote" class="text-sm text-amber-600">
-                        {{ item.contrastNote }}
-                    </p>
-                </CardContent>
-            </Card>
-        </section>
+            <Collapsible
+                v-model:open="referenceOpen"
+                class="flex flex-col gap-3"
+            >
+                <CollapsibleTrigger
+                    class="flex w-fit items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                    Words and grammar in this unit
+                    <ChevronDown
+                        class="size-4 transition-transform"
+                        :class="{ 'rotate-180': referenceOpen }"
+                    />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <UnitReference
+                        :vocabulary-items="props.vocabularyItems"
+                        :grammar-points="props.grammarPoints"
+                        :speech-locale="props.speechLocale"
+                    />
+                </CollapsibleContent>
+            </Collapsible>
+        </template>
 
-        <section v-if="props.grammarPoints.length" class="flex flex-col gap-3">
-            <h2 class="text-lg font-medium">Grammar</h2>
+        <template v-else>
+            <UnitReference
+                :vocabulary-items="props.vocabularyItems"
+                :grammar-points="props.grammarPoints"
+                :speech-locale="props.speechLocale"
+            />
 
-            <Card v-for="point in props.grammarPoints" :key="point.id">
-                <CardHeader>
-                    <CardTitle class="text-base">{{ point.title }}</CardTitle>
-                </CardHeader>
-                <CardContent class="text-sm text-muted-foreground">
-                    {{ point.explanation }}
-                </CardContent>
-            </Card>
-        </section>
+            <p v-if="props.isCompleted" class="text-sm text-muted-foreground">
+                You've already completed this unit. Its cards are in your review
+                deck.
+            </p>
 
-        <p v-if="props.isCompleted" class="text-sm text-muted-foreground">
-            You've already completed this unit. Its cards are in your review
-            deck.
-        </p>
-
-        <Button :disabled="form.processing" @click="complete">
-            <Spinner v-if="form.processing" />
-            {{
-                props.isCompleted
-                    ? 'Mark complete again'
-                    : 'Complete unit and add to review deck'
-            }}
-        </Button>
+            <Button :disabled="form.processing" @click="complete">
+                <Spinner v-if="form.processing" />
+                {{
+                    props.isCompleted
+                        ? 'Mark complete again'
+                        : 'Complete unit and add to review deck'
+                }}
+            </Button>
+        </template>
     </div>
 </template>

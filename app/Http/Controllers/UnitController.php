@@ -6,11 +6,13 @@ namespace App\Http\Controllers;
 
 use App\Actions\CompleteUnit;
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\Lessons\GetUnitLessonOverview;
 use App\Actions\Units\DetermineUnitAvailability;
 use App\Actions\Units\ListUnitLibrary;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\UnitAvailability;
 use App\Models\GrammarPoint;
+use App\Models\Lesson;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
 use App\Services\SpeechLocaleResolver;
@@ -33,9 +35,10 @@ final class UnitController extends Controller
         ]);
     }
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview): Response
     {
         $availability = $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
+        $overview = $getUnitLessonOverview->handle($this->currentUser(), $unit);
 
         $unit->load(['vocabularyItems', 'grammarPoints']);
 
@@ -62,6 +65,8 @@ final class UnitController extends Controller
                 'explanation' => $point->explanation,
             ])->values(),
             'isCompleted' => $availability === UnitAvailability::Completed,
+            'availability' => $availability->value,
+            'lessons' => $this->hasLessons($overview) ? $overview : null,
             'speechLocale' => $unit->language === null ? null : $speechLocaleResolver->forLanguage($unit->language),
         ]);
     }
@@ -70,11 +75,30 @@ final class UnitController extends Controller
     {
         $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
 
+        abort_if(Lesson::query()->where('unit_id', $unit->id)->playable()->exists(), 404);
+
         $result = $completeUnit->handle($this->currentUser(), $unit);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => $this->completionMessage($result['enrolled'], $result['deferred'])]);
 
         return to_route('dashboard');
+    }
+
+    /**
+     * A unit with playable lessons is completed through them, never through
+     * the old button, which stays only for units that have none.
+     *
+     * @param  array{lessons: list<array{lessonId: int|null}>}  $overview
+     */
+    private function hasLessons(array $overview): bool
+    {
+        foreach ($overview['lessons'] as $lesson) {
+            if ($lesson['lessonId'] !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

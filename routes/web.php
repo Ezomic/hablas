@@ -19,6 +19,7 @@ require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/placement.php';
 require __DIR__.'/units.php';
+require __DIR__.'/lessons.php';
 require __DIR__.'/reading.php';
 require __DIR__.'/listening.php';
 require __DIR__.'/shadowing.php';

@@ -18,6 +18,7 @@ use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
+use Tests\Fixtures\Lessons\ArrayContent;
 use Tests\Fixtures\Lessons\HotelContent;
 use Tests\Fixtures\Lessons\LessonWorld;
 
@@ -188,6 +189,25 @@ describe('lesson 1', function () {
 
         expect($typed->payload['hint'])->toBe('la  l _ _ _ _')
             ->and(collect($typed->payload['accepted'])->pluck('text')->all())->toBe(['la llave', 'llave']);
+    });
+
+    it('keeps punctuation out of the letter slots of a typed phrase', function () {
+        $unit = LessonWorld::hotelUnit();
+        $item = VocabularyItem::query()->where('unit_id', $unit->id)->where('term', 'disponible')->firstOrFail();
+        $item->forceFill(['term' => '¿dónde está...?', 'part_of_speech' => 'phrase'])->save();
+        $lessons = (new BuildUnitLessons)->handle($unit->fresh(), new ArrayContent(words: [new WordData('¿dónde está...?', cue: 'where is...?')]), [ExerciseFamily::Choice, ExerciseFamily::Writing]);
+        $typed = collect(originals($lessons[0]))->first(fn (ExerciseDefinition $exercise): bool => $exercise->key === 'meet.type_word.donde-esta');
+
+        expect($typed->payload['hint'])->toBe('¿d _ _ _ _  e _ _ _...?');
+    });
+
+    it('leaves a word made only of digits as it is in the letter slots', function () {
+        $unit = LessonWorld::hotelUnit();
+        VocabularyItem::query()->where('unit_id', $unit->id)->where('term', 'disponible')->firstOrFail()->forceFill(['term' => '24 horas', 'part_of_speech' => 'phrase'])->save();
+        $lessons = (new BuildUnitLessons)->handle($unit->fresh(), new ArrayContent(words: [new WordData('24 horas', cue: 'all day')]), [ExerciseFamily::Choice, ExerciseFamily::Writing]);
+        $typed = collect(originals($lessons[0]))->first(fn (ExerciseDefinition $exercise): bool => $exercise->key === 'meet.type_word.24-horas');
+
+        expect($typed->payload['hint'])->toBe('24  h _ _ _ _');
     });
 
     it('builds only the families asked for', function () {

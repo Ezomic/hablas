@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Actions\Lessons\BuildUnitLessons;
 use App\Actions\Lessons\CompleteLessonRun;
 use App\Actions\Lessons\RecordLessonAnswer;
 use App\Actions\Lessons\RecordLessonSkillScores;
 use App\Actions\Lessons\SettleLessonRun;
 use App\Actions\Lessons\StartLessonRun;
+use App\Actions\Lessons\SyncUnitLessons;
 use App\Enums\CefrLevel;
 use App\Enums\CefrSubLevel;
 use App\Enums\LessonExerciseFormat;
@@ -23,6 +25,7 @@ use App\Models\User;
 use App\Models\UserSkillLevel;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
+use Tests\Fixtures\Lessons\HotelContent;
 use Tests\Fixtures\Lessons\LessonWorld;
 
 beforeEach(function () {
@@ -209,6 +212,26 @@ describe('evidence for skill levels', function () {
         expect([$meet->counts_as_evidence, $recall->counts_as_evidence, $sentences->counts_as_evidence, $replay->counts_as_evidence])->toBe([false, false, true, false])
             ->and(LessonSkillScore::query()->where('lesson_run_id', $replay->id)->count())->toBe(0)
             ->and(LessonSkillScore::query()->where('lesson_run_id', $meet->id)->count())->toBe(0);
+    });
+
+    it('gives no evidence to a check that holds only word recall, and leaves the later full check as the first that counts', function () {
+        $wordsOnly = new HotelContent(lessonsReviewed: false);
+        (new SyncUnitLessons)->handle($this->unit, (new BuildUnitLessons)->handle($this->unit, $wordsOnly));
+        LessonWorld::finishTeachingLessons($this->user, $this->unit);
+
+        $first = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check));
+
+        expect($first->status)->toBe(LessonRunStatus::Completed)
+            ->and($first->counts_as_evidence)->toBeFalse()
+            ->and(LessonSkillScore::query()->where('lesson_run_id', $first->id)->count())->toBe(0);
+
+        (new SyncUnitLessons)->handle($this->unit, (new BuildUnitLessons)->handle($this->unit, new HotelContent));
+        LessonWorld::finishTeachingLessons($this->user, $this->unit);
+
+        $full = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check));
+
+        expect($full->counts_as_evidence)->toBeTrue()
+            ->and(LessonSkillScore::query()->where('lesson_run_id', $full->id)->count())->toBeGreaterThan(0);
     });
 
     it('scores a skill only with at least three first-try, unhinted, unscaffolded answers', function () {

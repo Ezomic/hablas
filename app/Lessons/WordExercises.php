@@ -47,7 +47,7 @@ final class WordExercises
                     'translation' => $info->item->translation_en,
                     'part_of_speech' => $info->partOfSpeech(),
                     'is_cognate' => $info->item->is_cognate,
-                    'contrast_note' => $info->item->contrast_note,
+                    'contrast_note' => $info->data->note ?? $info->item->contrast_note,
                 ], [$this->target($info)]);
             }
 
@@ -331,12 +331,25 @@ final class WordExercises
                 continue;
             }
 
-            $letters = mb_str_split($word);
-            $first = array_shift($letters) ?? '';
-            $shown[] = trim($first.' '.implode(' ', array_fill(0, count($letters), '_')));
+            $shown[] = $this->maskWord($word);
         }
 
         return implode('  ', $shown);
+    }
+
+    /**
+     * The first letter kept and every later letter a slot, with punctuation
+     * such as the opening question mark left as it is.
+     */
+    private function maskWord(string $word): string
+    {
+        if (preg_match('/^([^\p{L}]*)(\p{L})(.*?)([^\p{L}]*)$/u', $word, $parts) !== 1) {
+            return $word;
+        }
+
+        $slots = array_map(fn (string $char): string => preg_match('/\p{L}/u', $char) === 1 ? '_' : $char, mb_str_split($parts[3]));
+
+        return $parts[1].trim($parts[2].' '.implode(' ', $slots)).$parts[4];
     }
 
     /**

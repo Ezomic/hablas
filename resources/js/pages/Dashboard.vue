@@ -21,6 +21,8 @@ import { pluralizeDays } from '@/lib/pluralize';
 import { skillLabels } from '@/lib/skillLabels';
 import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
+import { show as showRun } from '@/routes/lesson-runs';
+import { store as startRun } from '@/routes/lessons/runs';
 import { results as placementResults } from '@/routes/placement';
 import { show as showProgressShare } from '@/routes/progress/share';
 import { index as reviewIndex } from '@/routes/review';
@@ -36,10 +38,26 @@ interface Streak {
     daysUntilNextFreezeDay: number | null;
 }
 
+interface NextLesson {
+    lessonId: number;
+    title: string;
+    number: number;
+    count: number;
+    resumes: boolean;
+}
+
 interface NextUnit {
     id: number;
     title: string;
     taskDescription: string;
+    lesson: NextLesson | null;
+}
+
+interface UnseenResult {
+    runId: number;
+    unitTitle: string;
+    lessonTitle: string;
+    isCheck: boolean;
 }
 
 interface Props {
@@ -54,10 +72,19 @@ interface Props {
     reviewForecast?: Forecast;
     sessionNeedsRemediation?: boolean;
     nextUnit?: NextUnit | null;
+    unseenLessonResults?: UnseenResult[];
     canActivatePortuguese?: boolean;
 }
 
 const props = defineProps<Props>();
+
+function startLesson(unit: NextUnit) {
+    if (unit.lesson !== null) {
+        router.post(
+            startRun({ unit: unit.id, lesson: unit.lesson.lessonId }).url,
+        );
+    }
+}
 
 function activatePortugueseTrack() {
     router.post(activatePortuguese().url);
@@ -197,21 +224,64 @@ const ceilingSkillNames = computed(() => {
             </CardContent>
         </Card>
 
-        <Card v-else-if="props.nextUnit">
+        <Card v-if="props.nextUnit">
             <CardHeader>
-                <CardDescription>Next up</CardDescription>
+                <CardDescription>{{
+                    props.nextUnit.lesson?.resumes
+                        ? 'Continue'
+                        : props.sessionNeedsRemediation
+                          ? 'In progress'
+                          : 'Next up'
+                }}</CardDescription>
                 <CardTitle class="text-2xl">{{
                     props.nextUnit.title
                 }}</CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    {{ props.nextUnit.taskDescription }}
+                    <template v-if="props.nextUnit.lesson">
+                        {{
+                            props.nextUnit.lesson.resumes ? 'Continue' : 'Start'
+                        }}
+                        lesson {{ props.nextUnit.lesson.number }} of
+                        {{ props.nextUnit.lesson.count }}:
+                        {{ props.nextUnit.lesson.title }}
+                    </template>
+                    <template v-else>{{
+                        props.nextUnit.taskDescription
+                    }}</template>
                 </p>
-                <Button as-child>
+                <Button
+                    v-if="props.nextUnit.lesson"
+                    @click="startLesson(props.nextUnit)"
+                >
+                    {{
+                        props.nextUnit.lesson.resumes
+                            ? `Continue lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
+                            : `Start lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
+                    }}
+                </Button>
+                <Button v-else as-child>
                     <Link :href="showUnit(props.nextUnit.id).url"
                         >Start unit</Link
                     >
+                </Button>
+            </CardContent>
+        </Card>
+
+        <Card
+            v-for="result in props.unseenLessonResults ?? []"
+            :key="result.runId"
+        >
+            <CardHeader>
+                <CardDescription>Results are in</CardDescription>
+                <CardTitle class="text-2xl"
+                    >{{ result.unitTitle }}: {{ result.lessonTitle }}</CardTitle
+                >
+            </CardHeader>
+            <CardContent>
+                <Button as-child variant="outline">
+                    <Link :href="showRun(result.runId).url">See results</Link>
                 </Button>
             </CardContent>
         </Card>

@@ -1,11 +1,13 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
-import { fetchJson } from '@/lib/http';
+import { fetchJson, isRetryable } from '@/lib/http';
 import {
+    clearLessonAnswers,
     clearPendingSubmissions,
     countPendingSubmissions,
     getPendingSubmissions,
     queuePendingSubmission,
+    removeOtherUsersLessonAnswers,
     removeOtherUsersSubmissions,
     removeSentSubmission,
 } from '@/lib/offlineDb';
@@ -41,13 +43,6 @@ function signedInUserId(): number | null {
 
 function postJson(url: string, body: string): Promise<Response> {
     return fetchJson(url, 'POST', body);
-}
-
-// A server error, an expired session or CSRF token, a timeout or rate
-// limiting can all succeed on a later attempt. Any other 4xx fails the same
-// way every time, so keeping it would wedge everything queued behind it.
-function isRetryable(status: number): boolean {
-    return status >= 500 || [401, 408, 419, 429].includes(status);
 }
 
 async function refreshPendingCount(userId: number | null): Promise<void> {
@@ -123,10 +118,15 @@ function replayQueue(): Promise<void> {
 
 /**
  * Forgets everything this device holds for the user signing out: attempts
- * still waiting to sync, and the cached pages rendered with their data.
+ * still waiting to sync, lesson answers kept for a reload, and the cached
+ * pages rendered with their data.
  */
 export async function clearOfflineData(): Promise<void> {
-    await Promise.all([clearPendingSubmissions(), clearPageCache()]);
+    await Promise.all([
+        clearPendingSubmissions(),
+        clearLessonAnswers(),
+        clearPageCache(),
+    ]);
     pendingCount.value = 0;
     rejectedCount.value = 0;
 }
@@ -155,6 +155,7 @@ export async function claimOfflineData(userId: number | null): Promise<void> {
     }
 
     await removeOtherUsersSubmissions(userId);
+    await removeOtherUsersLessonAnswers(userId);
     await refreshPendingCount(userId);
 }
 

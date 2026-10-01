@@ -12,6 +12,7 @@ use App\Actions\Lessons\SyncUnitLessons;
 use App\Enums\CefrLevel;
 use App\Enums\ContextTag;
 use App\Enums\ErrorTagCategory;
+use App\Enums\ExerciseFamily;
 use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonStage;
 use App\Enums\Skill;
@@ -85,14 +86,15 @@ final class LessonWorld
     }
 
     /**
+     * @param  list<ExerciseFamily>|null  $families  every family when null
      * @return array{Unit, HotelContent}
      */
-    public static function seededHotel(bool $withAuthored = true): array
+    public static function seededHotel(bool $withAuthored = true, ?array $families = null): array
     {
         $unit = self::hotelUnit();
         $content = new HotelContent(withAuthored: $withAuthored);
 
-        (new SyncUnitLessons)->handle($unit, (new BuildUnitLessons)->handle($unit, $content));
+        (new SyncUnitLessons)->handle($unit, $families === null ? (new BuildUnitLessons)->handle($unit, $content) : (new BuildUnitLessons)->handle($unit, $content, $families));
 
         return [$unit, $content];
     }

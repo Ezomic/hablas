@@ -1,5 +1,6 @@
 import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
+import type { JournalAnswer } from '@/types/lesson';
 
 export interface PendingSubmission {
     id: number;
@@ -15,12 +16,17 @@ interface HablasOfflineDb extends DBSchema {
         value: PendingSubmission;
         indexes: { url: string };
     };
+    lessonAnswers: {
+        key: string;
+        value: JournalAnswer;
+        indexes: { runId: number };
+    };
 }
 
 let dbPromise: Promise<IDBPDatabase<HablasOfflineDb>> | null = null;
 
 function getDb(): Promise<IDBPDatabase<HablasOfflineDb>> {
-    dbPromise ??= openDB<HablasOfflineDb>('hablas-offline', 2, {
+    dbPromise ??= openDB<HablasOfflineDb>('hablas-offline', 3, {
         upgrade(db, oldVersion, _newVersion, transaction) {
             if (oldVersion < 1) {
                 db.createObjectStore('pendingSubmissions', {
@@ -35,6 +41,12 @@ function getDb(): Promise<IDBPDatabase<HablasOfflineDb>> {
                 transaction
                     .objectStore('pendingSubmissions')
                     .createIndex('url', 'url');
+            }
+
+            if (oldVersion < 3) {
+                db.createObjectStore('lessonAnswers', {
+                    keyPath: 'step',
+                }).createIndex('runId', 'runId');
             }
         },
     });
@@ -131,4 +143,79 @@ export async function clearPendingSubmissions(): Promise<void> {
     const db = await getDb();
 
     await db.clear('pendingSubmissions');
+}
+
+/**
+ * The device's own record of a lesson answer, keyed by its step, written
+ * before the answer is sent or queued. A reload offline then loses nothing,
+ * including answers sent online after the page was cached.
+ */
+export async function putLessonAnswer(answer: JournalAnswer): Promise<void> {
+    const db = await getDb();
+
+    await db.put('lessonAnswers', answer);
+}
+
+export async function getLessonAnswers(
+    userId: number,
+    runId: number,
+): Promise<JournalAnswer[]> {
+    const db = await getDb();
+    const answers = await db.getAllFromIndex('lessonAnswers', 'runId', runId);
+
+    return answers
+        .filter((answer) => answer.userId === userId)
+        .sort((first, second) => first.answeredAt - second.answeredAt);
+}
+
+export async function clearLessonAnswerRequest(
+    userId: number,
+    step: string,
+): Promise<void> {
+    const db = await getDb();
+    const transaction = db.transaction('lessonAnswers', 'readwrite');
+    const answer = await transaction.store.get(step);
+
+    if (answer !== undefined && answer.userId === userId) {
+        await transaction.store.put({ ...answer, request: null });
+    }
+
+    await transaction.done;
+}
+
+export async function deleteLessonAnswers(
+    userId: number,
+    runId: number,
+): Promise<void> {
+    const db = await getDb();
+    const transaction = db.transaction('lessonAnswers', 'readwrite');
+
+    for (const answer of await transaction.store.index('runId').getAll(runId)) {
+        if (answer.userId === userId) {
+            await transaction.store.delete(answer.step);
+        }
+    }
+
+    await transaction.done;
+}
+
+export async function removeOtherUsersLessonAnswers(
+    userId: number,
+): Promise<void> {
+    const db = await getDb();
+    const transaction = db.transaction('lessonAnswers', 'readwrite');
+
+    for await (const cursor of transaction.store) {
+        if (cursor.value.userId !== userId) {
+            await cursor.delete();
+        }
+    }
+
+    await transaction.done;
+}
+
+export async function clearLessonAnswers(): Promise<void> {
+    const db = await getDb();
+
+    await db.clear('lessonAnswers');
 }

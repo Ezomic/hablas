@@ -3,6 +3,7 @@ import { initializeTheme } from '@/composables/useAppearance';
 import { initializeOfflineSync } from '@/composables/useOfflineSync';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import LessonLayout from '@/layouts/LessonLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeServiceWorker } from '@/lib/registerServiceWorker';
@@ -19,6 +20,8 @@ createInertiaApp({
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
+            case name.startsWith('lessons/'):
+                return LessonLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

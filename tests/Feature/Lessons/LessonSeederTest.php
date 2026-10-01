@@ -51,13 +51,15 @@ it('seeds the reviewed unit lessons through ContentSeeder', function () {
     $lessons = Lesson::query()->where('unit_id', $unit->id)->orderBy('position')->get();
 
     expect($lessons->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->all())->toBe(['meet', 'recall', 'sentences', 'task', 'check'])
-        ->and(LessonExercise::query()->count())->toBeGreaterThan(100)
-        ->and(DB::table('lesson_exercise_targets')->count())->toBeGreaterThan(150)
-        ->and(LessonExercise::query()->whereNotNull('substitute_for_id')->count())->toBeGreaterThan(20);
+        ->and(LessonExercise::query()->count())->toBeGreaterThan(80)
+        ->and(DB::table('lesson_exercise_targets')->count())->toBeGreaterThan(100)
+        ->and(LessonExercise::query()->whereNotNull('substitute_for_id')->count())->toBe(0);
 });
 
 it('points every substitute at its original', function () {
-    seedWith(new HotelContent);
+    seedWith();
+    $unit = Unit::query()->where('slug', 'checking-into-a-hotel')->firstOrFail();
+    (new SyncUnitLessons)->handle($unit, (new BuildUnitLessons)->handle($unit, new HotelContent));
 
     $substitute = LessonExercise::query()->where('key', 'sentences.listen_type.reserva.sub')->firstOrFail();
     $original = LessonExercise::query()->where('key', 'sentences.listen_type.reserva')->firstOrFail();
@@ -66,14 +68,14 @@ it('points every substitute at its original', function () {
         ->and($original->substitute?->id)->toBe($substitute->id);
 });
 
-it('seeds no speaking exercise, since speaking is graded from a later release', function () {
+it('seeds no listening or speaking exercise, since they are played from a later release', function () {
     seedWith(new HotelContent);
 
     $formats = LessonExercise::query()->get()->map(fn (LessonExercise $exercise): ?ExerciseFamily => $exercise->format->family());
 
     expect($formats->contains(ExerciseFamily::Speaking))->toBeFalse()
-        ->and($formats->contains(ExerciseFamily::Listening))->toBeTrue()
-        ->and(LessonExercise::query()->where('key', 'like', '%speak%')->count())->toBe(0);
+        ->and($formats->contains(ExerciseFamily::Listening))->toBeFalse()
+        ->and(LessonExercise::query()->where('key', 'like', '%speak%')->orWhere('key', 'like', '%listen%')->count())->toBe(0);
 });
 
 it('creates the same rows on a second pass and writes nothing', function () {
@@ -160,15 +162,32 @@ it('skips content for a unit that is not in the database', function () {
     expect(Lesson::query()->count())->toBe(0);
 });
 
-it('seeds nothing and breaks nothing when no unit has content yet', function () {
+it('seeds nothing and breaks nothing when no unit has content', function () {
+    app()->instance(UnitContentRegistry::class, new UnitContentRegistry([]));
+
     $this->seed(ContentSeeder::class);
 
     expect(Lesson::query()->count())->toBe(0)
         ->and(User::query()->count())->toBe(0);
 });
 
+it('seeds the same lessons on a second pass over the real content, and writes nothing', function () {
+    $this->seed(ContentSeeder::class);
+    $before = [Lesson::query()->count(), LessonExercise::query()->count()];
+    $writes = writesDuring(fn () => $this->seed(LessonSeeder::class));
+
+    expect($before[0])->toBe(24)
+        ->and($before[1])->toBeGreaterThan(0)
+        ->and([Lesson::query()->count(), LessonExercise::query()->count()])->toBe($before)
+        ->and($writes)->toBe([]);
+});
+
 it('finds no content classes in an empty content folder', function () {
-    expect((new UnitContentRegistry)->all())->toBe([]);
+    expect((new UnitContentRegistry(path: sys_get_temp_dir().'/no-such-content-folder'))->all())->toBe([]);
+});
+
+it('finds the eight Spanish content classes in the content folder', function () {
+    expect(array_map(fn ($content): string => $content->unitSlug(), (new UnitContentRegistry)->all()))->toHaveCount(8);
 });
 
 it('syncs a unit whose content lost a whole lesson by retiring that lesson\'s exercises', function () {

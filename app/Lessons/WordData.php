@@ -17,6 +17,8 @@ final readonly class WordData
      * @param  list<string>  $accepted  further accepted typed answers besides the term
      * @param  list<string>  $forms  the forms the ramp uses (plural, feminine, the persons of a verb)
      * @param  list<string>  $portunolSlips  Spanish forms that count as a Portunol slip in Portuguese
+     * @param  string|null  $note  a note for the teach card, where the gloss alone would mislead
+     * @param  list<string>  $questions  open questions for the reviewer, which the review sheet prints beside the word
      */
     public function __construct(
         public string $term,
@@ -25,5 +27,7 @@ final readonly class WordData
         public array $forms = [],
         public bool $commonGender = false,
         public array $portunolSlips = [],
+        public array $questions = [],
+        public ?string $note = null,
     ) {}
 }

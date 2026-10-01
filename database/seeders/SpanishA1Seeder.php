@@ -106,7 +106,7 @@ class SpanishA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Subject pronouns and ser for identity',
-                        'explanation' => "Spanish has a separate word for 'to be' used for identity and origin: ser (soy, eres, es, somos, sois, son). Subject pronouns (yo, tú, él/ella, nosotros, vosotros, ellos/ellas) are usually dropped because the verb ending already shows who's speaking — 'Soy Ana' is far more natural than 'Yo soy Ana'. This is the first half of a two-verb distinction (ser vs. estar) that doesn't exist in Dutch or English, where 'to be' is a single verb.",
+                        'explanation' => "Spanish has a separate word for 'to be' used for identity and origin: ser (soy, eres, es, somos, sois, son). Subject pronouns (yo, tú, él/ella, nosotros, vosotros, ellos/ellas) are usually dropped because the verb ending already shows who's speaking: 'Soy Ana' is far more natural than 'Yo soy Ana'. This is the first half of a two-verb distinction (ser vs. estar) that doesn't exist in Dutch or English, where 'to be' is a single verb.",
                         'error_tag_category' => ErrorTagCategory::SerEstarConfusion,
                     ],
                 ],
@@ -134,7 +134,7 @@ class SpanishA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Grammatical gender: el / la',
-                        'explanation' => "Every Spanish noun is masculine or feminine — a category Dutch's de/het and English don't have in the same way. Most nouns ending in -o are masculine (el vuelo) and most ending in -a are feminine (la maleta), but there are common exceptions (el día, la mano) that just have to be memorized alongside the word itself. The article (el/la, un/una) always has to agree.",
+                        'explanation' => "Every Spanish noun is masculine or feminine, a category Dutch's de/het and English don't have in the same way. Most nouns ending in -o are masculine (el vuelo) and most ending in -a are feminine (la maleta), but there are common exceptions (el día, la mano) that just have to be memorized alongside the word itself. The article (el/la, un/una) always has to agree.",
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
@@ -234,7 +234,7 @@ class SpanishA1Seeder extends Seeder
                 'vocabulary' => [
                     ['term' => 'la ropa', 'translation_en' => 'clothing', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'la camisa', 'translation_en' => 'shirt', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'los pantalones', 'translation_en' => 'pants', 'is_cognate' => false, 'part_of_speech' => 'noun'],
+                    ['term' => 'los pantalones', 'translation_en' => 'trousers', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'el precio', 'translation_en' => 'price', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'la talla', 'translation_en' => 'size', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'el color', 'translation_en' => 'color', 'is_cognate' => true, 'part_of_speech' => 'noun'],
@@ -302,7 +302,7 @@ class SpanishA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Reflexive verbs for daily routine',
-                        'explanation' => "Verbs like levantarse (to get (oneself) up) carry a reflexive pronoun (me, te, se, nos, os, se) that agrees with the subject: 'me levanto', 'te levantas', 'se levanta'. This pattern doesn't map cleanly onto English or Dutch phrasing and is one of the more mechanically new structures at A1, even though it isn't a Spanish/Portuguese interference risk specifically.",
+                        'explanation' => "Verbs like levantarse (to get (oneself) up) carry a reflexive pronoun (me, te, se, nos, os, se) that agrees with the subject: 'me levanto', 'te levantas', 'se levanta'. Dutch has reflexive verbs too (zich wassen, zich haasten) but fewer of them, and several Spanish reflexives are plain verbs in Dutch and English: levantarse is opstaan and ducharse is douchen. That makes it one of the more mechanically new structures at A1, even though it isn't a Spanish/Portuguese interference risk specifically.",
                         'error_tag_category' => null,
                     ],
                 ],

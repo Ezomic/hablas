@@ -7,7 +7,16 @@ const { forms } = vi.hoisted(() => ({
     forms: [] as Record<string, unknown>[],
 }));
 
+const router = vi.hoisted(() => ({ post: vi.fn() }));
+
+vi.mock('@/routes/lessons/runs', () => ({
+    store: (args: { unit: number; lesson: number }) => ({
+        url: `/units/${args.unit}/lessons/${args.lesson}/runs`,
+    }),
+}));
+
 vi.mock('@inertiajs/vue3', () => ({
+    router,
     Head: { render: () => null },
     useForm: () => {
         const form = reactive({ processing: false, post: vi.fn() });
@@ -156,5 +165,134 @@ describe('unit page', () => {
         await button?.trigger('click');
 
         expect(forms[0].post).toHaveBeenCalledWith('/units/4/completion');
+    });
+});
+
+const overview = {
+    lessons: [
+        {
+            stage: 'meet',
+            title: 'Meet the words',
+            position: 1,
+            lessonId: 11,
+            state: 'completed',
+            bestAccuracy: 0.9,
+        },
+        {
+            stage: 'recall',
+            title: 'Recall the words',
+            position: 2,
+            lessonId: 12,
+            state: 'in_progress',
+            bestAccuracy: null,
+        },
+        {
+            stage: 'sentences',
+            title: 'Build sentences',
+            position: 3,
+            lessonId: null,
+            state: 'coming',
+            bestAccuracy: null,
+        },
+        {
+            stage: 'task',
+            title: 'Do the task',
+            position: 4,
+            lessonId: null,
+            state: 'coming',
+            bestAccuracy: null,
+        },
+        {
+            stage: 'check',
+            title: 'Unit check',
+            position: 5,
+            lessonId: 15,
+            state: 'locked',
+            bestAccuracy: null,
+        },
+    ],
+    mastery: { mastered: 4, total: 10 },
+    skipped: { listening: 2, speaking: 1 },
+    contentPending: true,
+    canTestOut: false,
+};
+
+describe('unit page with lessons', () => {
+    it('shows the lessons, mastery and skipped counts, and no Complete button', () => {
+        const text = mountPage({ lessons: overview }).text();
+
+        expect(text).toContain('Meet the words');
+        expect(text).toContain('Done, best 90% first time');
+        expect(text).toContain('Continue');
+        expect(text).toContain('Coming soon');
+        expect(text).toContain('Opens after the lessons before it');
+        expect(text).toContain('4 of 10 mastered');
+        expect(text).toContain(
+            'Skipped listening in 2 and speaking in 1 exercises.',
+        );
+        expect(text).toContain(
+            'Sentence and grammar lessons for this unit are coming',
+        );
+        expect(text).not.toContain('Complete unit and add to review deck');
+    });
+
+    it('keeps the words and grammar as a collapsible reference', () => {
+        expect(mountPage({ lessons: overview }).text()).toContain(
+            'Words and grammar in this unit',
+        );
+    });
+
+    it('starts or resumes a lesson through its run url', async () => {
+        const wrapper = mountPage({ lessons: overview });
+        router.post.mockClear();
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text().includes('Continue'))
+            ?.trigger('click');
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/units/4/lessons/12/runs',
+            {},
+            expect.anything(),
+        );
+    });
+
+    it('offers the unit check now for a unit not started, as a test-out', async () => {
+        const wrapper = mountPage({
+            lessons: { ...overview, canTestOut: true },
+        });
+        router.post.mockClear();
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text().includes('Take the unit check now'))
+            ?.trigger('click');
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/units/4/lessons/15/runs',
+            { kind: 'test_out' },
+            expect.anything(),
+        );
+    });
+
+    it('shows the message the server refused a start with', async () => {
+        const wrapper = mountPage({ lessons: overview });
+        router.post.mockImplementation((_url, _data, options) =>
+            options.onError({ lesson: 'The check opens tomorrow.' }),
+        );
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text().includes('Continue'))
+            ?.trigger('click');
+
+        expect(wrapper.text()).toContain('The check opens tomorrow.');
+    });
+
+    it('tells a held-back learner to clear their reviews first', () => {
+        expect(
+            mountPage({ lessons: overview, availability: 'held_back' }).text(),
+        ).toContain('Clear your reviews first');
     });
 });

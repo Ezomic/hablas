@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Lessons;
 
 use App\Enums\LessonRunStatus;
+use App\Enums\LessonState;
+use App\Models\Lesson;
 use App\Models\LessonAnswer;
 use App\Models\LessonExercise;
 use App\Models\LessonRun;
+use App\Models\Unit;
+use App\Services\LessonProgress;
 use App\Services\SpeechLocaleResolver;
 use LogicException;
 
@@ -15,6 +19,8 @@ final class PresentLessonRun
 {
     public function __construct(
         private readonly SpeechLocaleResolver $speechLocaleResolver = new SpeechLocaleResolver,
+        private readonly SummarizeLessonRun $summarizeLessonRun = new SummarizeLessonRun,
+        private readonly LessonProgress $lessonProgress = new LessonProgress,
     ) {}
 
     /**
@@ -23,7 +29,9 @@ final class PresentLessonRun
      * stage's settings and, once completed, the stored result.
      *
      * A check-kind run gives no verdict, so its payloads carry no answer
-     * keys: nothing on the device can show or grade them.
+     * keys: nothing on the device can show or grade them, and the exercise
+     * key, which names the word, is replaced by the id. Once a run is
+     * completed it also carries its summary and the lesson to play next.
      *
      * @return array<string, mixed>
      */
@@ -57,7 +65,10 @@ final class PresentLessonRun
             ];
         }
 
+        $completed = $run->status === LessonRunStatus::Completed;
+
         return [
+            'unit' => ['id' => $unit->id, 'title' => $unit->title],
             'run' => [
                 'id' => $run->id,
                 'kind' => $run->kind->value,
@@ -65,7 +76,9 @@ final class PresentLessonRun
                 'probeSet' => $run->probe_set,
                 'seed' => $run->seed,
                 'startedAt' => $run->started_at->toIso8601String(),
-                'result' => $run->status === LessonRunStatus::Completed ? $run->result : null,
+                'result' => $completed ? $run->result : null,
+                'summary' => $completed ? $this->summarizeLessonRun->handle($run) : null,
+                'next' => $completed ? $this->next($run, $unit) : null,
                 'summarySeen' => $run->summary_seen_at !== null,
             ],
             'lesson' => ['id' => $lesson->id, 'unitId' => $unit->id, 'stage' => $stage->value, 'title' => $lesson->title, 'position' => $lesson->position],
@@ -86,8 +99,30 @@ final class PresentLessonRun
                 'skipped' => $answer->skipped,
                 'correct' => $hidesAnswers ? null : $answer->is_correct,
                 'flagged' => $answer->flagged_at !== null,
+                'settled' => $answer->skipped ? false : ($hidesAnswers || $answer->settlesExercise()),
             ])->all(),
         ];
+    }
+
+    /**
+     * The first lesson of the unit that is open, or waiting for its day.
+     *
+     * @return array{lessonId: int, title: string, position: int, stage: string, state: string}|null
+     */
+    private function next(LessonRun $run, Unit $unit): ?array
+    {
+        $user = $run->user ?? throw new LogicException("Run {$run->id} has no user.");
+        $states = $this->lessonProgress->states($user, $unit);
+
+        foreach (Lesson::query()->where('unit_id', $unit->id)->playable()->orderBy('position')->get() as $lesson) {
+            $state = $states[$lesson->id] ?? LessonState::Coming;
+
+            if (in_array($state, [LessonState::Available, LessonState::InProgress, LessonState::OpensTomorrow], true)) {
+                return ['lessonId' => $lesson->id, 'title' => $lesson->title, 'position' => $lesson->position, 'stage' => $lesson->stage->value, 'state' => $state->value];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -97,7 +132,7 @@ final class PresentLessonRun
     {
         return [
             'id' => $exercise->id,
-            'key' => $exercise->key,
+            'key' => $hidesAnswers ? (string) $exercise->id : $exercise->key,
             'block' => $exercise->block,
             'format' => $exercise->format->value,
             'payload' => $hidesAnswers ? $this->withoutKeys($exercise->payload) : $this->withoutSpans($exercise->payload),
