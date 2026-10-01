@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Lessons\BuildUnitLessons;
+use App\Actions\Lessons\RenderLessonReviewSheet;
 use App\Actions\Lessons\StartLessonRun;
 use App\Actions\Lessons\SyncUnitLessons;
 use App\Enums\ExerciseFamily;
@@ -18,6 +19,7 @@ use App\Lessons\LessonDefinition;
 use App\Lessons\PreviewContent;
 use App\Lessons\ReviewGate;
 use App\Lessons\UnitContent;
+use App\Models\GrammarPoint;
 use App\Models\Lesson;
 use App\Models\SrsCard;
 use App\Models\Unit;
@@ -157,6 +159,51 @@ describe('the Spanish word data', function () {
                 }
             }
         }
+    });
+});
+
+describe('the Spanish lesson text', function () {
+    it('glosses los pantalones as trousers, which is not underwear in British English', function () {
+        $item = VocabularyItem::query()->where('term', 'los pantalones')->sole();
+        $content = collect($this->contents)->first(fn (UnitContent $content): bool => $content->unitSlug() === 'shopping-for-clothes');
+        $word = collect($content->words())->first(fn ($word): bool => $word->term === 'los pantalones');
+
+        expect($item->translation_en)->toBe('trousers')
+            ->and($word->cue)->toBe('trousers');
+    });
+
+    it('tells the learner on the teach card that el menú is the list of dishes and la carta is also accepted', function () {
+        $content = collect($this->contents)->first(fn (UnitContent $content): bool => $content->unitSlug() === 'ordering-food-at-a-restaurant');
+        $lessons = ($this->build)($content);
+        $teach = collect($lessons[0]->exercises)->first(fn (ExerciseDefinition $exercise): bool => $exercise->key === 'meet.teach_word.el-menu');
+
+        expect($teach->payload['contrast_note'])->toContain('list of dishes')->toContain('la carta')
+            ->and(collect($content->words())->first(fn ($word): bool => $word->term === 'el menú')->accepted)->toContain('la carta');
+    });
+
+    it('explains reflexive verbs without saying Dutch has none', function () {
+        $card = Unit::query()->where('slug', 'describing-your-daily-routine')->whereHas('language', fn ($query) => $query->where('code', 'es'))->firstOrFail()->grammarPoints->sole();
+
+        expect($card->explanation)->toContain('zich')->not->toContain('Dutch phrasing');
+    });
+
+    it('writes no dash as punctuation in a grammar card', function () {
+        $cards = GrammarPoint::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->pluck('explanation');
+
+        expect($cards)->toHaveCount(8);
+
+        foreach ($cards as $explanation) {
+            expect($explanation)->not->toMatch('/[—–]| -- /u');
+        }
+    });
+
+    it('prints a phrase ending in three dots with all three on the review sheet', function () {
+        $unit = Unit::query()->where('slug', 'asking-for-directions')->whereHas('language', fn ($query) => $query->where('code', 'es'))->firstOrFail();
+        $content = collect($this->contents)->first(fn (UnitContent $content): bool => $content->unitSlug() === 'asking-for-directions');
+
+        $sheet = (new RenderLessonReviewSheet)->handle($unit, $content);
+
+        expect($sheet)->toContain('| ¿dónde está...? | phrase | where is...? |')->not->toContain('está..?');
     });
 });
 

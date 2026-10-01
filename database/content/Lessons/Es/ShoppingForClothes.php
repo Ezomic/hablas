@@ -27,7 +27,7 @@ final class ShoppingForClothes implements UnitContent
         return [
             new WordData('la ropa', cue: 'clothes'),
             new WordData('la camisa', cue: 'shirt'),
-            new WordData('los pantalones', cue: 'trousers (pants)', accepted: ['el pantalón']),
+            new WordData('los pantalones', cue: 'trousers', accepted: ['el pantalón']),
             new WordData('el precio', cue: 'price'),
             new WordData('la talla', cue: 'size (of clothes)'),
             new WordData('el color', cue: 'color'),
