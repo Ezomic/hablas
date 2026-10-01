@@ -98,7 +98,7 @@ it('keeps a completed unit open even above the blended level', function () {
     expect(availabilityOf($this->user, $this->language, $b1))->toBe([$b1->id => UnitAvailability::Completed]);
 });
 
-it('counts only this learner finishing a unit as completed', function () {
+it('counts only this learner finishing a unit as completed, and shows a unit they started as in progress', function () {
     $unit = availabilityUnit($this->language, CefrLevel::A1);
     availabilityCompleted(User::factory()->create(), $unit);
     $started = availabilityUnit($this->language, CefrLevel::A1);
@@ -106,7 +106,7 @@ it('counts only this learner finishing a unit as completed', function () {
 
     expect(availabilityOf($this->user, $this->language, $unit, $started))->toBe([
         $unit->id => UnitAvailability::Available,
-        $started->id => UnitAvailability::Available,
+        $started->id => UnitAvailability::InProgress,
     ]);
 });
 
@@ -134,4 +134,24 @@ it('ignores struggles in the other language deck', function () {
 
 it('returns nothing for no units', function () {
     expect(availabilityOf($this->user, $this->language))->toBe([]);
+});
+
+it('keeps a unit with a lesson started open, whatever the review deck or a re-placement says', function () {
+    availabilityLevels($this->user, $this->language, CefrLevel::A1);
+    $started = availabilityUnit($this->language, CefrLevel::B1);
+    $other = availabilityUnit($this->language, CefrLevel::A1);
+    availabilityCompleted($this->user, $started, UnitProgressStatus::InProgress);
+    availabilityStruggle($this->user, $this->language);
+
+    expect(availabilityOf($this->user, $this->language, $started, $other))->toBe([
+        $started->id => UnitAvailability::InProgress,
+        $other->id => UnitAvailability::HeldBack,
+    ]);
+});
+
+it('still shows a completed unit as completed even when it was once in progress', function () {
+    $unit = availabilityUnit($this->language, CefrLevel::A1);
+    availabilityCompleted($this->user, $unit);
+
+    expect(availabilityOf($this->user, $this->language, $unit))->toBe([$unit->id => UnitAvailability::Completed]);
 });

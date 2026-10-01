@@ -31,8 +31,16 @@ final class PortugueseTextNormalizer extends AccentFoldingTextNormalizer
     /**
      * @return list<string>
      */
-    protected function articles(): array
+    public function articles(): array
     {
         return ['o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function accentWords(): array
+    {
+        return ['é', 'à', 'está', 'estás', 'lá', 'têm', 'vêm', 'pôr', 'quê', 'porquê', 'más', 'avó', 'avô', 'país', 'dá', 'nós', 'às', 'pôde'];
     }
 }

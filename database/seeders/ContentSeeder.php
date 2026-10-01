@@ -35,5 +35,6 @@ class ContentSeeder extends Seeder
         $this->call(ScriptedPromptExerciseSeeder::class);
         $this->call(WritingExerciseSeeder::class);
         $this->call(CefrCanDoStatementSeeder::class);
+        $this->call(LessonSeeder::class);
     }
 }

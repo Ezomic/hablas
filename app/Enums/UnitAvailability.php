@@ -11,6 +11,7 @@ namespace App\Enums;
 enum UnitAvailability: string
 {
     case Completed = 'completed';
+    case InProgress = 'in_progress';
     case Available = 'available';
     case HeldBack = 'held_back';
     case Locked = 'locked';

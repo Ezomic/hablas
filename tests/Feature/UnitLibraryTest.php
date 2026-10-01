@@ -3,19 +3,29 @@
 declare(strict_types=1);
 
 use App\Actions\Languages\UnlockLanguageForUser;
+use App\Actions\Lessons\StartLessonRun;
+use App\Actions\Units\ListUnitLibrary;
 use App\Enums\CefrLevel;
+use App\Enums\LessonRunKind;
+use App\Enums\LessonStage;
+use App\Enums\MasteryScope;
 use App\Enums\Skill;
 use App\Enums\SrsRating;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
+use App\Models\Lesson;
+use App\Models\LessonExercise;
+use App\Models\LessonRun;
 use App\Models\SrsCard;
 use App\Models\SrsReview;
 use App\Models\Unit;
+use App\Models\UnitItemMastery;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Models\UserUnitProgress;
 use App\Models\VocabularyItem;
 use Database\Seeders\LanguageSeeder;
+use Tests\Fixtures\Lessons\LessonWorld;
 
 beforeEach(function () {
     $this->seed(LanguageSeeder::class);
@@ -81,6 +91,9 @@ it('lists the units of the language being studied, with what each card needs', f
                 'taskDescription' => 'Order a drink and pay for it.',
                 'cefrLevel' => 'A1',
                 'primarySkill' => 'speaking',
+                'lessonCount' => 0,
+                'lessonsCompleted' => 0,
+                'masteredCount' => 0,
                 'availability' => 'available',
             ]),
         );
@@ -194,4 +207,71 @@ it('renders an empty library for a learner with no language', function () {
             ->where('language', null)
             ->has('units', 0),
         );
+});
+
+function libraryLesson(Unit $unit, LessonStage $stage): Lesson
+{
+    $lesson = Lesson::factory()->stage($stage)->create(['unit_id' => $unit->id]);
+    LessonExercise::factory()->create(['lesson_id' => $lesson->id]);
+
+    return $lesson;
+}
+
+it('does not count a lesson with nothing left to play', function () {
+    libraryLevels($this->user, $this->spanish, CefrLevel::A1);
+    $unit = libraryUnit($this->spanish, CefrLevel::A1, 1);
+    $meet = libraryLesson($unit, LessonStage::Meet);
+    $empty = Lesson::factory()->stage(LessonStage::Recall)->create(['unit_id' => $unit->id]);
+    $retired = Lesson::factory()->stage(LessonStage::Sentences)->create(['unit_id' => $unit->id]);
+    LessonExercise::factory()->create(['lesson_id' => $retired->id, 'retired_at' => now()]);
+    LessonRun::factory()->completed()->create(['user_id' => $this->user->id, 'lesson_id' => $meet->id]);
+    LessonRun::factory()->completed()->create(['user_id' => $this->user->id, 'lesson_id' => $empty->id]);
+
+    $row = (new ListUnitLibrary)->handle($this->user, $this->spanish)[0];
+
+    expect([$row['lessonCount'], $row['lessonsCompleted']])->toBe([1, 1]);
+});
+
+it('counts a passed unit check as completing the check lesson', function () {
+    [$unit] = LessonWorld::seededHotel();
+    $user = LessonWorld::learner();
+    LessonWorld::finishTeachingLessons($user, $unit);
+    $check = (new StartLessonRun)->handle($user, LessonWorld::lesson($unit, LessonStage::Check), LessonRunKind::Check);
+    LessonWorld::play($user, $check);
+
+    $row = collect((new ListUnitLibrary)->handle($user, LessonWorld::spanish()))->firstWhere('id', $unit->id);
+
+    expect($row['lessonCount'])->toBe(5)
+        ->and($row['lessonsCompleted'])->toBe(5);
+});
+
+it('lists how many lessons a unit has, how many were completed and how many items are mastered', function () {
+    libraryLevels($this->user, $this->spanish, CefrLevel::A1);
+    $unit = libraryUnit($this->spanish, CefrLevel::A1, 1);
+    $meet = libraryLesson($unit, LessonStage::Meet);
+    libraryLesson($unit, LessonStage::Recall);
+    LessonRun::factory()->completed()->count(2)->create(['user_id' => $this->user->id, 'lesson_id' => $meet->id]);
+    $item = VocabularyItem::factory()->create(['language_id' => $this->spanish->id, 'unit_id' => $unit->id]);
+
+    foreach ([MasteryScope::Words, MasteryScope::Full] as $scope) {
+        UnitItemMastery::factory()->create([
+            'user_id' => $this->user->id,
+            'unit_id' => $unit->id,
+            'masterable_type' => $item->getMorphClass(),
+            'masterable_id' => $item->id,
+            'scope' => $scope,
+        ]);
+    }
+
+    $row = (new ListUnitLibrary)->handle($this->user, $this->spanish)[0];
+
+    expect([$row['lessonCount'], $row['lessonsCompleted'], $row['masteredCount']])->toBe([2, 1, 1]);
+});
+
+it('lists a unit in progress as in progress', function () {
+    libraryLevels($this->user, $this->spanish, CefrLevel::A1);
+    $unit = libraryUnit($this->spanish, CefrLevel::A1, 1);
+    UserUnitProgress::factory()->create(['user_id' => $this->user->id, 'unit_id' => $unit->id, 'status' => UnitProgressStatus::InProgress, 'completed_at' => null]);
+
+    expect((new ListUnitLibrary)->handle($this->user, $this->spanish)[0]['availability'])->toBe('in_progress');
 });

@@ -1,0 +1,22 @@
+{
+    "description": "When is a run settled? Exercises are symbolic ids; a substitute names the exercise it stands in for. The same cases run through the PHP rule (SettleLessonRun) and, from the player PR on, the TypeScript queue. An exercise has a format only where the case needs a skippable one (listen_type); otherwise it is a multiple choice, which cannot be skipped.",
+    "cases": [
+        {"name": "every exercise answered right", "kind": "lesson", "exercises": [{"id": "a"}, {"id": "b"}], "plan": ["a", "b"], "answers": [{"exercise": "a", "correct": true}, {"exercise": "b", "correct": true}], "settled": true},
+        {"name": "one exercise still unanswered", "kind": "lesson", "exercises": [{"id": "a"}, {"id": "b"}], "plan": ["a", "b"], "answers": [{"exercise": "a", "correct": true}], "settled": false},
+        {"name": "a wrong answer does not settle its exercise", "kind": "lesson", "exercises": [{"id": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "correct": false}], "settled": false},
+        {"name": "a mistake is settled by the right answer that follows", "kind": "lesson", "exercises": [{"id": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "correct": false}, {"exercise": "a", "correct": true}], "settled": true},
+        {"name": "a self-checked right answer settles it", "kind": "lesson", "exercises": [{"id": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "correct": false, "self": true}], "settled": true},
+        {"name": "a flagged answer settles it", "kind": "lesson", "exercises": [{"id": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "correct": false, "flagged": true}], "settled": true},
+        {"name": "a skip waits for its substitute", "kind": "lesson", "exercises": [{"id": "a", "format": "listen_type"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}], "settled": false},
+        {"name": "a skip is settled by a right substitute", "kind": "lesson", "exercises": [{"id": "a", "format": "listen_type"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}, {"exercise": "a2", "correct": true}], "settled": true},
+        {"name": "a skip is not settled by a wrong substitute", "kind": "lesson", "exercises": [{"id": "a", "format": "listen_type"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}, {"exercise": "a2", "correct": false}], "settled": false},
+        {"name": "a skip of an exercise that cannot be skipped never settles, even with a right substitute", "kind": "lesson", "exercises": [{"id": "a"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}, {"exercise": "a2", "correct": true}], "settled": false},
+        {"name": "a skipped probe of an exercise that cannot be skipped never settles a check", "kind": "check", "exercises": [{"id": "a"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}, {"exercise": "a2", "correct": true}], "settled": false},
+        {"name": "a skip with no substitute never settles, since the skip is refused when it is recorded", "kind": "lesson", "exercises": [{"id": "a", "format": "listen_type"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}], "settled": false},
+        {"name": "a check is settled by any answer to every probe", "kind": "check", "exercises": [{"id": "a"}, {"id": "b"}], "plan": ["a", "b"], "answers": [{"exercise": "a", "correct": false}, {"exercise": "b", "correct": true}], "settled": true},
+        {"name": "a check with a probe unanswered", "kind": "check", "exercises": [{"id": "a"}, {"id": "b"}], "plan": ["a", "b"], "answers": [{"exercise": "a", "correct": true}], "settled": false},
+        {"name": "a skipped probe waits for an answer to its substitute", "kind": "check", "exercises": [{"id": "a", "format": "listen_type"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}], "settled": false},
+        {"name": "a skipped probe is settled by any answer to its substitute", "kind": "check", "exercises": [{"id": "a", "format": "listen_type"}, {"id": "a2", "substituteFor": "a"}], "plan": ["a"], "answers": [{"exercise": "a", "skipped": true}, {"exercise": "a2", "correct": false}], "settled": true},
+        {"name": "an empty plan is never settled", "kind": "lesson", "exercises": [], "plan": [], "answers": [], "settled": false}
+    ]
+}

@@ -86,6 +86,18 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(UserUnitProgress::class);
     }
 
+    /** @return HasMany<LessonRun, $this> */
+    public function lessonRuns(): HasMany
+    {
+        return $this->hasMany(LessonRun::class);
+    }
+
+    /** @return HasMany<UnitItemMastery, $this> */
+    public function itemMasteries(): HasMany
+    {
+        return $this->hasMany(UnitItemMastery::class);
+    }
+
     /** @return HasOne<Streak, $this> */
     public function streak(): HasOne
     {

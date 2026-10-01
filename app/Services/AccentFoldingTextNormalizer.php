@@ -24,11 +24,6 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
      */
     abstract protected function vowelAccentFolds(): array;
 
-    /**
-     * @return list<string>
-     */
-    abstract protected function articles(): array;
-
     public function foldAccents(string $text): string
     {
         return strtr(Str::lower(trim($this->composed($text))), $this->vowelAccentFolds());
@@ -53,6 +48,11 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
     public function answerKey(string $text): string
     {
         return implode(' ', $this->words($this->foldAccents($text)));
+    }
+
+    public function exactKey(string $text): string
+    {
+        return implode(' ', $this->words(Str::lower(trim($this->composed($text)))));
     }
 
     public function searchKey(string $text): string

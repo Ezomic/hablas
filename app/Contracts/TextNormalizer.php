@@ -50,4 +50,27 @@ interface TextNormalizer
      * "el aeropuerto" under "a" instead of grouping every noun by its article.
      */
     public function sortKey(string $text): string;
+
+    /**
+     * For grading accents word by word: lowercases and splits into words like
+     * answerKey, but keeps every accent and special letter, so "avô" and
+     * "avó", or "esta" and "está", stay different words.
+     */
+    public function exactKey(string $text): string;
+
+    /**
+     * The accented words that turn into another word when the accent is
+     * dropped ("él" and "el", "é" and "e"). Typing one of these without its
+     * accent is a different word, not a slip.
+     *
+     * @return list<string>
+     */
+    public function accentWords(): array;
+
+    /**
+     * The language's articles, lowercased, with their accents.
+     *
+     * @return list<string>
+     */
+    public function articles(): array;
 }

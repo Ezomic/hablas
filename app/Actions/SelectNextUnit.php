@@ -10,10 +10,13 @@ use App\Enums\ContextTag;
 use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
+use App\Models\Lesson;
+use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Models\UnitInterestTag;
 use App\Models\User;
 use App\Models\UserInterestPreference;
+use App\Services\LessonProgress;
 use Illuminate\Support\Collection;
 
 final class SelectNextUnit
@@ -22,6 +25,7 @@ final class SelectNextUnit
         private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,
         private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
+        private readonly LessonProgress $lessonProgress = new LessonProgress,
     ) {}
 
     /**
@@ -32,20 +36,26 @@ final class SelectNextUnit
 
     public function handle(User $user, Language $language): ?Unit
     {
+        $inProgress = $this->inProgressUnit($user, $language);
+
+        if ($inProgress !== null) {
+            return $inProgress;
+        }
+
         $blendedLevel = $this->computeBlendedCefrLevel->handle(
             $this->getUserSkillLevels->handle($user, $language),
         ) ?? CefrLevel::A1;
 
         $eligibleLevels = array_map(fn (CefrLevel $level): string => $level->value, CefrLevel::upTo($blendedLevel));
 
-        $completedUnitIds = $user->unitProgress()
-            ->where('status', UnitProgressStatus::Completed)
+        $startedUnitIds = $user->unitProgress()
+            ->whereIn('status', [UnitProgressStatus::Completed, UnitProgressStatus::InProgress])
             ->pluck('unit_id');
 
         $candidates = Unit::query()
             ->where('language_id', $language->id)
             ->whereIn('cefr_level', $eligibleLevels)
-            ->whereNotIn('id', $completedUnitIds)
+            ->whereNotIn('id', $startedUnitIds)
             ->with('interestTags')
             ->orderBy('sort_order')
             ->get();
@@ -69,6 +79,42 @@ final class SelectNextUnit
                 $unit->sort_order,
             ])
             ->first();
+    }
+
+    /**
+     * The most recently active unit the learner has started and can carry on
+     * with right now, so a unit in progress comes before a new one. A unit
+     * waiting for its check day or for its content does not block a new unit,
+     * and is not offered as one either.
+     */
+    private function inProgressUnit(User $user, Language $language): ?Unit
+    {
+        $progress = $user->unitProgress()
+            ->where('status', UnitProgressStatus::InProgress)
+            ->whereHas('unit', fn ($query) => $query->where('language_id', $language->id))
+            ->with('unit')
+            ->get();
+
+        $activity = LessonRun::query()
+            ->where('user_id', $user->id)
+            ->whereIn('lesson_id', Lesson::query()->whereIn('unit_id', $progress->pluck('unit_id'))->select('id'))
+            ->with('lesson:id,unit_id')
+            ->get()
+            ->groupBy(fn (LessonRun $run): int => $run->lesson->unit_id ?? 0)
+            ->map(fn (Collection $runs): int => (int) $runs->max(fn (LessonRun $run): int => $run->updated_at?->getTimestamp() ?? 0));
+
+        $units = $progress
+            ->map(fn ($row): ?Unit => $row->unit)
+            ->filter()
+            ->sortByDesc(fn (Unit $unit): int => (int) $activity->get($unit->id, 0));
+
+        foreach ($units as $unit) {
+            if ($this->lessonProgress->hasOpenLesson($user, $unit)) {
+                return $unit;
+            }
+        }
+
+        return null;
     }
 
     /**

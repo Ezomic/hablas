@@ -24,8 +24,16 @@ final class SpanishTextNormalizer extends AccentFoldingTextNormalizer
     /**
      * @return list<string>
      */
-    protected function articles(): array
+    public function articles(): array
     {
         return ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function accentWords(): array
+    {
+        return ['él', 'tú', 'mí', 'sí', 'té', 'más', 'sé', 'dé', 'qué', 'cómo', 'dónde', 'cuándo', 'quién', 'cuál', 'cuánto', 'está', 'estás', 'papá', 'mamá', 'habló', 'aún'];
     }
 }
