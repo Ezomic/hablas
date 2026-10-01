@@ -44,7 +44,7 @@ final class FinalizePlacementAttempt
 
                 UserSkillLevel::query()->updateOrCreate(
                     ['user_id' => $attempt->user_id, 'language_id' => $attempt->language_id, 'skill' => $skill->value],
-                    ['cefr_level' => $tier->parentLevel()->value, 'level_set_at' => now()],
+                    ['cefr_level' => $tier->parentLevel()->value, 'sub_level' => $tier->value, 'level_set_at' => now()],
                 );
             }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\ListeningAttempt;
@@ -22,10 +23,15 @@ final class ReassessSkillLevel
     /**
      * How many of the user's most recent graded attempts for a skill to look
      * at, counting only attempts made since the level was last set. Without
-     * that bound, the attempts that earned one level would earn the next one
+     * that bound, the attempts that earned one step would earn the next one
      * too, and every further good attempt would raise the level again.
+     * A step to the next tier takes a short window; a whole-level step where
+     * there are no tiers (B2 to C1, C1 to C2) keeps the long one, so it is no
+     * easier than it was before tiers.
      */
-    private const ATTEMPT_WINDOW = 20;
+    private const TIER_WINDOW = 10;
+
+    private const LEVEL_WINDOW = 20;
 
     /**
      * Success rate at or above this fraction of the window earns a level
@@ -57,16 +63,23 @@ final class ReassessSkillLevel
             return;
         }
 
+        $step = $this->nextStep($skillLevel);
+
+        if ($step === null) {
+            return;
+        }
+
         $since = $skillLevel->level_set_at;
+        $window = $step['window'];
 
         $outcomes = match ($skill) {
-            Skill::Writing => $this->recentWritingOutcomes($user, $language, $since),
-            Skill::Speaking => $this->recentSpeakingOutcomes($user, $language, $since),
-            Skill::Reading => $this->recentReadingOutcomes($user, $language, $since),
-            Skill::Listening => $this->recentListeningOutcomes($user, $language, $since),
+            Skill::Writing => $this->recentWritingOutcomes($user, $language, $since, $window),
+            Skill::Speaking => $this->recentSpeakingOutcomes($user, $language, $since, $window),
+            Skill::Reading => $this->recentReadingOutcomes($user, $language, $since, $window),
+            Skill::Listening => $this->recentListeningOutcomes($user, $language, $since, $window),
         };
 
-        if ($outcomes->count() < self::ATTEMPT_WINDOW) {
+        if ($outcomes->count() < $window) {
             return;
         }
 
@@ -76,50 +89,71 @@ final class ReassessSkillLevel
             return;
         }
 
-        $nextLevel = CefrLevel::cases()[$skillLevel->cefr_level->sortOrder() + 1] ?? null;
+        $skillLevel->forceFill([
+            'cefr_level' => $step['level'],
+            'sub_level' => $step['tier'],
+            'level_set_at' => now(),
+        ])->save();
+    }
 
-        if ($nextLevel === null) {
-            return;
+    /** @return array{level: CefrLevel, tier: CefrSubLevel|null, window: int}|null */
+    private function nextStep(UserSkillLevel $skillLevel): ?array
+    {
+        $current = $skillLevel->currentTier();
+        $next = $current?->stepUp();
+
+        if ($next !== null && $next !== $current) {
+            return ['level' => $next->parentLevel(), 'tier' => $next, 'window' => self::TIER_WINDOW];
         }
 
-        $skillLevel->forceFill(['cefr_level' => $nextLevel, 'level_set_at' => now()])->save();
+        $level = CefrLevel::cases()[$skillLevel->cefr_level->sortOrder() + 1] ?? null;
+
+        if ($level === null) {
+            return null;
+        }
+
+        return [
+            'level' => $level,
+            'tier' => CefrSubLevel::firstOf($level),
+            'window' => self::LEVEL_WINDOW,
+        ];
     }
 
     /** @return Collection<int, bool> */
-    private function recentReadingOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
+    private function recentReadingOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         return ReadingAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('readingPassage', fn ($query) => $query->where('language_id', $language->id))
             ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
-            ->limit(self::ATTEMPT_WINDOW)
+            ->limit($window)
             ->get()
             ->map(fn (ReadingAttempt $attempt): bool => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE);
     }
 
     /** @return Collection<int, bool> */
-    private function recentListeningOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
+    private function recentListeningOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         return ListeningAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('listeningExercise', fn ($query) => $query->where('language_id', $language->id))
             ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
-            ->limit(self::ATTEMPT_WINDOW)
+            ->limit($window)
             ->get()
             ->map(fn (ListeningAttempt $attempt): bool => $attempt->score >= self::COMPREHENSION_SUCCESS_SCORE);
     }
 
     /** @return Collection<int, bool> */
-    private function recentWritingOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
+    private function recentWritingOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         return WritingAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('writingExercise', fn ($query) => $query->where('language_id', $language->id))
             ->when($since, fn ($query) => $query->where('submitted_at', '>', $since))
             ->latest('submitted_at')
-            ->limit(self::ATTEMPT_WINDOW)
+            ->limit($window)
             ->get()
             ->map(fn (WritingAttempt $attempt): bool => $attempt->is_correct);
     }
@@ -131,14 +165,14 @@ final class ReassessSkillLevel
      *
      * @return Collection<int, bool>
      */
-    private function recentSpeakingOutcomes(User $user, Language $language, ?CarbonImmutable $since): Collection
+    private function recentSpeakingOutcomes(User $user, Language $language, ?CarbonImmutable $since, int $window): Collection
     {
         $shadowing = ShadowingAttempt::query()
             ->where('user_id', $user->id)
             ->whereHas('shadowingExercise', fn ($query) => $query->where('language_id', $language->id))
             ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
-            ->limit(self::ATTEMPT_WINDOW)
+            ->limit($window)
             ->get(['score', 'attempted_at']);
 
         $scriptedPrompts = ScriptedPromptAttempt::query()
@@ -146,12 +180,12 @@ final class ReassessSkillLevel
             ->whereHas('scriptedPromptExercise', fn ($query) => $query->where('language_id', $language->id))
             ->when($since, fn ($query) => $query->where('attempted_at', '>', $since))
             ->latest('attempted_at')
-            ->limit(self::ATTEMPT_WINDOW)
+            ->limit($window)
             ->get(['score', 'attempted_at']);
 
         return $shadowing->concat($scriptedPrompts)
             ->sortByDesc('attempted_at')
-            ->take(self::ATTEMPT_WINDOW)
+            ->take($window)
             ->map(fn ($attempt): bool => $attempt->score >= self::SPEAKING_SUCCESS_SCORE)
             ->values();
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Progress\BuildProgressSnapshot;
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\ErrorTagCategory;
 use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
@@ -47,12 +48,12 @@ it('assembles the full snapshot shape', function () {
     $snapshot = (new BuildProgressSnapshot)->handle($user, $language);
 
     expect($snapshot['language'])->toBe(['code' => 'es', 'name' => 'Spanish'])
-        ->and($snapshot['blendedLevel'])->toBe('A2')
+        ->and($snapshot['blendedLevel'])->toBe('A2.1')
         ->and($snapshot['skillLevels'])->toEqualCanonicalizing([
-            'reading' => 'A2',
-            'listening' => 'A2',
-            'speaking' => 'A2',
-            'writing' => 'A2',
+            'reading' => 'A2.1',
+            'listening' => 'A2.1',
+            'speaking' => 'A2.1',
+            'writing' => 'A2.1',
         ])
         ->and($snapshot['streak'])->toBe(['currentLength' => 5, 'longestLength' => 12])
         ->and($snapshot['unitCompletionPercentage'])->toBe(50)
@@ -115,4 +116,23 @@ it('reads the streak without reconciling or persisting a change to it', function
 
     expect($snapshot['streak'])->toBe(['currentLength' => 7, 'longestLength' => 7])
         ->and(Streak::query()->where('user_id', $user->id)->sole()->current_length)->toBe(7);
+});
+
+it('reports stored tiers, and the level alone where a level has no tiers', function () {
+    $user = User::factory()->create();
+    $language = Language::factory()->create();
+
+    foreach ([
+        [Skill::Reading, CefrLevel::A2, CefrSubLevel::A2_2],
+        [Skill::Listening, CefrLevel::C1, null],
+        [Skill::Speaking, CefrLevel::A2, CefrSubLevel::A2_2],
+        [Skill::Writing, CefrLevel::A2, CefrSubLevel::A2_2],
+    ] as [$skill, $level, $tier]) {
+        UserSkillLevel::factory()->create(['user_id' => $user->id, 'language_id' => $language->id, 'skill' => $skill, 'cefr_level' => $level, 'sub_level' => $tier]);
+    }
+
+    $snapshot = (new BuildProgressSnapshot)->handle($user, $language);
+
+    expect($snapshot['blendedLevel'])->toBe('A2.2')
+        ->and($snapshot['skillLevels']['listening'])->toBe('C1');
 });

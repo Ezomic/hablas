@@ -64,6 +64,17 @@ enum CefrSubLevel: string
         );
     }
 
+    public static function firstOf(CefrLevel $level): ?self
+    {
+        return match ($level) {
+            CefrLevel::A1 => self::A1_1,
+            CefrLevel::A2 => self::A2_1,
+            CefrLevel::B1 => self::B1_1,
+            CefrLevel::B2 => self::B2,
+            CefrLevel::C1, CefrLevel::C2 => null,
+        };
+    }
+
     public function parentLevel(): CefrLevel
     {
         return match ($this) {
