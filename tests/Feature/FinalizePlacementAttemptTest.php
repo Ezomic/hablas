@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Placement\FinalizePlacementAttempt;
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\PlacementTestAttempt;
 use App\Models\PlacementTestResponse;
@@ -99,4 +100,49 @@ it('writes only the skill of a one-skill attempt, and records only when that one
         ->and($levels->firstWhere('skill', Skill::Listening)?->cefr_level)->toBe(CefrLevel::A2)
         ->and($reading->fresh()?->cefr_level)->toBe(CefrLevel::B1)
         ->and($reading->fresh()?->level_set_at?->toDateTimeString())->toBe('2026-09-01 10:00:00');
+});
+
+it('stores the placed tier next to the level for every skill it writes', function () {
+    $attempt = PlacementTestAttempt::factory()->create();
+    PlacementTestResponse::factory()->count(4)->create([
+        'attempt_id' => $attempt->id,
+        'skill' => Skill::Reading,
+        'is_correct' => true,
+    ]);
+
+    (new FinalizePlacementAttempt)->handle($attempt);
+
+    $levels = UserSkillLevel::query()->where('user_id', $attempt->user_id)->get()->keyBy(fn (UserSkillLevel $level): string => $level->skill->value);
+
+    expect($levels[Skill::Reading->value]->sub_level)->toBe(CefrSubLevel::B1_2)
+        ->and($levels[Skill::Writing->value]->sub_level)->toBe(CefrSubLevel::A1_3);
+});
+
+it('replaces the tier of an existing row, and writes only the tier of a one-skill attempt', function () {
+    $attempt = PlacementTestAttempt::factory()->create(['skill' => Skill::Listening]);
+    $listening = UserSkillLevel::factory()->create([
+        'user_id' => $attempt->user_id,
+        'language_id' => $attempt->language_id,
+        'skill' => Skill::Listening,
+        'cefr_level' => CefrLevel::B1,
+        'sub_level' => CefrSubLevel::B1_2,
+    ]);
+    $reading = UserSkillLevel::factory()->create([
+        'user_id' => $attempt->user_id,
+        'language_id' => $attempt->language_id,
+        'skill' => Skill::Reading,
+        'cefr_level' => CefrLevel::B1,
+        'sub_level' => CefrSubLevel::B1_2,
+    ]);
+    PlacementTestResponse::factory()->count(2)->create([
+        'attempt_id' => $attempt->id,
+        'skill' => Skill::Listening,
+        'is_correct' => true,
+    ]);
+
+    (new FinalizePlacementAttempt)->handle($attempt);
+
+    expect($listening->fresh()?->sub_level)->toBe(CefrSubLevel::A2_2)
+        ->and($listening->fresh()?->cefr_level)->toBe(CefrLevel::A2)
+        ->and($reading->fresh()?->sub_level)->toBe(CefrSubLevel::B1_2);
 });

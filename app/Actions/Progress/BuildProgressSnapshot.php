@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Progress;
 
-use App\Actions\ComputeBlendedCefrLevel;
+use App\Actions\DescribeBlendedLevel;
 use App\Actions\GetUserSkillLevels;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
@@ -16,7 +16,7 @@ use App\Models\UserSkillLevel;
 final class BuildProgressSnapshot
 {
     public function __construct(
-        private readonly ComputeBlendedCefrLevel $computeBlendedCefrLevel = new ComputeBlendedCefrLevel,
+        private readonly DescribeBlendedLevel $describeBlendedLevel = new DescribeBlendedLevel,
         private readonly GetMostFrequentErrorTags $getMostFrequentErrorTags = new GetMostFrequentErrorTags,
         private readonly GetUserSkillLevels $getUserSkillLevels = new GetUserSkillLevels,
     ) {}
@@ -51,9 +51,9 @@ final class BuildProgressSnapshot
 
         return [
             'language' => ['code' => $language->code, 'name' => $language->name],
-            'blendedLevel' => $this->computeBlendedCefrLevel->handle($skillLevels)?->value,
+            'blendedLevel' => $this->describeBlendedLevel->handle($skillLevels),
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
-                $skillLevel->skill->value => $skillLevel->cefr_level->value,
+                $skillLevel->skill->value => $skillLevel->displayLevel(),
             ])->all(),
             'streak' => [
                 'currentLength' => $streak === null ? 0 : $streak->current_length,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\ShadowingAttempt;
@@ -21,7 +22,7 @@ beforeEach(function () {
     (new UnlockLanguageForUser)->handle($this->user, $this->spanish);
 });
 
-// ReassessSkillLevel bumps on a 20-attempt window at 80% success, so a level-up
+// ReassessSkillLevel bumps on a 10-attempt window at 80% success, so a level-up
 // only happens on the attempt that completes the window.
 function primeSpeakingLevelUp(User $user, Language $language): ShadowingExercise
 {
@@ -30,6 +31,7 @@ function primeSpeakingLevelUp(User $user, Language $language): ShadowingExercise
         'language_id' => $language->id,
         'skill' => Skill::Speaking,
         'cefr_level' => CefrLevel::A1,
+        'sub_level' => CefrSubLevel::A1_3,
     ]);
 
     $exercise = ShadowingExercise::factory()->create([
@@ -37,7 +39,7 @@ function primeSpeakingLevelUp(User $user, Language $language): ShadowingExercise
         'target_transcript' => 'hola',
     ]);
 
-    ShadowingAttempt::factory()->count(19)->create([
+    ShadowingAttempt::factory()->count(9)->create([
         'user_id' => $user->id,
         'shadowing_exercise_id' => $exercise->id,
         'score' => 100,
@@ -62,6 +64,7 @@ it('omits the milestone when the level does not move', function () {
         'language_id' => $this->spanish->id,
         'skill' => Skill::Speaking,
         'cefr_level' => CefrLevel::A1,
+        'sub_level' => CefrSubLevel::A1_3,
     ]);
 
     $exercise = ShadowingExercise::factory()->create([
@@ -81,6 +84,7 @@ it('carries a level-up back in the writing response body', function () {
         'language_id' => $this->spanish->id,
         'skill' => Skill::Writing,
         'cefr_level' => CefrLevel::A1,
+        'sub_level' => CefrSubLevel::A1_3,
     ]);
 
     $exercise = WritingExercise::factory()->create([
@@ -88,7 +92,7 @@ it('carries a level-up back in the writing response body', function () {
         'correct_answers' => ['soy ana'],
     ]);
 
-    WritingAttempt::factory()->count(19)->create([
+    WritingAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'writing_exercise_id' => $exercise->id,
         'is_correct' => true,

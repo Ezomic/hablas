@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\GradeReadingAttempt;
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Models\Language;
 use App\Models\ReadingAttempt;
@@ -34,13 +35,14 @@ function readingPassage(Language $language, CefrLevel $level = CefrLevel::A1): R
     ]);
 }
 
-function setReadingLevel(User $user, Language $language, CefrLevel $level): void
+function setReadingLevel(User $user, Language $language, CefrLevel $level, ?CefrSubLevel $tier = null): void
 {
     UserSkillLevel::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,
         'skill' => Skill::Reading,
         'cefr_level' => $level,
+        'sub_level' => $tier,
     ]);
 }
 
@@ -84,7 +86,7 @@ it('serves a passage without leaking the answer key', function () {
 });
 
 it('only offers passages at or below the reading level', function () {
-    setReadingLevel($this->user, $this->spanish, CefrLevel::A1);
+    setReadingLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     readingPassage($this->spanish, CefrLevel::B2);
 
     $this->actingAs($this->user)
@@ -135,10 +137,10 @@ it('rejects answers that are not a list', function () {
 });
 
 it('moves the reading level once the window is full of passes', function () {
-    setReadingLevel($this->user, $this->spanish, CefrLevel::A1);
+    setReadingLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     $passage = readingPassage($this->spanish);
 
-    ReadingAttempt::factory()->count(19)->create([
+    ReadingAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'reading_passage_id' => $passage->id,
         'score' => 100,
@@ -153,10 +155,10 @@ it('moves the reading level once the window is full of passes', function () {
 });
 
 it('leaves the reading level alone when the window is full of misses', function () {
-    setReadingLevel($this->user, $this->spanish, CefrLevel::A1);
+    setReadingLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     $passage = readingPassage($this->spanish);
 
-    ReadingAttempt::factory()->count(19)->create([
+    ReadingAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'reading_passage_id' => $passage->id,
         'score' => 20,
@@ -180,10 +182,10 @@ it('lifts the blended level once reading catches up with the others', function (
         ]);
     }
 
-    setReadingLevel($this->user, $this->spanish, CefrLevel::A1);
+    setReadingLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     $passage = readingPassage($this->spanish);
 
-    ReadingAttempt::factory()->count(19)->create([
+    ReadingAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'reading_passage_id' => $passage->id,
         'score' => 100,

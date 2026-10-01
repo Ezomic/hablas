@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\GradeListeningAttempt;
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Enums\CefrLevel;
+use App\Enums\CefrSubLevel;
 use App\Enums\Skill;
 use App\Http\Controllers\ListeningExerciseController;
 use App\Models\Language;
@@ -36,13 +37,14 @@ function listeningClip(Language $language, CefrLevel $level = CefrLevel::A1): Li
     ]);
 }
 
-function setListeningLevel(User $user, Language $language, CefrLevel $level): void
+function setListeningLevel(User $user, Language $language, CefrLevel $level, ?CefrSubLevel $tier = null): void
 {
     UserSkillLevel::factory()->create([
         'user_id' => $user->id,
         'language_id' => $language->id,
         'skill' => Skill::Listening,
         'cefr_level' => $level,
+        'sub_level' => $tier,
     ]);
 }
 
@@ -75,7 +77,7 @@ it('serves the transcript to be spoken but never the answer key', function () {
 });
 
 it('only offers clips at or below the listening level', function () {
-    setListeningLevel($this->user, $this->spanish, CefrLevel::A1);
+    setListeningLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     listeningClip($this->spanish, CefrLevel::C1);
 
     $this->actingAs($this->user)
@@ -141,10 +143,10 @@ it('requires a replay count', function () {
 });
 
 it('moves the listening level once the window is full of passes', function () {
-    setListeningLevel($this->user, $this->spanish, CefrLevel::A1);
+    setListeningLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     $clip = listeningClip($this->spanish);
 
-    ListeningAttempt::factory()->count(19)->create([
+    ListeningAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'listening_exercise_id' => $clip->id,
         'score' => 100,
@@ -162,10 +164,10 @@ it('moves the listening level once the window is full of passes', function () {
 });
 
 it('leaves the listening level alone when the window is full of misses', function () {
-    setListeningLevel($this->user, $this->spanish, CefrLevel::A1);
+    setListeningLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     $clip = listeningClip($this->spanish);
 
-    ListeningAttempt::factory()->count(19)->create([
+    ListeningAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'listening_exercise_id' => $clip->id,
         'score' => 10,
@@ -192,10 +194,10 @@ it('lifts the blended level once listening catches up with the others', function
         ]);
     }
 
-    setListeningLevel($this->user, $this->spanish, CefrLevel::A1);
+    setListeningLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
     $clip = listeningClip($this->spanish);
 
-    ListeningAttempt::factory()->count(19)->create([
+    ListeningAttempt::factory()->count(9)->create([
         'user_id' => $this->user->id,
         'listening_exercise_id' => $clip->id,
         'score' => 100,

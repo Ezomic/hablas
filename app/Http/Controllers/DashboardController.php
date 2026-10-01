@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Actions\ComputeBlendedCefrLevel;
+use App\Actions\DescribeBlendedLevel;
 use App\Actions\GetUserSkillLevels;
 use App\Actions\IdentifyBlendedLevelCeiling;
 use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
@@ -30,7 +30,7 @@ final class DashboardController extends Controller
     public function index(
         Request $request,
         GetUserSkillLevels $getUserSkillLevels,
-        ComputeBlendedCefrLevel $computeBlendedCefrLevel,
+        DescribeBlendedLevel $describeBlendedLevel,
         IdentifyBlendedLevelCeiling $identifyBlendedLevelCeiling,
         ReconcileStreak $reconcileStreak,
         GetDueSrsCards $getDueSrsCards,
@@ -70,11 +70,11 @@ final class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'language' => ['code' => $language->code, 'name' => $language->name],
-            'blendedLevel' => $computeBlendedCefrLevel->handle($skillLevels)?->value,
+            'blendedLevel' => $describeBlendedLevel->handle($skillLevels),
             'blendedLevelCeiling' => $ceiling->map(fn (Skill $skill): string => $skill->value)->all(),
             'retakeAvailableOn' => $ceiling->isEmpty() ? [] : $determineRetakeAvailability->handle($this->currentUser(), $language),
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
-                $skillLevel->skill->value => $skillLevel->cefr_level->value,
+                $skillLevel->skill->value => $skillLevel->displayLevel(),
             ]),
             'streak' => $streakProp,
             'dueReviewCount' => $getDueSrsCards->count($this->currentUser(), $language),
