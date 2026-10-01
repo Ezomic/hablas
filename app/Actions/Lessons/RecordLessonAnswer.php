@@ -34,6 +34,9 @@ final class RecordLessonAnswer
      * since the learner is the only one who gains from honest answers. It does
      * not trust the order of tries: the attempt is derived here.
      *
+     * Only a listening or speaking exercise that has a substitute can be
+     * skipped, so a skip never removes a probe from a check.
+     *
      * A repeat of a step returns the stored verdict, records nothing new and
      * settles the run again, so a run whose completion once failed finishes on
      * the next replay.
@@ -63,6 +66,10 @@ final class RecordLessonAnswer
             $exercise = $this->exercise($run, $input['exercise_id']);
             $skipped = (bool) ($input['skipped'] ?? false);
             $response = $input['response'] ?? null;
+
+            if ($skipped) {
+                $this->assertSkippable($exercise);
+            }
 
             $grade = $skipped ? null : $this->gradeLessonAnswer->handle($exercise, $response ?? []);
             $attempt = LessonAnswer::query()->where('lesson_run_id', $run->id)->where('lesson_exercise_id', $exercise->id)->count() + 1;
@@ -114,6 +121,15 @@ final class RecordLessonAnswer
         }
 
         return $exercise;
+    }
+
+    private function assertSkippable(LessonExercise $exercise): void
+    {
+        $hasSubstitute = LessonExercise::query()->where('substitute_for_id', $exercise->id)->whereNull('retired_at')->exists();
+
+        if (! $exercise->format->isSkippable() || ! $hasSubstitute) {
+            throw ValidationException::withMessages(['lesson' => ['This exercise cannot be skipped.']]);
+        }
     }
 
     /**

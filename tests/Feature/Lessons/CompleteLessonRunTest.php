@@ -9,6 +9,7 @@ use App\Actions\Lessons\SettleLessonRun;
 use App\Actions\Lessons\StartLessonRun;
 use App\Enums\CefrLevel;
 use App\Enums\CefrSubLevel;
+use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
@@ -42,6 +43,7 @@ function settleCase(User $user, array $case): array
     foreach ($case['exercises'] as $exercise) {
         $ids[$exercise['id']] = LessonExercise::factory()->create([
             'lesson_id' => $lesson->id,
+            'format' => $exercise['format'] ?? LessonExerciseFormat::ChooseMeaning->value,
             'substitute_for_id' => isset($exercise['substituteFor']) ? $ids[$exercise['substituteFor']] : null,
         ])->id;
     }

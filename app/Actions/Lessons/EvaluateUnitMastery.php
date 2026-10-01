@@ -30,7 +30,10 @@ final class EvaluateUnitMastery
      * - a word is mastered when all its probes in the run are right;
      * - the grammar point when every contrast probe is right and at most one
      *   other is wrong;
-     * - a flagged probe is never right.
+     * - a flagged probe is never right;
+     * - an item with a probe in the plan that has no graded answer, from the
+     *   exercise or its substitute, is never mastered, so a skipped probe
+     *   cannot be left out of the reading.
      * Mastered items join the review deck at once, up to the daily cap, and
      * the unit completes when every item has full mastery.
      *
@@ -45,10 +48,11 @@ final class EvaluateUnitMastery
 
         $scope = $this->unitMasteryReader->scope($unit);
         $probes = $this->probes($run);
+        $unanswered = $this->unansweredProbeTargets($run);
         $mastered = [];
 
         foreach ($this->unitMasteryReader->items($unit) as $ref) {
-            if ($this->isMastered($ref, $probes[$ref->key()] ?? [])) {
+            if (! isset($unanswered[$ref->key()]) && $this->isMastered($ref, $probes[$ref->key()] ?? [])) {
                 $mastered[] = $ref;
                 UnitItemMastery::query()->firstOrCreate(
                     [
@@ -107,6 +111,34 @@ final class EvaluateUnitMastery
         return $contrast !== []
             && ! in_array(false, array_column($contrast, 'correct'), true)
             && count($otherWrong) <= 1;
+    }
+
+    /**
+     * The target keys of probes in the plan that nothing answered: neither
+     * the exercise itself nor its substitute has an answer that was not a skip.
+     *
+     * @return array<string, true>
+     */
+    private function unansweredProbeTargets(LessonRun $run): array
+    {
+        $planIds = $run->planExerciseIds();
+        $originals = DB::table('lesson_exercises')->whereIn('substitute_for_id', $planIds)->pluck('substitute_for_id', 'id');
+        $covered = [];
+
+        foreach (DB::table('lesson_answers')->where('lesson_run_id', $run->id)->where('skipped', false)->pluck('lesson_exercise_id') as $exerciseId) {
+            $covered[(int) ($originals[$exerciseId] ?? $exerciseId)] = true;
+        }
+
+        $unanswered = array_values(array_filter($planIds, fn (int $id): bool => ! isset($covered[$id])));
+        $keys = [];
+
+        foreach (DB::table('lesson_exercise_targets')->whereIn('lesson_exercise_id', $unanswered)->where('is_probe', true)->get(['targetable_type', 'targetable_id']) as $row) {
+            $type = is_string($row->targetable_type) ? $row->targetable_type : '';
+            $id = is_numeric($row->targetable_id) ? (int) $row->targetable_id : 0;
+            $keys[TargetRef::keyFor($type, $id)] = true;
+        }
+
+        return $keys;
     }
 
     /**

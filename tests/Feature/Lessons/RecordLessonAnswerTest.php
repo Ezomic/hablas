@@ -151,6 +151,47 @@ it('stores a skipped answer without a grade', function () {
         ->and($run->fresh()->status)->toBe(LessonRunStatus::InProgress);
 });
 
+describe('skipping', function () {
+    it('refuses to skip an exercise that is not listening or speaking, and stores nothing', function (string $stage, string $key) {
+        $run = runOver($this->user, LessonStage::from($stage), [$key]);
+
+        try {
+            send($this->user, $run, $key, ['skipped' => true, 'skip_reason' => 'chosen', 'response' => null]);
+        } catch (ValidationException $exception) {
+            expect($exception->errors())->toHaveKey('lesson');
+        }
+
+        expect(isset($exception))->toBeTrue()
+            ->and(LessonAnswer::query()->count())->toBe(0)
+            ->and($run->fresh()->status)->toBe(LessonRunStatus::InProgress);
+    })->with([
+        'a typed word in a lesson' => ['recall', 'recall.type_word.el-desayuno'],
+        'a translation' => ['sentences', 'sentences.translate.desayuno'],
+    ]);
+
+    it('refuses to skip a generated typed-recall probe of a check, so it cannot settle the run', function () {
+        $run = runOver($this->user, LessonStage::Check, ['check.a.type_word.la-llave'], LessonRunKind::Check);
+
+        expect(fn () => send($this->user, $run, 'check.a.type_word.la-llave', ['skipped' => true, 'skip_reason' => 'chosen', 'response' => null]))->toThrow(ValidationException::class)
+            ->and($run->fresh()->status)->toBe(LessonRunStatus::InProgress);
+    });
+
+    it('refuses to skip a listening exercise that has no substitute', function () {
+        $run = runOver($this->user, LessonStage::Sentences, ['sentences.listen_type.reserva']);
+        LessonExercise::query()->where('key', 'sentences.listen_type.reserva.sub')->delete();
+
+        expect(fn () => send($this->user, $run, 'sentences.listen_type.reserva', ['skipped' => true, 'skip_reason' => 'chosen', 'response' => null]))->toThrow(ValidationException::class)
+            ->and(LessonAnswer::query()->count())->toBe(0);
+    });
+
+    it('refuses to skip a listening exercise whose substitute is retired', function () {
+        $run = runOver($this->user, LessonStage::Sentences, ['sentences.listen_type.reserva']);
+        LessonExercise::query()->where('key', 'sentences.listen_type.reserva.sub')->update(['retired_at' => now()]);
+
+        expect(fn () => send($this->user, $run, 'sentences.listen_type.reserva', ['skipped' => true, 'skip_reason' => 'chosen', 'response' => null]))->toThrow(ValidationException::class);
+    });
+});
+
 it('answers 404 for another learner\'s run', function () {
     $run = runOver($this->user, LessonStage::Sentences, ['sentences.translate.desayuno']);
 

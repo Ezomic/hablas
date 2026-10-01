@@ -8,6 +8,7 @@ use App\Actions\Lessons\StartLessonRun;
 use App\Actions\Lessons\SyncUnitLessons;
 use App\Actions\Srs\EnrollPendingUnitContent;
 use App\Enums\LessonRunKind;
+use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
 use App\Enums\MasteryScope;
 use App\Enums\UnitProgressStatus;
@@ -147,6 +148,35 @@ it('never counts a flagged probe as right', function () {
 
     expect(masteredTerms($this))->not->toContain('la llave')
         ->and(masteredTerms($this))->toContain('el hotel');
+});
+
+it('never lets a skipped probe that has no substitute settle the run or count towards mastery', function () {
+    $run = startCheck($this);
+    $skipped = LessonExercise::query()->where('key', 'check.a.type_word.la-llave')->firstOrFail();
+
+    foreach ($run->planExerciseIds() as $id) {
+        $exercise = LessonExercise::query()->with('substitute')->findOrFail($id);
+
+        if ($id === $skipped->id) {
+            LessonAnswer::factory()->create(['lesson_run_id' => $run->id, 'lesson_exercise_id' => $id, 'skipped' => true, 'is_correct' => null]);
+
+            continue;
+        }
+
+        if ($exercise->format->isSpeaking()) {
+            LessonWorld::answer($this->user, $run, $exercise, ['skipped' => true, 'skip_reason' => 'unsupported', 'response' => null]);
+            $exercise = $exercise->substitute;
+        }
+
+        LessonWorld::answer($this->user, $run, $exercise);
+    }
+
+    $result = (new EvaluateUnitMastery)->handle($run->fresh());
+
+    expect($run->fresh()->status)->toBe(LessonRunStatus::InProgress)
+        ->and(masteredTerms($this))->not->toContain('la llave')
+        ->and(masteredTerms($this))->toContain('el hotel')
+        ->and($result['unit_completed'])->toBeFalse();
 });
 
 it('lets a substitute probe stand in for a skipped dictation', function () {

@@ -23,7 +23,9 @@ final class SettleLessonRun
      * Lessons and practice runs are settled when every exercise has a right
      * answer, a self-checked one, or a flag. Check-kind runs give no verdict
      * and nothing comes back, so they are settled when every probe has an
-     * answer. In both, a skipped exercise waits for its substitute.
+     * answer. In both, a skip counts only for an exercise that may be skipped
+     * and only once its substitute is settled: a skip of any other exercise,
+     * or of one with no substitute, never settles anything.
      */
     public function handle(LessonRun $run): bool
     {
@@ -60,6 +62,9 @@ final class SettleLessonRun
             $substitutes[(int) $substitute->substitute_for_id] = $substitute->id;
         }
 
+        $skippable = LessonExercise::query()->whereIn('id', $planIds)->get(['id', 'format'])
+            ->mapWithKeys(fn (LessonExercise $exercise): array => [$exercise->id => $exercise->format->isSkippable()])
+            ->all();
         $isCheck = $run->kind->isCheck();
 
         foreach ($planIds as $id) {
@@ -75,12 +80,8 @@ final class SettleLessonRun
 
             $skipped = array_filter($own, fn (LessonAnswer $answer): bool => $answer->skipped);
 
-            if ($skipped === []) {
+            if ($skipped === [] || ! ($skippable[$id] ?? false) || ! isset($substitutes[$id])) {
                 return false;
-            }
-
-            if (! isset($substitutes[$id])) {
-                continue;
             }
 
             if (! $this->settles($answers[$substitutes[$id]] ?? [], $isCheck)) {
