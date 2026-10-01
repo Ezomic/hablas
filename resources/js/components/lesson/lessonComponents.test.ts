@@ -79,6 +79,15 @@ describe('ChoiceExercise', () => {
         wrapper.unmount();
     });
 
+    it('names its radio group after the instruction and the prompt', () => {
+        const wrapper = mountChoice();
+
+        expect(
+            wrapper.get('[role="radiogroup"]').attributes('aria-label'),
+        ).toBe('Choose the meaning: la llave');
+        wrapper.unmount();
+    });
+
     it('highlights the selected option before it is checked', () => {
         const wrapper = mountChoice('hotel');
 
@@ -146,6 +155,42 @@ describe('MatchExercise', () => {
         expect(wrapper.emitted('change')?.at(-1)).toEqual([
             { complete: false, wrong: [] },
         ]);
+    });
+
+    it('takes a matched pair out of the tab order and away from screen readers', async () => {
+        const wrapper = mountMatch();
+
+        await pair(wrapper, 'a', 'a');
+
+        for (const id of ['left-a', 'right-a']) {
+            const tile = wrapper.get(`[data-testid="${id}"]`);
+
+            expect(tile.attributes('disabled')).toBeDefined();
+            expect(tile.attributes('aria-hidden')).toBe('true');
+            expect(tile.attributes('tabindex')).toBe('-1');
+        }
+
+        const open = wrapper.get('[data-testid="left-b"]');
+
+        expect(open.attributes('disabled')).toBeUndefined();
+        expect(open.attributes('aria-hidden')).toBeUndefined();
+    });
+
+    it('marks the selected tile as pressed', async () => {
+        const wrapper = mountMatch();
+
+        expect(
+            wrapper.get('[data-testid="left-a"]').attributes('aria-pressed'),
+        ).toBe('false');
+
+        await wrapper.get('[data-testid="left-a"]').trigger('click');
+
+        expect(
+            wrapper.get('[data-testid="left-a"]').attributes('aria-pressed'),
+        ).toBe('true');
+        expect(
+            wrapper.get('[data-testid="left-b"]').attributes('aria-pressed'),
+        ).toBe('false');
     });
 
     it('does nothing while disabled', async () => {

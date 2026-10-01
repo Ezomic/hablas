@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { flushPromises, mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import type { PlayProps } from '@/types/lesson';
 
 const mocks = vi.hoisted(() => ({
@@ -354,9 +354,10 @@ describe('the player', () => {
         });
 
         const wrapper = mountPlay();
-        await flushPromises();
 
-        expect(wrapper.get('[data-testid="prompt"]').text()).toBe('key');
+        await vi.waitFor(() =>
+            expect(wrapper.get('[data-testid="prompt"]').text()).toBe('key'),
+        );
     });
 
     it('skips an exercise the device cannot play for its substitute', async () => {
@@ -405,9 +406,9 @@ describe('the player', () => {
         await wrapper
             .get('[data-testid="lesson-footer"] button:last-of-type')
             .trigger('click');
+        await vi.waitFor(() => expect(mocks.reload).toHaveBeenCalled());
         await flushPromises();
 
-        expect(mocks.reload).toHaveBeenCalled();
         expect(wrapper.find('[data-testid="finishing"]').exists()).toBe(true);
     });
 
@@ -430,9 +431,8 @@ describe('the player', () => {
 
         sync.online.value = true;
         sync.pending.value = 0;
-        await flushPromises();
 
-        expect(mocks.reload).toHaveBeenCalled();
+        await vi.waitFor(() => expect(mocks.reload).toHaveBeenCalled());
     });
 
     it('shows the summary of a completed run and starts the next lesson from it', async () => {
@@ -521,5 +521,202 @@ describe('the player', () => {
         await flushPromises();
 
         expect(wrapper.get('[data-testid="prompt"]').text()).toBe('b');
+    });
+});
+
+function failed(status: number) {
+    return {
+        queued: false,
+        response: {
+            ok: false,
+            status,
+            json: async () => ({ message: 'Boom' }),
+        },
+    };
+}
+
+async function journalRows() {
+    const { readJournal } = await import('@/lib/lessonJournal');
+
+    return readJournal(1, runId);
+}
+
+describe('an answer the server did not take', () => {
+    const plan = [
+        choose(1, 'a', 'x', ['x', 'y']),
+        choose(2, 'b', 'x', ['x', 'y']),
+    ];
+
+    async function answerAndFail(status: number) {
+        mocks.submitOrQueue.mockResolvedValueOnce(failed(status));
+        const first = mountPlay({ plan });
+
+        await first.findAll('[role="radio"]')[0].trigger('click');
+        await check(first);
+
+        expect(first.get('[role="alert"]').text()).toContain('Boom');
+        first.unmount();
+        mocks.submitOrQueue.mockResolvedValue(json({ saved: true, run }));
+
+        return mocks.submitOrQueue.mock.calls[0];
+    }
+
+    it.each([500, 503, 419, 401])(
+        'is resent when the lesson is reopened after a %i, never skipped',
+        async (status) => {
+            const [url, body] = await answerAndFail(status);
+
+            mountPlay({ plan });
+            await vi.waitFor(() =>
+                expect(mocks.submitOrQueue).toHaveBeenCalledTimes(2),
+            );
+
+            expect(mocks.submitOrQueue.mock.calls[1]).toEqual([url, body]);
+        },
+    );
+
+    it('is sent once the server has it, and not again on the next opening', async () => {
+        await answerAndFail(500);
+
+        mountPlay({ plan });
+        await vi.waitFor(async () =>
+            expect((await journalRows())[0].request).toBeNull(),
+        );
+        document.body.innerHTML = '';
+        mountPlay({ plan });
+        await flushPromises();
+
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(2);
+    });
+
+    it('is given up on when the server refuses it outright', async () => {
+        await answerAndFail(500);
+        mocks.submitOrQueue.mockResolvedValue(failed(422));
+
+        mountPlay({ plan });
+        await vi.waitFor(async () =>
+            expect((await journalRows())[0].request).toBeNull(),
+        );
+        mountPlay({ plan });
+        await flushPromises();
+
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(2);
+    });
+
+    it('is resent again when the server still fails, and when the device comes back online', async () => {
+        await answerAndFail(500);
+        mocks.submitOrQueue.mockResolvedValue(failed(500));
+
+        mountPlay({ plan });
+        await vi.waitFor(() =>
+            expect(mocks.submitOrQueue).toHaveBeenCalledTimes(2),
+        );
+        await flushPromises();
+
+        expect((await journalRows())[0].request).not.toBeNull();
+
+        mocks.submitOrQueue.mockResolvedValue(json({ saved: true, run }));
+        sync.online.value = false;
+        await nextTick();
+        sync.online.value = true;
+
+        await vi.waitFor(() =>
+            expect(mocks.submitOrQueue).toHaveBeenCalledTimes(3),
+        );
+    });
+
+    it('is not resent when it was queued for the device to sync', async () => {
+        mocks.submitOrQueue.mockResolvedValueOnce({ queued: true });
+        const wrapper = mountPlay({ plan });
+
+        await wrapper.findAll('[role="radio"]')[0].trigger('click');
+        await check(wrapper);
+        await vi.waitFor(async () =>
+            expect((await journalRows())[0].request).toBeNull(),
+        );
+        wrapper.unmount();
+        mountPlay({ plan });
+        await flushPromises();
+
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(1);
+    });
+
+    it('is not resent when the server already holds it', async () => {
+        await answerAndFail(500);
+        const [url] = mocks.submitOrQueue.mock.calls[0];
+
+        mountPlay({
+            plan,
+            answers: [
+                {
+                    step: url.split('/').pop(),
+                    exerciseId: 1,
+                    attempt: 1,
+                    hinted: false,
+                    skipped: false,
+                    correct: true,
+                    flagged: false,
+                    settled: true,
+                },
+            ],
+        });
+        await flushPromises();
+
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('answering twice in a row', () => {
+    it('records a check answer once when the button is tapped twice', async () => {
+        const wrapper = mountPlay({
+            settings: { ...props().settings, feedback: false },
+            plan: [
+                { ...typed, payload: { prompt: 'key', english: 'key' } },
+                {
+                    ...typed,
+                    id: 4,
+                    payload: { prompt: 'room', english: 'room' },
+                },
+            ],
+        });
+
+        await wrapper.get('input').setValue('la llave');
+        const button = wrapper.get('[data-testid="lesson-footer"] button');
+
+        await Promise.all([button.trigger('click'), button.trigger('click')]);
+        await flushPromises();
+
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('moving between typed exercises', () => {
+    it('puts the cursor in the next input', async () => {
+        mocks.submitOrQueue.mockResolvedValue(
+            json({ correct: true, expected: 'la llave', note: null, run }),
+        );
+        const wrapper = mountPlay({
+            plan: [
+                typed,
+                {
+                    ...typed,
+                    id: 4,
+                    payload: { ...typed.payload, prompt: 'room' },
+                },
+            ],
+        });
+
+        await wrapper.get('input').setValue('la llave');
+        await check(wrapper);
+        const focus = vi.spyOn(HTMLInputElement.prototype, 'focus');
+        await wrapper
+            .get('[data-testid="lesson-footer"] button:last-of-type')
+            .trigger('click');
+        await flushPromises();
+
+        expect(wrapper.get('[data-testid="prompt"]').text()).toBe('room');
+        expect(focus).toHaveBeenCalled();
+        expect(document.activeElement).toBe(wrapper.get('input').element);
+        focus.mockRestore();
     });
 });

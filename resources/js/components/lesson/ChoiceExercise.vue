@@ -71,7 +71,11 @@ function state(option: string): string {
         <h2 class="text-2xl font-semibold" data-testid="prompt">
             {{ props.prompt }}
         </h2>
-        <div class="flex flex-col gap-2" role="radiogroup">
+        <div
+            class="flex flex-col gap-2"
+            role="radiogroup"
+            :aria-label="`${props.instruction}: ${props.prompt}`"
+        >
             <button
                 v-for="(option, index) in props.options"
                 :key="option"

@@ -1,6 +1,6 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
-import { fetchJson } from '@/lib/http';
+import { fetchJson, isRetryable } from '@/lib/http';
 import {
     clearLessonAnswers,
     clearPendingSubmissions,
@@ -43,13 +43,6 @@ function signedInUserId(): number | null {
 
 function postJson(url: string, body: string): Promise<Response> {
     return fetchJson(url, 'POST', body);
-}
-
-// A server error, an expired session or CSRF token, a timeout or rate
-// limiting can all succeed on a later attempt. Any other 4xx fails the same
-// way every time, so keeping it would wedge everything queued behind it.
-function isRetryable(status: number): boolean {
-    return status >= 500 || [401, 408, 419, 429].includes(status);
 }
 
 async function refreshPendingCount(userId: number | null): Promise<void> {

@@ -168,6 +168,21 @@ export async function getLessonAnswers(
         .sort((first, second) => first.answeredAt - second.answeredAt);
 }
 
+export async function clearLessonAnswerRequest(
+    userId: number,
+    step: string,
+): Promise<void> {
+    const db = await getDb();
+    const transaction = db.transaction('lessonAnswers', 'readwrite');
+    const answer = await transaction.store.get(step);
+
+    if (answer !== undefined && answer.userId === userId) {
+        await transaction.store.put({ ...answer, request: null });
+    }
+
+    await transaction.done;
+}
+
 export async function deleteLessonAnswers(
     userId: number,
     runId: number,

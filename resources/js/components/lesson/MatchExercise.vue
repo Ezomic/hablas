@@ -64,13 +64,15 @@ function choose(side: 'left' | 'right', target: string) {
     report();
 }
 
-function tile(side: 'left' | 'right', target: string): string {
-    const selected = (side === 'left' ? left.value : right.value) === target;
+function selected(side: 'left' | 'right', target: string): boolean {
+    return (side === 'left' ? left.value : right.value) === target;
+}
 
+function tile(side: 'left' | 'right', target: string): string {
     return cn(
         'min-h-12 w-full rounded-lg border bg-background px-3 py-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        selected && 'border-primary bg-primary/10',
-        matched.value.includes(target) && 'pointer-events-none opacity-0',
+        selected(side, target) && 'border-primary bg-primary/10',
+        matched.value.includes(target) && 'opacity-0',
         shaking.value.includes(target) &&
             !matched.value.includes(target) &&
             'border-red-600 motion-safe:animate-pulse',
@@ -88,6 +90,12 @@ function tile(side: 'left' | 'right', target: string): string {
                     :key="`left-${pair.target}`"
                     type="button"
                     :class="tile('left', pair.target)"
+                    :disabled="matched.includes(pair.target)"
+                    :aria-hidden="
+                        matched.includes(pair.target) ? 'true' : undefined
+                    "
+                    :tabindex="matched.includes(pair.target) ? -1 : undefined"
+                    :aria-pressed="selected('left', pair.target)"
                     :data-testid="`left-${pair.target}`"
                     @click="choose('left', pair.target)"
                 >
@@ -100,6 +108,12 @@ function tile(side: 'left' | 'right', target: string): string {
                     :key="`right-${pair.target}`"
                     type="button"
                     :class="tile('right', pair.target)"
+                    :disabled="matched.includes(pair.target)"
+                    :aria-hidden="
+                        matched.includes(pair.target) ? 'true' : undefined
+                    "
+                    :tabindex="matched.includes(pair.target) ? -1 : undefined"
+                    :aria-pressed="selected('right', pair.target)"
                     :data-testid="`right-${pair.target}`"
                     @click="choose('right', pair.target)"
                 >

@@ -650,9 +650,9 @@ describe('offline data and the signed-in user', () => {
         await signedInOnPage(2);
 
         expect(await readJournal(1, 7)).toEqual([]);
-        expect(
-            (await readJournal(2, 7)).map((answer) => answer.step),
-        ).toEqual(['second']);
+        expect((await readJournal(2, 7)).map((answer) => answer.step)).toEqual([
+            'second',
+        ]);
     });
 
     it('claims the offline data for whoever each page says is signed in', async () => {

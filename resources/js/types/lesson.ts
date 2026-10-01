@@ -46,6 +46,14 @@ export interface JournalAnswer {
     settled: boolean;
     flagged: boolean;
     answeredAt: number;
+    // The request that delivers this answer, kept until the server or the
+    // offline queue has taken it, so a failed send can be repeated.
+    request?: JournalRequest | null;
+}
+
+export interface JournalRequest {
+    url: string;
+    body: Record<string, unknown>;
 }
 
 export interface AnswerRecord {

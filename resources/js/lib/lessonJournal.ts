@@ -1,4 +1,5 @@
 import {
+    clearLessonAnswerRequest,
     deleteLessonAnswers,
     getLessonAnswers,
     putLessonAnswer,
@@ -28,6 +29,10 @@ export async function readJournal(
     runId: number,
 ): Promise<JournalAnswer[]> {
     return getLessonAnswers(userId, runId);
+}
+
+export function markDelivered(userId: number, step: string): Promise<void> {
+    return clearLessonAnswerRequest(userId, step);
 }
 
 export function forgetJournal(userId: number, runId: number): Promise<void> {

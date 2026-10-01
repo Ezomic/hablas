@@ -268,6 +268,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
                 <TypedExercise
                     v-else-if="isTypedFormat(format)"
+                    :key="
+                        exercise.id + '-' + (lesson.current.value?.attempt ?? 1)
+                    "
                     v-model="typed"
                     :prompt="text(exercise.payload.prompt)"
                     :instruction="instructionFor(format, language)"

@@ -1,8 +1,10 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useOfflineSync } from '@/composables/useOfflineSync';
+import { isRetryable } from '@/lib/http';
 import {
     forgetJournal,
+    markDelivered,
     mergeAnswers,
     readJournal,
     recordJournal,
@@ -24,6 +26,7 @@ import type {
     AnswerRecord,
     AnswerResponse,
     ExerciseBase,
+    JournalRequest,
     PlayProps,
 } from '@/types/lesson';
 
@@ -46,6 +49,7 @@ export interface Feedback {
 }
 
 interface Unsent {
+    step: string;
     url: string;
     body: Record<string, unknown>;
 }
@@ -134,9 +138,19 @@ export function useLessonRun(props: PlayProps) {
         void recordJournal(userId, props.run.id, entry).catch(() => undefined);
     }
 
-    function record(entry: AnswerRecord) {
+    // The answer joins the queue at once and the journal with the request
+    // that delivers it, which stays until the server or the offline queue has
+    // taken it. The journal write is issued before the request is sent, and
+    // the write that clears the request is issued after it.
+    const answeredHere = new Set<string>();
+
+    function record(
+        entry: AnswerRecord,
+        request: JournalRequest | null = null,
+    ) {
+        answeredHere.add(entry.step);
         answers.value = [...answers.value, entry];
-        remember(entry);
+        remember({ ...entry, request });
     }
 
     function gradeLocally(
@@ -183,13 +197,22 @@ export function useLessonRun(props: PlayProps) {
         return storeAnswer({ lessonRun: props.run.id, step: step.value }).url;
     }
 
+    function delivered(step: string | undefined) {
+        if (step !== undefined) {
+            void markDelivered(userId, step).catch(() => undefined);
+        }
+    }
+
     async function send(
         url: string,
         payload: Record<string, unknown>,
+        step?: string,
     ): Promise<{ queued: boolean; ok: boolean; data: AnswerResponse | null }> {
         const result = await submitOrQueue(url, payload);
 
         if (result.queued) {
+            delivered(step);
+
             return { queued: true, ok: true, data: null };
         }
 
@@ -202,6 +225,8 @@ export function useLessonRun(props: PlayProps) {
 
             return { queued: false, ok: false, data: null };
         }
+
+        delivered(step);
 
         return {
             queued: false,
@@ -240,6 +265,10 @@ export function useLessonRun(props: PlayProps) {
 
         frozen.value = shown;
 
+        if (check) {
+            phase.value = 'checking';
+        }
+
         const payload = body(exercise, response);
         const local = check ? null : gradeLocally(exercise, response);
         const given = text(response.text) || text(response.choice);
@@ -252,14 +281,20 @@ export function useLessonRun(props: PlayProps) {
         };
 
         if (check) {
-            record({ ...base, correct: null, settled: true });
+            record(
+                { ...base, correct: null, settled: true },
+                { url: answerUrl(), body: payload },
+            );
             savedFlash.value = true;
             setTimeout(() => (savedFlash.value = false), 900);
-
-            const result = await send(answerUrl(), payload);
+            const result = await send(answerUrl(), payload, base.step);
 
             if (!result.ok) {
-                unsent.value = { url: answerUrl(), body: payload };
+                unsent.value = {
+                    step: base.step,
+                    url: answerUrl(),
+                    body: payload,
+                };
                 phase.value = 'error';
 
                 return;
@@ -287,13 +322,20 @@ export function useLessonRun(props: PlayProps) {
         payload: Record<string, unknown>,
         given: string,
     ) {
-        record({ ...base, correct: local.correct, settled: local.correct });
+        record(
+            { ...base, correct: local.correct, settled: local.correct },
+            { url: answerUrl(), body: payload },
+        );
 
         if (isTeachFormat(exercise.format)) {
-            const result = await send(answerUrl(), payload);
+            const result = await send(answerUrl(), payload, base.step);
 
             if (!result.ok) {
-                unsent.value = { url: answerUrl(), body: payload };
+                unsent.value = {
+                    step: base.step,
+                    url: answerUrl(),
+                    body: payload,
+                };
                 phase.value = 'error';
 
                 return;
@@ -316,15 +358,18 @@ export function useLessonRun(props: PlayProps) {
             saving: true,
         };
         phase.value = 'feedback';
-
-        const result = await send(answerUrl(), payload);
+        const result = await send(answerUrl(), payload, base.step);
 
         if (feedback.value !== null) {
             feedback.value = { ...feedback.value, saving: false };
         }
 
         if (!result.ok) {
-            unsent.value = { url: answerUrl(), body: payload };
+            unsent.value = {
+                step: base.step,
+                url: answerUrl(),
+                body: payload,
+            };
             phase.value = 'error';
 
             return;
@@ -344,7 +389,11 @@ export function useLessonRun(props: PlayProps) {
         const result = await send(answerUrl(), payload);
 
         if (result.queued) {
-            unsent.value = { url: answerUrl(), body: payload };
+            unsent.value = {
+                step: base.step,
+                url: answerUrl(),
+                body: payload,
+            };
             phase.value = 'self_check';
             feedback.value = {
                 step: base.step,
@@ -362,7 +411,11 @@ export function useLessonRun(props: PlayProps) {
 
         if (!result.ok || result.data === null) {
             phase.value = 'error';
-            unsent.value = { url: answerUrl(), body: payload };
+            unsent.value = {
+                step: base.step,
+                url: answerUrl(),
+                body: payload,
+            };
 
             return;
         }
@@ -397,19 +450,21 @@ export function useLessonRun(props: PlayProps) {
 
         const payload = { ...pending.body, self_graded_correct: hadIt };
 
-        record({
-            step: step.value,
-            exerciseId: exercise.id,
-            hinted: pending.body.hinted === true,
-            skipped: false,
-            flagged: false,
-            correct: hadIt,
-            settled: hadIt,
-        });
+        record(
+            {
+                step: pending.step,
+                exerciseId: exercise.id,
+                hinted: pending.body.hinted === true,
+                skipped: false,
+                flagged: false,
+                correct: hadIt,
+                settled: hadIt,
+            },
+            { url: pending.url, body: payload },
+        );
         feedback.value = { ...feedback.value, correct: hadIt };
         phase.value = 'feedback';
-
-        await submitOrQueue(pending.url, payload);
+        await send(pending.url, payload, pending.step);
     }
 
     async function retry() {
@@ -421,7 +476,7 @@ export function useLessonRun(props: PlayProps) {
 
         errorMessage.value = '';
 
-        const result = await send(pending.url, pending.body);
+        const result = await send(pending.url, pending.body, pending.step);
 
         if (!result.ok) {
             phase.value = 'error';
@@ -493,17 +548,62 @@ export function useLessonRun(props: PlayProps) {
             settled: false,
         };
 
-        record(entry);
-
-        await submitOrQueue(
-            storeAnswer({ lessonRun: props.run.id, step: entry.step }).url,
-            {
+        const request = {
+            url: storeAnswer({ lessonRun: props.run.id, step: entry.step }).url,
+            body: {
                 exercise_id: shown.exerciseId,
                 skipped: true,
                 skip_reason: 'unsupported',
                 answered_at: new Date().toISOString(),
             },
-        );
+        };
+
+        record(entry, request);
+        await send(request.url, request.body, entry.step);
+    }
+
+    // An answer the server neither holds nor has queued for the device (a
+    // 5xx, an expired session, a failed network) is sent again from the
+    // journal, to the same idempotent step url, so leaving the lesson never
+    // loses it. A refusal that would repeat is dropped. On opening, the steps
+    // answered since are left alone, as their own send is under way.
+    const resending = new Set<string>();
+
+    async function resendUnsent(skipAnsweredHere = false) {
+        const held = new Set(props.answers.map((answer) => answer.step));
+        const rows = await readJournal(userId, props.run.id).catch(() => []);
+
+        for (const row of rows) {
+            const request = row.request;
+
+            if (
+                !request ||
+                held.has(row.step) ||
+                resending.has(row.step) ||
+                (skipAnsweredHere && answeredHere.has(row.step))
+            ) {
+                continue;
+            }
+
+            resending.add(row.step);
+
+            try {
+                const result = await submitOrQueue(request.url, request.body);
+
+                if (result.queued) {
+                    delivered(row.step);
+                } else if (result.response.ok) {
+                    delivered(row.step);
+                    noteCompletion(
+                        (await result.response.json()) as AnswerResponse,
+                    );
+                } else if (!isRetryable(result.response.status)) {
+                    delivered(row.step);
+                }
+            } finally {
+                resending.delete(row.step);
+            }
+        }
     }
 
     watch(
@@ -535,21 +635,28 @@ export function useLessonRun(props: PlayProps) {
             finishing.value = true;
 
             if (isOnline.value && pendingCount.value === 0) {
-                reloadRun();
+                void resendUnsent().then(reloadRun);
             }
         },
         { immediate: true },
     );
 
-    watch(
-        () => props.answers,
-        async () => {
-            answers.value = mergeAnswers(
-                props.answers,
-                await readJournal(userId, props.run.id).catch(() => []),
-            );
-        },
-    );
+    // The journal is read asynchronously, so an answer given meanwhile is
+    // kept next to what it returns.
+    async function refreshAnswers() {
+        const merged = mergeAnswers(
+            props.answers,
+            await readJournal(userId, props.run.id).catch(() => []),
+        );
+        const known = new Set(merged.map((answer) => answer.step));
+
+        answers.value = [
+            ...merged,
+            ...answers.value.filter((answer) => !known.has(answer.step)),
+        ];
+    }
+
+    watch(() => props.answers, refreshAnswers);
 
     watch(
         isCompleted,
@@ -561,11 +668,15 @@ export function useLessonRun(props: PlayProps) {
         { immediate: true },
     );
 
+    watch(isOnline, (online) => {
+        if (online) {
+            void resendUnsent();
+        }
+    });
+
     onMounted(async () => {
-        answers.value = mergeAnswers(
-            props.answers,
-            await readJournal(userId, props.run.id).catch(() => []),
-        );
+        await refreshAnswers();
+        await resendUnsent(true);
     });
 
     return {
