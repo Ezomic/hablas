@@ -45,15 +45,11 @@ final class ResolveInterfaceLocale
     /** @return list<string> */
     private function acceptedLanguages(Request $request): array
     {
-        $header = $request->headers->get('Accept-Language');
-
-        if (! is_string($header)) {
-            return [];
-        }
+        $header = $request->headers->get('Accept-Language', '');
 
         $languages = [];
 
-        foreach (AcceptHeader::fromString($header)->all() as $item) {
+        foreach (AcceptHeader::fromString((string) $header)->all() as $item) {
             if ($item->getQuality() > 0) {
                 $languages[] = $item->getValue();
             }
