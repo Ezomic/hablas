@@ -1,3 +1,4 @@
+import type { InterfaceLocale } from '@/i18n';
 import type { Auth } from '@/types/auth';
 import type { LanguageOption } from '@/types/language';
 import type { PortalApp, PortalCategory } from '@/types/portal';
@@ -23,6 +24,8 @@ declare module '@inertiajs/core' {
             portalApps: PortalApp[];
             portalCategories: PortalCategory[];
             sidebarOpen: boolean;
+            interfaceLocale: InterfaceLocale;
+            supportedLocales: InterfaceLocale[];
             currentLanguage: LanguageOption | null;
             availableLanguages: LanguageOption[];
             [key: string]: unknown;

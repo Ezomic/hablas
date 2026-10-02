@@ -1,6 +1,9 @@
 import { createInertiaApp } from '@inertiajs/vue3';
+import { createApp, h } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
 import { initializeOfflineSync } from '@/composables/useOfflineSync';
+import { i18n, setLocale } from '@/i18n';
+import type { InterfaceLocale } from '@/i18n';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import LessonLayout from '@/layouts/LessonLayout.vue';
@@ -30,6 +33,22 @@ createInertiaApp({
     },
     progress: {
         color: '#be185d',
+    },
+    setup({ el, App, props, plugin }) {
+        const initialLocale = props.initialPage.props.interfaceLocale as
+            InterfaceLocale | undefined;
+
+        if (initialLocale) {
+            setLocale(initialLocale);
+        }
+
+        const app = createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(i18n);
+
+        if (el) {
+            app.mount(el);
+        }
     },
 });
 

@@ -11,6 +11,7 @@ vi.mock('@inertiajs/vue3', () => ({
         template: '<a><slot /></a>',
     },
     router: { flushAll: vi.fn() },
+    usePage: () => ({ props: { supportedLocales: ['en'] } }),
 }));
 
 vi.mock('@/components/ui/dropdown-menu', () => {

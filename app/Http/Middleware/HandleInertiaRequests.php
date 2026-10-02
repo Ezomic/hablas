@@ -59,6 +59,8 @@ class HandleInertiaRequests extends Middleware
             'portalCategories' => fn () => $user === null
                 ? []
                 : app(IdPortalClient::class)->appsFor($user)['categories'],
+            'interfaceLocale' => app()->getLocale(),
+            'supportedLocales' => config('app.supported_locales'),
             'currentLanguage' => $user ? $this->getCurrentLanguage->handle($user) : null,
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()

@@ -7,6 +7,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Observers\UserObserver;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -26,6 +27,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 /**
  * @property int $id
  * @property int|null $current_language_id
+ * @property string|null $interface_locale
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
@@ -39,9 +41,9 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
  * @property Carbon|null $updated_at
  */
 #[ObservedBy(UserObserver::class)]
-#[Fillable(['name', 'email', 'current_language_id'])]
+#[Fillable(['name', 'email', 'current_language_id', 'interface_locale'])]
 #[Hidden(['two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements HasLocalePreference, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasPushSubscriptions, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -72,6 +74,11 @@ class User extends Authenticatable implements PasskeyUser
         $password = $this->getAttribute($this->getAuthPasswordName());
 
         return is_string($password) ? $password : '';
+    }
+
+    public function preferredLocale(): ?string
+    {
+        return $this->interface_locale;
     }
 
     /** @return HasMany<UserSkillLevel, $this> */
