@@ -11,7 +11,7 @@ use Inertia\Inertia;
 Route::get('/', fn () => Inertia::render('Welcome'))->name('home');
 
 // Temporary, removed in HAB-109 PR 1. No nav link, reachable by URL only.
-Route::get('tts-preview', TtsPreviewController::class)->middleware('auth')->name('tts-preview');
+Route::get('voice-test', TtsPreviewController::class)->middleware('auth')->name('tts-preview');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])

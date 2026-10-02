@@ -5,6 +5,10 @@ declare(strict_types=1);
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
+it('serves the page at a URL that does not collide with the static sample directory', function () {
+    expect(route('tts-preview', absolute: false))->toBe('/voice-test');
+});
+
 it('redirects guests to the login page', function () {
     $this->get(route('tts-preview'))->assertRedirect(route('login'));
 });
