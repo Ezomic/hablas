@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Settings\InterestPreferencesController;
+use App\Http\Controllers\Settings\InterfaceLocaleController;
 use App\Http\Controllers\Settings\LearningController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\PushSubscriptionController;
@@ -21,6 +22,11 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(RequirePassword::class)
         ->name('profile.update');
 });
+
+Route::patch('locale', [InterfaceLocaleController::class, 'update'])->name('interface-locale.guest.update');
+
+Route::middleware(['auth'])->patch('settings/interface-locale', [InterfaceLocaleController::class, 'update'])
+    ->name('interface-locale.update');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // RequirePassword now re-authenticates with an emailed code (see

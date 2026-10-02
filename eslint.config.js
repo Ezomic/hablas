@@ -1,3 +1,4 @@
+import intlify from '@intlify/eslint-plugin-vue-i18n';
 import stylistic from '@stylistic/eslint-plugin';
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
 import prettier from 'eslint-config-prettier/flat';
@@ -70,6 +71,33 @@ export default defineConfigWithVueTs(
                 'error',
                 ...paddingAroundControl,
             ],
+        },
+    },
+    {
+        files: ['resources/js/**/*.{ts,vue}'],
+        plugins: {
+            '@intlify/vue-i18n': intlify,
+        },
+        settings: {
+            'vue-i18n': {
+                localeDir: './resources/js/lang/*.json',
+                messageSyntaxVersion: '^11.0.0',
+            },
+        },
+        rules: {
+            '@intlify/vue-i18n/no-missing-keys': 'error',
+            '@intlify/vue-i18n/no-missing-keys-in-other-locales': 'error',
+            '@intlify/vue-i18n/no-deprecated-i18n-component': 'error',
+        },
+    },
+    {
+        files: [
+            'resources/js/components/InterfaceLocaleSwitcher.vue',
+            'resources/js/composables/useInterfaceLocale.ts',
+            'resources/js/i18n.ts',
+        ],
+        rules: {
+            '@intlify/vue-i18n/no-raw-text': 'error',
         },
     },
     {

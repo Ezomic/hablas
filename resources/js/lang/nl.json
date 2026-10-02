@@ -1,0 +1,18 @@
+{
+    "common": {
+        "save": "Opslaan",
+        "cancel": "Annuleren",
+        "close": "Sluiten"
+    },
+    "nav": {
+        "settings": "Instellingen",
+        "logOut": "Uitloggen"
+    },
+    "interfaceLocale": {
+        "title": "Taal van de interface",
+        "description": "De taal waarin deze site wordt getoond. Dit verandert niets aan de taal die je leert.",
+        "switcherLabel": "Taal van de interface",
+        "en": "English",
+        "nl": "Nederlands"
+    }
+}

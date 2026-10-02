@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\Settings\SupportedInterfaceLocales;
 use App\Models\Language;
 use App\Services\Portal\IdPortalClient;
 use Illuminate\Http\Request;
@@ -59,6 +60,8 @@ class HandleInertiaRequests extends Middleware
             'portalCategories' => fn () => $user === null
                 ? []
                 : app(IdPortalClient::class)->appsFor($user)['categories'],
+            'interfaceLocale' => app()->getLocale(),
+            'supportedLocales' => (new SupportedInterfaceLocales)->handle(),
             'currentLanguage' => $user ? $this->getCurrentLanguage->handle($user) : null,
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()

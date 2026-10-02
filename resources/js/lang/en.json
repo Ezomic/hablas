@@ -1,0 +1,18 @@
+{
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "close": "Close"
+    },
+    "nav": {
+        "settings": "Settings",
+        "logOut": "Log out"
+    },
+    "interfaceLocale": {
+        "title": "Interface language",
+        "description": "The language this site is shown in. It does not change the language you are learning.",
+        "switcherLabel": "Interface language",
+        "en": "English",
+        "nl": "Nederlands"
+    }
+}
