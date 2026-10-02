@@ -9,6 +9,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import LessonLayout from '@/layouts/LessonLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
+import { initializeLocaleSync } from '@/lib/localeSync';
 import { initializeServiceWorker } from '@/lib/registerServiceWorker';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -54,6 +55,9 @@ createInertiaApp({
 
 // This will set light / dark mode on page load...
 initializeTheme();
+
+// This will keep the Vue locale in step with the locale the server resolved...
+initializeLocaleSync();
 
 // This will listen for flash toast data from the server...
 initializeFlashToast();

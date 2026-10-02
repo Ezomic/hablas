@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Inertia\Testing\AssertableInertia;
+use Tests\Support\LocaleCatalogs;
 
 beforeEach(function (): void {
     config(['app.supported_locales' => ['en', 'nl']]);
@@ -166,6 +167,34 @@ it('asks the user for a locale when sending notifications', function (): void {
         ->and(User::factory()->make(['interface_locale' => null])->preferredLocale())->toBeNull();
 });
 
+it('does not offer a stored locale that is not supported', function (): void {
+    config(['app.supported_locales' => ['en']]);
+
+    expect(User::factory()->make(['interface_locale' => 'nl'])->preferredLocale())->toBeNull();
+});
+
+it('survives malformed Accept-Language and cookie input', function (string $header): void {
+    $this->withHeader('Accept-Language', $header)
+        ->get(route('home'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('interfaceLocale', 'en'));
+})->with(['empty' => [''], 'commas' => [',,'], 'quality only' => [';q=1'], 'wildcard' => ['*'], 'refused' => ['nl;q=0']]);
+
+it('survives an array cookie', function (): void {
+    $this->call('GET', route('home'), cookies: ['interface_locale' => ['x']])
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('interfaceLocale', 'en'));
+});
+
+it('sets the locale cookie as SameSite Lax', function (): void {
+    $this->patch(route('interface-locale.guest.update'), ['interface_locale' => 'nl'])
+        ->assertCookie('interface_locale');
+
+    $cookie = collect($this->app->make('cookie')->getQueuedCookies())->first();
+
+    expect($cookie?->getSameSite())->toBe('lax');
+});
+
 it('renders the server messages Hablas already has in Dutch', function (): void {
     app()->setLocale('nl');
 
@@ -173,15 +202,15 @@ it('renders the server messages Hablas already has in Dutch', function (): void 
 });
 
 it('keeps the en and nl frontend catalogs in key parity', function (): void {
-    $en = flattenCatalog(frontendCatalog('en'));
-    $nl = flattenCatalog(frontendCatalog('nl'));
+    $en = LocaleCatalogs::flatten(LocaleCatalogs::frontend('en'));
+    $nl = LocaleCatalogs::flatten(LocaleCatalogs::frontend('nl'));
 
     expect(array_keys($nl))->toEqualCanonicalizing(array_keys($en));
 });
 
 it('keeps every frontend catalog value filled in and translated', function (): void {
-    $en = flattenCatalog(frontendCatalog('en'));
-    $nl = flattenCatalog(frontendCatalog('nl'));
+    $en = LocaleCatalogs::flatten(LocaleCatalogs::frontend('en'));
+    $nl = LocaleCatalogs::flatten(LocaleCatalogs::frontend('nl'));
     $sameInBoth = ['interfaceLocale.en', 'interfaceLocale.nl'];
 
     foreach ($nl as $key => $value) {
@@ -196,7 +225,7 @@ it('keeps every frontend catalog value filled in and translated', function (): v
 it('has a Dutch line for every literal translation key in PHP and no unused ones', function (): void {
     $used = [];
 
-    foreach (phpSourceFiles() as $path) {
+    foreach (LocaleCatalogs::phpSourceFiles() as $path) {
         $source = (string) file_get_contents($path);
 
         expect(preg_match('/\b(?:__|trans_choice)\(\s*\$/', $source))->toBe(0, "{$path} uses a dynamic translation key");
@@ -214,48 +243,8 @@ it('has a Dutch line for every literal translation key in PHP and no unused ones
         ->and(array_values(array_diff($catalog, $used)))->toBe([]);
 });
 
-/**
- * @return array<string, mixed>
- */
-function frontendCatalog(string $locale): array
-{
-    return json_decode((string) file_get_contents(resource_path("js/lang/{$locale}.json")), true, flags: JSON_THROW_ON_ERROR);
-}
-
-/**
- * @param  array<string, mixed>  $data
- * @return array<string, string>
- */
-function flattenCatalog(array $data, string $prefix = ''): array
-{
-    $flat = [];
-
-    foreach ($data as $key => $value) {
-        $path = $prefix === '' ? $key : "{$prefix}.{$key}";
-
-        $flat = is_array($value)
-            ? [...$flat, ...flattenCatalog($value, $path)]
-            : [...$flat, $path => (string) $value];
-    }
-
-    return $flat;
-}
-
-/**
- * @return list<string>
- */
-function phpSourceFiles(): array
-{
-    $files = [];
-
-    foreach ([app_path(), base_path('routes')] as $directory) {
-        /** @var SplFileInfo $file */
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)) as $file) {
-            if ($file->getExtension() === 'php') {
-                $files[] = $file->getPathname();
-            }
-        }
-    }
-
-    return $files;
-}
+it('uses the app locale when the browser sends no Accept-Language', function (): void {
+    $this->withoutHeader('Accept-Language')
+        ->get(route('home'))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('interfaceLocale', 'en'));
+});

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Settings;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\AcceptHeader;
 
 final class ResolveInterfaceLocale
 {
@@ -28,7 +29,7 @@ final class ResolveInterfaceLocale
             return $cookie;
         }
 
-        foreach ($request->getLanguages() as $language) {
+        foreach ($this->acceptedLanguages($request) as $language) {
             $primary = strtolower(strtok(str_replace('_', '-', $language), '-') ?: '');
 
             if (in_array($primary, $supported, true)) {
@@ -39,5 +40,25 @@ final class ResolveInterfaceLocale
         $default = config('app.locale');
 
         return is_string($default) ? $default : 'en';
+    }
+
+    /** @return list<string> */
+    private function acceptedLanguages(Request $request): array
+    {
+        $header = $request->headers->get('Accept-Language');
+
+        if (! is_string($header)) {
+            return [];
+        }
+
+        $languages = [];
+
+        foreach (AcceptHeader::fromString($header)->all() as $item) {
+            if ($item->getQuality() > 0) {
+                $languages[] = $item->getValue();
+            }
+        }
+
+        return $languages;
     }
 }

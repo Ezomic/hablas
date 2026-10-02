@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Actions\Settings\SupportedInterfaceLocales;
 use App\Observers\UserObserver;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Translation\HasLocalePreference;
@@ -78,7 +79,9 @@ class User extends Authenticatable implements HasLocalePreference, PasskeyUser
 
     public function preferredLocale(): ?string
     {
-        return $this->interface_locale;
+        $locale = $this->interface_locale;
+
+        return $locale !== null && in_array($locale, (new SupportedInterfaceLocales)->handle(), true) ? $locale : null;
     }
 
     /** @return HasMany<UserSkillLevel, $this> */

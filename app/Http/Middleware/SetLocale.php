@@ -29,7 +29,10 @@ final class SetLocale
         $user = $request->user();
 
         if ($user !== null && $user->interface_locale === null && count($this->supportedInterfaceLocales->handle()) > 1) {
-            $user->forceFill(['interface_locale' => $locale])->save();
+            $user->newQuery()
+                ->whereKey($user->getKey())
+                ->whereNull('interface_locale')
+                ->update(['interface_locale' => $locale]);
         }
 
         return $next($request);
