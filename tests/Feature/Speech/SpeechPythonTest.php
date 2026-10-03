@@ -16,6 +16,10 @@ function helperOutput(array ...$rows): string
     return implode("\n", array_map(fn (array $row): string => json_encode($row, JSON_THROW_ON_ERROR), $rows))."\n";
 }
 
+beforeEach(function (): void {
+    config(['speech.python' => 'python3', 'speech.models_dir' => null]);
+});
+
 it('sends a JSONL batch to the synthesize helper and decodes the WAVs in order', function (): void {
     Process::fake(['*' => Process::result(helperOutput(
         ['id' => 1, 'error' => 'boom'],
