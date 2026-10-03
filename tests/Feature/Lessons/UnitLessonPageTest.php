@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Actions\Lessons\StartLessonRun;
 use App\Enums\CefrLevel;
+use App\Enums\LessonRunKind;
 use App\Enums\LessonStage;
+use App\Models\LessonExercise;
 use App\Models\Unit;
 use App\Models\UserUnitProgress;
 use Tests\Fixtures\Lessons\LessonWorld;
@@ -79,5 +81,21 @@ it('lists a unit in progress in the library with its lesson counts', function ()
             ->where('units.0.availability', 'in_progress')
             ->where('units.0.lessonCount', 3)
             ->where('units.0.lessonsCompleted', 0),
+        );
+});
+
+it('shows the remediation after a check with something missing, and the check row as awaiting it', function () {
+    $this->actingAs($this->user)->get(route('units.show', $this->unit))->assertInertia(fn ($page) => $page->where('lessons.remediation', null));
+
+    LessonWorld::finishTeachingLessons($this->user, $this->unit);
+    $check = LessonWorld::lesson($this->unit, LessonStage::Check);
+    $run = (new StartLessonRun)->handle($this->user, $check, LessonRunKind::Check);
+    LessonWorld::play($this->user, $run, fn (LessonExercise $exercise): bool => $exercise->key === 'check.a.type_word.la-llave');
+
+    $this->actingAs($this->user)
+        ->get(route('units.show', $this->unit))
+        ->assertInertia(fn ($page) => $page
+            ->where('lessons.remediation', ['lessonId' => $check->id, 'missing' => 1, 'retake' => 'opens_tomorrow'])
+            ->where('lessons.lessons.4.state', 'remediation'),
         );
 });

@@ -1,22 +1,31 @@
 <script setup lang="ts">
 import { Check, X } from '@lucide/vue';
 import { computed } from 'vue';
+import RemediationActions from '@/components/RemediationActions.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { NextLesson, RunSummary } from '@/types/lesson';
+import type { NextLesson, Remediation, RunSummary } from '@/types/lesson';
 
 const props = defineProps<{
     summary: RunSummary;
     isCheck: boolean;
     next: NextLesson | null;
     starting?: boolean;
+    remediation?: Remediation | null;
 }>();
 
-const emit = defineEmits<{ next: []; unit: [] }>();
+const emit = defineEmits<{
+    next: [];
+    unit: [];
+    practice: [];
+    retake: [];
+}>();
 
 const families: Record<string, string> = {
     choice: 'Multiple choice',
     writing: 'Writing',
+    listening: 'Listening',
+    speaking: 'Speaking',
 };
 
 const missing = computed(() =>
@@ -159,6 +168,14 @@ const nextIsOpen = computed(
                 joined your review deck.
             </p>
         </template>
+
+        <RemediationActions
+            v-if="props.remediation"
+            :remediation="props.remediation"
+            :busy="props.starting"
+            @practice="emit('practice')"
+            @retake="emit('retake')"
+        />
 
         <div class="flex flex-col gap-2">
             <Button

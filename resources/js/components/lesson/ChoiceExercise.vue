@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
+import GlossLine from '@/components/lesson/GlossLine.vue';
+import { choiceButtonClass, choiceState } from '@/lib/choiceStyle';
 import { cn } from '@/lib/utils';
 
 const props = defineProps<{
@@ -9,6 +11,8 @@ const props = defineProps<{
     modelValue: string | null;
     // Set once the answer has been checked, to colour the options.
     answer?: string | null;
+    english?: string;
+    glosses?: [string, string][];
     disabled?: boolean;
 }>();
 
@@ -43,38 +47,34 @@ function onKey(event: KeyboardEvent) {
 
 onMounted(() => window.addEventListener('keydown', onKey));
 onUnmounted(() => window.removeEventListener('keydown', onKey));
-
-function state(option: string): string {
-    if (
-        props.answer === undefined ||
-        props.answer === null ||
-        props.answer === ''
-    ) {
-        return option === props.modelValue
-            ? 'border-primary bg-primary/10'
-            : 'hover:bg-accent';
-    }
-
-    if (option === props.answer) {
-        return 'border-green-600 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100';
-    }
-
-    return option === props.modelValue
-        ? 'border-red-600 bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100'
-        : 'opacity-60';
-}
 </script>
 
 <template>
     <section class="flex flex-col gap-4">
-        <p class="text-sm text-muted-foreground">{{ props.instruction }}</p>
-        <h2 class="text-2xl font-semibold" data-testid="prompt">
+        <p v-if="props.instruction" class="text-sm text-muted-foreground">
+            {{ props.instruction }}
+        </p>
+        <h2
+            v-if="props.prompt"
+            class="text-2xl font-semibold"
+            data-testid="prompt"
+        >
             {{ props.prompt }}
         </h2>
+        <p
+            v-if="props.english"
+            class="text-sm text-muted-foreground"
+            data-testid="english"
+        >
+            {{ props.english }}
+        </p>
+        <GlossLine :glosses="props.glosses" />
         <div
             class="flex flex-col gap-2"
             role="radiogroup"
-            :aria-label="`${props.instruction}: ${props.prompt}`"
+            :aria-label="
+                [props.instruction, props.prompt].filter(Boolean).join(': ')
+            "
         >
             <button
                 v-for="(option, index) in props.options"
@@ -85,8 +85,8 @@ function state(option: string): string {
                 :disabled="props.disabled"
                 :class="
                     cn(
-                        'flex min-h-12 w-full items-center gap-3 rounded-lg border bg-background px-4 py-3 text-left text-base transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                        state(option),
+                        choiceButtonClass,
+                        choiceState(option, props.modelValue, props.answer),
                     )
                 "
                 @click="pick(option)"

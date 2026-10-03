@@ -176,8 +176,8 @@ final class LessonWorld
     }
 
     /**
-     * Plays a run to the end. Speaking is skipped for its substitute, since
-     * speaking is graded from a later release. An exercise for which the
+     * Plays a run to the end. Speaking is skipped for its substitute, since a
+     * test has no recogniser to say it. An exercise for which the
      * callback returns true is answered wrong first and right second.
      */
     public static function play(User $user, LessonRun $run, ?Closure $mistake = null): LessonRun

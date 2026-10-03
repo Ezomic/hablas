@@ -35,7 +35,8 @@ final class GetUnitLessonOverview
      *     mastery: array{mastered: int, total: int},
      *     skipped: array{listening: int, speaking: int},
      *     contentPending: bool,
-     *     canTestOut: bool
+     *     canTestOut: bool,
+     *     remediation: array{lessonId: int, missing: int, retake: string}|null
      * }
      */
     public function handle(User $user, Unit $unit): array
@@ -66,6 +67,7 @@ final class GetUnitLessonOverview
             'skipped' => $this->skipped($user, $unit),
             'contentPending' => $lessons->isNotEmpty() && $this->unitMasteryReader->scope($unit) === MasteryScope::Words,
             'canTestOut' => $this->canTestOut($user, $unit, $lessons->get(LessonStage::Check->value), $states),
+            'remediation' => $this->lessonProgress->remediation($user, $unit),
         ];
     }
 

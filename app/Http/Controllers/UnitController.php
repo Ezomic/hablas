@@ -12,10 +12,12 @@ use App\Actions\Units\ListUnitLibrary;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\UnitAvailability;
 use App\Models\GrammarPoint;
+use App\Models\Language;
 use App\Models\Lesson;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\SpeechClipResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,12 +37,15 @@ final class UnitController extends Controller
         ]);
     }
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver): Response
     {
-        $availability = $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
+        $language = $this->currentLanguage($getCurrentLanguage);
+        $availability = $this->authorizeUnit($unit, $language, $determineUnitAvailability);
         $overview = $getUnitLessonOverview->handle($this->currentUser(), $unit);
 
         $unit->load(['vocabularyItems', 'grammarPoints']);
+
+        $clips = $speechClipResolver->resolveBoth($language->code, array_values($unit->vocabularyItems->map(fn (VocabularyItem $item): string => $item->term)->all()));
 
         return Inertia::render('units/Show', [
             'unit' => [
@@ -58,6 +63,8 @@ final class UnitController extends Controller
                 'partOfSpeech' => $item->part_of_speech,
                 'isCognate' => $item->is_cognate,
                 'contrastNote' => $item->contrast_note,
+                'audioUrl' => $clips[$item->term]['audioUrl'] ?? null,
+                'audioSlowUrl' => $clips[$item->term]['audioSlowUrl'] ?? null,
             ])->values(),
             'grammarPoints' => $unit->grammarPoints->map(fn (GrammarPoint $point): array => [
                 'id' => $point->id,
@@ -67,13 +74,13 @@ final class UnitController extends Controller
             'isCompleted' => $availability === UnitAvailability::Completed,
             'availability' => $availability->value,
             'lessons' => $this->hasLessons($overview) ? $overview : null,
-            'speechLocale' => $unit->language === null ? null : $speechLocaleResolver->forLanguage($unit->language),
+            'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }
 
     public function store(Request $request, Unit $unit, CompleteUnit $completeUnit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability): RedirectResponse
     {
-        $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
+        $this->authorizeUnit($unit, $this->currentLanguage($getCurrentLanguage), $determineUnitAvailability);
 
         abort_if(Lesson::query()->where('unit_id', $unit->id)->playable()->exists(), 404);
 
@@ -101,6 +108,15 @@ final class UnitController extends Controller
         return false;
     }
 
+    private function currentLanguage(GetCurrentLanguage $getCurrentLanguage): Language
+    {
+        $language = $getCurrentLanguage->handle($this->currentUser());
+
+        abort_if($language === null, 404);
+
+        return $language;
+    }
+
     /**
      * A unit is only reachable on the deck the user is currently studying:
      * serving one from the other language would put its vocabulary into the
@@ -109,11 +125,9 @@ final class UnitController extends Controller
      * enroll cards they are not ready for. A held-back unit is not refused:
      * like the dashboard, the library defers it by not offering it.
      */
-    private function authorizeUnit(Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability): UnitAvailability
+    private function authorizeUnit(Unit $unit, Language $language, DetermineUnitAvailability $determineUnitAvailability): UnitAvailability
     {
-        $language = $getCurrentLanguage->handle($this->currentUser());
-
-        abort_if($language === null || $unit->language_id !== $language->id, 404);
+        abort_if($unit->language_id !== $language->id, 404);
 
         $availability = $determineUnitAvailability->handle($this->currentUser(), $language, collect([$unit]))[$unit->id];
 

@@ -20,8 +20,9 @@ vi.mock('@inertiajs/vue3', () => ({
 
 vi.mock('@/components/SpeakButton.vue', () => ({
     default: {
-        props: ['text', 'locale'],
-        template: '<button data-test="speak" :data-text="text" />',
+        props: ['text', 'locale', 'audioUrl', 'audioSlowUrl'],
+        template:
+            '<button data-test="speak" :data-text="text" :data-url="audioUrl" :data-slow="audioSlowUrl" />',
     },
 }));
 
@@ -33,6 +34,8 @@ const word: VocabularyEntry = {
     state: 'relearning',
     dueAt: '2026-09-29T08:00:00+00:00',
     isWeakSpot: true,
+    audioUrl: null,
+    audioSlowUrl: null,
 };
 
 const grammar: VocabularyEntry = {
@@ -43,6 +46,8 @@ const grammar: VocabularyEntry = {
     state: 'new',
     dueAt: '2026-09-29T08:00:00+00:00',
     isWeakSpot: false,
+    audioUrl: null,
+    audioSlowUrl: null,
 };
 
 function mountPage(
@@ -95,6 +100,15 @@ describe('vocabulary page', () => {
         expect(speak.map((button) => button.attributes('data-text'))).toEqual([
             'la llave',
         ]);
+    });
+
+    it('hands each word its clips', () => {
+        const speak = mountPage([
+            { ...word, audioUrl: '/n.mp3', audioSlowUrl: '/s.mp3' },
+        ]).get('[data-test="speak"]');
+
+        expect(speak.attributes('data-url')).toBe('/n.mp3');
+        expect(speak.attributes('data-slow')).toBe('/s.mp3');
     });
 
     it('tells a new learner how to fill the deck', () => {

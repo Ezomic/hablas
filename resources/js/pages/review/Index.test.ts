@@ -24,6 +24,8 @@ const card: ReviewCard = {
     direction: 'recognition',
     needsArticle: false,
     suggestedErrorTag: null,
+    audioUrl: null,
+    audioSlowUrl: null,
 };
 
 function mountPage(cards: ReviewCard[], dueRemaining = 0) {

@@ -8,14 +8,16 @@ use App\Enums\ReviewKind;
 use App\Enums\ReviewScope;
 
 /**
- * A unit's content with its words treated as reviewed, so the review sheet can
- * show the exercises the words would generate before the review is recorded.
- * It is only ever used to render a preview, never to seed.
+ * A unit's content treated as reviewed, so the review sheet can show the
+ * exercises it would build before any review is recorded. With the lessons
+ * too, it carries the authored exercises as well. It is only ever used to
+ * render a preview, never to seed.
  */
 final readonly class PreviewContent implements UnitContent
 {
     public function __construct(
         private UnitContent $content,
+        private bool $withLessons = false,
     ) {}
 
     public function languageCode(): string
@@ -40,11 +42,22 @@ final readonly class PreviewContent implements UnitContent
 
     public function exercises(): array
     {
-        return [];
+        return $this->withLessons ? $this->content->exercises() : [];
     }
 
     public function reviews(): array
     {
-        return [new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'preview', now()->toDateString())];
+        $today = now()->toDateString();
+        $reviews = [new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'preview', $today)];
+
+        if ($this->withLessons) {
+            array_push(
+                $reviews,
+                new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'preview', $today),
+                new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'preview', $today),
+            );
+        }
+
+        return $reviews;
     }
 }

@@ -1,6 +1,11 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useOfflineSync } from '@/composables/useOfflineSync';
+import { useExactVoice } from '@/composables/useExactVoice';
+import { useExercisePauses } from '@/composables/useExercisePauses';
+import {
+    deviceBelongsToSomeoneElse,
+    useOfflineSync,
+} from '@/composables/useOfflineSync';
 import { isRetryable } from '@/lib/http';
 import {
     forgetJournal,
@@ -11,14 +16,25 @@ import {
 } from '@/lib/lessonJournal';
 import type { JournalEntry } from '@/lib/lessonJournal';
 import {
+    clipUrl,
     expectedAnswer,
     isChoiceFormat,
+    isPassageFormat,
     isTeachFormat,
     isTypedFormat,
+    passageAnswers,
+    passageLines,
     text,
 } from '@/lib/lessonPayload';
-import { buildQueue, isSettled, progress } from '@/lib/lessonQueue';
+import {
+    buildQueue,
+    familyOf,
+    isSettled,
+    isSkippable,
+    progress,
+} from '@/lib/lessonQueue';
 import type { QueueExercise, QueueStep } from '@/lib/lessonQueue';
+import { isBrowserRecognitionSupported } from '@/lib/speechRecognizer';
 import { newStep } from '@/lib/uuid';
 import { store as storeAnswer } from '@/routes/lesson-runs/answers';
 import { store as flagAnswer } from '@/routes/lesson-runs/answers/flag';
@@ -26,13 +42,12 @@ import type {
     AnswerRecord,
     AnswerResponse,
     ExerciseBase,
+    ExerciseFamily,
+    GuidedDetails,
     JournalRequest,
     PlayProps,
+    SkipReason,
 } from '@/types/lesson';
-
-// Listening and speaking are played from a later release, so for now the
-// device skips them for their substitutes.
-const UNSUPPORTED_FAMILIES = ['listening', 'speaking'];
 
 export type Phase =
     'answering' | 'checking' | 'feedback' | 'self_check' | 'error';
@@ -43,6 +58,8 @@ export interface Feedback {
     expected: string;
     note: string | null;
     given: string;
+    details: GuidedDetails | null;
+    why: string | null;
     flaggable: boolean;
     flagged: boolean;
     saving: boolean;
@@ -75,6 +92,11 @@ export function useLessonRun(props: PlayProps) {
         return byId;
     });
 
+    const recognitionSupported = isBrowserRecognitionSupported();
+    const microphoneDenied = ref(false);
+    const { exactVoice } = useExactVoice(() => props.settings.speechLocale);
+    const pauses = useExercisePauses(props.settings.pauses, submitOrQueue);
+
     const queueExercises = computed<QueueExercise[]>(() =>
         props.plan.map((entry) => ({
             id: entry.id,
@@ -97,10 +119,91 @@ export function useLessonRun(props: PlayProps) {
     const serverDone = ref(false);
     const mastery = ref<AnswerResponse['run']['mastery'] | null>(null);
 
+    const knownAnswers = ref<Record<number, string>>({});
+
+    // A dictation is heard from its clip, because its text is never sent, and
+    // a word heard and chosen is read by the browser when it has no clip, but
+    // only in the right voice, so a Brazilian or Latin American voice never
+    // teaches the pronunciation. Offline, a dictation cannot be self-checked
+    // either, since there is no text to show.
+    function cannotBePlayed(entry: ExerciseBase): boolean {
+        const hasClip = clipUrl(entry.payload.audioUrl) !== null;
+
+        if (entry.format === 'listen_type') {
+            return !hasClip || !isOnline.value;
+        }
+
+        if (entry.format === 'listen_passage') {
+            return passageLines(entry.payload).some(
+                (line) =>
+                    line.audioUrl === null &&
+                    (line.text === '' || exactVoice.value === false),
+            );
+        }
+
+        return (
+            !hasClip &&
+            (text(entry.payload.text) === '' || exactVoice.value === false)
+        );
+    }
+
+    const skipFamilies = computed(() => {
+        const families: ExerciseFamily[] = [];
+
+        if (pauses.isPaused('listening')) {
+            families.push('listening');
+        }
+
+        if (
+            pauses.isPaused('speaking') ||
+            !recognitionSupported ||
+            microphoneDenied.value ||
+            !isOnline.value
+        ) {
+            families.push('speaking');
+        }
+
+        return families;
+    });
+
+    const skipExerciseIds = computed(() =>
+        props.plan
+            .filter(
+                (entry) =>
+                    familyOf(entry.format) === 'listening' &&
+                    entry.substitute !== null &&
+                    cannotBePlayed(entry),
+            )
+            .map((entry) => entry.id),
+    );
+
+    function skipReasonFor(format: string): SkipReason {
+        const family = familyOf(format);
+
+        if (family === 'listening' || family === 'speaking') {
+            if (pauses.isPaused(family)) {
+                return 'paused';
+            }
+        }
+
+        if (
+            family === 'speaking' &&
+            (!recognitionSupported || microphoneDenied.value)
+        ) {
+            return 'unsupported';
+        }
+
+        return !isOnline.value &&
+            (family === 'speaking' || format === 'listen_type')
+            ? 'offline'
+            : 'unsupported';
+    }
+
     const queue = computed(() =>
         buildQueue(queueExercises.value, answers.value, {
             check,
-            skipFamilies: UNSUPPORTED_FAMILIES,
+            skipFamilies: skipFamilies.value,
+            skipExerciseIds: skipExerciseIds.value,
         }),
     );
     const current = computed(() => frozen.value ?? queue.value[0] ?? null);
@@ -167,6 +270,24 @@ export function useLessonRun(props: PlayProps) {
             return { correct: text(response.choice) === expected, expected };
         }
 
+        if (isPassageFormat(exercise.format)) {
+            const answers = passageAnswers(exercise.payload);
+            const choices = Array.isArray(response.choices)
+                ? response.choices
+                : [];
+
+            return answers === null
+                ? null
+                : {
+                      correct:
+                          choices.length === answers.length &&
+                          answers.every(
+                              (answer, index) => choices[index] === answer,
+                          ),
+                      expected: answers.join(' / '),
+                  };
+        }
+
         if (exercise.format === 'match_pairs') {
             const wrong = response.wrong;
 
@@ -177,6 +298,43 @@ export function useLessonRun(props: PlayProps) {
         }
 
         return null;
+    }
+
+    function givenOf(response: Record<string, unknown>): string {
+        const spoken = Array.isArray(response.transcripts)
+            ? response.transcripts.filter(
+                  (item): item is string => typeof item === 'string',
+              )
+            : [];
+
+        const chosen = Array.isArray(response.choices)
+            ? response.choices.filter(
+                  (item): item is string => typeof item === 'string',
+              )
+            : [];
+
+        return (
+            text(response.text) ||
+            text(response.choice) ||
+            chosen.join(' / ') ||
+            (spoken.at(-1) ?? '')
+        );
+    }
+
+    function whyOf(exercise: ExerciseBase): string | null {
+        return text(exercise.payload.why) || null;
+    }
+
+    function learn(
+        exercise: ExerciseBase,
+        expected: string | null | undefined,
+    ) {
+        if (expected !== null && expected !== undefined && expected !== '') {
+            knownAnswers.value = {
+                ...knownAnswers.value,
+                [exercise.id]: expected,
+            };
+        }
     }
 
     function body(
@@ -271,7 +429,7 @@ export function useLessonRun(props: PlayProps) {
 
         const payload = body(exercise, response);
         const local = check ? null : gradeLocally(exercise, response);
-        const given = text(response.text) || text(response.choice);
+        const given = givenOf(response);
         const base = {
             step: step.value,
             exerciseId: exercise.id,
@@ -347,12 +505,15 @@ export function useLessonRun(props: PlayProps) {
             return;
         }
 
+        learn(exercise, local.expected);
         feedback.value = {
             step: base.step,
             correct: local.correct,
             expected: local.expected,
             note: null,
             given,
+            details: null,
+            why: whyOf(exercise),
             flaggable: false,
             flagged: false,
             saving: true,
@@ -388,6 +549,19 @@ export function useLessonRun(props: PlayProps) {
 
         const result = await send(answerUrl(), payload);
 
+        if (result.queued && expectedAnswer(exercise) === '') {
+            record(
+                { ...base, correct: null, settled: true },
+                { url: answerUrl(), body: payload },
+            );
+            delivered(base.step);
+            savedFlash.value = true;
+            setTimeout(() => (savedFlash.value = false), 900);
+            advance();
+
+            return;
+        }
+
         if (result.queued) {
             unsent.value = {
                 step: base.step,
@@ -401,6 +575,8 @@ export function useLessonRun(props: PlayProps) {
                 expected: expectedAnswer(exercise),
                 note: null,
                 given,
+                details: null,
+                why: whyOf(exercise),
                 flaggable: false,
                 flagged: false,
                 saving: false,
@@ -423,12 +599,15 @@ export function useLessonRun(props: PlayProps) {
         const correct = result.data.correct === true;
 
         record({ ...base, correct, settled: correct });
+        learn(exercise, result.data.expected);
         feedback.value = {
             step: base.step,
             correct,
             expected: result.data.expected ?? expectedAnswer(exercise),
             note: result.data.note ?? null,
             given,
+            details: result.data.details ?? null,
+            why: whyOf(exercise),
             flaggable: !correct,
             flagged: false,
             saving: false,
@@ -535,14 +714,20 @@ export function useLessonRun(props: PlayProps) {
         hintShown.value = true;
     }
 
-    // A step the device cannot play is skipped for its substitute, which is
-    // recorded as a skip so the original is never graded.
-    async function skipUnplayable(shown: QueueStep) {
+    // A skip puts the substitute in the exercise's place and is recorded with
+    // its reason, so the original is never graded and the unit page can say
+    // what was skipped.
+    async function skipExercise(
+        exerciseId: number,
+        format: string,
+        reason: SkipReason,
+    ) {
         const entry: AnswerRecord = {
             step: newStep(),
-            exerciseId: shown.exerciseId,
+            exerciseId,
             hinted: false,
             skipped: true,
+            skipReason: reason,
             correct: null,
             flagged: false,
             settled: false,
@@ -551,15 +736,63 @@ export function useLessonRun(props: PlayProps) {
         const request = {
             url: storeAnswer({ lessonRun: props.run.id, step: entry.step }).url,
             body: {
-                exercise_id: shown.exerciseId,
+                exercise_id: exerciseId,
                 skipped: true,
-                skip_reason: 'unsupported',
+                skip_reason: reason,
                 answered_at: new Date().toISOString(),
             },
         };
 
         record(entry, request);
+        hintShown.value = false;
         await send(request.url, request.body, entry.step);
+    }
+
+    const entries = computed(
+        () => new Map(props.plan.map((entry) => [entry.id, entry])),
+    );
+
+    const canSkip = computed(() => {
+        const shown = current.value;
+
+        return (
+            phase.value === 'answering' &&
+            shown !== null &&
+            shown.shownId === shown.exerciseId &&
+            isSkippable(shown.format) &&
+            entries.value.get(shown.exerciseId)?.substitute != null
+        );
+    });
+
+    function skip() {
+        const shown = current.value;
+
+        if (canSkip.value && shown !== null) {
+            void skipExercise(shown.exerciseId, shown.format, 'chosen');
+        }
+    }
+
+    // What the learner is told once, in a line, when an exercise was swapped
+    // without being asked to: the reason it was.
+    const swapReason = computed<SkipReason | null>(() => {
+        const shown = current.value;
+
+        if (shown === null || shown.shownId === shown.exerciseId) {
+            return null;
+        }
+
+        const skipped = answers.value.findLast(
+            (answer) =>
+                answer.exerciseId === shown.exerciseId && answer.skipped,
+        );
+
+        return skipped?.skipReason && skipped.skipReason !== 'chosen'
+            ? skipped.skipReason
+            : null;
+    });
+
+    function denyMicrophone() {
+        microphoneDenied.value = true;
     }
 
     // An answer the server neither holds nor has queued for the device (a
@@ -570,6 +803,10 @@ export function useLessonRun(props: PlayProps) {
     const resending = new Set<string>();
 
     async function resendUnsent(skipAnsweredHere = false) {
+        if (deviceBelongsToSomeoneElse(userId)) {
+            return;
+        }
+
         const held = new Set(props.answers.map((answer) => answer.step));
         const rows = await readJournal(userId, props.run.id).catch(() => []);
 
@@ -607,10 +844,14 @@ export function useLessonRun(props: PlayProps) {
     }
 
     watch(
-        () => queue.value[0],
-        (shown) => {
+        [() => queue.value[0], frozen],
+        ([shown]) => {
             if (shown?.skip === true && frozen.value === null) {
-                void skipUnplayable(shown);
+                void skipExercise(
+                    shown.exerciseId,
+                    shown.format,
+                    skipReasonFor(shown.format),
+                );
             }
         },
         { immediate: true },
@@ -706,5 +947,12 @@ export function useLessonRun(props: PlayProps) {
         flag,
         advance,
         showHint,
+        skip,
+        canSkip,
+        swapReason,
+        pauses,
+        denyMicrophone,
+        knownAnswers,
+        exactVoice,
     };
 }

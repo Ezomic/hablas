@@ -9,6 +9,7 @@ export type LessonState =
     | 'opens_tomorrow'
     | 'in_progress'
     | 'completed'
+    | 'remediation'
     | 'coming';
 
 export interface ExerciseBase {
@@ -24,12 +25,17 @@ export interface PlanExercise extends ExerciseBase {
     substitute: ExerciseBase | null;
 }
 
+export type SkipReason = 'chosen' | 'paused' | 'unsupported' | 'offline';
+
+export type ExerciseFamily = 'listening' | 'speaking';
+
 export interface ServerAnswer {
     step: string;
     exerciseId: number;
     attempt: number;
     hinted: boolean;
     skipped: boolean;
+    skipReason: SkipReason | null;
     correct: boolean | null;
     flagged: boolean;
     settled: boolean;
@@ -42,6 +48,7 @@ export interface JournalAnswer {
     exerciseId: number;
     hinted: boolean;
     skipped: boolean;
+    skipReason?: SkipReason | null;
     correct: boolean | null;
     settled: boolean;
     flagged: boolean;
@@ -61,6 +68,7 @@ export interface AnswerRecord {
     exerciseId: number;
     hinted: boolean;
     skipped: boolean;
+    skipReason?: SkipReason | null;
     correct: boolean | null;
     flagged: boolean;
     settled: boolean;
@@ -96,6 +104,12 @@ export interface NextLesson {
     state: LessonState;
 }
 
+export interface Remediation {
+    lessonId: number;
+    missing: number;
+    retake: 'open' | 'opens_tomorrow';
+}
+
 export interface RunProps {
     id: number;
     kind: LessonRunKind;
@@ -107,6 +121,7 @@ export interface RunProps {
     summary: RunSummary | null;
     next: NextLesson | null;
     summarySeen: boolean;
+    remediation: Remediation | null;
 }
 
 export interface LessonSettings {
@@ -116,6 +131,7 @@ export interface LessonSettings {
     replayLimit: number | null;
     offersSlowerAudio: boolean;
     speechLocale: string | null;
+    pauses: Record<ExerciseFamily, string | null>;
 }
 
 export interface PlayProps {
@@ -140,8 +156,14 @@ export interface AnswerVerdict {
     score: number | null;
 }
 
+export interface GuidedDetails {
+    found: string[];
+    missing: string[];
+}
+
 export interface AnswerResponse extends Partial<AnswerVerdict> {
     saved?: boolean;
+    details?: GuidedDetails | null;
     run: {
         completed: boolean;
         unitCompleted: boolean;
@@ -165,4 +187,26 @@ export interface UnitLessonOverview {
     skipped: { listening: number; speaking: number };
     contentPending: boolean;
     canTestOut: boolean;
+    remediation: Remediation | null;
+}
+
+export type WordVerdict =
+    'exact' | 'accent' | 'other_word' | 'wrong' | 'missed';
+
+export interface SpokenWord {
+    word: string;
+    verdict: WordVerdict;
+}
+
+export interface SpeakingTryResult {
+    heard: string;
+    score: number;
+    correct: boolean;
+    words: SpokenWord[];
+    missed: number;
+}
+
+export interface SpokenTry {
+    transcript: string;
+    result: SpeakingTryResult | null;
 }

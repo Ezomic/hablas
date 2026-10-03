@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from '@lucide/vue';
+import InstallAppButton from '@/components/InstallAppButton.vue';
 import InterfaceLocaleMenuItems from '@/components/InterfaceLocaleMenuItems.vue';
 import {
     DropdownMenuGroup,
@@ -41,6 +42,7 @@ defineProps<Props>();
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <InterfaceLocaleMenuItems />
+    <InstallAppButton layout="menu" />
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
         <Link

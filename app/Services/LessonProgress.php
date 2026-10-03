@@ -44,6 +44,7 @@ final class LessonProgress
         }
 
         $checkPassed = $this->checkPassed($user, $unit, $runs);
+        $lastCheckAt = $this->lastCheckCompletedAt($runs);
         $states = [];
         $previousCompleted = true;
         $lastTeachingCompletedAt = null;
@@ -59,6 +60,7 @@ final class LessonProgress
                     $open => LessonState::InProgress,
                     $checkPassed => LessonState::Completed,
                     ! $allTeachingCompleted => LessonState::Locked,
+                    $this->checkTakenSince($lastCheckAt, $lastTeachingCompletedAt) => LessonState::Remediation,
                     $this->completedToday($lastTeachingCompletedAt) => LessonState::OpensTomorrow,
                     default => LessonState::Available,
                 };
@@ -95,7 +97,7 @@ final class LessonProgress
     public function hasOpenLesson(User $user, Unit $unit): bool
     {
         foreach ($this->states($user, $unit) as $state) {
-            if (in_array($state, [LessonState::Available, LessonState::InProgress], true)) {
+            if (in_array($state, [LessonState::Available, LessonState::InProgress, LessonState::Remediation], true)) {
                 return true;
             }
         }
@@ -118,9 +120,61 @@ final class LessonProgress
             ->first();
     }
 
+    /**
+     * What a learner who has taken a check still has to do: the items not
+     * proven yet, and whether the retake is open or waits for a later day.
+     *
+     * @return array{lessonId: int, missing: int, retake: string}|null
+     */
+    public function remediation(User $user, Unit $unit): ?array
+    {
+        $last = $this->lastCheck($user, $unit);
+        $missing = $last === null ? [] : $this->unitMasteryReader->missing($user, $unit);
+        $check = Lesson::query()->where('unit_id', $unit->id)->where('stage', LessonStage::Check)->playable()->first();
+
+        if ($last === null || $missing === [] || $check === null) {
+            return null;
+        }
+
+        return [
+            'lessonId' => $check->id,
+            'missing' => count($missing),
+            'retake' => $this->completedToday($last->completed_at) ? 'opens_tomorrow' : 'open',
+        ];
+    }
+
     public function completedToday(?CarbonImmutable $completedAt): bool
     {
         return $completedAt !== null && $completedAt->isSameDay(CarbonImmutable::today());
+    }
+
+    /**
+     * A check that was taken after the last teaching lesson was finished has
+     * to be followed by practice and a retake, never by another full check:
+     * the full check would be open again at once and would sidestep the
+     * retake's day of spacing.
+     */
+    private function checkTakenSince(?CarbonImmutable $checkAt, ?CarbonImmutable $teachingAt): bool
+    {
+        return $checkAt !== null && ($teachingAt === null || $checkAt->greaterThan($teachingAt));
+    }
+
+    /**
+     * @param  array<int, list<LessonRun>>  $runs
+     */
+    private function lastCheckCompletedAt(array $runs): ?CarbonImmutable
+    {
+        $latest = null;
+
+        foreach ($runs as $lessonRuns) {
+            foreach ($lessonRuns as $run) {
+                if ($run->status === LessonRunStatus::Completed && $run->kind->isCheck() && $run->completed_at !== null && ($latest === null || $run->completed_at->greaterThan($latest))) {
+                    $latest = $run->completed_at;
+                }
+            }
+        }
+
+        return $latest;
     }
 
     /**

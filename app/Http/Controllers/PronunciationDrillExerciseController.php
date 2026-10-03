@@ -11,6 +11,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StorePronunciationDrillAttemptRequest;
 use App\Models\PronunciationDrillExercise;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\SpeechClipResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,7 +21,7 @@ final class PronunciationDrillExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver, SpeechClipResolver $speechClipResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
@@ -41,7 +42,7 @@ final class PronunciationDrillExerciseController extends Controller
                 'word_b' => $exercise->word_b,
                 'word_b_translation_en' => $exercise->word_b_translation_en,
                 'target_word' => $exercise->target_word,
-                'audio_url' => $exercise->audio_url,
+                ...$speechClipResolver->resolveBoth($language->code, [$exercise->target_word])[$exercise->target_word],
             ],
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);

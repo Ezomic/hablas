@@ -301,6 +301,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     v-if="queue[0].kind === 'vocabulary' && !isProduction"
                     :text="queue[0].front"
                     :locale="props.speechLocale"
+                    :audio-url="queue[0].audioUrl"
+                    :audio-slow-url="queue[0].audioSlowUrl"
                 />
             </CardTitle>
         </CardHeader>
@@ -343,6 +345,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     <SpeakButton
                         :text="queue[0].back"
                         :locale="props.speechLocale"
+                        :audio-url="queue[0].audioUrl"
+                        :audio-slow-url="queue[0].audioSlowUrl"
                     />
                 </p>
                 <p

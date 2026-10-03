@@ -2,12 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Enums\SpeechSpeed;
+use App\Models\Language;
+use App\Models\ListeningExercise;
+use App\Models\SpeechClip;
 use App\Models\Unit;
 use App\Models\User;
+use App\Speech\SpeechKey;
+use App\Speech\SpeechVoices;
 use Database\Seeders\ContentSeeder;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -60,4 +67,45 @@ it('leaves the content alone after other commands, such as the test suite\'s mig
     event(finishedCommand('migrate:fresh'));
 
     expect(DB::table('units')->count())->toBe(0);
+});
+
+it('indexes the clips on disk after seeding, so a freshly seeded transcript is found', function () {
+    Storage::fake('local');
+    $this->seed(ContentSeeder::class);
+
+    $transcript = ListeningExercise::query()->firstOrFail()->transcript;
+    $language = Language::query()->findOrFail(ListeningExercise::query()->firstOrFail()->language_id)->code;
+    $voice = app(SpeechVoices::class)->primary($language);
+    $hash = app(SpeechKey::class)->make($language, $voice->id, SpeechSpeed::Normal, $transcript);
+    Storage::disk('local')->put(SpeechClip::pathFor($language, $voice->id, $hash), 'mp3');
+
+    DB::table('listening_exercises')->delete();
+    DB::table('shadowing_exercises')->delete();
+    DB::table('vocabulary_items')->delete();
+    DB::table('units')->delete();
+
+    $event = finishedCommand('migrate', ['--force' => true]);
+    event($event);
+
+    expect(SpeechClip::query()->where('hash', $hash)->exists())->toBeTrue()
+        ->and($event->output->fetch())->toContain('Indexed ');
+});
+
+it('leaves the clip index alone when migrate failed or ran as a dry run', function () {
+    Storage::fake('local');
+
+    event(finishedCommand('migrate', ['--force' => true], exitCode: 1));
+    event(finishedCommand('migrate', ['--pretend' => true]));
+
+    expect(SpeechClip::query()->count())->toBe(0);
+});
+
+it('reports an indexing failure without failing the migrate', function () {
+    config(['speech.disk' => 'missing-disk']);
+
+    $event = finishedCommand('migrate', ['--force' => true]);
+    event($event);
+
+    expect($event->output->fetch())->toContain('Speech clips were not indexed')
+        ->and(DB::table('units')->count())->toBeGreaterThan(0);
 });

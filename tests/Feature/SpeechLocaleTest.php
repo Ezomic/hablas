@@ -80,3 +80,10 @@ it('serves no tag when the user has no active language', function () {
         ->get(route('shadowing.index'))
         ->assertInertia(fn ($page) => $page->where('speechLocale', null));
 });
+
+it('resolves a tag for french and italian', function () {
+    $resolver = new SpeechLocaleResolver;
+
+    expect($resolver->forLanguage(Language::factory()->create(['code' => 'fr'])))->toBe('fr-FR')
+        ->and($resolver->forLanguage(Language::factory()->create(['code' => 'it'])))->toBe('it-IT');
+});

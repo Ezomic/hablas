@@ -8,7 +8,7 @@ use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Settings\GetUserSettings;
 use App\Actions\Srs\BuildReviewSession;
 use App\Actions\Srs\GradeTypedRecall;
-use App\Actions\Srs\PresentSrsCardForReview;
+use App\Actions\Srs\PresentSrsCardsWithSpeech;
 use App\Actions\Srs\ReviewSrsCard;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\CheckTypedAnswerRequest;
@@ -25,7 +25,7 @@ final class ReviewSessionController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, BuildReviewSession $buildReviewSession, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver, GetUserSettings $getUserSettings): Response
+    public function index(Request $request, BuildReviewSession $buildReviewSession, PresentSrsCardsWithSpeech $presentCards, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver, GetUserSettings $getUserSettings): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
@@ -37,7 +37,7 @@ final class ReviewSessionController extends Controller
         $mode = $getUserSettings->handle($this->currentUser())->review_mode;
 
         return Inertia::render('review/Index', [
-            'cards' => $session['cards']->map(fn (SrsCard $card): array => $presentCard->handle($card, $mode))->values(),
+            'cards' => $presentCards->handle($language, $session['cards'], $mode),
             'dueRemaining' => $session['dueRemaining'],
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);

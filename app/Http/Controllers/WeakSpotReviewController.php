@@ -7,7 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Settings\GetUserSettings;
 use App\Actions\Srs\GetWeakSpotCards;
-use App\Actions\Srs\PresentSrsCardForReview;
+use App\Actions\Srs\PresentSrsCardsWithSpeech;
 use App\Actions\Srs\ResolveWeakSpot;
 use App\Actions\Srs\ReviewSrsCard;
 use App\Concerns\InteractsWithCurrentUser;
@@ -24,7 +24,7 @@ final class WeakSpotReviewController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetWeakSpotCards $getWeakSpotCards, PresentSrsCardForReview $presentCard, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver, GetUserSettings $getUserSettings): Response
+    public function index(Request $request, GetWeakSpotCards $getWeakSpotCards, PresentSrsCardsWithSpeech $presentCards, GetCurrentLanguage $getCurrentLanguage, SpeechLocaleResolver $speechLocaleResolver, GetUserSettings $getUserSettings): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
@@ -36,7 +36,7 @@ final class WeakSpotReviewController extends Controller
         $mode = $getUserSettings->handle($this->currentUser())->review_mode;
 
         return Inertia::render('review/WeakSpots', [
-            'cards' => $cards->map(fn (SrsCard $card): array => $presentCard->handle($card, $mode))->values(),
+            'cards' => $presentCards->handle($language, $cards, $mode),
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }

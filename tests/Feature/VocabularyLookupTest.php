@@ -218,6 +218,8 @@ it('carries the state, due date and weak-spot flag of each card', function () {
                 'state' => 'relearning',
                 'dueAt' => $dueAt->toIso8601String(),
                 'isWeakSpot' => true,
+                'audioUrl' => null,
+                'audioSlowUrl' => null,
             ])
             ->where('speechLocale', 'es-ES'),
         );

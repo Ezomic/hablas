@@ -19,6 +19,7 @@ vi.mock('@inertiajs/vue3', () => ({
 }));
 
 vi.mock('@/routes', () => ({
+    credits: () => ({ url: '/credits' }),
     dashboard: () => ({ url: '/dashboard' }),
     login: () => ({ url: '/login' }),
     register: () => ({ url: '/register' }),

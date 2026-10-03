@@ -24,6 +24,7 @@ final class GradeLessonAnswer
         private readonly AlignAnswer $alignAnswer = new AlignAnswer,
         private readonly AccentComparer $accentComparer = new AccentComparer,
         private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
+        private readonly ScoreSpeakingTry $scoreSpeakingTry = new ScoreSpeakingTry,
     ) {}
 
     /**
@@ -38,13 +39,33 @@ final class GradeLessonAnswer
 
         return match (true) {
             $format->isTeach() => new Grade(true, null, null, null, $this->verdicts($exercise, fn (): bool => true), null),
-            $format->isSpeaking() => throw new LogicException('Speaking answers are graded from the speaking PR on.'),
+            $format->isSpeaking() => $this->gradeSpeaking($exercise, $response),
             $format->isChoice() => $this->gradeChoice($exercise, $response),
             $format === LessonExerciseFormat::MatchPairs => $this->gradeMatching($exercise, $response),
             $format->isPassage() => $this->gradePassage($exercise, $response),
             $format === LessonExerciseFormat::WriteGuided => $this->gradeGuided($exercise, $response),
             default => $this->gradeTyped($exercise, $response),
         };
+    }
+
+    /**
+     * The best of up to three spoken tries counts. A mispronounced word is
+     * not a grammar mistake, so a spoken answer carries no error tag.
+     *
+     * @param  array<string, mixed>  $response
+     */
+    private function gradeSpeaking(LessonExercise $exercise, array $response): Grade
+    {
+        $best = 0.0;
+        $correct = false;
+
+        foreach (array_slice(array_values(array_filter($this->list($response['transcripts'] ?? []), is_string(...))), 0, 3) as $transcript) {
+            $scored = $this->scoreSpeakingTry->handle($exercise, $transcript);
+            $best = max($best, $scored['score']);
+            $correct = $correct || $scored['correct'];
+        }
+
+        return new Grade($correct, $this->scoreSpeakingTry->model($exercise), null, $best, $this->verdicts($exercise, fn (): bool => $correct), null);
     }
 
     /** @param  array<string, mixed>  $response */
@@ -99,14 +120,20 @@ final class GradeLessonAnswer
         $found = 0;
         $byTarget = [];
         $accentSlip = false;
+        $used = [];
+        $unused = [];
 
         foreach ($required as $entry) {
             $forms = is_array($entry) ? $this->list($entry['forms'] ?? []) : [];
             $match = $this->findForm($normalizer, $words, $forms, $policy);
+            $label = $this->string($forms[0] ?? '');
 
             if ($match !== null) {
                 $found++;
                 $accentSlip = $accentSlip || $match === AccentVerdict::Missing;
+                $used[] = $label;
+            } else {
+                $unused[] = $label;
             }
 
             if (is_array($entry) && is_string($entry['target'] ?? null)) {
@@ -119,7 +146,9 @@ final class GradeLessonAnswer
         $score = $total === 0 ? 0.0 : round($found / $total * 100, 1);
         $verdicts = $this->verdicts($exercise, fn (string $key): bool => $byTarget[$key] ?? $correct);
 
-        return $this->finish($exercise, $correct, null, $accentSlip ? 'accent' : null, $score, $verdicts);
+        $model = $this->string($exercise->payload['model'] ?? '');
+
+        return $this->finish($exercise, $correct, $model === '' ? null : $model, $accentSlip ? 'accent' : null, $score, $verdicts, ['found' => $used, 'missing' => $unused]);
     }
 
     /** @param  array<string, mixed>  $response */
@@ -264,8 +293,9 @@ final class GradeLessonAnswer
 
     /**
      * @param  list<array{type: string, id: int, correct: bool}>  $verdicts
+     * @param  array{found: list<string>, missing: list<string>}|null  $details
      */
-    private function finish(LessonExercise $exercise, bool $correct, ?string $expected, ?string $note, ?float $score, array $verdicts): Grade
+    private function finish(LessonExercise $exercise, bool $correct, ?string $expected, ?string $note, ?float $score, array $verdicts, ?array $details = null): Grade
     {
         $tag = null;
 
@@ -277,7 +307,7 @@ final class GradeLessonAnswer
             };
         }
 
-        return new Grade($correct, $expected, $note, $score, $verdicts, $tag);
+        return new Grade($correct, $expected, $note, $score, $verdicts, $tag, $details);
     }
 
     /**

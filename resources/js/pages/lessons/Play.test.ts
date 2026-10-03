@@ -5,6 +5,7 @@ import { nextTick, ref } from 'vue';
 import type { PlayProps } from '@/types/lesson';
 
 const mocks = vi.hoisted(() => ({
+    owner: vi.fn(),
     reload: vi.fn(),
     post: vi.fn(),
     visit: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock('@inertiajs/vue3', () => ({
 }));
 
 vi.mock('@/composables/useOfflineSync', () => ({
+    deviceBelongsToSomeoneElse: (userId: number) => mocks.owner(userId),
     useOfflineSync: () => ({
         submitOrQueue: mocks.submitOrQueue,
         isOnline: sync.online,
@@ -44,6 +46,16 @@ vi.mock('@/routes/lesson-runs/answers', () => ({
 vi.mock('@/routes/lesson-runs/answers/flag', () => ({
     store: (args: { lessonRun: number; step: string }) => ({
         url: `/lesson-runs/${args.lessonRun}/answers/${args.step}/flag`,
+    }),
+}));
+vi.mock('@/routes/lesson-runs/speaking-tries', () => ({
+    store: (args: { lessonRun: number; lessonExercise: number }) => ({
+        url: `/lesson-runs/${args.lessonRun}/exercises/${args.lessonExercise}/speaking-tries`,
+    }),
+}));
+vi.mock('@/routes/exercise-pauses', () => ({
+    store: (args: { family: string }) => ({
+        url: `/exercise-pauses/${args.family}`,
     }),
 }));
 vi.mock('@/routes/lessons/runs', () => ({
@@ -101,6 +113,7 @@ function props(overrides: Partial<PlayProps> = {}): PlayProps {
             summary: null,
             next: null,
             summarySeen: false,
+            remediation: null,
         },
         lesson: {
             id: 9,
@@ -116,6 +129,7 @@ function props(overrides: Partial<PlayProps> = {}): PlayProps {
             replayLimit: null,
             offersSlowerAudio: true,
             speechLocale: 'es-ES',
+            pauses: { listening: null, speaking: null },
         },
         plan: [
             choose(1, 'el hotel', 'hotel', ['hotel', 'room', 'key', 'night']),
@@ -625,6 +639,30 @@ describe('an answer the server did not take', () => {
         );
     });
 
+    it('is never resent as the signed-in user once someone else has taken over the device, and is kept for its own user', async () => {
+        await answerAndFail(500);
+        mocks.owner.mockReturnValue(true);
+
+        mountPlay({ plan });
+        await flushPromises();
+        sync.online.value = false;
+        await nextTick();
+        sync.online.value = true;
+        await flushPromises();
+
+        expect(mocks.owner).toHaveBeenCalledWith(1);
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(1);
+        expect((await journalRows())[0].request).not.toBeNull();
+
+        mocks.owner.mockReturnValue(false);
+        document.body.innerHTML = '';
+        mountPlay({ plan });
+
+        await vi.waitFor(() =>
+            expect(mocks.submitOrQueue).toHaveBeenCalledTimes(2),
+        );
+    });
+
     it('is not resent when it was queued for the device to sync', async () => {
         mocks.submitOrQueue.mockResolvedValueOnce({ queued: true });
         const wrapper = mountPlay({ plan });
@@ -654,6 +692,7 @@ describe('an answer the server did not take', () => {
                     attempt: 1,
                     hinted: false,
                     skipped: false,
+                    skipReason: null,
                     correct: true,
                     flagged: false,
                     settled: true,

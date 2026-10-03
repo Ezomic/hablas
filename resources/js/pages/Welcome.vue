@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import HablasLogoIcon from '@/components/HablasLogoIcon.vue';
+import InstallAppButton from '@/components/InstallAppButton.vue';
 import InterfaceLocaleSwitcher from '@/components/InterfaceLocaleSwitcher.vue';
 import { Button } from '@/components/ui/button';
-import { dashboard, login, register } from '@/routes';
+import { credits, dashboard, login, register } from '@/routes';
 
 /**
  * Deliberately restrained copy. The planning docs' premise is that this app is
@@ -104,6 +105,7 @@ const pacing = [
                             }}</Link>
                         </Button>
                     </template>
+                    <InstallAppButton />
                 </div>
 
                 <p class="mt-4 text-sm text-muted-foreground">
@@ -219,26 +221,33 @@ const pacing = [
                 class="mx-auto flex w-full max-w-5xl flex-col gap-2 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
             >
                 <span>Hablas</span>
-                <i18n-t keypath="welcome.footer.builtOn" tag="span">
-                    <template #cefr>
-                        <a
-                            href="https://www.coe.int/en/web/common-european-framework-reference-languages/level-descriptions"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="underline underline-offset-4 hover:text-foreground"
-                            >CEFR</a
-                        >
-                    </template>
-                    <template #fsi>
-                        <a
-                            href="https://www.fsi-language-courses.org/blog/fsi-language-difficulty/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="underline underline-offset-4 hover:text-foreground"
-                            >FSI</a
-                        >
-                    </template>
-                </i18n-t>
+                <span>
+                    <i18n-t keypath="welcome.footer.builtOn" tag="span">
+                        <template #cefr>
+                            <a
+                                href="https://www.coe.int/en/web/common-european-framework-reference-languages/level-descriptions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline underline-offset-4 hover:text-foreground"
+                                >CEFR</a
+                            >
+                        </template>
+                        <template #fsi>
+                            <a
+                                href="https://www.fsi-language-courses.org/blog/fsi-language-difficulty/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline underline-offset-4 hover:text-foreground"
+                                >FSI</a
+                            >
+                        </template>
+                    </i18n-t>
+                    <Link
+                        :href="credits()"
+                        class="ml-2 underline underline-offset-4 hover:text-foreground"
+                        >{{ $t('credits.link') }}</Link
+                    >
+                </span>
             </div>
         </footer>
     </div>

@@ -22,12 +22,12 @@ final class StartLessonRunRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kind' => ['nullable', Rule::in([LessonRunKind::Lesson->value, LessonRunKind::TestOut->value])],
+            'kind' => ['nullable', Rule::in([LessonRunKind::Lesson->value, LessonRunKind::TestOut->value, LessonRunKind::Practice->value, LessonRunKind::Retake->value])],
         ];
     }
 
     public function kind(): LessonRunKind
     {
-        return $this->string('kind')->toString() === LessonRunKind::TestOut->value ? LessonRunKind::TestOut : LessonRunKind::Lesson;
+        return LessonRunKind::tryFrom($this->string('kind')->toString()) ?? LessonRunKind::Lesson;
     }
 }

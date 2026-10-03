@@ -11,5 +11,6 @@ enum LessonState: string
     case OpensTomorrow = 'opens_tomorrow';
     case InProgress = 'in_progress';
     case Completed = 'completed';
+    case Remediation = 'remediation';
     case Coming = 'coming';
 }

@@ -25,6 +25,8 @@ function vocabularyCard(id: number): ReviewCard {
         direction: 'recognition',
         needsArticle: false,
         suggestedErrorTag: null,
+        audioUrl: null,
+        audioSlowUrl: null,
     };
 }
 
@@ -37,6 +39,8 @@ function grammarCard(id: number): ReviewCard {
         direction: 'recognition',
         needsArticle: false,
         suggestedErrorTag: 'ser_estar_confusion',
+        audioUrl: null,
+        audioSlowUrl: null,
     };
 }
 
@@ -49,6 +53,8 @@ function productionCard(id: number): ReviewCard {
         direction: 'production',
         needsArticle: true,
         suggestedErrorTag: null,
+        audioUrl: null,
+        audioSlowUrl: null,
     };
 }
 
@@ -525,6 +531,19 @@ describe('card presentation', () => {
 
         return wrapper;
     }
+
+    it('hands the card clips to the listen control', () => {
+        const wrapper = mountOne({
+            ...vocabularyCard(1),
+            audioUrl: '/n.mp3',
+            audioSlowUrl: '/s.mp3',
+        });
+
+        expect(wrapper.findComponent(SpeakButton).props()).toMatchObject({
+            audioUrl: '/n.mp3',
+            audioSlowUrl: '/s.mp3',
+        });
+    });
 
     it('speaks the front of a recognition vocabulary card', () => {
         const wrapper = mountOne(vocabularyCard(1));

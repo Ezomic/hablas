@@ -191,5 +191,130 @@
             "linkSent": "Er is een nieuwe verificatielink gestuurd naar het e-mailadres dat je bij het registreren hebt opgegeven.",
             "resend": "Verificatiemail opnieuw versturen"
         }
+    },
+    "speech": {
+        "listen": "Luister naar {text}",
+        "listenSlow": "Luister langzaam naar {text}",
+        "loadingAudio": "Audio laden"
+    },
+    "listening": {
+        "loadingClip": "Fragment laden…"
+    },
+    "install": {
+        "button": "App installeren",
+        "iosHint": "Tik op Deel en kies Zet op beginscherm om Hablas te installeren.",
+        "androidHint": "Open het browsermenu en kies App installeren om Hablas te installeren."
+    },
+    "credits": {
+        "title": "Bronvermelding",
+        "link": "Bronvermelding",
+        "intro": "De gesproken audio in Hablas is door een machine gemaakt. Je hoort vooraf gemaakte fragmenten van de stemmen hieronder.",
+        "engine": "Spraakengine",
+        "voices": "Stemmen",
+        "licence": "Licentie",
+        "source": "Bron",
+        "restrictionsHeading": "Wat de licentie niet toestaat",
+        "restrictionsIntro": "Deze gebruiksbeperkingen horen bij de licentie van de stem en gelden voor het stemmodel en wat het produceert. Houd je er alsjeblieft aan.",
+        "restrictions": {
+            "law": "Op een manier die in strijd is met de toepasselijke wet- of regelgeving.",
+            "minors": "Om minderjarigen uit te buiten of te schaden, of dat te proberen.",
+            "disinformation": "Om aantoonbaar onjuiste informatie te maken of te verspreiden met als doel anderen te schaden.",
+            "pii": "Om persoonlijk identificeerbare informatie te maken of te verspreiden waarmee een persoon kan worden geschaad.",
+            "machine_generated": "Om gegenereerde inhoud ergens te plaatsen zonder duidelijk te zeggen dat die door een machine is gemaakt.",
+            "harassment": "Om anderen te belasteren, zwart te maken of lastig te vallen.",
+            "impersonation": "Om je zonder toestemming voor een ander uit te geven, bijvoorbeeld met deepfakes.",
+            "automated_decisions": "Voor volledig geautomatiseerde besluiten die iemands wettelijke rechten nadelig raken of een bindende, afdwingbare verplichting creëren of wijzigen.",
+            "social_discrimination": "Om mensen te discrimineren of te schaden op basis van hun online of offline sociale gedrag of persoonlijke kenmerken.",
+            "vulnerable_groups": "Om de kwetsbaarheid van een groep mensen uit te buiten, op basis van leeftijd of sociale, lichamelijke of geestelijke kenmerken, om hun gedrag wezenlijk te verstoren op een manier die waarschijnlijk lichamelijke of psychische schade veroorzaakt.",
+            "protected_discrimination": "Om mensen te discrimineren op basis van wettelijk beschermde kenmerken.",
+            "medical": "Om medisch advies te geven of medische uitslagen te interpreteren.",
+            "justice": "Om informatie te maken of te verspreiden die bedoeld is voor rechtspleging, wetshandhaving of immigratie- of asielprocedures."
+        }
+    },
+    "lesson": {
+        "instruction": {
+            "listenChoose": "Luister en kies de betekenis",
+            "listenPair": "Luister en kies het woord dat je hoort",
+            "listenType": "Luister en typ wat je hoort",
+            "speakRepeat": "Zeg het hardop",
+            "speakQuestion": "Luister en antwoord dan hardop",
+            "speakCue": "Zeg het hardop in de taal die je leert",
+            "buildSentence": "Tik op de woorden om de zin te maken",
+            "writeGuided": "Schrijf het op in de taal die je leert",
+            "readPassage": "Lees de dialoog en beantwoord de vragen",
+            "listenPassage": "Luister naar de dialoog en beantwoord de vragen"
+        },
+        "listen": {
+            "play": "Afspelen",
+            "replay": "Opnieuw afspelen",
+            "slower": "Langzamer",
+            "noReplays": "Geen herhalingen meer",
+            "replaysLeft": "Nog {n} herhaling | Nog {n} herhalingen",
+            "failed": "Tik op afspelen om het te horen."
+        },
+        "speak": {
+            "hearModel": "Eerst luisteren",
+            "listening": "Aan het luisteren…",
+            "tap": "Tik en spreek",
+            "noTriesLeft": "Geen pogingen meer, druk op Controleren",
+            "tryCount": "Poging {used} van {max}",
+            "notHeard": "We konden je niet goed verstaan. Probeer het opnieuw.",
+            "youSaid": "Je zei:",
+            "missingKeywords": "{n} sleutelwoord ontbreekt | {n} sleutelwoorden ontbreken",
+            "goodTry": "Goed, {score}%",
+            "tryAgain": "Nog niet helemaal, {score}%. Probeer het opnieuw of druk op Controleren.",
+            "notScored": "Deze poging wordt beoordeeld als je op Controleren drukt.",
+            "missingWords": "{n} woord om opnieuw te zeggen | {n} woorden om opnieuw te zeggen"
+        },
+        "skip": {
+            "link": "Overslaan",
+            "cantListen": "Ik kan nu niet luisteren",
+            "cantSpeak": "Ik kan nu niet praten"
+        },
+        "swap": {
+            "paused": "Je hebt dit gepauzeerd, dus je krijgt een andere oefening met dezelfde woorden.",
+            "offline": "Je bent offline, dus je krijgt een andere oefening met dezelfde woorden.",
+            "unsupported": "Dit toestel kan deze oefening niet afspelen, dus je krijgt een andere oefening met dezelfde woorden."
+        },
+        "pause": {
+            "menu": "Luisteren of spreken pauzeren",
+            "startListening": "Ik kan nu niet luisteren (1 uur)",
+            "resumeListening": "Zet luisteren weer aan",
+            "startSpeaking": "Ik kan nu niet praten (1 uur)",
+            "resumeSpeaking": "Zet spreken weer aan",
+            "bannerListening": "Luisteren staat uit tot {time}",
+            "bannerSpeaking": "Spreken staat uit tot {time}",
+            "turnOn": "Zet het weer aan"
+        },
+        "build": {
+            "answerLine": "Jouw zin",
+            "tiles": "Woorden om uit te kiezen",
+            "empty": "Tik op de woorden hieronder"
+        },
+        "guided": {
+            "useThese": "Gebruik deze woorden"
+        },
+        "feedback": {
+            "used": "Gebruikt: {words}",
+            "missing": "Nog niet gebruikt: {words}",
+            "model": "Voorbeeldantwoord"
+        },
+        "passage": {
+            "dialogue": "Dialoog",
+            "transcript": "Uitgeschreven tekst"
+        },
+        "remediation": {
+            "status": "Oefen de gemiste items en doe de check daarna opnieuw",
+            "missing": "{n} item nog niet bewezen | {n} items nog niet bewezen",
+            "practise": "Oefen de gemiste items",
+            "retake": "Opnieuw doen",
+            "retakeLater": "Opnieuw doen kan vanaf morgen, zodat wat je oefent de tijd krijgt om te beklijven."
+        },
+        "dashboard": {
+            "retakeButton": "Doe de gemiste items opnieuw",
+            "practiceButton": "Oefen de gemiste items",
+            "retakeNote": "{n} item nog niet bewezen. Je herkansing staat open. | {n} items nog niet bewezen. Je herkansing staat open.",
+            "practiceNote": "{n} item nog niet bewezen. Je herkansing opent morgen, dus oefen eerst. | {n} items nog niet bewezen. Je herkansing opent morgen, dus oefen eerst."
+        }
     }
 }

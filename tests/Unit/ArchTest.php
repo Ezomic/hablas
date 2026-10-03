@@ -43,6 +43,11 @@ arch('services are final')
     ->toBeFinal()
     ->ignoring('App\Services\AccentFoldingTextNormalizer');
 
+arch('speech classes are final')
+    ->expect('App\Speech')
+    ->classes()
+    ->toBeFinal();
+
 arch('policies are final and live in App\Policies')
     ->expect('App\Policies')
     ->classes()

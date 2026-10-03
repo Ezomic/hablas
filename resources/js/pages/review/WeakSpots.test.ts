@@ -26,6 +26,8 @@ const card: ReviewCard = {
     direction: 'recognition',
     needsArticle: false,
     suggestedErrorTag: 'ser_estar_confusion',
+    audioUrl: null,
+    audioSlowUrl: null,
 };
 
 function mountPage(cards: ReviewCard[]) {

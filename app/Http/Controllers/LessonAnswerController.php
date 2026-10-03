@@ -31,6 +31,7 @@ final class LessonAnswerController extends Controller
             'note' => $grade->note,
             'score' => $grade->score,
             'targets' => $grade->targets,
+            'details' => $grade->details,
             'run' => $run,
             'milestone' => $result['milestone'],
         ]);

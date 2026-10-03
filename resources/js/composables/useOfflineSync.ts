@@ -35,6 +35,17 @@ function deviceOwner(): number | null {
     return owner === null ? null : Number(owner);
 }
 
+/**
+ * Whether anyone else has taken over this device since the page was opened:
+ * the browser sends every request with the latest session, so what a stale
+ * page for one user sends would be sent as the other.
+ */
+export function deviceBelongsToSomeoneElse(userId: number): boolean {
+    const owner = deviceOwner();
+
+    return owner !== null && owner !== userId;
+}
+
 function signedInUserId(): number | null {
     const user: User | null = usePage().props.auth.user;
 
