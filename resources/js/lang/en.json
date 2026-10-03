@@ -27,5 +27,56 @@
         "button": "Install app",
         "iosHint": "To install Hablas, tap Share, then Add to Home Screen.",
         "androidHint": "To install Hablas, open your browser menu and choose Install app."
+    },
+    "lesson": {
+        "instruction": {
+            "listenChoose": "Listen and choose the meaning",
+            "listenPair": "Listen and choose the word you hear",
+            "listenType": "Listen and type what you hear",
+            "speakRepeat": "Say it out loud",
+            "speakQuestion": "Listen, then answer out loud",
+            "speakCue": "Say it out loud in the language you are learning"
+        },
+        "listen": {
+            "play": "Play",
+            "replay": "Play again",
+            "slower": "Slower",
+            "noReplays": "No replays left",
+            "replaysLeft": "{n} replay left | {n} replays left",
+            "failed": "Tap play to hear it."
+        },
+        "speak": {
+            "hearModel": "Hear it first",
+            "listening": "Listening…",
+            "tap": "Tap and speak",
+            "noTriesLeft": "No tries left, press Check",
+            "tryCount": "Try {used} of {max}",
+            "notHeard": "We couldn't hear that clearly. Try again.",
+            "youSaid": "You said:",
+            "missingKeywords": "{n} keyword missing | {n} keywords missing",
+            "goodTry": "Good, {score}%",
+            "tryAgain": "Not quite, {score}%. Try again or press Check.",
+            "notScored": "This try is scored when you press Check."
+        },
+        "skip": {
+            "link": "Skip",
+            "cantListen": "Can't listen now",
+            "cantSpeak": "Can't speak now"
+        },
+        "swap": {
+            "paused": "You paused this, so you get another exercise on the same words.",
+            "offline": "You are offline, so you get another exercise on the same words.",
+            "unsupported": "This device can't play this one, so you get another exercise on the same words."
+        },
+        "pause": {
+            "menu": "Pause listening or speaking",
+            "startListening": "Can't listen now (1 hour)",
+            "resumeListening": "Turn listening back on",
+            "startSpeaking": "Can't speak now (1 hour)",
+            "resumeSpeaking": "Turn speaking back on",
+            "bannerListening": "Listening is off until {time}",
+            "bannerSpeaking": "Speaking is off until {time}",
+            "turnOn": "Turn it back on"
+        }
     }
 }

@@ -53,6 +53,7 @@ function toRecord(answer: ServerAnswer | JournalAnswer): AnswerRecord {
         exerciseId: answer.exerciseId,
         hinted: answer.hinted,
         skipped: answer.skipped,
+        skipReason: answer.skipReason ?? null,
         correct: answer.correct,
         flagged: answer.flagged,
         settled: answer.settled,

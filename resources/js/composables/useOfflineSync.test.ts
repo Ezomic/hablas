@@ -674,4 +674,23 @@ describe('offline data and the signed-in user', () => {
 
         expect(deleteCache).toHaveBeenCalledWith('pages');
     });
+
+    it('knows when another user has taken over the device since a page was opened', async () => {
+        const { deviceBelongsToSomeoneElse } = await import('./useOfflineSync');
+
+        expect(deviceBelongsToSomeoneElse(1)).toBe(false);
+
+        await signedInOnPage(2);
+
+        expect(deviceBelongsToSomeoneElse(1)).toBe(true);
+        expect(deviceBelongsToSomeoneElse(2)).toBe(false);
+    });
+
+    it("does not count a device nobody has claimed as someone else's", async () => {
+        const { deviceBelongsToSomeoneElse } = await import('./useOfflineSync');
+
+        localStorage.clear();
+
+        expect(deviceBelongsToSomeoneElse(1)).toBe(false);
+    });
 });

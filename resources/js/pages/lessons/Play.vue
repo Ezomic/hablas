@@ -2,12 +2,17 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Lightbulb, X } from '@lucide/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AnswerFeedback from '@/components/lesson/AnswerFeedback.vue';
 import ChoiceExercise from '@/components/lesson/ChoiceExercise.vue';
 import LessonSummary from '@/components/lesson/LessonSummary.vue';
+import ListenPlayer from '@/components/lesson/ListenPlayer.vue';
 import MatchExercise from '@/components/lesson/MatchExercise.vue';
+import PauseMenu from '@/components/lesson/PauseMenu.vue';
+import SpeakExercise from '@/components/lesson/SpeakExercise.vue';
 import TeachCard from '@/components/lesson/TeachCard.vue';
 import TypedExercise from '@/components/lesson/TypedExercise.vue';
+import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
@@ -16,21 +21,27 @@ import {
     expectedAnswer,
     hintFor,
     instructionFor,
+    clipUrl,
     isChoiceFormat,
+    isListenFormat,
+    isSpeakFormat,
     isTeachFormat,
     isTypedFormat,
     languageName,
     strings,
     text,
 } from '@/lib/lessonPayload';
+import { familyOf } from '@/lib/lessonQueue';
 import { cachePage } from '@/lib/pageCache';
 import { show as showRun } from '@/routes/lesson-runs';
+import { store as scoreTry } from '@/routes/lesson-runs/speaking-tries';
 import { store as startRun } from '@/routes/lessons/runs';
 import { show as showUnit } from '@/routes/units';
-import type { PlayProps } from '@/types/lesson';
+import type { ExerciseFamily, PlayProps } from '@/types/lesson';
 
 const props = defineProps<PlayProps>();
 
+const { t } = useI18n();
 const lesson = useLessonRun(props);
 
 const typed = ref('');
@@ -39,6 +50,7 @@ const match = ref<{ complete: boolean; wrong: string[] }>({
     complete: false,
     wrong: [],
 });
+const spoken = ref<string[]>([]);
 const starting = ref(false);
 
 const exercise = computed(() => lesson.currentExercise.value);
@@ -61,6 +73,10 @@ const canCheck = computed(() => {
         return match.value.complete;
     }
 
+    if (isSpeakFormat(format.value)) {
+        return spoken.value.length > 0;
+    }
+
     return typed.value.trim() !== '';
 });
 
@@ -70,8 +86,12 @@ const canHint = computed(
         !lesson.hintShown.value &&
         exercise.value !== null &&
         !isTeachFormat(format.value) &&
+        !isSpeakFormat(format.value) &&
         format.value !== 'match_pairs' &&
-        expectedAnswer(exercise.value) !== '',
+        (expectedAnswer(exercise.value) !== '' ||
+            (isListenFormat(format.value) &&
+                (clipUrl(exercise.value.payload.audioSlowUrl) !== null ||
+                    text(exercise.value.payload.text) !== ''))),
 );
 
 const hintText = computed(() =>
@@ -82,9 +102,70 @@ const hintText = computed(() =>
 
 const studyAnswer = computed(() =>
     lesson.current.value?.mode === 'study' && exercise.value !== null
-        ? expectedAnswer(exercise.value)
+        ? expectedAnswer(exercise.value) ||
+          (lesson.knownAnswers.value[exercise.value.id] ?? '')
         : null,
 );
+
+const instruction = computed(() => {
+    switch (format.value) {
+        case 'listen_choose':
+            return t('lesson.instruction.listenChoose');
+        case 'listen_pair':
+            return t('lesson.instruction.listenPair');
+        case 'listen_type':
+            return t('lesson.instruction.listenType');
+        default:
+            return instructionFor(format.value, language.value);
+    }
+});
+
+const heardText = computed(() =>
+    exercise.value === null ||
+    !inFeedback.value ||
+    !isListenFormat(format.value)
+        ? ''
+        : text(exercise.value.payload.text) ||
+          (lesson.feedback.value?.expected ?? ''),
+);
+
+const scoreUrl = computed(() =>
+    exercise.value === null
+        ? ''
+        : scoreTry({
+              lessonRun: props.run.id,
+              lessonExercise: exercise.value.id,
+          }).url,
+);
+
+const skipFamily = computed(() => familyOf(format.value) as ExerciseFamily);
+
+const modelAnswer = computed(() =>
+    inFeedback.value &&
+    exercise.value !== null &&
+    format.value === 'speak_answer' &&
+    exercise.value.payload.audioRole === 'model'
+        ? (lesson.feedback.value?.expected ?? '')
+        : '',
+);
+
+const paused = computed(() => ({
+    listening: lesson.pauses.isPaused('listening'),
+    speaking: lesson.pauses.isPaused('speaking'),
+}));
+
+const swapNotice = computed(() => {
+    switch (lesson.swapReason.value) {
+        case 'paused':
+            return t('lesson.swap.paused');
+        case 'offline':
+            return t('lesson.swap.offline');
+        case 'unsupported':
+            return t('lesson.swap.unsupported');
+        default:
+            return null;
+    }
+});
 
 const showSummary = computed(
     () => lesson.isCompleted.value && props.run.summary !== null,
@@ -96,10 +177,11 @@ const waiting = computed(
 
 watch(
     () =>
-        `${lesson.current.value?.exerciseId}:${lesson.current.value?.attempt}`,
+        `${lesson.current.value?.exerciseId}:${lesson.current.value?.shownId}:${lesson.current.value?.attempt}`,
     () => {
         typed.value = '';
         choice.value = null;
+        spoken.value = [];
         match.value = { complete: false, wrong: [] };
     },
 );
@@ -115,6 +197,8 @@ function check() {
         void lesson.submit({ choice: choice.value });
     } else if (format.value === 'match_pairs') {
         void lesson.submit({ wrong: match.value.wrong });
+    } else if (isSpeakFormat(format.value)) {
+        void lesson.submit({ transcripts: spoken.value });
     } else {
         void lesson.submit({ text: typed.value });
     }
@@ -194,7 +278,43 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 aria-label="Lesson progress"
                 class="h-3"
             />
+            <PauseMenu
+                v-if="!showSummary"
+                :paused="paused"
+                @pause="lesson.pauses.pause"
+                @resume="lesson.pauses.resume"
+            />
         </header>
+
+        <div
+            v-for="family in ['listening', 'speaking'] as ExerciseFamily[]"
+            :key="family"
+        >
+            <p
+                v-if="paused[family] && !showSummary"
+                class="mx-4 mt-2 flex items-center justify-between gap-2 rounded-md bg-muted px-3 py-2 text-sm"
+                :data-testid="`paused-${family}`"
+            >
+                <span>{{
+                    family === 'listening'
+                        ? t('lesson.pause.bannerListening', {
+                              time: lesson.pauses.endsAt(family),
+                          })
+                        : t('lesson.pause.bannerSpeaking', {
+                              time: lesson.pauses.endsAt(family),
+                          })
+                }}</span>
+                <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    class="h-auto p-0"
+                    @click="lesson.pauses.resume(family)"
+                >
+                    {{ t('lesson.pause.turnOn') }}
+                </Button>
+            </p>
+        </div>
 
         <p class="px-4 pt-2 text-xs text-muted-foreground">
             {{ props.unit.title }}: {{ props.lesson.title }}
@@ -238,10 +358,93 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     <span class="font-semibold">{{ studyAnswer }}</span>
                 </p>
 
+                <p
+                    v-if="swapNotice"
+                    class="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground"
+                    data-testid="swap-notice"
+                >
+                    {{ swapNotice }}
+                </p>
+
                 <TeachCard
                     v-if="isTeachFormat(format)"
                     :exercise="exercise"
                     :locale="locale"
+                />
+
+                <section
+                    v-else-if="isListenFormat(format)"
+                    class="flex flex-col gap-6"
+                    data-testid="listen-exercise"
+                >
+                    <ListenPlayer
+                        :key="
+                            exercise.id +
+                            '-' +
+                            (lesson.current.value?.attempt ?? 1)
+                        "
+                        :text="text(exercise.payload.text)"
+                        :locale="locale"
+                        :audio-url="clipUrl(exercise.payload.audioUrl)"
+                        :audio-slow-url="clipUrl(exercise.payload.audioSlowUrl)"
+                        :speed="
+                            props.settings.audioSpeed < 1 ? 'slow' : 'normal'
+                        "
+                        :replay-limit="props.settings.replayLimit"
+                        :offers-slower="
+                            props.settings.offersSlowerAudio ||
+                            lesson.hintShown.value
+                        "
+                    />
+
+                    <TypedExercise
+                        v-if="format === 'listen_type'"
+                        :key="
+                            exercise.id +
+                            '-' +
+                            (lesson.current.value?.attempt ?? 1)
+                        "
+                        v-model="typed"
+                        prompt=""
+                        :instruction="instruction"
+                        :locale="locale"
+                        :hint="null"
+                        :disabled="inFeedback"
+                        @submit="check"
+                    />
+
+                    <ChoiceExercise
+                        v-else
+                        v-model="choice"
+                        prompt=""
+                        :instruction="instruction"
+                        :options="strings(exercise.payload.options)"
+                        :answer="lesson.feedback.value?.expected ?? null"
+                        :disabled="inFeedback"
+                    />
+
+                    <p
+                        v-if="heardText"
+                        class="text-center text-lg font-semibold"
+                        data-testid="heard"
+                    >
+                        {{ heardText }}
+                    </p>
+                </section>
+
+                <SpeakExercise
+                    v-else-if="isSpeakFormat(format)"
+                    :key="
+                        exercise.id + '-' + (lesson.current.value?.attempt ?? 1)
+                    "
+                    :format="format"
+                    :payload="exercise.payload"
+                    :locale="locale"
+                    :score-url="scoreUrl"
+                    :replay-limit="props.settings.replayLimit"
+                    :disabled="inFeedback"
+                    @change="spoken = $event"
+                    @denied="lesson.denyMicrophone"
                 />
 
                 <ChoiceExercise
@@ -285,6 +488,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     This exercise is not available yet.
                 </p>
 
+                <SpeakButton
+                    v-if="modelAnswer"
+                    :text="modelAnswer"
+                    :locale="locale"
+                    :audio-url="clipUrl(exercise.payload.audioUrl)"
+                    :audio-slow-url="clipUrl(exercise.payload.audioSlowUrl)"
+                    :label="t('lesson.speak.hearModel')"
+                />
+
                 <Button
                     v-if="canHint && !inFeedback"
                     type="button"
@@ -296,6 +508,37 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     <Lightbulb />
                     Show a hint
                 </Button>
+
+                <div
+                    v-if="lesson.canSkip.value && !inFeedback"
+                    class="flex flex-wrap gap-x-4"
+                    data-testid="skip-links"
+                >
+                    <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        class="h-auto p-0"
+                        data-testid="skip"
+                        @click="lesson.skip"
+                    >
+                        {{ t('lesson.skip.link') }}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        class="h-auto p-0"
+                        data-testid="skip-family"
+                        @click="lesson.pauses.pause(skipFamily)"
+                    >
+                        {{
+                            skipFamily === 'listening'
+                                ? t('lesson.skip.cantListen')
+                                : t('lesson.skip.cantSpeak')
+                        }}
+                    </Button>
+                </div>
             </template>
         </main>
 

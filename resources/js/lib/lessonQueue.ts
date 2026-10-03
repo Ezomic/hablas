@@ -1,4 +1,4 @@
-import type { AnswerRecord } from '@/types/lesson';
+import type { AnswerRecord, SkipReason } from '@/types/lesson';
 
 // The pure half of the player: which steps are still to do, in what order and
 // in what mode, and when a run is settled. The server stores the plan and the
@@ -30,8 +30,12 @@ export interface QueueStep {
 export interface QueueOptions {
     // Check-kind runs give no feedback, so nothing returns.
     check: boolean;
-    // Families the device cannot play, such as 'listening' and 'speaking'.
+    // Families the learner or the device cannot play now, such as 'listening'
+    // while it is paused or 'speaking' in a browser that cannot recognise it.
     skipFamilies?: string[];
+    // Single exercises that cannot be played, such as a dictation with no
+    // clip to hear it from.
+    skipExerciseIds?: number[];
 }
 
 const RETURN_AFTER = 3;
@@ -78,6 +82,7 @@ export function answerRecord(input: {
     self?: boolean;
     flagged?: boolean;
     skipped?: boolean;
+    skipReason?: SkipReason | null;
     hinted?: boolean;
 }): AnswerRecord {
     const correct = input.correct ?? null;
@@ -88,6 +93,7 @@ export function answerRecord(input: {
         exerciseId: input.exerciseId,
         hinted: input.hinted ?? false,
         skipped: input.skipped ?? false,
+        skipReason: input.skipReason ?? null,
         correct,
         flagged,
         settled:
@@ -191,7 +197,8 @@ function stepOf(item: Pending, options: QueueOptions): QueueStep {
         !item.swapped &&
         family !== null &&
         exercise.substituteId !== null &&
-        (options.skipFamilies ?? []).includes(family);
+        ((options.skipFamilies ?? []).includes(family) ||
+            (options.skipExerciseIds ?? []).includes(exercise.id));
     const useSubstitute = item.swapped && exercise.substituteId !== null;
     const mode: StepMode =
         item.tries >= 3 ? 'study' : item.tries === 2 ? 'hint' : 'normal';
