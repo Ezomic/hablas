@@ -152,6 +152,19 @@ describe('the allow-list', function () {
     });
 });
 
+it('sends no audio of a spoken answer with a model answer in a check, and does not look its clip up', function () {
+    LessonWorld::finishTeachingLessons($this->user, $this->unit);
+    clipFor('la llave');
+    clipFor('la llave', SpeechSpeed::Slow);
+    $exercise = exerciseOf('recall.speak_answer.la-llave');
+    $check = presentedEntry(runWith($this, LessonRunKind::Check, LessonStage::Check, [$exercise]), $exercise)['payload'];
+    $lesson = presentedEntry(runWith($this, LessonRunKind::Lesson, LessonStage::Recall, [$exercise]), $exercise)['payload'];
+
+    expect($check)->not->toHaveKeys(['audioUrl', 'audioSlowUrl', 'audioRole', 'text'])
+        ->and($lesson['audioUrl'])->toContain('.mp3')
+        ->and($lesson['audioRole'])->toBe('model');
+});
+
 describe('a lesson', function () {
     it('never sends the text or the accepted answers of a dictation', function () {
         $exercise = exerciseOf('sentences.listen_type.reserva');

@@ -35,7 +35,7 @@ const speaking = useSpeakingTries(
 
 const scored = computed(() => props.scoreUrl !== '');
 const isRepeat = computed(() => props.format === 'speak_repeat');
-const heardFirst = computed(() => props.payload.audioRole !== 'model');
+const heardFirst = computed(() => props.payload.audioRole === 'prompt');
 const prompt = computed(() => text(props.payload.prompt));
 const audioUrl = computed(() => clipUrl(props.payload.audioUrl));
 const audioSlowUrl = computed(() => clipUrl(props.payload.audioSlowUrl));

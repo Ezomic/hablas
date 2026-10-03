@@ -60,7 +60,7 @@ final class PresentLessonRun
             ->get()
             ->keyBy('id');
 
-        $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all())));
+        $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all()), $hidesAnswers));
         $user = $run->user ?? throw new LogicException("Run {$run->id} has no user.");
         $settings = $this->getUserSettings->handle($user);
 
@@ -162,7 +162,7 @@ final class PresentLessonRun
             'key' => $hidesAnswers ? (string) $exercise->id : $exercise->key,
             'block' => $exercise->block,
             'format' => $exercise->format->value,
-            'payload' => $this->withClips($exercise->format, $exercise->payload, $payload, $clips),
+            'payload' => $this->withClips($exercise->format, $exercise->payload, $payload, $hidesAnswers, $clips),
         ];
     }
 
@@ -170,15 +170,15 @@ final class PresentLessonRun
      * @param  list<LessonExercise>  $exercises
      * @return list<string>
      */
-    private function spokenTexts(array $exercises): array
+    private function spokenTexts(array $exercises, bool $hidesAnswers): array
     {
         $texts = [];
 
         foreach ($exercises as $exercise) {
-            array_push($texts, ...$this->spoken($exercise->format, $exercise->payload));
+            array_push($texts, ...$this->spoken($exercise->format, $exercise->payload, $hidesAnswers));
 
             if ($exercise->substitute !== null) {
-                array_push($texts, ...$this->spoken($exercise->substitute->format, $exercise->substitute->payload));
+                array_push($texts, ...$this->spoken($exercise->substitute->format, $exercise->substitute->payload, $hidesAnswers));
             }
         }
 
@@ -189,7 +189,7 @@ final class PresentLessonRun
      * @param  array<string, mixed>  $payload
      * @return list<string>
      */
-    private function spoken(LessonExerciseFormat $format, array $payload): array
+    private function spoken(LessonExerciseFormat $format, array $payload, bool $hidesAnswers): array
     {
         return match ($format) {
             LessonExerciseFormat::TeachWord => is_string($payload['term'] ?? null) ? [$payload['term']] : [],
@@ -197,7 +197,7 @@ final class PresentLessonRun
                 array_map(fn (mixed $example): mixed => is_array($example) ? ($example['text'] ?? null) : null, is_array($payload['examples'] ?? null) ? $payload['examples'] : []),
                 is_string(...),
             )),
-            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer => array_filter([$this->spokenText($format, $payload)], is_string(...)),
+            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer => $this->hidesModelClip($format, $payload, $hidesAnswers) ? [] : array_filter([$this->spokenText($format, $payload)], is_string(...)),
             default => [],
         };
     }
@@ -222,7 +222,7 @@ final class PresentLessonRun
      * @param  array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>  $clips
      * @return array<string, mixed>
      */
-    private function withClips(LessonExerciseFormat $format, array $raw, array $payload, array $clips): array
+    private function withClips(LessonExerciseFormat $format, array $raw, array $payload, bool $hidesAnswers, array $clips): array
     {
         $none = ['audioUrl' => null, 'audioSlowUrl' => null];
 
@@ -239,7 +239,7 @@ final class PresentLessonRun
 
         $spoken = $this->spokenText($format, $raw);
 
-        if ($spoken === null || ! $this->isSpoken($format)) {
+        if ($spoken === null || ! $this->isSpoken($format) || $this->hidesModelClip($format, $raw, $hidesAnswers)) {
             return $payload;
         }
 
@@ -247,6 +247,18 @@ final class PresentLessonRun
         $playsFirst = $format !== LessonExerciseFormat::SpeakAnswer || ! isset($raw['text']);
 
         return [...$payload, ...$audio, 'audioRole' => $playsFirst ? 'prompt' : 'model'];
+    }
+
+    /**
+     * The clip of a model answer says the keywords, so a check, which shows
+     * no verdict afterwards, never sends it. A lesson does: its verdict shows
+     * the same answer once the exercise is over, and the clip plays then.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function hidesModelClip(LessonExerciseFormat $format, array $payload, bool $hidesAnswers): bool
+    {
+        return $hidesAnswers && $format === LessonExerciseFormat::SpeakAnswer && isset($payload['text']);
     }
 
     private function isSpoken(LessonExerciseFormat $format): bool
