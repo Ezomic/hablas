@@ -324,7 +324,7 @@ final class PresentLessonRun
      */
     private function withoutSpans(array $payload): array
     {
-        unset($payload['model']);
+        unset($payload['model'], $payload['homophone_note']);
 
         if (is_array($payload['accepted'] ?? null)) {
             $payload['accepted'] = array_values(array_map(fn (mixed $entry): mixed => is_array($entry) ? ($entry['text'] ?? '') : $entry, $payload['accepted']));
@@ -342,7 +342,7 @@ final class PresentLessonRun
      */
     private function withoutKeys(array $payload): array
     {
-        unset($payload['accepted'], $payload['answer'], $payload['slots'], $payload['required'], $payload['substitute_questions'], $payload['why'], $payload['model'], $payload['glosses']);
+        unset($payload['accepted'], $payload['answer'], $payload['slots'], $payload['required'], $payload['substitute_questions'], $payload['why'], $payload['model'], $payload['glosses'], $payload['homophone_note']);
 
         if (is_array($payload['questions'] ?? null)) {
             $payload['questions'] = array_values(array_map(function (mixed $question): mixed {
