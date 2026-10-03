@@ -14,6 +14,8 @@ import {
     PenLine,
     TriangleAlert,
 } from '@lucide/vue';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -40,35 +42,37 @@ import { index as vocabularyIndex } from '@/routes/vocabulary';
 import { index as writingIndex } from '@/routes/writing';
 import type { NavItem } from '@/types';
 
-const studyNavItems: NavItem[] = [
-    { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
-    { title: 'Units', href: unitsIndex(), icon: Library },
-    { title: 'Review', href: reviewIndex(), icon: Layers },
-    { title: 'Weak spots', href: weakSpotsIndex(), icon: TriangleAlert },
-    { title: 'Vocabulary', href: vocabularyIndex(), icon: BookA },
-];
+const { t } = useI18n();
 
-const practiceNavItems: NavItem[] = [
-    { title: 'Reading', href: readingIndex(), icon: BookOpenText },
-    { title: 'Listening', href: listeningIndex(), icon: Headphones },
-    { title: 'Shadowing', href: shadowingIndex(), icon: Mic },
-    { title: 'Writing', href: writingIndex(), icon: PenLine },
+const studyNavItems = computed<NavItem[]>(() => [
+    { title: t('nav.dashboard'), href: dashboard(), icon: LayoutGrid },
+    { title: t('nav.units'), href: unitsIndex(), icon: Library },
+    { title: t('nav.review'), href: reviewIndex(), icon: Layers },
+    { title: t('nav.weakSpots'), href: weakSpotsIndex(), icon: TriangleAlert },
+    { title: t('nav.vocabulary'), href: vocabularyIndex(), icon: BookA },
+]);
+
+const practiceNavItems = computed<NavItem[]>(() => [
+    { title: t('nav.reading'), href: readingIndex(), icon: BookOpenText },
+    { title: t('nav.listening'), href: listeningIndex(), icon: Headphones },
+    { title: t('nav.shadowing'), href: shadowingIndex(), icon: Mic },
+    { title: t('nav.writing'), href: writingIndex(), icon: PenLine },
     {
-        title: 'Scripted prompts',
+        title: t('nav.scriptedPrompts'),
         href: scriptedPromptsIndex(),
         icon: MessagesSquare,
     },
     {
-        title: 'Pronunciation drills',
+        title: t('nav.pronunciationDrills'),
         href: pronunciationDrillsIndex(),
         icon: AudioLines,
     },
     {
-        title: 'Weekly reflection',
+        title: t('nav.weeklyReflection'),
         href: reflectionsIndex(),
         icon: NotebookPen,
     },
-];
+]);
 </script>
 
 <template>
@@ -86,8 +90,8 @@ const practiceNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain label="Study" :items="studyNavItems" />
-            <NavMain label="Practice" :items="practiceNavItems" />
+            <NavMain :label="t('nav.study')" :items="studyNavItems" />
+            <NavMain :label="t('nav.practice')" :items="practiceNavItems" />
         </SidebarContent>
 
         <SidebarFooter>

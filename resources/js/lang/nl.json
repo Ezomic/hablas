@@ -2,11 +2,47 @@
     "common": {
         "save": "Opslaan",
         "cancel": "Annuleren",
-        "close": "Sluiten"
+        "close": "Sluiten",
+        "continue": "Doorgaan",
+        "dismiss": "Negeren",
+        "logIn": "Inloggen",
+        "createAccount": "Account aanmaken",
+        "emailAddress": "E-mailadres",
+        "somethingWentWrong": "Er ging iets mis."
     },
     "nav": {
         "settings": "Instellingen",
-        "logOut": "Uitloggen"
+        "logOut": "Uitloggen",
+        "dashboard": "Dashboard",
+        "study": "Studeren",
+        "practice": "Oefenen",
+        "units": "Eenheden",
+        "review": "Herhalen",
+        "weakSpots": "Zwakke punten",
+        "vocabulary": "Woordenschat",
+        "reading": "Lezen",
+        "listening": "Luisteren",
+        "shadowing": "Naspreken",
+        "writing": "Schrijven",
+        "scriptedPrompts": "Gescripte opdrachten",
+        "pronunciationDrills": "Uitspraakoefeningen",
+        "weeklyReflection": "Wekelijkse reflectie",
+        "toggleSidebar": "Zijbalk in- of uitklappen",
+        "navigationMenu": "Navigatiemenu",
+        "repository": "Repository",
+        "documentation": "Documentatie"
+    },
+    "portal": {
+        "switchApp": "Wissel van app",
+        "title": "Jouw apps",
+        "description": "Ga naar een andere Thijssensoftware-app.",
+        "empty": "Geen andere apps beschikbaar.",
+        "current": "Huidig"
+    },
+    "offline": {
+        "pendingOnline": "{count} poging die op dit apparaat is opgeslagen is nog niet gesynchroniseerd en wordt automatisch opnieuw geprobeerd. | {count} pogingen die op dit apparaat zijn opgeslagen zijn nog niet gesynchroniseerd en worden automatisch opnieuw geprobeerd.",
+        "pendingOffline": "Je bent offline. {count} poging die op dit apparaat is opgeslagen wordt gesynchroniseerd zodra je weer online bent. | Je bent offline. {count} pogingen die op dit apparaat zijn opgeslagen worden gesynchroniseerd zodra je weer online bent.",
+        "rejected": "{count} poging die offline is opgeslagen kon niet worden gesynchroniseerd en is verwijderd. | {count} pogingen die offline zijn opgeslagen konden niet worden gesynchroniseerd en zijn verwijderd."
     },
     "interfaceLocale": {
         "title": "Taal van de interface",
@@ -14,5 +50,146 @@
         "switcherLabel": "Taal van de interface",
         "en": "English",
         "nl": "Nederlands"
+    },
+    "settings": {
+        "layout": {
+            "description": "Beheer je profiel en accountinstellingen"
+        },
+        "nav": {
+            "profile": "Profiel",
+            "security": "Beveiliging",
+            "appearance": "Weergave",
+            "learning": "Leren"
+        }
+    },
+    "welcome": {
+        "head": {
+            "title": "Spaans leren, eerlijk",
+            "description": "Een app om Spaans en Portugees te leren, gebouwd op CEFR-niveaus, begrijpelijke input en gespreid herhalen, met eerlijke tijdsinschattingen in plaats van streakjagen."
+        },
+        "hero": {
+            "eyebrow": "Nu Spaans · Portugees als je er klaar voor bent",
+            "title": "Leer Spaans op de manier waarop het volgens onderzoek echt lukt.",
+            "body": "Hablas is gebouwd op het CEFR-raamwerk, begrijpelijke input en gespreid herhalen: wat taalinstituten echt gebruiken. Geen punten, geen ranglijsten, geen streakschuldgevoel. Gewoon een eerlijk beeld van hoe goed je wordt.",
+            "goToDashboard": "Ga naar je dashboard",
+            "startPlacement": "Begin met een niveautest",
+            "haveAccount": "Ik heb al een account",
+            "passwordless": "Geen wachtwoord om te onthouden: log in met een code per e-mail of met een passkey."
+        },
+        "builtOn": {
+            "title": "Waarop het is gebouwd",
+            "pillars": {
+                "cefr": {
+                    "title": "CEFR, per vaardigheid bijgehouden",
+                    "body": "Lezen, luisteren, spreken en schrijven worden apart beoordeeld aan de hand van de zes niveaus van de Raad van Europa. Zo valt een vaardigheid die achterblijft op in plaats van weg te verdwijnen in een gemiddelde."
+                },
+                "input": {
+                    "title": "Eerst input, dan echte taken",
+                    "body": "De lessen draaien om dingen die je echt doet, zoals een kamer boeken of je weekend beschrijven. Grammatica komt erbij als het gereedschap dat de taak nodig heeft, niet als een hoofdstuk om door te worstelen."
+                },
+                "spaced": {
+                    "title": "Gespreid herhalen dat zich aanpast",
+                    "body": "Woordenschat en grammatica komen in een FSRS-wachtrij die jouw eigen vergeetcurve modelleert. Mis je iets steeds opnieuw, dan wordt het een korte hersteloefening in plaats van eindeloos rondjes te draaien."
+                },
+                "trap": {
+                    "title": "Gebouwd voor de Spaans-Portugese valkuil",
+                    "body": "Voeg Portugees toe zodra je Spaans stevig zit, en elke les laat zien waar de twee uit elkaar lopen. Aparte stapels die nooit door elkaar lopen, want Portuñol is de voorspelbare mislukking van beide talen tegelijk leren."
+                }
+            }
+        },
+        "pacing": {
+            "title": "Hoe lang dit echt duurt",
+            "intro": "Dit zijn de eigen schattingen van het Amerikaanse Foreign Service Institute voor Spaans, bij een vol te houden zes uur per week. Geen marketingcijfers: je moet weten waar je aan begint.",
+            "levelColumn": "Niveau",
+            "studyColumn": "Totale studietijd",
+            "paceColumn": "Bij ~6 uur per week",
+            "levels": {
+                "a1": {
+                    "blurb": "Doorbraak",
+                    "hours": "60-90 uur",
+                    "time": "~3 maanden"
+                },
+                "a2": {
+                    "blurb": "Tussenstap",
+                    "hours": "150-200 uur",
+                    "time": "~7 maanden"
+                },
+                "b1": {
+                    "blurb": "Drempel",
+                    "hours": "300-350 uur",
+                    "time": "~13 maanden"
+                },
+                "b2": {
+                    "blurb": "Vergezicht",
+                    "hours": "500-600 uur",
+                    "time": "~20 tot 24 maanden"
+                }
+            }
+        },
+        "cta": {
+            "title": "Ontdek waar je echt staat.",
+            "body": "Een niveautest beoordeelt elke vaardigheid apart en bepaalt je beginniveau. Alles daarna wordt afgestemd op wat je onthoudt, niet op waar je op klikte.",
+            "createYourAccount": "Maak je account aan"
+        },
+        "footer": {
+            "builtOn": "Gebouwd op de {cefr}- en {fsi}-tempogegevens."
+        }
+    },
+    "auth": {
+        "passkey": {
+            "signIn": "Inloggen met een passkey",
+            "authenticating": "Bezig met inloggen...",
+            "orEmail": "Of ga verder met e-mail"
+        },
+        "login": {
+            "title": "Log in op je account",
+            "description": "Log in met Thijssensoftware, een passkey of een code per e-mail",
+            "headTitle": "Inloggen",
+            "sso": "Inloggen met Thijssensoftware",
+            "orContinueWith": "Of ga verder met",
+            "rememberMe": "Onthoud mij",
+            "requestCode": "Mail me een code",
+            "noAccount": "Heb je nog geen account?",
+            "signUp": "Registreren",
+            "codeLabel": "Inlogcode",
+            "codeSent": "We hebben een code gestuurd naar {email}. De code verloopt over 10 minuten.",
+            "useDifferentEmail": "Gebruik een ander e-mailadres"
+        },
+        "register": {
+            "title": "Maak een account aan",
+            "description": "Vul je naam en e-mailadres in om je account aan te maken",
+            "headTitle": "Registreren",
+            "name": "Naam",
+            "namePlaceholder": "Volledige naam",
+            "noPassword": "Geen wachtwoord nodig. We mailen je een code telkens als je inlogt, en zodra je binnen bent kun je een passkey toevoegen.",
+            "haveAccount": "Heb je al een account?"
+        },
+        "confirm": {
+            "title": "Bevestig dat jij het bent",
+            "description": "Dit is een beveiligd gedeelte van de applicatie. Bevestig dat jij het bent voordat je verdergaat.",
+            "passkey": "Bevestigen met passkey",
+            "passkeyLoading": "Bezig met bevestigen...",
+            "orEmailedCode": "Of bevestig met een code per e-mail",
+            "codeLabel": "Bevestigingscode",
+            "sendCode": "Mail me een bevestigingscode",
+            "submit": "Bevestigen"
+        },
+        "twoFactor": {
+            "headTitle": "Tweestapsverificatie",
+            "or": "of je kunt",
+            "recoveryTitle": "Herstelcode",
+            "recoveryDescription": "Bevestig de toegang tot je account door een van je noodherstelcodes in te voeren.",
+            "recoveryPlaceholder": "Voer herstelcode in",
+            "useAuthenticatorCode": "inloggen met een authenticatiecode",
+            "codeTitle": "Authenticatiecode",
+            "codeDescription": "Voer de authenticatiecode in die je authenticatie-app geeft.",
+            "useRecoveryCode": "inloggen met een herstelcode"
+        },
+        "verifyEmail": {
+            "title": "E-mailverificatie",
+            "description": "Bevestig je e-mailadres door op de link te klikken die we je zojuist hebben gemaild.",
+            "linkSent": "Er is een nieuwe verificatielink gestuurd naar het e-mailadres dat je bij het registreren hebt opgegeven.",
+            "resend": "Verificatiemail opnieuw versturen"
+        }
     }
 }

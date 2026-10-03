@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from '@lucide/vue';
-import InterfaceLocaleSwitcher from '@/components/InterfaceLocaleSwitcher.vue';
+import InterfaceLocaleMenuItems from '@/components/InterfaceLocaleMenuItems.vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -23,8 +23,6 @@ const handleLogout = () => {
 };
 
 defineProps<Props>();
-
-const page = usePage();
 </script>
 
 <template>
@@ -42,9 +40,7 @@ const page = usePage();
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
-    <div v-if="page.props.supportedLocales.length > 1" class="px-2 py-1.5">
-        <InterfaceLocaleSwitcher />
-    </div>
+    <InterfaceLocaleMenuItems />
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
         <Link

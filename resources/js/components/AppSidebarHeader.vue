@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import AppSidebarTrigger from '@/components/AppSidebarTrigger.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import PortalSwitcher from '@/components/PortalSwitcher.vue';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem } from '@/types';
 
 withDefaults(
@@ -21,7 +21,7 @@ withDefaults(
     >
         <div class="flex flex-1 items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-                <SidebarTrigger class="-ml-1" />
+                <AppSidebarTrigger />
                 <template v-if="breadcrumbs && breadcrumbs.length > 0">
                     <Breadcrumbs :breadcrumbs="breadcrumbs" />
                 </template>

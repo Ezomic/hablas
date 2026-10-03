@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import InputError from '@/components/InputError.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import { useLayoutText } from '@/composables/useLayoutText';
 import { register } from '@/routes';
 import { store as login } from '@/routes/login';
 import { store as requestCode } from '@/routes/login/code';
@@ -19,13 +21,12 @@ import {
 } from '@/routes/passkey';
 import { redirect as ssoRedirect } from '@/routes/sso';
 
-defineOptions({
-    layout: {
-        title: 'Log in to your account',
-        description:
-            'Sign in with Thijssensoftware, a passkey, or an emailed code',
-    },
-});
+const { t } = useI18n();
+
+useLayoutText(() => ({
+    title: t('auth.login.title'),
+    description: t('auth.login.description'),
+}));
 
 defineProps<{
     status?: string;
@@ -61,7 +62,7 @@ const useDifferentEmail = () => {
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head :title="$t('auth.login.headTitle')" />
 
     <div
         v-if="status"
@@ -72,7 +73,7 @@ const useDifferentEmail = () => {
 
     <Button class="w-full" as-child>
         <a :href="ssoRedirect().url" data-test="sso-button">
-            Sign in with Thijssensoftware
+            {{ $t('auth.login.sso') }}
         </a>
     </Button>
 
@@ -82,7 +83,7 @@ const useDifferentEmail = () => {
         </div>
         <div class="relative flex justify-center text-xs uppercase">
             <span class="bg-background px-2 text-muted-foreground">
-                Or continue with
+                {{ $t('auth.login.orContinueWith') }}
             </span>
         </div>
     </div>
@@ -90,7 +91,7 @@ const useDifferentEmail = () => {
     <div class="mb-6 flex items-center">
         <Label for="remember" class="flex items-center space-x-3">
             <Checkbox id="remember" v-model="codeForm.remember" :tabindex="3" />
-            <span>Remember me</span>
+            <span>{{ $t('auth.login.rememberMe') }}</span>
         </Label>
     </div>
 
@@ -107,7 +108,7 @@ const useDifferentEmail = () => {
         class="flex flex-col gap-6"
     >
         <div class="grid gap-2">
-            <Label for="email">Email address</Label>
+            <Label for="email">{{ $t('common.emailAddress') }}</Label>
             <Input
                 id="email"
                 type="email"
@@ -129,18 +130,20 @@ const useDifferentEmail = () => {
             data-test="request-code-button"
         >
             <Spinner v-if="emailForm.processing" />
-            Email me a code
+            {{ $t('auth.login.requestCode') }}
         </Button>
 
         <div class="text-center text-sm text-muted-foreground">
-            Don't have an account?
-            <TextLink :href="register()" :tabindex="4">Sign up</TextLink>
+            {{ $t('auth.login.noAccount') }}
+            <TextLink :href="register()" :tabindex="4">{{
+                $t('auth.login.signUp')
+            }}</TextLink>
         </div>
     </form>
 
     <form v-else @submit.prevent="submitCode" class="flex flex-col gap-6">
         <div class="grid gap-2">
-            <Label for="code">Sign-in code</Label>
+            <Label for="code">{{ $t('auth.login.codeLabel') }}</Label>
             <Input
                 id="code"
                 type="text"
@@ -154,8 +157,7 @@ const useDifferentEmail = () => {
                 data-test="code-input"
             />
             <p class="text-xs text-muted-foreground">
-                We sent a code to {{ codeForm.email }}. It expires in 10
-                minutes.
+                {{ $t('auth.login.codeSent', { email: codeForm.email }) }}
             </p>
             <InputError :message="codeForm.errors.code" />
             <InputError :message="codeForm.errors.email" />
@@ -169,7 +171,7 @@ const useDifferentEmail = () => {
             data-test="login-button"
         >
             <Spinner v-if="codeForm.processing" />
-            Log in
+            {{ $t('common.logIn') }}
         </Button>
 
         <div class="text-center text-sm text-muted-foreground">
@@ -179,7 +181,7 @@ const useDifferentEmail = () => {
                 @click="useDifferentEmail"
                 :tabindex="4"
             >
-                Use a different email
+                {{ $t('auth.login.useDifferentEmail') }}
             </button>
         </div>
     </form>

@@ -11,6 +11,7 @@ const { forms, visit } = vi.hoisted(() => ({
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
     router: { visit },
+    setLayoutProps: vi.fn(),
     // TextLink renders an Inertia Link; stub it so it doesn't need a router.
     Link: { template: '<a><slot /></a>' },
     useForm: (data: Record<string, unknown>) => {

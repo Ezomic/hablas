@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
+import { setLocale } from '@/i18n';
 import OfflineSyncBanner from './OfflineSyncBanner.vue';
 
 const isOnline = ref(true);
@@ -51,5 +52,20 @@ describe('offline sync banner', () => {
 
         expect(rejectedCount.value).toBe(0);
         expect(wrapper.text()).toBe('');
+    });
+
+    it('uses the Dutch plural forms', () => {
+        setLocale('nl');
+        pendingCount.value = 1;
+
+        expect(mount(OfflineSyncBanner).text()).toContain(
+            '1 poging die op dit apparaat is opgeslagen',
+        );
+
+        pendingCount.value = 3;
+
+        expect(mount(OfflineSyncBanner).text()).toContain(
+            '3 pogingen die op dit apparaat zijn opgeslagen',
+        );
     });
 });

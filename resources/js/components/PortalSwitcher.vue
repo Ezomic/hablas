@@ -2,11 +2,11 @@
 import { usePage } from '@inertiajs/vue3';
 import { LayoutGrid } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import AppDialogContent from '@/components/AppDialogContent.vue';
 import AppIcon from '@/components/AppIcon.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
-    DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
@@ -54,23 +54,23 @@ const sections = computed(() =>
                             variant="ghost"
                             size="icon"
                             class="size-8"
-                            aria-label="Switch app"
+                            :aria-label="$t('portal.switchApp')"
                         >
                             <LayoutGrid class="size-4" />
                         </Button>
                     </DialogTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
-                    <p>Switch app</p>
+                    <p>{{ $t('portal.switchApp') }}</p>
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
 
-        <DialogContent class="sm:max-w-lg">
+        <AppDialogContent class="sm:max-w-lg">
             <DialogHeader>
-                <DialogTitle>Your apps</DialogTitle>
+                <DialogTitle>{{ $t('portal.title') }}</DialogTitle>
                 <DialogDescription>
-                    Jump to another Thijssensoftware app.
+                    {{ $t('portal.description') }}
                 </DialogDescription>
             </DialogHeader>
 
@@ -78,7 +78,7 @@ const sections = computed(() =>
                 v-if="sections.length === 0"
                 class="py-8 text-center text-sm text-muted-foreground"
             >
-                No other apps available.
+                {{ $t('portal.empty') }}
             </p>
 
             <div v-else class="space-y-4">
@@ -116,12 +116,12 @@ const sections = computed(() =>
                                 v-if="app.current"
                                 class="text-[11px] text-muted-foreground"
                             >
-                                Current
+                                {{ $t('portal.current') }}
                             </span>
                         </component>
                     </div>
                 </div>
             </div>
-        </DialogContent>
+        </AppDialogContent>
     </Dialog>
 </template>
