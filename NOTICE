@@ -1,0 +1,25 @@
+Hablas
+
+Spoken audio in Hablas is machine generated. It is produced offline with the text-to-speech
+models listed below and served as pre-rendered audio clips.
+
+Supertonic 3 by Supertone Inc. Copyright (c) 2026 Supertone Inc.
+Engine: supertonic
+Voices: es (F1, F2, M1, M2), pt (F1, F2, M1, M2), fr (F1, F2, M1, M2), it (F1, F2, M1, M2)
+Source: https://huggingface.co/Supertone/supertonic-3
+Licence: BigScience OpenRAIL-M License (18 August 2022) (https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE)
+
+Use-based restrictions of this licence, which apply to anyone using the model or its output:
+- In any way that violates any applicable law or regulation.
+- To exploit or harm minors, or attempt to.
+- To generate or spread verifiably false information in order to harm others.
+- To generate or spread personal information that can be used to harm an individual.
+- To place generated content in any context without clearly saying it is machine generated.
+- To defame, disparage or harass others.
+- To impersonate others without their consent, for example with deepfakes.
+- For fully automated decisions that adversely affect the legal rights of a person or create or modify a binding, enforceable obligation.
+- To discriminate against or harm people based on online or offline social behaviour or personal characteristics.
+- To exploit the vulnerabilities of a group of people, based on age or social, physical or mental characteristics, in order to materially distort their behaviour in a way that is likely to cause physical or psychological harm.
+- To discriminate against people based on legally protected characteristics.
+- To give medical advice or interpret medical results.
+- To generate or spread information meant for administration of justice, law enforcement, immigration or asylum processes.

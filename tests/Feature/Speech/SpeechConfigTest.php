@@ -18,7 +18,8 @@ it('gives every voice a licence, attribution and source url', function (): void 
         foreach (app(SpeechVoices::class)->forLanguage($language) as $voice) {
             expect($voice->license)->not->toBe('')
                 ->and($voice->attribution)->not->toBe('')
-                ->and($voice->sourceUrl)->toStartWith('https://');
+                ->and($voice->sourceUrl)->toStartWith('https://')
+                ->and($voice->licenseUrl)->toStartWith('https://');
         }
     }
 });
@@ -70,6 +71,15 @@ it('keeps voice ids and language codes safe for storage paths', function (): voi
 
         foreach (app(SpeechVoices::class)->forLanguage($language) as $voice) {
             expect($voice->id)->toMatch('/^[a-z0-9-]+$/');
+        }
+    }
+});
+
+it('carries the openrail-m use restrictions on every supertonic voice', function (): void {
+    foreach (['es', 'pt', 'fr', 'it'] as $language) {
+        foreach (app(SpeechVoices::class)->forLanguage($language) as $voice) {
+            expect($voice->license)->toContain('OpenRAIL-M')
+                ->and($voice->restrictions)->toHaveCount(13);
         }
     }
 });
