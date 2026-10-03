@@ -97,7 +97,7 @@ final class LessonProgress
     public function hasOpenLesson(User $user, Unit $unit): bool
     {
         foreach ($this->states($user, $unit) as $state) {
-            if (in_array($state, [LessonState::Available, LessonState::InProgress], true)) {
+            if (in_array($state, [LessonState::Available, LessonState::InProgress, LessonState::Remediation], true)) {
                 return true;
             }
         }

@@ -20,7 +20,7 @@ final class DescribeNextLesson
      * The lesson of a unit to start or resume next, numbered among the unit's
      * playable lessons, or null when the unit has none open right now.
      *
-     * @return array{lessonId: int, title: string, number: int, count: int, resumes: bool}|null
+     * @return array{lessonId: int, title: string, number: int, count: int, resumes: bool, remediation: string|null, missing: int}|null
      */
     public function handle(User $user, Unit $unit): ?array
     {
@@ -37,7 +37,25 @@ final class DescribeNextLesson
                     'number' => $index + 1,
                     'count' => $lessons->count(),
                     'resumes' => $state === LessonState::InProgress,
+                    'remediation' => null,
+                    'missing' => 0,
                 ];
+            }
+
+            if ($state === LessonState::Remediation) {
+                $remediation = $this->lessonProgress->remediation($user, $unit);
+
+                if ($remediation !== null) {
+                    return [
+                        'lessonId' => $lesson->id,
+                        'title' => $lesson->title,
+                        'number' => $index + 1,
+                        'count' => $lessons->count(),
+                        'resumes' => false,
+                        'remediation' => $remediation['retake'] === 'open' ? 'retake' : 'practice',
+                        'missing' => $remediation['missing'],
+                    ];
+                }
             }
         }
 

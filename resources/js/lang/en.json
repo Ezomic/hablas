@@ -132,6 +132,12 @@
             "practise": "Practise the missed items",
             "retake": "Retake",
             "retakeLater": "The retake opens tomorrow, so what you practise has time to settle."
+        },
+        "dashboard": {
+            "retakeButton": "Retake the missed items",
+            "practiceButton": "Practise the missed items",
+            "retakeNote": "{n} item not proven yet. Your retake is open. | {n} items not proven yet. Your retake is open.",
+            "practiceNote": "{n} item not proven yet. Your retake opens tomorrow, so practise first. | {n} items not proven yet. Your retake opens tomorrow, so practise first."
         }
     }
 }

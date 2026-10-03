@@ -132,6 +132,12 @@
             "practise": "Oefen de gemiste items",
             "retake": "Opnieuw doen",
             "retakeLater": "Opnieuw doen kan vanaf morgen, zodat wat je oefent de tijd krijgt om te beklijven."
+        },
+        "dashboard": {
+            "retakeButton": "Doe de gemiste items opnieuw",
+            "practiceButton": "Oefen de gemiste items",
+            "retakeNote": "{n} item nog niet bewezen. Je herkansing staat open. | {n} items nog niet bewezen. Je herkansing staat open.",
+            "practiceNote": "{n} item nog niet bewezen. Je herkansing opent morgen, dus oefen eerst. | {n} items nog niet bewezen. Je herkansing opent morgen, dus oefen eerst."
         }
     }
 }
