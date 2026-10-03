@@ -178,7 +178,9 @@ final class SummarizeLessonRun
             }
         }
 
-        return '';
+        $transcripts = is_array($response['transcripts'] ?? null) ? array_values(array_filter($response['transcripts'], is_string(...))) : [];
+
+        return $transcripts === [] ? '' : $transcripts[array_key_last($transcripts)];
     }
 
     private function expected(LessonExercise $exercise): string
@@ -189,6 +191,12 @@ final class SummarizeLessonRun
             return $accepted[0]['text'];
         }
 
-        return is_string($exercise->payload['answer'] ?? null) ? $exercise->payload['answer'] : '';
+        foreach (['answer', 'text'] as $key) {
+            if (is_string($exercise->payload[$key] ?? null)) {
+                return $exercise->payload[$key];
+            }
+        }
+
+        return '';
     }
 }

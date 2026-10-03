@@ -53,5 +53,57 @@
             "medical": "Om medisch advies te geven of medische uitslagen te interpreteren.",
             "justice": "Om informatie te maken of te verspreiden die bedoeld is voor rechtspleging, wetshandhaving of immigratie- of asielprocedures."
         }
+    },
+    "lesson": {
+        "instruction": {
+            "listenChoose": "Luister en kies de betekenis",
+            "listenPair": "Luister en kies het woord dat je hoort",
+            "listenType": "Luister en typ wat je hoort",
+            "speakRepeat": "Zeg het hardop",
+            "speakQuestion": "Luister en antwoord dan hardop",
+            "speakCue": "Zeg het hardop in de taal die je leert"
+        },
+        "listen": {
+            "play": "Afspelen",
+            "replay": "Opnieuw afspelen",
+            "slower": "Langzamer",
+            "noReplays": "Geen herhalingen meer",
+            "replaysLeft": "Nog {n} herhaling | Nog {n} herhalingen",
+            "failed": "Tik op afspelen om het te horen."
+        },
+        "speak": {
+            "hearModel": "Eerst luisteren",
+            "listening": "Aan het luisteren…",
+            "tap": "Tik en spreek",
+            "noTriesLeft": "Geen pogingen meer, druk op Controleren",
+            "tryCount": "Poging {used} van {max}",
+            "notHeard": "We konden je niet goed verstaan. Probeer het opnieuw.",
+            "youSaid": "Je zei:",
+            "missingKeywords": "{n} sleutelwoord ontbreekt | {n} sleutelwoorden ontbreken",
+            "goodTry": "Goed, {score}%",
+            "tryAgain": "Nog niet helemaal, {score}%. Probeer het opnieuw of druk op Controleren.",
+            "notScored": "Deze poging wordt beoordeeld als je op Controleren drukt.",
+            "missingWords": "{n} woord om opnieuw te zeggen | {n} woorden om opnieuw te zeggen"
+        },
+        "skip": {
+            "link": "Overslaan",
+            "cantListen": "Ik kan nu niet luisteren",
+            "cantSpeak": "Ik kan nu niet praten"
+        },
+        "swap": {
+            "paused": "Je hebt dit gepauzeerd, dus je krijgt een andere oefening met dezelfde woorden.",
+            "offline": "Je bent offline, dus je krijgt een andere oefening met dezelfde woorden.",
+            "unsupported": "Dit toestel kan deze oefening niet afspelen, dus je krijgt een andere oefening met dezelfde woorden."
+        },
+        "pause": {
+            "menu": "Luisteren of spreken pauzeren",
+            "startListening": "Ik kan nu niet luisteren (1 uur)",
+            "resumeListening": "Zet luisteren weer aan",
+            "startSpeaking": "Ik kan nu niet praten (1 uur)",
+            "resumeSpeaking": "Zet spreken weer aan",
+            "bannerListening": "Luisteren staat uit tot {time}",
+            "bannerSpeaking": "Spreken staat uit tot {time}",
+            "turnOn": "Zet het weer aan"
+        }
     }
 }

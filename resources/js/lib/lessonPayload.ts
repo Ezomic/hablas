@@ -30,11 +30,30 @@ export function expectedAnswer(exercise: ExerciseBase): string {
 }
 
 export function isChoiceFormat(format: string): boolean {
-    return ['choose_meaning', 'choose_word', 'choose_gap'].includes(format);
+    return [
+        'choose_meaning',
+        'choose_word',
+        'choose_gap',
+        'listen_choose',
+        'listen_pair',
+    ].includes(format);
 }
 
 export function isTypedFormat(format: string): boolean {
-    return ['type_word', 'type_gap', 'translate_sentence'].includes(format);
+    return [
+        'type_word',
+        'type_gap',
+        'translate_sentence',
+        'listen_type',
+    ].includes(format);
+}
+
+export function isListenFormat(format: string): boolean {
+    return ['listen_choose', 'listen_pair', 'listen_type'].includes(format);
+}
+
+export function isSpeakFormat(format: string): boolean {
+    return format.startsWith('speak_');
 }
 
 export function isTeachFormat(format: string): boolean {

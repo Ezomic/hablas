@@ -55,8 +55,14 @@ async function insert(character: string) {
 
 <template>
     <section class="flex flex-col gap-4">
-        <p class="text-sm text-muted-foreground">{{ props.instruction }}</p>
-        <h2 class="text-2xl font-semibold" data-testid="prompt">
+        <p v-if="props.instruction" class="text-sm text-muted-foreground">
+            {{ props.instruction }}
+        </p>
+        <h2
+            v-if="props.prompt"
+            class="text-2xl font-semibold"
+            data-testid="prompt"
+        >
             {{ props.prompt }}
         </h2>
         <p

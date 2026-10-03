@@ -5,9 +5,59 @@ const SLOW_RATE = 0.75;
 const CACHE_SIZE = 4;
 const START_GRACE_MS = 2000;
 const LOAD_TIMEOUT_MS = 7000;
+const VOICE_WAIT_MS = 2000;
 
 export interface SpeakOptions {
     speed?: SpeechSpeed;
+}
+
+// Android lists voices as es_ES, desktop browsers as es-ES.
+function sameTag(voice: SpeechSynthesisVoice, tag: string): boolean {
+    return voice.lang.replace('_', '-') === tag;
+}
+
+export function hasExactVoiceNow(tag: string): boolean {
+    return window.speechSynthesis
+        .getVoices()
+        .some((voice) => sameTag(voice, tag));
+}
+
+/**
+ * Whether the browser has a voice for exactly this tag, so a Brazilian or
+ * Latin American voice never teaches the pronunciation of pt-PT or es-ES.
+ * Chrome lists no voices until its voiceschanged event, so a missing voice
+ * is waited for, for up to two seconds, before it is ruled out.
+ */
+export function hasExactVoice(tag: string | null): Promise<boolean> {
+    if (
+        tag === null ||
+        typeof window === 'undefined' ||
+        !('speechSynthesis' in window)
+    ) {
+        return Promise.resolve(false);
+    }
+
+    if (hasExactVoiceNow(tag)) {
+        return Promise.resolve(true);
+    }
+
+    const synthesis = window.speechSynthesis;
+
+    return new Promise<boolean>((resolve) => {
+        const finish = (): void => {
+            clearTimeout(timer);
+            synthesis.removeEventListener('voiceschanged', onChange);
+            resolve(hasExactVoiceNow(tag));
+        };
+        const onChange = (): void => {
+            if (hasExactVoiceNow(tag)) {
+                finish();
+            }
+        };
+        const timer = setTimeout(finish, VOICE_WAIT_MS);
+
+        synthesis.addEventListener('voiceschanged', onChange);
+    });
 }
 
 /**
@@ -53,7 +103,7 @@ export function useSpeech(locale: () => string | null) {
         const base = tag.split('-')[0];
 
         return (
-            voices.find((voice) => voice.lang === tag) ??
+            voices.find((voice) => sameTag(voice, tag)) ??
             voices.find((voice) => voice.lang.startsWith(base)) ??
             null
         );

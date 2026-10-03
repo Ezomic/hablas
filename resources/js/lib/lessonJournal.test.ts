@@ -33,6 +33,7 @@ function serverAnswer(
         attempt: 1,
         hinted: false,
         skipped: false,
+        skipReason: null,
         correct: true,
         flagged: false,
         settled: true,

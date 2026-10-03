@@ -33,7 +33,7 @@ it('presents the plan with each exercise and its substitute, and the stage setti
 
     expect($props['run'])->toMatchArray(['id' => $run->id, 'kind' => 'lesson', 'status' => 'in_progress', 'seed' => $run->seed, 'result' => null, 'summarySeen' => false])
         ->and($props['lesson'])->toMatchArray(['stage' => 'meet', 'title' => 'Meet the words', 'position' => 1])
-        ->and($props['settings'])->toBe(['feedback' => true, 'hintsAreFree' => true, 'audioSpeed' => 0.75, 'replayLimit' => null, 'offersSlowerAudio' => true, 'speechLocale' => 'es-ES'])
+        ->and($props['settings'])->toBe(['feedback' => true, 'hintsAreFree' => true, 'audioSpeed' => 0.75, 'replayLimit' => null, 'offersSlowerAudio' => true, 'speechLocale' => 'es-ES', 'pauses' => ['listening' => null, 'speaking' => null]])
         ->and($props['plan'])->toHaveCount(count($run->plan))
         ->and($withSubstitute['substitute']['format'])->not->toBe($withSubstitute['format'])
         ->and($props['answers'])->toBe([]);

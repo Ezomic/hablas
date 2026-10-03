@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent } from 'vue';
 import { FakeAudio } from '@/test/fakeAudio';
-import { useSpeech } from './useSpeech';
+import { hasExactVoice, hasExactVoiceNow, useSpeech } from './useSpeech';
 
 type Utterance = {
     text: string;
@@ -370,5 +370,78 @@ describe('useSpeech', () => {
 
             expect(FakeAudio.instances).toHaveLength(2);
         });
+    });
+});
+
+describe('hasExactVoice', () => {
+    const listeners = new Set<() => void>();
+
+    beforeEach(() => {
+        vi.useFakeTimers();
+        listeners.clear();
+        vi.stubGlobal('speechSynthesis', {
+            speak: vi.fn(),
+            cancel,
+            getVoices: () => voices,
+            addEventListener: (_type: string, listener: () => void) =>
+                listeners.add(listener),
+            removeEventListener: (_type: string, listener: () => void) =>
+                listeners.delete(listener),
+        });
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('is true at once for a voice with exactly the tag, even when the browser writes it es_ES', async () => {
+        voices = [{ lang: 'es_ES', name: 'Monica' }];
+
+        expect(hasExactVoiceNow('es-ES')).toBe(true);
+        expect(await hasExactVoice('es-ES')).toBe(true);
+    });
+
+    it('does not count a voice of the same language for another country', async () => {
+        voices = [{ lang: 'pt-BR', name: 'Luciana' }];
+
+        const result = hasExactVoice('pt-PT');
+
+        await vi.advanceTimersByTimeAsync(2000);
+
+        expect(await result).toBe(false);
+    });
+
+    it('waits for the voices to be listed, then answers', async () => {
+        const result = hasExactVoice('es-ES');
+
+        voices = [{ lang: 'es-ES', name: 'Monica' }];
+        [...listeners].forEach((listener) => listener());
+
+        expect(await result).toBe(true);
+        expect(listeners.size).toBe(0);
+    });
+
+    it('ignores a voices event that brings no exact voice and gives up after two seconds', async () => {
+        const result = hasExactVoice('es-ES');
+
+        voices = [{ lang: 'es-MX', name: 'Paulina' }];
+        [...listeners].forEach((listener) => listener());
+        await vi.advanceTimersByTimeAsync(1999);
+
+        expect(listeners.size).toBe(1);
+
+        await vi.advanceTimersByTimeAsync(1);
+
+        expect(await result).toBe(false);
+        expect(listeners.size).toBe(0);
+    });
+
+    it('is false without a tag or without speech synthesis', async () => {
+        expect(await hasExactVoice(null)).toBe(false);
+
+        vi.stubGlobal('speechSynthesis', undefined);
+        delete (window as unknown as Record<string, unknown>).speechSynthesis;
+
+        expect(await hasExactVoice('es-ES')).toBe(false);
     });
 });

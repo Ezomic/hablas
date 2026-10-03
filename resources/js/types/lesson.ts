@@ -24,12 +24,17 @@ export interface PlanExercise extends ExerciseBase {
     substitute: ExerciseBase | null;
 }
 
+export type SkipReason = 'chosen' | 'paused' | 'unsupported' | 'offline';
+
+export type ExerciseFamily = 'listening' | 'speaking';
+
 export interface ServerAnswer {
     step: string;
     exerciseId: number;
     attempt: number;
     hinted: boolean;
     skipped: boolean;
+    skipReason: SkipReason | null;
     correct: boolean | null;
     flagged: boolean;
     settled: boolean;
@@ -42,6 +47,7 @@ export interface JournalAnswer {
     exerciseId: number;
     hinted: boolean;
     skipped: boolean;
+    skipReason?: SkipReason | null;
     correct: boolean | null;
     settled: boolean;
     flagged: boolean;
@@ -61,6 +67,7 @@ export interface AnswerRecord {
     exerciseId: number;
     hinted: boolean;
     skipped: boolean;
+    skipReason?: SkipReason | null;
     correct: boolean | null;
     flagged: boolean;
     settled: boolean;
@@ -116,6 +123,7 @@ export interface LessonSettings {
     replayLimit: number | null;
     offersSlowerAudio: boolean;
     speechLocale: string | null;
+    pauses: Record<ExerciseFamily, string | null>;
 }
 
 export interface PlayProps {
@@ -165,4 +173,25 @@ export interface UnitLessonOverview {
     skipped: { listening: number; speaking: number };
     contentPending: boolean;
     canTestOut: boolean;
+}
+
+export type WordVerdict =
+    'exact' | 'accent' | 'other_word' | 'wrong' | 'missed';
+
+export interface SpokenWord {
+    word: string;
+    verdict: WordVerdict;
+}
+
+export interface SpeakingTryResult {
+    heard: string;
+    score: number;
+    correct: boolean;
+    words: SpokenWord[];
+    missed: number;
+}
+
+export interface SpokenTry {
+    transcript: string;
+    result: SpeakingTryResult | null;
 }

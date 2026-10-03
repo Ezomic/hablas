@@ -230,6 +230,53 @@ describe('the queue', () => {
         expect(queue.map((step) => step.skip)).toEqual([true, false]);
     });
 
+    it('marks one exercise to be skipped, and only one that has a substitute', () => {
+        const withSubstitute: QueueExercise[] = [
+            {
+                id: 1,
+                format: 'listen_type',
+                substituteId: 11,
+                substituteFormat: 'translate_sentence',
+            },
+            { id: 2, format: 'listen_choose', substituteId: null },
+            { id: 3, format: 'type_word', substituteId: null },
+        ];
+        const queue = buildQueue(withSubstitute, [], {
+            check: false,
+            skipExerciseIds: [1, 2, 3],
+        });
+
+        expect(queue.map((step) => step.skip)).toEqual([true, false, false]);
+    });
+
+    it('shows the substitute of a skipped exercise and keeps the reason on the record', () => {
+        const withSubstitute: QueueExercise[] = [
+            {
+                id: 1,
+                format: 'speak_repeat',
+                substituteId: 11,
+                substituteFormat: 'type_word',
+            },
+        ];
+        const skipped = answerRecord({
+            exerciseId: 1,
+            skipped: true,
+            skipReason: 'paused',
+        });
+        const [step] = buildQueue(withSubstitute, [skipped], {
+            check: false,
+            skipFamilies: ['speaking'],
+        });
+
+        expect(skipped.skipReason).toBe('paused');
+        expect(answerRecord({ exerciseId: 1 }).skipReason).toBeNull();
+        expect([step.shownId, step.format, step.skip]).toEqual([
+            11,
+            'type_word',
+            false,
+        ]);
+    });
+
     it('measures progress as exercises settled over exercises in the plan, never going backwards', () => {
         const sequence = [wrong(1), right(1), right(2), wrong(3), right(3)];
         const settled: number[] = [];

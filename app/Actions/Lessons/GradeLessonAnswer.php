@@ -24,6 +24,7 @@ final class GradeLessonAnswer
         private readonly AlignAnswer $alignAnswer = new AlignAnswer,
         private readonly AccentComparer $accentComparer = new AccentComparer,
         private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
+        private readonly ScoreSpeakingTry $scoreSpeakingTry = new ScoreSpeakingTry,
     ) {}
 
     /**
@@ -38,13 +39,33 @@ final class GradeLessonAnswer
 
         return match (true) {
             $format->isTeach() => new Grade(true, null, null, null, $this->verdicts($exercise, fn (): bool => true), null),
-            $format->isSpeaking() => throw new LogicException('Speaking answers are graded from the speaking PR on.'),
+            $format->isSpeaking() => $this->gradeSpeaking($exercise, $response),
             $format->isChoice() => $this->gradeChoice($exercise, $response),
             $format === LessonExerciseFormat::MatchPairs => $this->gradeMatching($exercise, $response),
             $format->isPassage() => $this->gradePassage($exercise, $response),
             $format === LessonExerciseFormat::WriteGuided => $this->gradeGuided($exercise, $response),
             default => $this->gradeTyped($exercise, $response),
         };
+    }
+
+    /**
+     * The best of up to three spoken tries counts. A mispronounced word is
+     * not a grammar mistake, so a spoken answer carries no error tag.
+     *
+     * @param  array<string, mixed>  $response
+     */
+    private function gradeSpeaking(LessonExercise $exercise, array $response): Grade
+    {
+        $best = 0.0;
+        $correct = false;
+
+        foreach (array_slice(array_values(array_filter($this->list($response['transcripts'] ?? []), is_string(...))), 0, 3) as $transcript) {
+            $scored = $this->scoreSpeakingTry->handle($exercise, $transcript);
+            $best = max($best, $scored['score']);
+            $correct = $correct || $scored['correct'];
+        }
+
+        return new Grade($correct, $this->scoreSpeakingTry->model($exercise), null, $best, $this->verdicts($exercise, fn (): bool => $correct), null);
     }
 
     /** @param  array<string, mixed>  $response */
