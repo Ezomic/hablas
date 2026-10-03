@@ -14,5 +14,13 @@
         "switcherLabel": "Taal van de interface",
         "en": "English",
         "nl": "Nederlands"
+    },
+    "speech": {
+        "listen": "Luister naar {text}",
+        "listenSlow": "Luister langzaam naar {text}",
+        "loadingAudio": "Audio laden"
+    },
+    "listening": {
+        "loadingClip": "Fragment laden…"
     }
 }

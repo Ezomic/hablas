@@ -281,5 +281,94 @@ describe('useSpeech', () => {
 
             expect(FakeAudio.instances).toHaveLength(6);
         });
+
+        it('treats a clip that never loads as errored and uses the browser voice', async () => {
+            vi.useFakeTimers();
+
+            try {
+                const { api } = harness('es-ES');
+                const started = api.speak('hola', '/clips/hola.mp3');
+
+                vi.advanceTimersByTime(6999);
+                expect(spoken).toHaveLength(0);
+                expect(api.isLoading.value).toBe(true);
+
+                vi.advanceTimersByTime(1);
+                expect(spoken).toHaveLength(1);
+                expect(api.isLoading.value).toBe(false);
+
+                (spoken[0] as unknown as FakeUtterance).onstart?.();
+                expect(await started).toBe(true);
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        it('does not time out once the clip is playing or after a cancel', () => {
+            vi.useFakeTimers();
+
+            try {
+                const { api } = harness('es-ES');
+
+                void api.speak('hola', '/clips/hola.mp3');
+                FakeAudio.last().onplaying?.();
+                vi.advanceTimersByTime(10000);
+
+                void api.speak('adios', '/clips/adios.mp3');
+                api.cancel();
+                vi.advanceTimersByTime(10000);
+
+                expect(spoken).toHaveLength(0);
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        it('ignores an abort from a play that a cancel already replaced', async () => {
+            const { api } = harness('es-ES');
+            let rejectFirst!: (error: unknown) => void;
+
+            api.prefetch('/clips/hola.mp3');
+            FakeAudio.last().play.mockImplementationOnce(
+                () => new Promise<void>((_, reject) => (rejectFirst = reject)),
+            );
+
+            void api.speak('hola', '/clips/hola.mp3');
+            api.cancel();
+
+            const second = api.speak('hola', '/clips/hola.mp3');
+
+            rejectFirst(new DOMException('interrupted', 'AbortError'));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(spoken).toHaveLength(0);
+            expect(api.isLoading.value).toBe(true);
+
+            FakeAudio.last().onplaying?.();
+
+            expect(await second).toBe(true);
+            expect(FakeAudio.instances).toHaveLength(1);
+        });
+
+        it('ignores an abort on the current play instead of falling back', async () => {
+            FakeAudio.playError = new DOMException('interrupted', 'AbortError');
+
+            const { api } = harness('es-ES');
+
+            void api.speak('hola', '/clips/hola.mp3');
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(spoken).toHaveLength(0);
+        });
+
+        it('evicts a prefetched clip that failed so a later tap loads it again', () => {
+            const { api } = harness('es-ES');
+
+            api.prefetch('/clips/hola.mp3');
+            FakeAudio.last().onerror?.();
+            void api.speak('hola', '/clips/hola.mp3');
+
+            expect(FakeAudio.instances).toHaveLength(2);
+        });
     });
 });

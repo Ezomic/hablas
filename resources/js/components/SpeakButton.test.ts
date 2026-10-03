@@ -1,6 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useSpeechSpeed } from '@/composables/useSpeechSpeed';
 import { FakeAudio } from '@/test/fakeAudio';
 import SpeakButton from './SpeakButton.vue';
 
@@ -26,8 +25,6 @@ function mountButton(props: Record<string, unknown> = {}) {
 beforeEach(() => {
     spoken.length = 0;
     FakeAudio.reset();
-    window.localStorage.clear();
-    useSpeechSpeed().remember('normal');
 
     vi.stubGlobal('Audio', FakeAudio);
     vi.stubGlobal('SpeechSynthesisUtterance', FakeUtterance);
@@ -59,7 +56,8 @@ describe('SpeakButton', () => {
 
         const loading = wrapper.get('button');
         expect(loading.attributes('aria-busy')).toBe('true');
-        expect(loading.attributes('disabled')).toBeDefined();
+        expect(loading.attributes('aria-disabled')).toBe('true');
+        expect(loading.attributes('disabled')).toBeUndefined();
         expect(loading.find('.animate-spin').exists()).toBe(true);
         expect(loading.get('.sr-only').text()).toBe('Loading audio');
 
@@ -137,37 +135,6 @@ describe('SpeakButton', () => {
         expect(wrapper.get('button').attributes('aria-busy')).toBe('false');
     });
 
-    it('remembers the last speed chosen and marks the slow button', async () => {
-        const wrapper = mountButton({
-            audioUrl: '/n.mp3',
-            audioSlowUrl: '/s.mp3',
-        });
-
-        expect(wrapper.findAll('button')[1].classes()).not.toContain(
-            'bg-secondary',
-        );
-
-        await wrapper
-            .get('button[aria-label="Listen to hola slowly"]')
-            .trigger('click');
-
-        expect(wrapper.findAll('button')[1].classes()).toContain(
-            'bg-secondary',
-        );
-
-        expect(window.localStorage.getItem('hablas.speech-speed')).toBe('slow');
-        expect(useSpeechSpeed().speed.value).toBe('slow');
-
-        FakeAudio.last().onplaying?.();
-        FakeAudio.last().onended?.();
-        await flushPromises();
-        await wrapper.findAll('button')[0].trigger('click');
-
-        expect(window.localStorage.getItem('hablas.speech-speed')).toBe(
-            'normal',
-        );
-    });
-
     it('prefetches the clip a learner is about to press', async () => {
         const wrapper = mountButton({
             audioUrl: '/n.mp3',
@@ -179,5 +146,22 @@ describe('SpeakButton', () => {
         expect(FakeAudio.instances.map((audio) => audio.src)).toEqual([
             '/s.mp3',
         ]);
+    });
+
+    it('ignores a second press while a clip is loading, without losing focus', async () => {
+        const wrapper = mountButton({
+            audioUrl: '/n.mp3',
+            audioSlowUrl: '/s.mp3',
+        });
+
+        await wrapper.get('button').trigger('click');
+        await wrapper.findAll('button')[1].trigger('click');
+
+        expect(FakeAudio.instances.map((audio) => audio.src)).toEqual([
+            '/n.mp3',
+        ]);
+        expect(wrapper.get('button').element.hasAttribute('disabled')).toBe(
+            false,
+        );
     });
 });

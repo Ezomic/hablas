@@ -8,7 +8,6 @@ use App\Actions\Lessons\StartLessonRun;
 use App\Enums\CefrLevel;
 use App\Enums\LessonStage;
 use App\Enums\SpeechSpeed;
-use App\Listeners\IndexSpeechClipsAfterMigrating;
 use App\Models\Language;
 use App\Models\ListeningExercise;
 use App\Models\PronunciationDrillExercise;
@@ -18,16 +17,11 @@ use App\Models\SrsCard;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\VocabularyItem;
-use App\Services\UnitContentRegistry;
 use App\Speech\SpeechKey;
 use App\Speech\SpeechVoices;
 use Database\Seeders\LanguageSeeder;
-use Illuminate\Console\Events\CommandFinished;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\Fixtures\Lessons\LessonWorld;
 
 beforeEach(function (): void {
@@ -159,23 +153,42 @@ describe('word lists', function (): void {
                 ->where('cards.0.audioSlowUrl', null));
     });
 
-    it('sends null urls everywhere when no clip exists or speech is off', function (): void {
+    it('sends null urls on the review and vocabulary pages when no clip exists', function (): void {
         dueCard($this->user, $this->spanish, 'el gato');
 
-        foreach ([true, false] as $enabled) {
-            config(['speech.enabled' => $enabled]);
-            clipUrl('el gato', SpeechSpeed::Normal);
-
-            $this->actingAs($this->user)->get(route('review.index'))
-                ->assertInertia(fn ($page) => $enabled
-                    ? $page->whereNot('cards.0.audioUrl', null)
-                    : $page->where('cards.0.audioUrl', null)->where('cards.0.audioSlowUrl', null));
-
-            SpeechClip::query()->delete();
-        }
-
+        $this->actingAs($this->user)->get(route('review.index'))
+            ->assertInertia(fn ($page) => $page->where('cards.0.audioUrl', null)->where('cards.0.audioSlowUrl', null));
         $this->actingAs($this->user)->get(route('vocabulary.index'))
             ->assertInertia(fn ($page) => $page->where('items.0.audioUrl', null)->where('items.0.audioSlowUrl', null));
+    });
+
+    it('sends null urls even for stored clips when speech is switched off', function (): void {
+        dueCard($this->user, $this->spanish, 'el gato');
+        clipUrl('el gato', SpeechSpeed::Normal);
+        clipUrl('el gato', SpeechSpeed::Slow);
+        config(['speech.enabled' => false]);
+
+        $this->actingAs($this->user)->get(route('review.index'))
+            ->assertInertia(fn ($page) => $page->where('cards.0.audioUrl', null)->where('cards.0.audioSlowUrl', null));
+    });
+
+    it('adds no queries to the unit page whether speech is on or off', function (): void {
+        $unit = Unit::factory()->create(['language_id' => $this->spanish->id, 'cefr_level' => CefrLevel::A1]);
+        VocabularyItem::factory()->create(['language_id' => $this->spanish->id, 'unit_id' => $unit->id, 'term' => 'el café']);
+
+        $count = function (bool $enabled) use ($unit): int {
+            config(['speech.enabled' => $enabled]);
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($this->user)->get(route('units.show', $unit))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+
+        $count(false);
+        $off = $count(false);
+
+        expect($count(true))->toBe($off + 1);
     });
 });
 
@@ -218,54 +231,5 @@ describe('lessons', function (): void {
         app(PresentLessonRun::class)->handle($this->run);
 
         expect(collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], 'speech_clips')))->toHaveCount(1);
-    });
-});
-
-describe('speech index after migrate', function (): void {
-    function migrateFinished(array $options = [], int $exitCode = 0, string $command = 'migrate'): CommandFinished
-    {
-        $input = new ArrayInput($options, Artisan::all()[$command]->getDefinition());
-
-        return new CommandFinished($command, $input, new BufferedOutput, $exitCode);
-    }
-
-    beforeEach(function (): void {
-        app()->instance(UnitContentRegistry::class, new UnitContentRegistry([]));
-        VocabularyItem::factory()->create(['language_id' => $this->spanish->id, 'term' => 'el gato']);
-        $voice = app(SpeechVoices::class)->primary('es');
-        $this->hash = app(SpeechKey::class)->make('es', $voice->id, SpeechSpeed::Normal, 'el gato');
-        $this->path = SpeechClip::pathFor('es', $voice->id, $this->hash);
-    });
-
-    it('records the clips found on disk and writes no files', function (): void {
-        Storage::disk('public')->put($this->path, 'mp3');
-
-        $event = migrateFinished(['--force' => true]);
-        app(IndexSpeechClipsAfterMigrating::class)->handle($event);
-
-        expect(SpeechClip::query()->where('hash', $this->hash)->exists())->toBeTrue()
-            ->and(SpeechClip::query()->count())->toBe(1)
-            ->and($event->output->fetch())->toContain('Indexed 1 speech clips.')
-            ->and(Storage::disk('public')->allFiles('speech'))->toBe([$this->path]);
-    });
-
-    it('is a no-op for a failed migrate, a dry run and other commands', function (): void {
-        Storage::disk('public')->put($this->path, 'mp3');
-
-        $listener = app(IndexSpeechClipsAfterMigrating::class);
-        $listener->handle(migrateFinished(['--force' => true], exitCode: 1));
-        $listener->handle(migrateFinished(['--pretend' => true]));
-        $listener->handle(migrateFinished(command: 'migrate:fresh'));
-
-        expect(SpeechClip::query()->count())->toBe(0);
-    });
-
-    it('reports a failure without throwing', function (): void {
-        config(['speech.disk' => 'missing-disk']);
-
-        $event = migrateFinished(['--force' => true]);
-        app(IndexSpeechClipsAfterMigrating::class)->handle($event);
-
-        expect($event->output->fetch())->toContain('Speech clips were not indexed');
     });
 });

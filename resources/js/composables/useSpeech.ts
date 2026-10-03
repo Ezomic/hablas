@@ -4,6 +4,7 @@ import type { SpeechSpeed } from '@/types/speech';
 const SLOW_RATE = 0.75;
 const CACHE_SIZE = 4;
 const START_GRACE_MS = 2000;
+const LOAD_TIMEOUT_MS = 7000;
 
 export interface SpeakOptions {
     speed?: SpeechSpeed;
@@ -28,6 +29,9 @@ export function useSpeech(locale: () => string | null) {
 
     const cache = new Map<string, HTMLAudioElement>();
     let audio: HTMLAudioElement | null = null;
+    let audioUrl: string | null = null;
+    let playToken = 0;
+    let loadTimer: ReturnType<typeof setTimeout> | null = null;
     let utterance: SpeechSynthesisUtterance | null = null;
     let startTimer: ReturnType<typeof setTimeout> | null = null;
     let pending: ((started: boolean) => void) | null = null;
@@ -69,6 +73,14 @@ export function useSpeech(locale: () => string | null) {
         }
     }
 
+    function evictOnError(url: string, element: HTMLAudioElement): void {
+        element.onerror = () => {
+            if (cache.get(url) === element) {
+                cache.delete(url);
+            }
+        };
+    }
+
     function clip(url: string): HTMLAudioElement {
         const cached = cache.get(url);
 
@@ -79,6 +91,7 @@ export function useSpeech(locale: () => string | null) {
         const element = new Audio(url);
 
         element.preload = 'auto';
+        evictOnError(url, element);
         remember(url, element);
 
         return element;
@@ -90,10 +103,30 @@ export function useSpeech(locale: () => string | null) {
         }
     }
 
-    function detach(element: HTMLAudioElement): void {
+    function detach(element: HTMLAudioElement, url: string): void {
         element.onplaying = null;
         element.onended = null;
-        element.onerror = null;
+        evictOnError(url, element);
+    }
+
+    function clearLoadTimer(): void {
+        if (loadTimer) {
+            clearTimeout(loadTimer);
+            loadTimer = null;
+        }
+    }
+
+    function abandonClip(): void {
+        clearLoadTimer();
+
+        if (audio && audioUrl) {
+            cache.delete(audioUrl);
+            detach(audio, audioUrl);
+            audio.pause();
+        }
+
+        audio = null;
+        audioUrl = null;
     }
 
     function speakWithBrowser(text: string, speed: SpeechSpeed): void {
@@ -149,40 +182,57 @@ export function useSpeech(locale: () => string | null) {
 
     function playClip(url: string, text: string, speed: SpeechSpeed): void {
         const element = clip(url);
+        const token = ++playToken;
 
         audio = element;
+        audioUrl = url;
         isLoading.value = true;
 
+        const fail = (): void => {
+            if (token !== playToken) {
+                return;
+            }
+
+            abandonClip();
+            speakWithBrowser(text, speed);
+        };
+
         element.onplaying = () => {
+            if (token !== playToken) {
+                return;
+            }
+
+            clearLoadTimer();
             isLoading.value = false;
             isSpeaking.value = true;
             finish(true);
         };
         element.onended = () => {
-            isSpeaking.value = false;
+            if (token === playToken) {
+                isSpeaking.value = false;
+            }
         };
-        element.onerror = () => {
-            cache.delete(url);
-            detach(element);
-            audio = null;
-            speakWithBrowser(text, speed);
-        };
+        element.onerror = fail;
+        loadTimer = setTimeout(fail, LOAD_TIMEOUT_MS);
 
         if (element.currentTime > 0) {
             element.currentTime = 0;
         }
 
         void element.play().catch((error: unknown) => {
-            if (audio !== element) {
+            if (token !== playToken || !(error instanceof DOMException)) {
+                return fail();
+            }
+
+            if (error.name === 'AbortError') {
                 return;
             }
 
-            if (
-                error instanceof DOMException &&
-                error.name === 'NotAllowedError'
-            ) {
-                detach(element);
+            if (error.name === 'NotAllowedError') {
+                clearLoadTimer();
+                detach(element, url);
                 audio = null;
+                audioUrl = null;
                 isLoading.value = false;
                 isSpeaking.value = false;
                 finish(false);
@@ -190,10 +240,7 @@ export function useSpeech(locale: () => string | null) {
                 return;
             }
 
-            cache.delete(url);
-            detach(element);
-            audio = null;
-            speakWithBrowser(text, speed);
+            fail();
         });
     }
 
@@ -223,12 +270,16 @@ export function useSpeech(locale: () => string | null) {
             startTimer = null;
         }
 
-        if (audio) {
-            detach(audio);
+        playToken++;
+        clearLoadTimer();
+
+        if (audio && audioUrl) {
+            detach(audio, audioUrl);
             audio.pause();
-            audio = null;
         }
 
+        audio = null;
+        audioUrl = null;
         utterance = null;
 
         if (isSupported) {

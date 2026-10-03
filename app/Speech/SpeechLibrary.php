@@ -25,24 +25,38 @@ final class SpeechLibrary
     {
         $disk = $this->disk();
         $onDisk = array_flip($disk->allFiles('speech'));
-        $indexed = 0;
+        $found = [];
 
         foreach ($this->voices->languages() as $language) {
             foreach ($this->inventory->clips($language) as $clip) {
-                if (! isset($onDisk[$clip->path()]) || $disk->size($clip->path()) === 0) {
-                    continue;
-                }
+                $bytes = isset($onDisk[$clip->path()]) ? $disk->size($clip->path()) : 0;
 
-                $row = SpeechClip::query()->updateOrCreate(['hash' => $clip->hash], [
-                    'language' => $language,
-                    'voice_id' => $clip->voice->id,
-                    'speed' => $clip->speed,
-                    'bytes' => $disk->size($clip->path()),
-                ]);
-
-                if ($row->wasRecentlyCreated || $row->wasChanged()) {
-                    $indexed++;
+                if ($bytes > 0) {
+                    $found[$clip->hash] = ['clip' => $clip, 'bytes' => $bytes];
                 }
+            }
+        }
+
+        $existing = [];
+
+        foreach (array_chunk(array_keys($found), self::CHUNK) as $hashes) {
+            foreach (SpeechClip::query()->whereIn('hash', $hashes)->get() as $row) {
+                $existing[$row->hash] = $row;
+            }
+        }
+
+        $indexed = 0;
+
+        foreach ($found as $hash => ['clip' => $clip, 'bytes' => $bytes]) {
+            $attributes = ['language' => $clip->voice->language, 'voice_id' => $clip->voice->id, 'speed' => $clip->speed, 'bytes' => $bytes];
+            $row = $existing[$hash] ?? null;
+
+            if ($row === null) {
+                SpeechClip::query()->create(['hash' => $hash, ...$attributes]);
+                $indexed++;
+            } elseif ($row->language !== $attributes['language'] || $row->voice_id !== $attributes['voice_id'] || $row->speed !== $clip->speed || $row->bytes !== $bytes) {
+                $row->update($attributes);
+                $indexed++;
             }
         }
 

@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { LoaderCircle, Volume2 } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,7 @@ defineOptions({
     },
 });
 
+const { t } = useI18n();
 const { submitOrQueue } = useOfflineSync();
 const { isSupported, isSpeaking, isLoading, speak, prefetch } = useSpeech(
     () => props.speechLocale,
@@ -74,7 +76,12 @@ const allAnswered = computed(() =>
 onMounted(() => prefetch(props.exercise?.audioUrl));
 
 async function play() {
-    if (!props.exercise || !canPlay.value) {
+    if (
+        !props.exercise ||
+        !canPlay.value ||
+        isSpeaking.value ||
+        isLoading.value
+    ) {
         return;
     }
 
@@ -156,9 +163,9 @@ async function submit() {
 
                     <Button
                         v-else
-                        :disabled="!canPlay || isSpeaking || isLoading"
+                        :aria-disabled="!canPlay || isSpeaking || isLoading"
                         :aria-busy="isLoading"
-                        class="min-w-40"
+                        class="min-w-40 aria-disabled:opacity-50"
                         @click="play"
                     >
                         <LoaderCircle
@@ -168,7 +175,7 @@ async function submit() {
                         <Volume2 v-else class="size-4" />
                         {{
                             isLoading
-                                ? 'Loading clip…'
+                                ? t('listening.loadingClip')
                                 : hasStarted
                                   ? 'Play again'
                                   : 'Play the clip'
