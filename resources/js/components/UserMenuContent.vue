@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { LogOut, Settings } from '@lucide/vue';
+import InstallAppButton from '@/components/InstallAppButton.vue';
 import InterfaceLocaleSwitcher from '@/components/InterfaceLocaleSwitcher.vue';
 import {
     DropdownMenuGroup,
@@ -45,6 +46,7 @@ const page = usePage();
     <div v-if="page.props.supportedLocales.length > 1" class="px-2 py-1.5">
         <InterfaceLocaleSwitcher />
     </div>
+    <InstallAppButton layout="menu" />
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
         <Link
