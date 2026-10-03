@@ -11,7 +11,8 @@ import { store as storeAttempt } from '@/routes/shadowing/attempts';
 interface Exercise {
     id: number;
     target_transcript: string;
-    audio_url: string | null;
+    audioUrl: string | null;
+    audioSlowUrl: string | null;
 }
 
 const props = defineProps<{
@@ -122,7 +123,8 @@ async function submitAttempt() {
                 <SpeakButton
                     :text="props.exercise.target_transcript"
                     :locale="props.speechLocale"
-                    :audio-url="props.exercise.audio_url"
+                    :audio-url="props.exercise.audioUrl"
+                    :audio-slow-url="props.exercise.audioSlowUrl"
                     label="Hear it first"
                 />
 

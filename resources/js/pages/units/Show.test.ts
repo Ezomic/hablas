@@ -51,6 +51,8 @@ const vocabularyItems = [
         partOfSpeech: 'noun',
         isCognate: true,
         contrastNote: null as string | null,
+        audioUrl: null,
+        audioSlowUrl: null,
     },
     {
         id: 2,
@@ -59,6 +61,8 @@ const vocabularyItems = [
         partOfSpeech: 'noun',
         isCognate: false,
         contrastNote: 'Not the same as "cuento".',
+        audioUrl: null,
+        audioSlowUrl: null,
     },
 ];
 

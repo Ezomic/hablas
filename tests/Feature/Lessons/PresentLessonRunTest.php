@@ -24,7 +24,7 @@ function lessonWithSubstitute(object $test): array
 {
     $run = (new StartLessonRun)->handle($test->user, LessonWorld::lesson($test->unit, LessonStage::Meet));
 
-    return [$run, (new PresentLessonRun)->handle($run)];
+    return [$run, (app(PresentLessonRun::class))->handle($run)];
 }
 
 it('presents the plan with each exercise and its substitute, and the stage settings', function () {
@@ -58,13 +58,13 @@ it('lists the answers so far, and the stored result once completed', function ()
     $exercise = LessonExercise::query()->findOrFail($run->plan[0]['id']);
     LessonWorld::answer($this->user, $run, $exercise);
 
-    $props = (new PresentLessonRun)->handle($run->fresh());
+    $props = (app(PresentLessonRun::class))->handle($run->fresh());
 
     expect($props['answers'])->toHaveCount(1)
         ->and($props['answers'][0])->toMatchArray(['exerciseId' => $exercise->id, 'attempt' => 1, 'hinted' => false, 'skipped' => false, 'correct' => true, 'flagged' => false, 'settled' => true]);
 
     $done = LessonWorld::play($this->user, $run);
-    $props = (new PresentLessonRun)->handle($done);
+    $props = (app(PresentLessonRun::class))->handle($done);
 
     expect($props['run']['status'])->toBe('completed')
         ->and($props['run']['result']['first_try_accuracy'])->toEqual(1.0);
@@ -74,7 +74,7 @@ it('leaves the answer keys out of a check, which gives no verdict', function () 
     LessonWorld::finishTeachingLessons($this->user, $this->unit);
     $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check);
 
-    $props = (new PresentLessonRun)->handle($run);
+    $props = (app(PresentLessonRun::class))->handle($run);
     $json = json_encode($props, JSON_THROW_ON_ERROR);
     $passage = collect($props['plan'])->first(fn (array $entry): bool => $entry['format'] === 'listen_passage');
 
@@ -86,13 +86,13 @@ it('leaves the answer keys out of a check, which gives no verdict', function () 
 
     LessonWorld::answer($this->user, $run, LessonExercise::query()->findOrFail($run->plan[0]['id']));
 
-    expect((new PresentLessonRun)->handle($run->fresh())['answers'][0]['correct'])->toBeNull();
+    expect((app(PresentLessonRun::class))->handle($run->fresh())['answers'][0]['correct'])->toBeNull();
 });
 
 it('does not leak the answer through the exercise keys of a check', function () {
     LessonWorld::finishTeachingLessons($this->user, $this->unit);
     $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check);
-    $props = (new PresentLessonRun)->handle($run);
+    $props = (app(PresentLessonRun::class))->handle($run);
     $exercises = LessonExercise::query()->whereIn('id', $run->planExerciseIds())->where('format', 'type_word')->get();
 
     expect($exercises)->not->toBeEmpty();
@@ -120,7 +120,7 @@ it('presents a passage\'s questions without their answers in a check', function 
         'plan' => [['id' => LessonExercise::query()->where('key', 'task.listen_passage.reception')->value('id'), 'origin' => 'lesson']],
     ]);
 
-    $entry = (new PresentLessonRun)->handle($run)['plan'][0];
+    $entry = (app(PresentLessonRun::class))->handle($run)['plan'][0];
 
     expect($entry['payload']['questions'][0])->not->toHaveKey('answer')
         ->and($entry['payload'])->not->toHaveKey('substitute_questions');
@@ -199,7 +199,7 @@ it('leaves out a plan entry whose exercise no longer exists', function () {
     $plan[] = ['id' => 999999, 'origin' => 'lesson'];
     $run->forceFill(['plan' => $plan])->save();
 
-    $props = (new PresentLessonRun)->handle($run->fresh());
+    $props = (app(PresentLessonRun::class))->handle($run->fresh());
 
     expect(array_column($props['plan'], 'id'))->not->toContain(999999)
         ->and($props['plan'])->toHaveCount(count($plan) - 1);
@@ -212,7 +212,7 @@ it('marks a self-checked or flagged answer as settled and a wrong one as not', f
     $wrong = LessonWorld::answer($this->user, $run, $typed, ['response' => ['text' => 'zzz']])['answer'];
     $selfChecked = LessonWorld::answer($this->user, $run, $typed, ['response' => ['text' => 'zzz'], 'self_graded_correct' => true])['answer'];
 
-    $props = (new PresentLessonRun)->handle($run->fresh());
+    $props = (app(PresentLessonRun::class))->handle($run->fresh());
 
     expect(array_column($props['answers'], 'settled'))->toBe([false, true])
         ->and($wrong->settlesExercise())->toBeFalse()
@@ -224,7 +224,7 @@ it('marks every answer of a check as settled and gives it no verdict', function 
     $check = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check);
     LessonWorld::answer($this->user, $check, LessonExercise::query()->findOrFail($check->plan[0]['id']), ['response' => ['text' => 'zzz']]);
 
-    $answer = (new PresentLessonRun)->handle($check->fresh())['answers'][0];
+    $answer = (app(PresentLessonRun::class))->handle($check->fresh())['answers'][0];
 
     expect($answer['settled'])->toBeTrue()
         ->and($answer['correct'])->toBeNull();

@@ -2,8 +2,9 @@
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { SpeechClipUrls } from '@/types/speech';
 
-export interface UnitVocabularyItem {
+export interface UnitVocabularyItem extends SpeechClipUrls {
     id: number;
     term: string;
     translation: string;
@@ -43,6 +44,8 @@ const props = defineProps<{
                             <SpeakButton
                                 :text="item.term"
                                 :locale="props.speechLocale"
+                                :audio-url="item.audioUrl"
+                                :audio-slow-url="item.audioSlowUrl"
                             />
                         </span>
                         <span class="text-muted-foreground">{{

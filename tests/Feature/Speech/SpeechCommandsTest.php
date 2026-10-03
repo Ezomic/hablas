@@ -9,8 +9,10 @@ use App\Models\VocabularyItem;
 use App\Services\UnitContentRegistry;
 use App\Speech\AudioEncoder;
 use App\Speech\SpeechKey;
+use App\Speech\SpeechLibrary;
 use App\Speech\SpeechVoices;
 use App\Speech\SupertonicEngine;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\FakeAudioEncoder;
@@ -19,6 +21,7 @@ use Tests\Support\FakeSpeechEngine;
 beforeEach(function (): void {
     FakeSpeechEngine::$batches = [];
     Storage::fake('public');
+    config(['speech.disk' => 'public']);
     Storage::fake('local');
     config(['speech.engines.supertonic' => FakeSpeechEngine::class]);
     app()->bind(AudioEncoder::class, FakeAudioEncoder::class);
@@ -359,5 +362,27 @@ describe('speech:verify', function (): void {
 
     it('fails for a language without a configured voice', function (): void {
         $this->artisan('speech:verify', ['language' => 'xx'])->expectsOutputToContain('No voice configured for [xx].')->assertFailed();
+    });
+});
+
+describe('speech index queries', function (): void {
+    it('looks the rows up once and writes only what is missing or changed', function (): void {
+        $this->artisan('speech:generate', ['language' => 'es'])->assertSuccessful();
+        SpeechClip::query()->where('speed', 'slow')->delete();
+        SpeechClip::query()->where('speed', 'normal')->limit(1)->update(['bytes' => 1]);
+
+        DB::enableQueryLog();
+        $indexed = app(SpeechLibrary::class)->index();
+        $queries = collect(DB::getQueryLog())->pluck('query')->filter(fn (string $query): bool => str_contains($query, 'speech_clips'));
+
+        expect($indexed)->toBe(4)
+            ->and($queries->filter(fn (string $query): bool => str_starts_with($query, 'select'))->count())->toBe(1)
+            ->and($queries->filter(fn (string $query): bool => str_starts_with($query, 'insert'))->count())->toBe(3)
+            ->and($queries->filter(fn (string $query): bool => str_starts_with($query, 'update'))->count())->toBe(1);
+
+        DB::flushQueryLog();
+
+        expect(app(SpeechLibrary::class)->index())->toBe(0)
+            ->and(collect(DB::getQueryLog())->pluck('query')->filter(fn (string $query): bool => str_contains($query, 'speech_clips') && ! str_starts_with($query, 'select')))->toBeEmpty();
     });
 });

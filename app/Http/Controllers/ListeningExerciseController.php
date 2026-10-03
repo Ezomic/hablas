@@ -17,6 +17,7 @@ use App\Models\ListeningExercise;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\SpeechClipResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -39,6 +40,7 @@ final class ListeningExerciseController extends Controller
         SelectExerciseForUser $selectExercise,
         GetUserSkillLevels $getUserSkillLevels,
         SpeechLocaleResolver $speechLocaleResolver,
+        SpeechClipResolver $speechClipResolver,
     ): Response {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
@@ -66,7 +68,7 @@ final class ListeningExerciseController extends Controller
                 // rendered anywhere: showing it would turn this into reading
                 // practice.
                 'transcript' => $exercise->transcript,
-                'audioUrl' => $exercise->audio_url,
+                ...$speechClipResolver->resolveBoth($language->code, [$exercise->transcript])[$exercise->transcript],
                 'questions' => collect($exercise->questions)
                     ->map(fn (array $question): array => [
                         'prompt' => $question['prompt'],

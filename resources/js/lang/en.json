@@ -15,6 +15,14 @@
         "en": "English",
         "nl": "Nederlands"
     },
+    "speech": {
+        "listen": "Listen to {text}",
+        "listenSlow": "Listen to {text} slowly",
+        "loadingAudio": "Loading audio"
+    },
+    "listening": {
+        "loadingClip": "Loading clip…"
+    },
     "install": {
         "button": "Install app",
         "iosHint": "To install Hablas, tap Share, then Add to Home Screen.",

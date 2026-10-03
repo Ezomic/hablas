@@ -1,3 +1,5 @@
+import type { SpeechClipUrls } from '@/types/speech';
+
 export type Rating = 'again' | 'hard' | 'good' | 'easy';
 
 export type ErrorTag =
@@ -8,7 +10,7 @@ export type ErrorTag =
     | 'portunol_slip'
     | 'other';
 
-export interface ReviewCard {
+export interface ReviewCard extends SpeechClipUrls {
     id: number;
     front: string;
     back: string;

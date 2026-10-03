@@ -1,8 +1,10 @@
+import type { SpeechClipUrls } from '@/types/speech';
+
 export type VocabularySort = 'recent' | 'due' | 'alphabetical';
 
 export type SrsCardState = 'new' | 'learning' | 'review' | 'relearning';
 
-export interface VocabularyEntry {
+export interface VocabularyEntry extends SpeechClipUrls {
     id: number;
     kind: 'vocabulary' | 'grammar';
     term: string;

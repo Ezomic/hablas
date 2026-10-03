@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
+import SpeakButton from '@/components/SpeakButton.vue';
 import type { Feedback } from '@/composables/useLessonRun';
 import AccentKeys from './AccentKeys.vue';
 import AnswerFeedback from './AnswerFeedback.vue';
@@ -452,6 +453,65 @@ describe('TeachCard', () => {
         expect(wrapper.text()).toContain('For location.');
         expect(wrapper.text()).toContain('El hotel está cerca.');
         expect(wrapper.text()).toContain('The hotel is near.');
+    });
+
+    it('hands the clips of a word and of each grammar example to the listen controls', () => {
+        const word = mount(TeachCard, {
+            props: {
+                locale: 'es-ES',
+                exercise: {
+                    id: 1,
+                    key: 'k',
+                    block: 'b',
+                    format: 'teach_word',
+                    payload: {
+                        term: 'la llave',
+                        translation: 'key',
+                        audioUrl: '/n.mp3',
+                        audioSlowUrl: '/s.mp3',
+                    },
+                },
+            },
+        });
+        const grammar = mount(TeachCard, {
+            props: {
+                locale: 'es-ES',
+                exercise: {
+                    id: 2,
+                    key: 'g',
+                    block: 'b',
+                    format: 'teach_grammar',
+                    payload: {
+                        title: 'Estar',
+                        explanation: 'For location.',
+                        examples: [
+                            {
+                                text: 'Uno.',
+                                english: 'One.',
+                                audioUrl: '/u.mp3',
+                            },
+                            { text: 'Dos.', english: 'Two.' },
+                        ],
+                    },
+                },
+            },
+        });
+
+        expect(word.findComponent(SpeakButton).props()).toMatchObject({
+            audioUrl: '/n.mp3',
+            audioSlowUrl: '/s.mp3',
+        });
+        expect(
+            grammar
+                .findAllComponents(SpeakButton)
+                .map((button) => [
+                    button.props('audioUrl'),
+                    button.props('audioSlowUrl'),
+                ]),
+        ).toEqual([
+            ['/u.mp3', null],
+            [null, null],
+        ]);
     });
 });
 

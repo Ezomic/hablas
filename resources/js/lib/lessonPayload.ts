@@ -4,6 +4,10 @@ export function text(value: unknown): string {
     return typeof value === 'string' ? value : '';
 }
 
+export function clipUrl(value: unknown): string | null {
+    return typeof value === 'string' && value !== '' ? value : null;
+}
+
 export function strings(value: unknown): string[] {
     return Array.isArray(value)
         ? value.filter((item): item is string => typeof item === 'string')

@@ -15,6 +15,14 @@
         "en": "English",
         "nl": "Nederlands"
     },
+    "speech": {
+        "listen": "Luister naar {text}",
+        "listenSlow": "Luister langzaam naar {text}",
+        "loadingAudio": "Audio laden"
+    },
+    "listening": {
+        "loadingClip": "Fragment laden…"
+    },
     "install": {
         "button": "App installeren",
         "iosHint": "Tik op Deel en kies Zet op beginscherm om Hablas te installeren.",

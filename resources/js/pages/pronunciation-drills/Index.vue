@@ -14,7 +14,8 @@ interface Exercise {
     word_b: string;
     word_b_translation_en: string;
     target_word: string;
-    audio_url: string | null;
+    audioUrl: string | null;
+    audioSlowUrl: string | null;
 }
 
 const props = defineProps<{

@@ -71,8 +71,8 @@ it('lists the mastered and missing items and every answer once a check is over',
 it('presents the summary and the lesson to play next only for a completed run', function () {
     $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Meet));
 
-    $open = (new PresentLessonRun)->handle($run);
-    $done = (new PresentLessonRun)->handle(LessonWorld::play($this->user, $run));
+    $open = (app(PresentLessonRun::class))->handle($run);
+    $done = (app(PresentLessonRun::class))->handle(LessonWorld::play($this->user, $run));
 
     expect($open['run']['summary'])->toBeNull()
         ->and($open['run']['next'])->toBeNull()
@@ -87,7 +87,7 @@ it('has nothing next when the next lesson waits for another day', function () {
     LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Sentences)));
     $fourth = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Task)));
 
-    expect((new PresentLessonRun)->handle($fourth)['run']['next'])->toMatchArray(['stage' => 'check', 'state' => 'opens_tomorrow']);
+    expect((app(PresentLessonRun::class))->handle($fourth)['run']['next'])->toMatchArray(['stage' => 'check', 'state' => 'opens_tomorrow']);
 });
 
 it('describes the items of a result, and skips a reference that points at nothing', function () {
@@ -122,5 +122,5 @@ it('has nothing next once every lesson of the unit is done', function () {
     LessonWorld::finishTeachingLessons($this->user, $this->unit);
     $check = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Check), LessonRunKind::Check));
 
-    expect((new PresentLessonRun)->handle($check)['run']['next'])->toBeNull();
+    expect((app(PresentLessonRun::class))->handle($check)['run']['next'])->toBeNull();
 });

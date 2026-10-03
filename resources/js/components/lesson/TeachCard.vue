@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
-import { text } from '@/lib/lessonPayload';
+import { clipUrl, text } from '@/lib/lessonPayload';
 import type { ExerciseBase } from '@/types/lesson';
 
 const props = defineProps<{
@@ -13,6 +13,8 @@ const props = defineProps<{
 interface Example {
     text: string;
     english: string;
+    audioUrl: string | null;
+    audioSlowUrl: string | null;
 }
 
 const isGrammar = computed(() => props.exercise.format === 'teach_grammar');
@@ -24,6 +26,10 @@ const examples = computed<Example[]>(() => {
         ? raw.map((example) => ({
               text: text((example as Record<string, unknown>).text),
               english: text((example as Record<string, unknown>).english),
+              audioUrl: clipUrl((example as Record<string, unknown>).audioUrl),
+              audioSlowUrl: clipUrl(
+                  (example as Record<string, unknown>).audioSlowUrl,
+              ),
           }))
         : [];
 });
@@ -41,6 +47,8 @@ const examples = computed<Example[]>(() => {
             <SpeakButton
                 :text="text(props.exercise.payload.term)"
                 :locale="props.locale"
+                :audio-url="clipUrl(props.exercise.payload.audioUrl)"
+                :audio-slow-url="clipUrl(props.exercise.payload.audioSlowUrl)"
             />
         </p>
         <p class="text-xl">{{ text(props.exercise.payload.translation) }}</p>
@@ -82,7 +90,14 @@ const examples = computed<Example[]>(() => {
                         example.english
                     }}</span>
                 </span>
-                <SpeakButton :text="example.text" :locale="props.locale" />
+                <span class="flex shrink-0 items-center">
+                    <SpeakButton
+                        :text="example.text"
+                        :locale="props.locale"
+                        :audio-url="example.audioUrl"
+                        :audio-slow-url="example.audioSlowUrl"
+                    />
+                </span>
             </li>
         </ul>
     </section>
