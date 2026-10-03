@@ -8,7 +8,8 @@ export const MAX_TRIES = 3;
 
 /**
  * The spoken tries of one exercise, up to three. Each is scored at once by a
- * call that records nothing, so the learner sees every result; the answer is
+ * call that records nothing, so the learner sees every result, unless there
+ * is no score url, as in a check, which gives no verdict; the answer is
  * sent once afterwards with every transcript. A try that could not be scored
  * is kept, and is scored when the answer is sent.
  */
@@ -36,6 +37,10 @@ export function useSpeakingTries(
     );
 
     async function score(index: number, transcript: string) {
+        if (scoreUrl() === '') {
+            return;
+        }
+
         try {
             const response = await fetchJson(
                 scoreUrl(),

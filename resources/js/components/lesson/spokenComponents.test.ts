@@ -207,7 +207,7 @@ function fakeRecognizer() {
     const factory: RecognizerFactory = (_locale, handlers) => {
         state.handlers = handlers;
 
-        return { start: vi.fn(), stop: vi.fn() };
+        return { start: vi.fn(), stop: vi.fn(), abort: vi.fn() };
     };
 
     return { state, factory };
@@ -301,6 +301,49 @@ describe('SpeakExercise', () => {
         expect(wrapper.emitted('change')?.at(-1)).toEqual([['la llave']]);
     });
 
+    it('scores nothing and shows no verdict in a check, only what was heard and the try counter', async () => {
+        const { wrapper, say } = mountSpeak(
+            { text: 'la llave' },
+            'speak_repeat',
+            {
+                scoreUrl: '',
+            },
+        );
+
+        await say('la llave');
+
+        expect(mocks.fetchJson).not.toHaveBeenCalled();
+        expect(wrapper.get('[data-testid="speak-heard"]').text()).toBe(
+            'la llave',
+        );
+        expect(wrapper.get('[data-testid="speak-tries"]').text()).toBe(
+            'Try 1 of 3',
+        );
+        expect(wrapper.find('[data-verdict]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="speak-score"]').exists()).toBe(
+            false,
+        );
+        expect(wrapper.text()).not.toContain('scored when you press Check');
+        expect(wrapper.emitted('change')?.at(-1)).toEqual([['la llave']]);
+    });
+
+    it('says how many words were missed, without naming them', async () => {
+        mocks.fetchJson.mockResolvedValue(
+            scored({
+                score: 50,
+                correct: false,
+                words: [{ word: 'la', verdict: 'exact' }],
+                missed: 1,
+            }),
+        );
+        const { wrapper, say } = mountSpeak({ text: 'la llave' });
+
+        await say('la');
+
+        expect(wrapper.text()).toContain('1 word to say again');
+        expect(wrapper.text()).not.toContain('llave llave');
+    });
+
     it('invites another try after a low score, and stops after three', async () => {
         mocks.fetchJson.mockResolvedValue(
             scored({ score: 50, correct: false }),
@@ -349,7 +392,6 @@ describe('SpeakExercise', () => {
 
         await say('tengo');
 
-        expect(wrapper.text()).toContain('tengo');
         expect(wrapper.text()).toContain('1 keyword missing');
         expect(wrapper.text()).toContain(
             'Say it out loud in the language you are learning',

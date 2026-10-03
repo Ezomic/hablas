@@ -151,7 +151,11 @@ final class PresentLessonRun
      */
     private function exercise(LessonExercise $exercise, bool $hidesAnswers, array $clips): array
     {
-        $payload = $hidesAnswers ? $this->withoutKeys($exercise->format, $exercise->payload) : $this->withoutSpans($exercise->payload);
+        $payload = match (true) {
+            $this->isSpoken($exercise->format) => $this->allowed($exercise->format, $exercise->payload, $hidesAnswers),
+            $hidesAnswers => $this->withoutKeys($exercise->payload),
+            default => $this->withoutSpans($exercise->payload),
+        };
 
         return [
             'id' => $exercise->id,
@@ -235,37 +239,44 @@ final class PresentLessonRun
 
         $spoken = $this->spokenText($format, $raw);
 
-        if ($spoken === null || ! in_array($format, [LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer], true)) {
+        if ($spoken === null || ! $this->isSpoken($format)) {
             return $payload;
         }
 
         $audio = $clips[$spoken];
         $playsFirst = $format !== LessonExerciseFormat::SpeakAnswer || ! isset($raw['text']);
 
-        return [...$this->withoutSpokenText($format, $payload), ...$audio, 'audioRole' => $playsFirst ? 'prompt' : 'model'];
+        return [...$payload, ...$audio, 'audioRole' => $playsFirst ? 'prompt' : 'model'];
+    }
+
+    private function isSpoken(LessonExerciseFormat $format): bool
+    {
+        return in_array($format, [LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer], true);
     }
 
     /**
-     * What is left of a listening or speaking exercise once the text that
-     * gives its answer away is taken out. A dictation never carries its text
-     * and a spoken answer never carries its model answer, because the
-     * verdict shows them afterwards. A word heard and chosen keeps its text,
-     * which the answer shows once it is over and which the browser reads when
-     * a clip is missing, since its answer is already among the options.
+     * What a listening or speaking exercise may send, by name: anything else,
+     * today's keys or tomorrow's, never ships. A dictation sends no text and a
+     * spoken answer no model answer, because the verdict shows them afterwards.
+     * A word heard and chosen keeps its text and answer in a lesson, where its
+     * answer is among the options; a check keeps neither, and a question that
+     * is only heard keeps no text at all.
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function withoutSpokenText(LessonExerciseFormat $format, array $payload): array
+    private function allowed(LessonExerciseFormat $format, array $payload, bool $hidesAnswers): array
     {
-        $remove = match ($format) {
-            LessonExerciseFormat::ListenType => ['text', 'accepted'],
-            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => [],
-            LessonExerciseFormat::SpeakRepeat => ['accepted'],
-            default => ['text', 'accepted', 'pattern'],
+        $heardQuestion = $format === LessonExerciseFormat::SpeakAnswer && ! isset($payload['text']);
+
+        $keys = match ($format) {
+            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => $hidesAnswers ? ['options'] : ['text', 'options', 'answer'],
+            LessonExerciseFormat::ListenType => [],
+            LessonExerciseFormat::SpeakRepeat => $hidesAnswers ? ['english'] : ['text', 'english'],
+            default => $heardQuestion && $hidesAnswers ? [] : ['prompt', 'english'],
         };
 
-        return array_diff_key($payload, array_flip([...$remove, 'slots']));
+        return array_intersect_key($payload, array_flip($keys));
     }
 
     /**
@@ -283,26 +294,14 @@ final class PresentLessonRun
 
     /**
      * A check gives no verdict, so nothing in its payload may carry an answer:
-     * not the accepted texts, the keyword slots or the question answers, and
-     * not the text a listening or speaking exercise is made from, which is
-     * its answer. A spoken question is heard, never read, so it goes too.
+     * not the accepted texts, the keyword slots or the question answers.
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function withoutKeys(LessonExerciseFormat $format, array $payload): array
+    private function withoutKeys(array $payload): array
     {
-        $heardQuestion = $format === LessonExerciseFormat::SpeakAnswer && ! isset($payload['text']);
-
         unset($payload['accepted'], $payload['answer'], $payload['slots'], $payload['required'], $payload['substitute_questions']);
-
-        if (in_array($format, [LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer], true)) {
-            unset($payload['text'], $payload['pattern']);
-        }
-
-        if ($heardQuestion) {
-            unset($payload['prompt'], $payload['english']);
-        }
 
         if (is_array($payload['questions'] ?? null)) {
             $payload['questions'] = array_values(array_map(function (mixed $question): mixed {

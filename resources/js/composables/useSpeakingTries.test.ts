@@ -15,7 +15,7 @@ let handlers: RecognizerHandlers | null = null;
 const factory: RecognizerFactory = (_locale, given) => {
     handlers = given;
 
-    return { start: vi.fn(), stop: vi.fn() };
+    return { start: vi.fn(), stop: vi.fn(), abort: vi.fn() };
 };
 
 function harness() {

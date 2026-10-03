@@ -9,6 +9,7 @@ export interface RecognizerHandlers {
 export interface Recognizer {
     start(): void;
     stop(): void;
+    abort(): void;
 }
 
 // The seam where the recogniser is chosen: the browser's own today, another

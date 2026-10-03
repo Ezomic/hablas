@@ -90,6 +90,7 @@ class FakeRecognition {
     onend: (() => void) | null = null;
     start = vi.fn();
     stop = vi.fn();
+    abort = vi.fn();
 
     constructor() {
         FakeRecognition.last = this;

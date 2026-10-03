@@ -56,7 +56,8 @@
             "missingKeywords": "{n} sleutelwoord ontbreekt | {n} sleutelwoorden ontbreken",
             "goodTry": "Goed, {score}%",
             "tryAgain": "Nog niet helemaal, {score}%. Probeer het opnieuw of druk op Controleren.",
-            "notScored": "Deze poging wordt beoordeeld als je op Controleren drukt."
+            "notScored": "Deze poging wordt beoordeeld als je op Controleren drukt.",
+            "missingWords": "{n} woord om opnieuw te zeggen | {n} woorden om opnieuw te zeggen"
         },
         "skip": {
             "link": "Overslaan",

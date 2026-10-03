@@ -18,6 +18,7 @@ final class SpeakingTryController extends Controller
     public function store(StoreSpeakingTryRequest $request, LessonRun $lessonRun, LessonExercise $lessonExercise, ScoreSpeakingTry $scoreSpeakingTry): JsonResponse
     {
         abort_unless($lessonRun->user_id === $this->currentUser()->id, 404);
+        abort_if($lessonRun->kind->isCheck(), 404);
         abort_unless($lessonExercise->format->isSpeaking(), 404);
         abort_unless(in_array($lessonExercise->id, $lessonRun->planExerciseIds(), true), 404);
 

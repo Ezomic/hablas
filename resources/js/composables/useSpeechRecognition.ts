@@ -48,7 +48,14 @@ export function useSpeechRecognition(
             },
         });
         isListening.value = true;
-        recognizer.start();
+
+        try {
+            recognizer.start();
+        } catch {
+            recognizer = null;
+            failure.value = 'failed';
+            isListening.value = false;
+        }
     }
 
     function stop(): void {
@@ -58,7 +65,11 @@ export function useSpeechRecognition(
         isListening.value = false;
     }
 
-    onUnmounted(stop);
+    onUnmounted(() => {
+        onTranscript = null;
+        recognizer?.abort();
+        recognizer = null;
+    });
 
     return { isSupported, isListening, failure, start, stop };
 }

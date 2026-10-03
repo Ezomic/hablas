@@ -14,13 +14,20 @@ function fake() {
         locale: string | null;
         start: Mock<() => void>;
         stop: Mock<() => void>;
-    } = { handlers: null, locale: null, start: vi.fn(), stop: vi.fn() };
+        abort: Mock<() => void>;
+    } = {
+        handlers: null,
+        locale: null,
+        start: vi.fn(),
+        stop: vi.fn(),
+        abort: vi.fn(),
+    };
 
     const factory: RecognizerFactory = (locale, handlers) => {
         state.locale = locale;
         state.handlers = handlers;
 
-        return { start: state.start, stop: state.stop };
+        return { start: state.start, stop: state.stop, abort: state.abort };
     };
 
     return { state, factory };
@@ -112,6 +119,23 @@ describe('useSpeechRecognition', () => {
         api.start(vi.fn());
         wrapper.unmount();
 
-        expect(state.stop).toHaveBeenCalledTimes(2);
+        expect(state.abort).toHaveBeenCalledOnce();
+    });
+
+    it('lets the learner try again when the recogniser cannot be started', () => {
+        const { state, factory } = fake();
+        const { api } = harness(factory);
+
+        state.start.mockImplementationOnce(() => {
+            throw new Error('already started');
+        });
+        api.start(vi.fn());
+
+        expect(api.failure.value).toBe('failed');
+        expect(api.isListening.value).toBe(false);
+
+        api.start(vi.fn());
+
+        expect(api.isListening.value).toBe(true);
     });
 });

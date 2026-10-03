@@ -33,6 +33,7 @@ const speaking = useSpeakingTries(
     props.factory,
 );
 
+const scored = computed(() => props.scoreUrl !== '');
 const isRepeat = computed(() => props.format === 'speak_repeat');
 const heardFirst = computed(() => props.payload.audioRole !== 'model');
 const prompt = computed(() => text(props.payload.prompt));
@@ -182,10 +183,17 @@ const verdictStyle: Record<WordVerdict, string> = {
                     >
                 </p>
                 <p
-                    v-if="!isRepeat && last.result.missed > 0"
+                    v-if="last.result.missed > 0"
                     class="text-sm text-muted-foreground"
                 >
-                    {{ t('lesson.speak.missingKeywords', last.result.missed) }}
+                    {{
+                        isRepeat
+                            ? t('lesson.speak.missingWords', last.result.missed)
+                            : t(
+                                  'lesson.speak.missingKeywords',
+                                  last.result.missed,
+                              )
+                    }}
                 </p>
                 <p
                     class="text-sm text-muted-foreground"
@@ -202,7 +210,7 @@ const verdictStyle: Record<WordVerdict, string> = {
                     }}
                 </p>
             </template>
-            <p v-else class="text-sm text-muted-foreground">
+            <p v-else-if="scored" class="text-sm text-muted-foreground">
                 {{ t('lesson.speak.notScored') }}
             </p>
         </div>

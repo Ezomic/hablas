@@ -130,7 +130,7 @@ const heardText = computed(() =>
 );
 
 const scoreUrl = computed(() =>
-    exercise.value === null
+    exercise.value === null || !props.settings.feedback
         ? ''
         : scoreTry({
               lessonRun: props.run.id,

@@ -48,7 +48,7 @@ describe('a phrase repeated', function () {
         $scored = spoken('sentences.speak_repeat.hay', 'hay una habitacion disponible para dos noches');
 
         expect($scored['correct'])->toBeTrue()
-            ->and(collect($scored['words'])->firstWhere('word', 'habitación')['verdict'])->toBe('accent');
+            ->and(collect($scored['words'])->firstWhere('word', 'habitacion')['verdict'])->toBe('accent');
     });
 
     it('fails a word that is another word with the accent, a wrong word and a missed one', function () {
@@ -57,11 +57,11 @@ describe('a phrase repeated', function () {
         $missed = spoken('sentences.speak_repeat.hay', 'hay una habitación para dos noches');
 
         expect($other['correct'])->toBeFalse()
-            ->and(collect($other['words'])->firstWhere('word', 'baño')['verdict'])->toBe('wrong')
-            ->and(collect($wrong['words'])->firstWhere('word', 'habitación')['verdict'])->toBe('wrong')
+            ->and(collect($other['words'])->firstWhere('word', 'bano')['verdict'])->toBe('wrong')
+            ->and(collect($wrong['words'])->firstWhere('word', 'llave')['verdict'])->toBe('wrong')
             ->and($wrong['score'])->toBe(85.7)
             ->and($wrong['correct'])->toBeTrue()
-            ->and(collect($missed['words'])->firstWhere('word', 'disponible')['verdict'])->toBe('missed')
+            ->and(array_column($missed['words'], 'word'))->not->toContain('disponible')
             ->and($missed['missed'])->toBe(1);
     });
 
@@ -85,6 +85,7 @@ describe('a phrase repeated', function () {
 
         expect($scored['score'])->toBe(0.0)
             ->and($scored['correct'])->toBeFalse()
+            ->and($scored['words'])->toBe([])
             ->and($scored['missed'])->toBe(7);
     });
 });
@@ -95,8 +96,17 @@ describe('a spoken answer', function () {
 
         expect($scored['score'])->toBe(100.0)
             ->and($scored['correct'])->toBeTrue()
-            ->and(array_column($scored['words'], 'word'))->toBe(['tengo', 'reserva'])
+            ->and($scored['words'])->toBe([])
             ->and($scored['missed'])->toBe(0);
+    });
+
+    it('never names a keyword, heard or missed, so the tries cannot be bisected into the slots', function () {
+        foreach (['tengo', 'reserva', 'tengo reserva', 'xyz', ''] as $transcript) {
+            $json = json_encode(spoken('task.speak_answer.reserva', $transcript), JSON_THROW_ON_ERROR);
+
+            expect($json)->not->toContain('"tiene"')
+                ->and($json)->not->toContain('"words":[{');
+        }
     });
 
     it('does not name the keyword it missed', function () {
@@ -104,7 +114,7 @@ describe('a spoken answer', function () {
 
         expect($scored['score'])->toBe(50.0)
             ->and($scored['correct'])->toBeFalse()
-            ->and(array_column($scored['words'], 'word'))->toBe(['tengo'])
+            ->and($scored['words'])->toBe([])
             ->and($scored['missed'])->toBe(1);
     });
 
@@ -247,6 +257,31 @@ describe('over HTTP', function () {
             ->assertJsonPath('heard', $term);
 
         expect(LessonAnswer::query()->count())->toBe(0);
+    });
+
+    it('answers 404 for a check, which gives no verdict on a try', function () {
+        $check = LessonRun::factory()->create([
+            'user_id' => $this->user->id,
+            'lesson_id' => LessonWorld::lesson($this->unit, LessonStage::Check)->id,
+            'kind' => 'check',
+            'plan' => [['id' => $this->speak->id, 'origin' => 'lesson']],
+        ]);
+
+        $this->actingAs($this->user)->postJson(route('lesson-runs.speaking-tries.store', [$check, $this->speak]), ['transcript' => 'la llave'])->assertNotFound();
+    });
+
+    it('does not leak a word the learner did not say, nor a hidden one for a spoken answer', function () {
+        $answer = LessonExercise::query()->where('key', 'task.speak_answer.reserva')->firstOrFail();
+        $run = LessonRun::factory()->create([
+            'user_id' => $this->user->id,
+            'lesson_id' => LessonWorld::lesson($this->unit, LessonStage::Task)->id,
+            'plan' => [['id' => $answer->id, 'origin' => 'lesson']],
+        ]);
+
+        $body = $this->actingAs($this->user)->postJson(route('lesson-runs.speaking-tries.store', [$run, $answer]), ['transcript' => 'tengo'])->assertOk()->json();
+
+        expect($body['words'])->toBe([])
+            ->and(json_encode($body, JSON_THROW_ON_ERROR))->not->toContain('reserva');
     });
 
     it('needs a transcript', function () {

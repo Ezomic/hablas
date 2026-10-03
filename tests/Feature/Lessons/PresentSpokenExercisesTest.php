@@ -117,6 +117,41 @@ describe('a check', function () {
     });
 });
 
+describe('the allow-list', function () {
+    it('sends only named keys for every spoken exercise in lessons and checks, whatever else the payload holds', function () {
+        LessonWorld::finishTeachingLessons($this->user, $this->unit);
+        $extras = ['portunol_slips' => ['SECRETSLIP'], 'model' => 'SECRETMODEL', 'target' => 'SECRETTARGET', 'pattern' => 'SECRETPATTERN', 'slots' => [['SECRETSLOT']], 'accepted' => ['SECRETACCEPTED'], 'future_key' => 'SECRETFUTURE'];
+        $spoken = LessonExercise::query()->whereIn('format', [Format::ListenChoose, Format::ListenPair, Format::ListenType, Format::SpeakRepeat, Format::SpeakAnswer])->whereNull('substitute_for_id')->get();
+        $spoken->push(listenPair($this));
+
+        expect($spoken->count())->toBeGreaterThan(10);
+
+        foreach ($spoken as $exercise) {
+            $exercise->forceFill(['payload' => [...$exercise->payload, ...$extras]])->save();
+        }
+
+        foreach ([[LessonRunKind::Lesson, LessonStage::Task, false], [LessonRunKind::Check, LessonStage::Check, true]] as [$kind, $stage, $check]) {
+            $run = runWith($this, $kind, $stage, $spoken->all());
+            $allowed = ['prompt', 'english', 'text', 'options', 'answer', 'audioUrl', 'audioSlowUrl', 'audioRole'];
+
+            foreach ($spoken as $exercise) {
+                $payload = presentedEntry($run, $exercise)['payload'];
+
+                expect(array_diff(array_keys($payload), $allowed))->toBe([])
+                    ->and(json_encode($payload, JSON_THROW_ON_ERROR))->not->toContain('SECRET');
+
+                if ($check) {
+                    expect($payload)->not->toHaveKeys(['text', 'answer']);
+                }
+
+                if ($exercise->format === Format::ListenType) {
+                    expect($payload)->not->toHaveKeys(['text', 'answer', 'english']);
+                }
+            }
+        }
+    });
+});
+
 describe('a lesson', function () {
     it('never sends the text or the accepted answers of a dictation', function () {
         $exercise = exerciseOf('sentences.listen_type.reserva');
@@ -125,7 +160,6 @@ describe('a lesson', function () {
         $payload = presentedEntry($run, $exercise)['payload'];
 
         expect($payload)->not->toHaveKeys(['text', 'accepted'])
-            ->and($payload['english'])->toBe('The reservation is for two nights.')
             ->and(json_encode($payload, JSON_THROW_ON_ERROR))->not->toContain('reserva es para');
     });
 

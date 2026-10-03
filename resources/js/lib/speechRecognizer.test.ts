@@ -15,6 +15,7 @@ class FakeRecognition {
     onend: (() => void) | null = null;
     start = vi.fn();
     stop = vi.fn();
+    abort = vi.fn();
 
     constructor() {
         FakeRecognition.last = this;
@@ -53,6 +54,7 @@ describe('the browser recogniser', () => {
         raw.onend?.();
         recognizer.start();
         recognizer.stop();
+        recognizer.abort();
 
         expect(raw.lang).toBe('pt-PT');
         expect(raw.interimResults).toBe(false);
@@ -61,6 +63,7 @@ describe('the browser recogniser', () => {
         expect(events.onEnd).toHaveBeenCalled();
         expect(raw.start).toHaveBeenCalled();
         expect(raw.stop).toHaveBeenCalled();
+        expect(raw.abort).toHaveBeenCalled();
     });
 
     it('leaves the browser default language when there is none', () => {

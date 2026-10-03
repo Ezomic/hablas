@@ -80,11 +80,14 @@ final class ScoreSpeakingTry
         foreach ($alignment->words as $word) {
             $isRight = in_array($word->verdict, [AccentVerdict::Exact, AccentVerdict::Missing], true);
             $right += $isRight ? 1 : 0;
-            $words[] = ['word' => $word->expected, 'verdict' => match (true) {
-                $word->given === null => 'missed',
-                $word->verdict === AccentVerdict::Exact => 'exact',
-                $word->verdict === AccentVerdict::Missing => 'accent',
-                $word->verdict === AccentVerdict::OtherWord => 'other_word',
+            if ($word->given === null) {
+                continue;
+            }
+
+            $words[] = ['word' => $word->given, 'verdict' => match ($word->verdict) {
+                AccentVerdict::Exact => 'exact',
+                AccentVerdict::Missing => 'accent',
+                AccentVerdict::OtherWord => 'other_word',
                 default => 'wrong',
             }];
         }
@@ -102,15 +105,15 @@ final class ScoreSpeakingTry
     {
         $slots = $this->slots($exercise);
         $heard = $this->transcriptScorer->keywords($normalizer, $slots, $transcript);
-        $found = array_values(array_filter($heard, is_string(...)));
-        $score = $this->transcriptScorer->percentage(count($found), count($slots));
+        $found = count(array_filter($heard, is_string(...)));
+        $score = $this->transcriptScorer->percentage($found, count($slots));
 
         return [
             'heard' => $transcript,
             'score' => $score,
             'correct' => $slots !== [] && $score >= TranscriptScorer::PASS_SCORE,
-            'words' => array_map(fn (string $word): array => ['word' => $word, 'verdict' => 'exact'], $found),
-            'missed' => count($slots) - count($found),
+            'words' => [],
+            'missed' => count($slots) - $found,
         ];
     }
 

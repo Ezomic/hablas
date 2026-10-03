@@ -56,7 +56,8 @@
             "missingKeywords": "{n} keyword missing | {n} keywords missing",
             "goodTry": "Good, {score}%",
             "tryAgain": "Not quite, {score}%. Try again or press Check.",
-            "notScored": "This try is scored when you press Check."
+            "notScored": "This try is scored when you press Check.",
+            "missingWords": "{n} word to say again | {n} words to say again"
         },
         "skip": {
             "link": "Skip",
