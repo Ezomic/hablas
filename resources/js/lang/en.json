@@ -2,11 +2,47 @@
     "common": {
         "save": "Save",
         "cancel": "Cancel",
-        "close": "Close"
+        "close": "Close",
+        "continue": "Continue",
+        "dismiss": "Dismiss",
+        "logIn": "Log in",
+        "createAccount": "Create account",
+        "emailAddress": "Email address",
+        "somethingWentWrong": "Something went wrong."
     },
     "nav": {
         "settings": "Settings",
-        "logOut": "Log out"
+        "logOut": "Log out",
+        "dashboard": "Dashboard",
+        "study": "Study",
+        "practice": "Practice",
+        "units": "Units",
+        "review": "Review",
+        "weakSpots": "Weak spots",
+        "vocabulary": "Vocabulary",
+        "reading": "Reading",
+        "listening": "Listening",
+        "shadowing": "Shadowing",
+        "writing": "Writing",
+        "scriptedPrompts": "Scripted prompts",
+        "pronunciationDrills": "Pronunciation drills",
+        "weeklyReflection": "Weekly reflection",
+        "toggleSidebar": "Toggle sidebar",
+        "navigationMenu": "Navigation menu",
+        "repository": "Repository",
+        "documentation": "Documentation"
+    },
+    "portal": {
+        "switchApp": "Switch app",
+        "title": "Your apps",
+        "description": "Jump to another Thijssensoftware app.",
+        "empty": "No other apps available.",
+        "current": "Current"
+    },
+    "offline": {
+        "pendingOnline": "{count} attempt saved on this device hasn't synced yet and will be retried automatically. | {count} attempts saved on this device haven't synced yet and will be retried automatically.",
+        "pendingOffline": "You're offline. {count} attempt saved on this device will sync once you're back online. | You're offline. {count} attempts saved on this device will sync once you're back online.",
+        "rejected": "{count} attempt saved offline couldn't be synced and was discarded. | {count} attempts saved offline couldn't be synced and were discarded."
     },
     "interfaceLocale": {
         "title": "Interface language",
@@ -14,6 +50,147 @@
         "switcherLabel": "Interface language",
         "en": "English",
         "nl": "Nederlands"
+    },
+    "settings": {
+        "layout": {
+            "description": "Manage your profile and account settings"
+        },
+        "nav": {
+            "profile": "Profile",
+            "security": "Security",
+            "appearance": "Appearance",
+            "learning": "Learning"
+        }
+    },
+    "welcome": {
+        "head": {
+            "title": "Learn Spanish, honestly",
+            "description": "A Spanish and Portuguese learning app built on CEFR levels, comprehensible input and spaced repetition — with honest timelines instead of streak-chasing."
+        },
+        "hero": {
+            "eyebrow": "Spanish now · Portuguese when you’re ready",
+            "title": "Learn Spanish the way the research says you actually will.",
+            "body": "Hablas is built on the CEFR framework, comprehensible input and spaced repetition — what language-teaching institutions actually use. No points, no leaderboards, no streak guilt. Just an honest read on how good you’re getting.",
+            "goToDashboard": "Go to your dashboard",
+            "startPlacement": "Start with a placement test",
+            "haveAccount": "I already have an account",
+            "passwordless": "No password to remember — sign in with an emailed code or a passkey."
+        },
+        "builtOn": {
+            "title": "What it’s built on",
+            "pillars": {
+                "cefr": {
+                    "title": "CEFR, tracked per skill",
+                    "body": "Reading, listening, speaking and writing are scored separately against the Council of Europe’s six levels — so a lagging skill shows up instead of hiding behind an average."
+                },
+                "input": {
+                    "title": "Input first, then real tasks",
+                    "body": "Lessons are built around things you actually do — book a room, describe your weekend — with grammar introduced as the tool the task needs, not as a chapter to endure."
+                },
+                "spaced": {
+                    "title": "Spaced repetition that adapts",
+                    "body": "Vocabulary and grammar enter an FSRS queue that models your own forgetting curve. Miss something repeatedly and it escalates into a short remedial drill instead of cycling forever."
+                },
+                "trap": {
+                    "title": "Built for the Spanish–Portuguese trap",
+                    "body": "Add Portuguese once Spanish is solid, and every lesson names where it diverges. Separate decks that never interleave, because Portuñol is the predictable failure of learning both at once."
+                }
+            }
+        },
+        "pacing": {
+            "title": "How long this actually takes",
+            "intro": "These are the U.S. Foreign Service Institute’s own estimates for Spanish, at a sustainable six hours a week. Not marketing numbers — you should know what you’re signing up for.",
+            "levelColumn": "Level",
+            "studyColumn": "Cumulative study",
+            "paceColumn": "At ~6 hrs/week",
+            "levels": {
+                "a1": {
+                    "blurb": "Breakthrough",
+                    "hours": "60–90 hrs",
+                    "time": "~3 months"
+                },
+                "a2": {
+                    "blurb": "Waystage",
+                    "hours": "150–200 hrs",
+                    "time": "~7 months"
+                },
+                "b1": {
+                    "blurb": "Threshold",
+                    "hours": "300–350 hrs",
+                    "time": "~13 months"
+                },
+                "b2": {
+                    "blurb": "Vantage",
+                    "hours": "500–600 hrs",
+                    "time": "~20–24 months"
+                }
+            }
+        },
+        "cta": {
+            "title": "Find out where you actually stand.",
+            "body": "A placement test scores each skill separately and sets your starting level. Everything after that is paced off what you remember, not what you clicked.",
+            "createYourAccount": "Create your account"
+        },
+        "footer": {
+            "builtOn": "Built on the {cefr} and {fsi} pacing data."
+        }
+    },
+    "auth": {
+        "passkey": {
+            "signIn": "Sign in with a passkey",
+            "authenticating": "Authenticating...",
+            "orEmail": "Or continue with email"
+        },
+        "login": {
+            "title": "Log in to your account",
+            "description": "Sign in with Thijssensoftware, a passkey, or an emailed code",
+            "headTitle": "Log in",
+            "sso": "Sign in with Thijssensoftware",
+            "orContinueWith": "Or continue with",
+            "rememberMe": "Remember me",
+            "requestCode": "Email me a code",
+            "noAccount": "Don't have an account?",
+            "signUp": "Sign up",
+            "codeLabel": "Sign-in code",
+            "codeSent": "We sent a code to {email}. It expires in 10 minutes.",
+            "useDifferentEmail": "Use a different email"
+        },
+        "register": {
+            "title": "Create an account",
+            "description": "Enter your name and email to create your account",
+            "headTitle": "Register",
+            "name": "Name",
+            "namePlaceholder": "Full name",
+            "noPassword": "No password needed — we’ll email you a code whenever you sign in, and you can add a passkey once you’re in.",
+            "haveAccount": "Already have an account?"
+        },
+        "confirm": {
+            "title": "Confirm it’s you",
+            "description": "This is a secure area of the application. Please confirm it’s you before continuing.",
+            "passkey": "Confirm with passkey",
+            "passkeyLoading": "Confirming...",
+            "orEmailedCode": "Or confirm with an emailed code",
+            "codeLabel": "Confirmation code",
+            "sendCode": "Email me a confirmation code",
+            "submit": "Confirm"
+        },
+        "twoFactor": {
+            "headTitle": "Two-factor authentication",
+            "or": "or you can",
+            "recoveryTitle": "Recovery code",
+            "recoveryDescription": "Please confirm access to your account by entering one of your emergency recovery codes.",
+            "recoveryPlaceholder": "Enter recovery code",
+            "useAuthenticatorCode": "login using an authentication code",
+            "codeTitle": "Authentication code",
+            "codeDescription": "Enter the authentication code provided by your authenticator application.",
+            "useRecoveryCode": "login using a recovery code"
+        },
+        "verifyEmail": {
+            "title": "Email verification",
+            "description": "Please verify your email address by clicking on the link we just emailed to you.",
+            "linkSent": "A new verification link has been sent to the email address you provided during registration.",
+            "resend": "Resend verification email"
+        }
     },
     "speech": {
         "listen": "Listen to {text}",

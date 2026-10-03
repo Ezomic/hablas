@@ -1,24 +1,26 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useLayoutText } from '@/composables/useLayoutText';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
-defineOptions({
-    layout: {
-        title: 'Create an account',
-        description: 'Enter your name and email to create your account',
-    },
-});
+const { t } = useI18n();
+
+useLayoutText(() => ({
+    title: t('auth.register.title'),
+    description: t('auth.register.description'),
+}));
 </script>
 
 <template>
-    <Head title="Register" />
+    <Head :title="$t('auth.register.headTitle')" />
 
     <Form
         v-bind="store.form()"
@@ -27,7 +29,7 @@ defineOptions({
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">{{ $t('auth.register.name') }}</Label>
                 <Input
                     id="name"
                     type="text"
@@ -36,13 +38,13 @@ defineOptions({
                     :tabindex="1"
                     autocomplete="name"
                     name="name"
-                    placeholder="Full name"
+                    :placeholder="$t('auth.register.namePlaceholder')"
                 />
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">{{ $t('common.emailAddress') }}</Label>
                 <Input
                     id="email"
                     type="email"
@@ -54,8 +56,7 @@ defineOptions({
                 />
                 <InputError :message="errors.email" />
                 <p class="text-xs text-muted-foreground">
-                    No password needed — we’ll email you a code whenever you
-                    sign in, and you can add a passkey once you’re in.
+                    {{ $t('auth.register.noPassword') }}
                 </p>
             </div>
 
@@ -67,17 +68,17 @@ defineOptions({
                 data-test="register-user-button"
             >
                 <Spinner v-if="processing" />
-                Create account
+                {{ $t('common.createAccount') }}
             </Button>
         </div>
 
         <div class="text-center text-sm text-muted-foreground">
-            Already have an account?
+            {{ $t('auth.register.haveAccount') }}
             <TextLink
                 :href="login()"
                 class="underline underline-offset-4"
                 :tabindex="4"
-                >Log in</TextLink
+                >{{ $t('common.logIn') }}</TextLink
             >
         </div>
     </Form>

@@ -1,6 +1,9 @@
 import intlify from '@intlify/eslint-plugin-vue-i18n';
 import stylistic from '@stylistic/eslint-plugin';
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
+import {
+    defineConfigWithVueTs,
+    vueTsConfigs,
+} from '@vue/eslint-config-typescript';
 import prettier from 'eslint-config-prettier/flat';
 import importPlugin from 'eslint-plugin-import';
 import vue from 'eslint-plugin-vue';
@@ -51,7 +54,14 @@ export default defineConfigWithVueTs(
             'import/order': [
                 'error',
                 {
-                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+                    groups: [
+                        'builtin',
+                        'external',
+                        'internal',
+                        'parent',
+                        'sibling',
+                        'index',
+                    ],
                     alphabetize: { order: 'asc', caseInsensitive: true },
                 },
             ],
@@ -66,7 +76,11 @@ export default defineConfigWithVueTs(
             '@stylistic': stylistic,
         },
         rules: {
-            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+            '@stylistic/brace-style': [
+                'error',
+                '1tbs',
+                { allowSingleLine: false },
+            ],
             '@stylistic/padding-line-between-statements': [
                 'error',
                 ...paddingAroundControl,
@@ -92,12 +106,45 @@ export default defineConfigWithVueTs(
     },
     {
         files: [
+            'resources/js/pages/Welcome.vue',
+            'resources/js/pages/auth/**',
+            'resources/js/layouts/**',
+            'resources/js/components/AlertError.vue',
+            'resources/js/components/AppDialogContent.vue',
+            'resources/js/components/AppHeader.vue',
+            'resources/js/components/AppLogo.vue',
+            'resources/js/components/AppSidebar.vue',
+            'resources/js/components/AppSidebarHeader.vue',
+            'resources/js/components/AppSidebarTrigger.vue',
+            'resources/js/components/Breadcrumbs.vue',
+            'resources/js/components/InterfaceLocaleMenuItems.vue',
             'resources/js/components/InterfaceLocaleSwitcher.vue',
+            'resources/js/components/LanguageSwitcher.vue',
+            'resources/js/components/NavMain.vue',
+            'resources/js/components/NavUser.vue',
+            'resources/js/components/OfflineSyncBanner.vue',
+            'resources/js/components/PasskeyVerify.vue',
+            'resources/js/components/PortalSwitcher.vue',
+            'resources/js/components/UserInfo.vue',
+            'resources/js/components/UserMenuContent.vue',
             'resources/js/composables/useInterfaceLocale.ts',
+            'resources/js/composables/useLayoutText.ts',
             'resources/js/i18n.ts',
         ],
+        ignores: ['**/*.test.ts'],
         rules: {
-            '@intlify/vue-i18n/no-raw-text': 'error',
+            '@intlify/vue-i18n/no-raw-text': [
+                'error',
+                {
+                    ignoreText: [
+                        'Hablas',
+                        'CEFR',
+                        'FSI',
+                        'email@example.com',
+                        '123456',
+                    ],
+                },
+            ],
         },
     },
     {
@@ -122,7 +169,11 @@ export default defineConfigWithVueTs(
         },
         rules: {
             curly: ['error', 'all'],
-            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+            '@stylistic/brace-style': [
+                'error',
+                '1tbs',
+                { allowSingleLine: false },
+            ],
         },
     },
 );

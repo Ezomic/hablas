@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import {
     index as confirmOptions,
     store as confirmStore,
@@ -10,16 +11,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useLayoutText } from '@/composables/useLayoutText';
 import { store } from '@/routes/password/confirm';
 import { store as sendConfirmCode } from '@/routes/user/confirm-code';
 
-defineOptions({
-    layout: {
-        title: 'Confirm it’s you',
-        description:
-            'This is a secure area of the application. Please confirm it’s you before continuing.',
-    },
-});
+const { t } = useI18n();
+
+useLayoutText(() => ({
+    title: t('auth.confirm.title'),
+    description: t('auth.confirm.description'),
+}));
 
 defineProps<{
     status?: string;
@@ -41,7 +42,7 @@ const submit = () =>
 </script>
 
 <template>
-    <Head title="Confirm it’s you" />
+    <Head :title="$t('auth.confirm.title')" />
 
     <div
         v-if="status"
@@ -55,15 +56,15 @@ const submit = () =>
             options: confirmOptions(),
             submit: confirmStore(),
         }"
-        label="Confirm with passkey"
-        loading-label="Confirming..."
-        separator="Or confirm with an emailed code"
+        :label="$t('auth.confirm.passkey')"
+        :loading-label="$t('auth.confirm.passkeyLoading')"
+        :separator="$t('auth.confirm.orEmailedCode')"
     />
 
     <form @submit.prevent="submit">
         <div class="space-y-6">
             <div class="grid gap-2">
-                <Label for="password">Confirmation code</Label>
+                <Label for="password">{{ $t('auth.confirm.codeLabel') }}</Label>
                 <Input
                     id="password"
                     type="text"
@@ -87,7 +88,7 @@ const submit = () =>
                         :disabled="sendForm.processing"
                         data-test="send-confirm-code-button"
                     >
-                        Email me a confirmation code
+                        {{ $t('auth.confirm.sendCode') }}
                     </button>
                 </div>
             </div>
@@ -99,7 +100,7 @@ const submit = () =>
                     data-test="confirm-password-button"
                 >
                     <Spinner v-if="confirmForm.processing" />
-                    Confirm
+                    {{ $t('auth.confirm.submit') }}
                 </Button>
             </div>
         </div>

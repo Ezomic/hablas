@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Tests\Support\LocaleCatalogs;
 
@@ -201,6 +202,20 @@ it('renders the server messages Hablas already has in Dutch', function (): void 
     expect(__('Profile updated.'))->toBe('Profiel bijgewerkt.');
 });
 
+it('renders the framework error pages in Dutch', function (int $status, string $message): void {
+    Route::middleware('web')->get("/test-abort-{$status}", fn () => abort($status));
+
+    $this->withUnencryptedCookie('interface_locale', 'nl')
+        ->get("/test-abort-{$status}")
+        ->assertStatus($status)
+        ->assertSee($message);
+})->with([
+    [403, 'Geen toegang'],
+    [404, 'Niet gevonden'],
+    [429, 'Te veel verzoeken'],
+    [500, 'Serverfout'],
+]);
+
 it('keeps the en and nl frontend catalogs in key parity', function (): void {
     $en = LocaleCatalogs::flatten(LocaleCatalogs::frontend('en'));
     $nl = LocaleCatalogs::flatten(LocaleCatalogs::frontend('nl'));
@@ -211,10 +226,11 @@ it('keeps the en and nl frontend catalogs in key parity', function (): void {
 it('keeps every frontend catalog value filled in and translated', function (): void {
     $en = LocaleCatalogs::flatten(LocaleCatalogs::frontend('en'));
     $nl = LocaleCatalogs::flatten(LocaleCatalogs::frontend('nl'));
-    $sameInBoth = ['interfaceLocale.en', 'interfaceLocale.nl'];
+    $sameInBoth = ['interfaceLocale.en', 'interfaceLocale.nl', 'nav.dashboard', 'nav.repository'];
 
     foreach ($nl as $key => $value) {
         expect(trim($value))->not->toBe('', "nl.{$key} is empty");
+        expect($value)->not->toContain('—', "nl.{$key} has an em-dash");
 
         if (! in_array($key, $sameInBoth, true)) {
             expect($value)->not->toBe($en[$key], "nl.{$key} is the English text");
@@ -238,9 +254,13 @@ it('has a Dutch line for every literal translation key in PHP and no unused ones
     }
 
     $catalog = array_keys(json_decode((string) file_get_contents(lang_path('nl.json')), true, flags: JSON_THROW_ON_ERROR));
+    $readByFramework = [
+        'Unauthorized', 'Payment Required', 'Forbidden', 'Not Found',
+        'Page Expired', 'Too Many Requests', 'Server Error', 'Service Unavailable',
+    ];
 
     expect(array_values(array_diff($used, $catalog)))->toBe([])
-        ->and(array_values(array_diff($catalog, $used)))->toBe([]);
+        ->and(array_values(array_diff($catalog, $used, $readByFramework)))->toBe([]);
 });
 
 it('uses the app locale when the browser sends no Accept-Language', function (): void {

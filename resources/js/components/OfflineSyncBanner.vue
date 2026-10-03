@@ -3,13 +3,8 @@ import { CloudOff, TriangleAlert } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useOfflineSync } from '@/composables/useOfflineSync';
-import { pluralize } from '@/lib/pluralize';
 
 const { isOnline, pendingCount, rejectedCount } = useOfflineSync();
-
-function attempts(count: number): string {
-    return `${count} ${pluralize('attempt', count)}`;
-}
 </script>
 
 <template>
@@ -20,13 +15,22 @@ function attempts(count: number): string {
         <Alert v-if="pendingCount > 0" role="status">
             <CloudOff />
             <AlertDescription v-if="isOnline">
-                {{ attempts(pendingCount) }} saved on this device
-                {{ pendingCount === 1 ? "hasn't" : "haven't" }} synced yet and
-                will be retried automatically.
+                {{
+                    $t(
+                        'offline.pendingOnline',
+                        { count: pendingCount },
+                        pendingCount,
+                    )
+                }}
             </AlertDescription>
             <AlertDescription v-else>
-                You're offline. {{ attempts(pendingCount) }} saved on this
-                device will sync once you're back online.
+                {{
+                    $t(
+                        'offline.pendingOffline',
+                        { count: pendingCount },
+                        pendingCount,
+                    )
+                }}
             </AlertDescription>
         </Alert>
 
@@ -35,10 +39,15 @@ function attempts(count: number): string {
             <AlertDescription
                 class="flex flex-wrap items-center justify-between gap-2"
             >
-                {{ attempts(rejectedCount) }} saved offline couldn't be synced
-                and {{ rejectedCount === 1 ? 'was' : 'were' }} discarded.
+                {{
+                    $t(
+                        'offline.rejected',
+                        { count: rejectedCount },
+                        rejectedCount,
+                    )
+                }}
                 <Button variant="outline" size="sm" @click="rejectedCount = 0">
-                    Dismiss
+                    {{ $t('common.dismiss') }}
                 </Button>
             </AlertDescription>
         </Alert>
