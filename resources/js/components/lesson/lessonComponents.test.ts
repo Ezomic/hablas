@@ -336,6 +336,8 @@ describe('AnswerFeedback', () => {
             expected: 'la habitación',
             note: null,
             given: 'la habitacion zzz',
+            details: null,
+            why: null,
             flaggable: true,
             flagged: false,
             saving: false,

@@ -178,6 +178,10 @@ final class SummarizeLessonRun
             }
         }
 
+        if (is_array($response['choices'] ?? null)) {
+            return implode(' / ', array_filter($response['choices'], is_string(...)));
+        }
+
         $transcripts = is_array($response['transcripts'] ?? null) ? array_values(array_filter($response['transcripts'], is_string(...))) : [];
 
         return $transcripts === [] ? '' : $transcripts[array_key_last($transcripts)];
@@ -191,10 +195,14 @@ final class SummarizeLessonRun
             return $accepted[0]['text'];
         }
 
-        foreach (['answer', 'text'] as $key) {
+        foreach (['answer', 'model', 'text'] as $key) {
             if (is_string($exercise->payload[$key] ?? null)) {
                 return $exercise->payload[$key];
             }
+        }
+
+        if (is_array($exercise->payload['questions'] ?? null)) {
+            return implode(' / ', array_map(fn (mixed $question): string => is_array($question) && is_string($question['answer'] ?? null) ? $question['answer'] : '', $exercise->payload['questions']));
         }
 
         return '';

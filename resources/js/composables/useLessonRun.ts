@@ -19,8 +19,11 @@ import {
     clipUrl,
     expectedAnswer,
     isChoiceFormat,
+    isPassageFormat,
     isTeachFormat,
     isTypedFormat,
+    passageAnswers,
+    passageLines,
     text,
 } from '@/lib/lessonPayload';
 import {
@@ -40,6 +43,7 @@ import type {
     AnswerResponse,
     ExerciseBase,
     ExerciseFamily,
+    GuidedDetails,
     JournalRequest,
     PlayProps,
     SkipReason,
@@ -54,6 +58,8 @@ export interface Feedback {
     expected: string;
     note: string | null;
     given: string;
+    details: GuidedDetails | null;
+    why: string | null;
     flaggable: boolean;
     flagged: boolean;
     saving: boolean;
@@ -125,6 +131,14 @@ export function useLessonRun(props: PlayProps) {
 
         if (entry.format === 'listen_type') {
             return !hasClip || !isOnline.value;
+        }
+
+        if (entry.format === 'listen_passage') {
+            return passageLines(entry.payload).some(
+                (line) =>
+                    line.audioUrl === null &&
+                    (line.text === '' || exactVoice.value === false),
+            );
         }
 
         return (
@@ -256,6 +270,24 @@ export function useLessonRun(props: PlayProps) {
             return { correct: text(response.choice) === expected, expected };
         }
 
+        if (isPassageFormat(exercise.format)) {
+            const answers = passageAnswers(exercise.payload);
+            const choices = Array.isArray(response.choices)
+                ? response.choices
+                : [];
+
+            return answers === null
+                ? null
+                : {
+                      correct:
+                          choices.length === answers.length &&
+                          answers.every(
+                              (answer, index) => choices[index] === answer,
+                          ),
+                      expected: answers.join(' / '),
+                  };
+        }
+
         if (exercise.format === 'match_pairs') {
             const wrong = response.wrong;
 
@@ -275,11 +307,22 @@ export function useLessonRun(props: PlayProps) {
               )
             : [];
 
+        const chosen = Array.isArray(response.choices)
+            ? response.choices.filter(
+                  (item): item is string => typeof item === 'string',
+              )
+            : [];
+
         return (
             text(response.text) ||
             text(response.choice) ||
+            chosen.join(' / ') ||
             (spoken.at(-1) ?? '')
         );
+    }
+
+    function whyOf(exercise: ExerciseBase): string | null {
+        return text(exercise.payload.why) || null;
     }
 
     function learn(
@@ -469,6 +512,8 @@ export function useLessonRun(props: PlayProps) {
             expected: local.expected,
             note: null,
             given,
+            details: null,
+            why: whyOf(exercise),
             flaggable: false,
             flagged: false,
             saving: true,
@@ -530,6 +575,8 @@ export function useLessonRun(props: PlayProps) {
                 expected: expectedAnswer(exercise),
                 note: null,
                 given,
+                details: null,
+                why: whyOf(exercise),
                 flaggable: false,
                 flagged: false,
                 saving: false,
@@ -559,6 +606,8 @@ export function useLessonRun(props: PlayProps) {
             expected: result.data.expected ?? expectedAnswer(exercise),
             note: result.data.note ?? null,
             given,
+            details: result.data.details ?? null,
+            why: whyOf(exercise),
             flaggable: !correct,
             flagged: false,
             saving: false,

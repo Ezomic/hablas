@@ -10,6 +10,7 @@ use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
 use App\Enums\UnitProgressStatus;
 use App\Models\Language;
+use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Models\User;
@@ -74,8 +75,41 @@ describe('starting a run', function () {
         expect(LessonRun::query()->sole()->kind)->toBe(LessonRunKind::TestOut);
     });
 
-    it('refuses a kind other than lesson or test_out', function () {
-        $this->actingAs($this->user)->post(($this->startUrl)(), ['kind' => 'retake'])->assertSessionHasErrors('kind');
+    it('starts practice and a retake from the check lesson after a check, and resumes either as what it is', function () {
+        LessonWorld::finishTeachingLessons($this->user, $this->unit);
+        $check = LessonWorld::lesson($this->unit, LessonStage::Check);
+        $taken = (new StartLessonRun)->handle($this->user, $check, LessonRunKind::Check);
+        LessonWorld::play($this->user, $taken, fn (LessonExercise $exercise): bool => $exercise->key === 'check.a.type_word.la-llave');
+
+        $this->actingAs($this->user)->post(($this->startUrl)($check))->assertSessionHasErrors('lesson');
+        $this->actingAs($this->user)->post(($this->startUrl)($check), ['kind' => 'retake'])->assertSessionHasErrors('lesson');
+
+        $this->actingAs($this->user)->post(($this->startUrl)($check), ['kind' => 'practice'])->assertRedirect();
+        $practice = LessonRun::query()->where('lesson_id', $check->id)->where('kind', LessonRunKind::Practice)->sole();
+
+        $this->actingAs($this->user)->post(($this->startUrl)($check))->assertRedirect(route('lesson-runs.show', $practice));
+
+        expect(LessonRun::query()->where('lesson_id', $check->id)->where('status', LessonRunStatus::InProgress)->count())->toBe(1);
+    });
+
+    it('opens a retake over HTTP only on a later day', function () {
+        LessonWorld::finishTeachingLessons($this->user, $this->unit);
+        $check = LessonWorld::lesson($this->unit, LessonStage::Check);
+        $taken = (new StartLessonRun)->handle($this->user, $check, LessonRunKind::Check);
+        LessonWorld::play($this->user, $taken, fn (LessonExercise $exercise): bool => $exercise->key === 'check.a.type_word.la-llave');
+
+        $this->travel(1)->days();
+        $this->actingAs($this->user)->post(($this->startUrl)($check), ['kind' => 'retake'])->assertRedirect();
+
+        expect(LessonRun::query()->where('lesson_id', $check->id)->where('kind', LessonRunKind::Retake)->count())->toBe(1);
+    });
+
+    it('refuses practice and a retake on a lesson that is not the check', function () {
+        $this->actingAs($this->user)->post(($this->startUrl)(), ['kind' => 'practice'])->assertSessionHasErrors('lesson');
+    });
+
+    it('refuses a kind other than lesson, test_out, practice or retake', function () {
+        $this->actingAs($this->user)->post(($this->startUrl)(), ['kind' => 'check'])->assertSessionHasErrors('kind');
 
         expect(LessonRun::query()->count())->toBe(0);
     });

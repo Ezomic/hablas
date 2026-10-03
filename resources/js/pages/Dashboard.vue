@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import RetakeSkillButton from '@/components/RetakeSkillButton.vue';
 import ReviewForecast from '@/components/ReviewForecast.vue';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,8 @@ interface NextLesson {
     number: number;
     count: number;
     resumes: boolean;
+    remediation: 'retake' | 'practice' | null;
+    missing: number;
 }
 
 interface NextUnit {
@@ -78,10 +81,15 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const { t } = useI18n();
+
 function startLesson(unit: NextUnit) {
     if (unit.lesson !== null) {
         router.post(
             startRun({ unit: unit.id, lesson: unit.lesson.lessonId }).url,
+            unit.lesson.remediation === null
+                ? {}
+                : { kind: unit.lesson.remediation },
         );
     }
 }
@@ -239,7 +247,17 @@ const ceilingSkillNames = computed(() => {
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    <template v-if="props.nextUnit.lesson">
+                    <template v-if="props.nextUnit.lesson?.remediation">
+                        {{
+                            t(
+                                props.nextUnit.lesson.remediation === 'retake'
+                                    ? 'lesson.dashboard.retakeNote'
+                                    : 'lesson.dashboard.practiceNote',
+                                props.nextUnit.lesson.missing,
+                            )
+                        }}
+                    </template>
+                    <template v-else-if="props.nextUnit.lesson">
                         {{
                             props.nextUnit.lesson.resumes ? 'Continue' : 'Start'
                         }}
@@ -256,9 +274,13 @@ const ceilingSkillNames = computed(() => {
                     @click="startLesson(props.nextUnit)"
                 >
                     {{
-                        props.nextUnit.lesson.resumes
-                            ? `Continue lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
-                            : `Start lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
+                        props.nextUnit.lesson.remediation === 'retake'
+                            ? t('lesson.dashboard.retakeButton')
+                            : props.nextUnit.lesson.remediation === 'practice'
+                              ? t('lesson.dashboard.practiceButton')
+                              : props.nextUnit.lesson.resumes
+                                ? `Continue lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
+                                : `Start lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
                     }}
                 </Button>
                 <Button v-else as-child>

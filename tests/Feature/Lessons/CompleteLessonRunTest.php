@@ -225,6 +225,7 @@ describe('evidence for skill levels', function () {
             ->and($first->counts_as_evidence)->toBeFalse()
             ->and(LessonSkillScore::query()->where('lesson_run_id', $first->id)->count())->toBe(0);
 
+        $first->forceFill(['completed_at' => now()->subDays(3)])->save();
         (new SyncUnitLessons)->handle($this->unit, (new BuildUnitLessons)->handle($this->unit, new HotelContent));
         LessonWorld::finishTeachingLessons($this->user, $this->unit);
 

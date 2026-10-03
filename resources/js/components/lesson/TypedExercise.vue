@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AccentKeys from '@/components/lesson/AccentKeys.vue';
+import GlossLine from '@/components/lesson/GlossLine.vue';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+
+const GAP = '___';
 
 const props = defineProps<{
     modelValue: string;
@@ -10,7 +15,11 @@ const props = defineProps<{
     locale: string | null;
     pattern?: string | null;
     hint?: string | null;
+    english?: string;
+    glosses?: [string, string][];
+    chips?: string[];
     gap?: boolean;
+    multiline?: boolean;
     disabled?: boolean;
 }>();
 
@@ -19,9 +28,23 @@ const emit = defineEmits<{
     submit: [];
 }>();
 
-const field = ref<{ $el: HTMLInputElement } | null>(null);
+const { t } = useI18n();
 
-function input(): HTMLInputElement | null {
+const field = ref<{
+    $el: HTMLInputElement | HTMLTextAreaElement;
+} | null>(null);
+
+const gapParts = computed(() => {
+    if (!props.gap || props.multiline || !props.prompt.includes(GAP)) {
+        return null;
+    }
+
+    const [before, ...rest] = props.prompt.split(GAP);
+
+    return { before, after: rest.join(GAP) };
+});
+
+function input(): HTMLInputElement | HTMLTextAreaElement | null {
     return field.value?.$el ?? null;
 }
 
@@ -59,12 +82,61 @@ async function insert(character: string) {
             {{ props.instruction }}
         </p>
         <h2
-            v-if="props.prompt"
+            v-if="gapParts"
+            class="text-2xl leading-[3rem] font-semibold"
+            data-testid="prompt"
+        >
+            {{ gapParts.before
+            }}<Input
+                ref="field"
+                :model-value="props.modelValue"
+                :lang="props.locale ?? undefined"
+                :disabled="props.disabled"
+                class="mx-1 inline-block h-10 w-36 align-middle text-lg"
+                aria-label="Your answer"
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                enterkeyhint="done"
+                data-testid="gap-input"
+                @update:model-value="emit('update:modelValue', String($event))"
+                @keydown.enter.prevent="emit('submit')"
+            />{{ gapParts.after }}
+        </h2>
+        <h2
+            v-else-if="props.prompt"
             class="text-2xl font-semibold"
             data-testid="prompt"
         >
             {{ props.prompt }}
         </h2>
+        <p
+            v-if="props.english"
+            class="text-sm text-muted-foreground"
+            data-testid="english"
+        >
+            {{ props.english }}
+        </p>
+        <GlossLine :glosses="props.glosses" />
+        <div
+            v-if="props.chips?.length"
+            class="flex flex-col gap-2"
+            data-testid="chips"
+        >
+            <p class="text-sm text-muted-foreground">
+                {{ t('lesson.guided.useThese') }}
+            </p>
+            <ul class="flex flex-wrap gap-2">
+                <li
+                    v-for="chip in props.chips"
+                    :key="chip"
+                    class="rounded-full border bg-muted px-3 py-1 text-sm"
+                >
+                    {{ chip }}
+                </li>
+            </ul>
+        </div>
         <p
             v-if="props.pattern"
             class="font-mono text-lg tracking-widest whitespace-pre text-muted-foreground"
@@ -79,7 +151,22 @@ async function insert(character: string) {
         >
             {{ props.hint }}
         </p>
+        <Textarea
+            v-if="props.multiline"
+            ref="field"
+            :model-value="props.modelValue"
+            :lang="props.locale ?? undefined"
+            :disabled="props.disabled"
+            class="min-h-28 text-lg"
+            aria-label="Your answer"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            @update:model-value="emit('update:modelValue', String($event))"
+        />
         <Input
+            v-else-if="!gapParts"
             ref="field"
             :model-value="props.modelValue"
             :lang="props.locale ?? undefined"

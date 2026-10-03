@@ -2,6 +2,8 @@
 import { router } from '@inertiajs/vue3';
 import { Check, Lock } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import RemediationActions from '@/components/RemediationActions.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,8 @@ const props = defineProps<{
     overview: UnitLessonOverview;
     isHeldBack: boolean;
 }>();
+
+const { t } = useI18n();
 
 const starting = ref<number | null>(null);
 const error = ref<string | null>(null);
@@ -43,7 +47,10 @@ const skippedNote = computed(() => {
     return parts.length ? `Skipped ${parts.join(' and ')} exercises.` : null;
 });
 
-function start(row: UnitLessonRow, kind?: 'test_out') {
+function start(
+    row: { lessonId: number | null },
+    kind?: 'test_out' | 'practice' | 'retake',
+) {
     if (row.lessonId === null) {
         return;
     }
@@ -83,6 +90,8 @@ function status(row: UnitLessonRow): string {
             return 'Opens tomorrow';
         case 'coming':
             return 'Coming soon';
+        case 'remediation':
+            return t('lesson.remediation.status');
         case 'in_progress':
             return 'In progress';
         case 'completed':
@@ -183,6 +192,17 @@ function playable(row: UnitLessonRow): boolean {
                 >
             </li>
         </ol>
+
+        <Card v-if="props.overview.remediation">
+            <CardHeader>
+                <RemediationActions
+                    :remediation="props.overview.remediation"
+                    :busy="starting !== null"
+                    @practice="start(props.overview.remediation, 'practice')"
+                    @retake="start(props.overview.remediation, 'retake')"
+                />
+            </CardHeader>
+        </Card>
 
         <p
             v-if="props.overview.contentPending"

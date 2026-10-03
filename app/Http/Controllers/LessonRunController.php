@@ -26,7 +26,11 @@ final class LessonRunController extends Controller
 
     public function store(StartLessonRunRequest $request, Unit $unit, Lesson $lesson, StartLessonRun $startLessonRun): RedirectResponse
     {
-        $kind = $lesson->stage === LessonStage::Check && $request->kind() === LessonRunKind::Lesson ? LessonRunKind::Check : $request->kind();
+        $kind = $request->kind();
+
+        if ($lesson->stage === LessonStage::Check && $kind === LessonRunKind::Lesson) {
+            $kind = $startLessonRun->openKind($this->currentUser(), $lesson) ?? LessonRunKind::Check;
+        }
 
         return to_route('lesson-runs.show', $startLessonRun->handle($this->currentUser(), $lesson, $kind));
     }

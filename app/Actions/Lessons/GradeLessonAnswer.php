@@ -120,14 +120,20 @@ final class GradeLessonAnswer
         $found = 0;
         $byTarget = [];
         $accentSlip = false;
+        $used = [];
+        $unused = [];
 
         foreach ($required as $entry) {
             $forms = is_array($entry) ? $this->list($entry['forms'] ?? []) : [];
             $match = $this->findForm($normalizer, $words, $forms, $policy);
+            $label = $this->string($forms[0] ?? '');
 
             if ($match !== null) {
                 $found++;
                 $accentSlip = $accentSlip || $match === AccentVerdict::Missing;
+                $used[] = $label;
+            } else {
+                $unused[] = $label;
             }
 
             if (is_array($entry) && is_string($entry['target'] ?? null)) {
@@ -140,7 +146,9 @@ final class GradeLessonAnswer
         $score = $total === 0 ? 0.0 : round($found / $total * 100, 1);
         $verdicts = $this->verdicts($exercise, fn (string $key): bool => $byTarget[$key] ?? $correct);
 
-        return $this->finish($exercise, $correct, null, $accentSlip ? 'accent' : null, $score, $verdicts);
+        $model = $this->string($exercise->payload['model'] ?? '');
+
+        return $this->finish($exercise, $correct, $model === '' ? null : $model, $accentSlip ? 'accent' : null, $score, $verdicts, ['found' => $used, 'missing' => $unused]);
     }
 
     /** @param  array<string, mixed>  $response */
@@ -285,8 +293,9 @@ final class GradeLessonAnswer
 
     /**
      * @param  list<array{type: string, id: int, correct: bool}>  $verdicts
+     * @param  array{found: list<string>, missing: list<string>}|null  $details
      */
-    private function finish(LessonExercise $exercise, bool $correct, ?string $expected, ?string $note, ?float $score, array $verdicts): Grade
+    private function finish(LessonExercise $exercise, bool $correct, ?string $expected, ?string $note, ?float $score, array $verdicts, ?array $details = null): Grade
     {
         $tag = null;
 
@@ -298,7 +307,7 @@ final class GradeLessonAnswer
             };
         }
 
-        return new Grade($correct, $expected, $note, $score, $verdicts, $tag);
+        return new Grade($correct, $expected, $note, $score, $verdicts, $tag, $details);
     }
 
     /**

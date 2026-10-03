@@ -219,6 +219,7 @@ const overview = {
     skipped: { listening: 2, speaking: 1 },
     contentPending: true,
     canTestOut: false,
+    remediation: null,
 };
 
 describe('unit page with lessons', () => {
@@ -292,6 +293,83 @@ describe('unit page with lessons', () => {
             ?.trigger('click');
 
         expect(wrapper.text()).toContain('The check opens tomorrow.');
+    });
+
+    describe('remediation', () => {
+        const remediated = (retake: 'open' | 'opens_tomorrow') => ({
+            ...overview,
+            lessons: overview.lessons.map((row) =>
+                row.stage === 'check' ? { ...row, state: 'remediation' } : row,
+            ),
+            remediation: { lessonId: 15, missing: 2, retake },
+        });
+
+        it('says what to do on the check row and offers no start button for it', () => {
+            const wrapper = mountPage({ lessons: remediated('open') });
+            const row = wrapper.get('[data-testid="lesson-check"]');
+
+            expect(row.text()).toContain(
+                'Practise the missed items, then retake',
+            );
+            expect(row.find('button').exists()).toBe(false);
+        });
+
+        it('starts practice or the retake with its kind', async () => {
+            const wrapper = mountPage({ lessons: remediated('open') });
+            const card = wrapper.get('[data-testid="remediation"]');
+            router.post.mockReset();
+            router.post.mockImplementation((_url, _data, options) =>
+                options.onFinish(),
+            );
+
+            expect(card.text()).toContain('2 items not proven yet');
+
+            for (const label of ['Practise the missed items', 'Retake']) {
+                await card
+                    .findAll('button')
+                    .find((button) => button.text() === label)
+                    ?.trigger('click');
+            }
+
+            expect(
+                router.post.mock.calls.map((call) => call.slice(0, 2)),
+            ).toEqual([
+                ['/units/4/lessons/15/runs', { kind: 'practice' }],
+                ['/units/4/lessons/15/runs', { kind: 'retake' }],
+            ]);
+        });
+
+        it('explains that the retake opens tomorrow instead of offering it', () => {
+            const card = mountPage({
+                lessons: remediated('opens_tomorrow'),
+            }).get('[data-testid="remediation"]');
+
+            expect(card.text()).toContain('The retake opens tomorrow');
+            expect(
+                card.findAll('button').map((button) => button.text()),
+            ).toEqual(['Practise the missed items']);
+        });
+
+        it('shows the refusal of a remediation start', async () => {
+            const wrapper = mountPage({ lessons: remediated('open') });
+            router.post.mockImplementation((_url, _data, options) =>
+                options.onError({ lesson: 'The retake opens tomorrow.' }),
+            );
+
+            await wrapper
+                .get('[data-testid="remediation"] button')
+                .trigger('click');
+
+            expect(wrapper.text()).toContain('The retake opens tomorrow.');
+        });
+
+        it('shows nothing of it without remediation', () => {
+            expect(
+                mountPage({ lessons: overview })
+                    .find('[data-testid="remediation"]')
+                    .exists(),
+            ).toBe(false);
+        });
     });
 
     it('tells a held-back learner to clear their reviews first', () => {

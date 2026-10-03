@@ -70,7 +70,8 @@ it('collects the spoken strings of unit content for one language', function (): 
         ->toContain('El hotel está cerca.')
         ->toContain('¿Hay una habitación disponible para dos noches?')
         ->toContain('La reserva es para dos noches.')
-        ->toContain('¿Tiene una reserva?', 'Sí, para dos noches.', 'Su habitación es la tres.')
+        ->toContain('¿Tiene una reserva?', 'Su habitación es la tres.')
+        ->not->toContain('Sí, para dos noches.')
         ->not->toContain('o pão');
 });
 

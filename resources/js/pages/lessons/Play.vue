@@ -8,9 +8,11 @@ import ChoiceExercise from '@/components/lesson/ChoiceExercise.vue';
 import LessonSummary from '@/components/lesson/LessonSummary.vue';
 import ListenPlayer from '@/components/lesson/ListenPlayer.vue';
 import MatchExercise from '@/components/lesson/MatchExercise.vue';
+import PassageExercise from '@/components/lesson/PassageExercise.vue';
 import PauseMenu from '@/components/lesson/PauseMenu.vue';
 import SpeakExercise from '@/components/lesson/SpeakExercise.vue';
 import TeachCard from '@/components/lesson/TeachCard.vue';
+import TilesExercise from '@/components/lesson/TilesExercise.vue';
 import TypedExercise from '@/components/lesson/TypedExercise.vue';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
@@ -22,12 +24,18 @@ import {
     hintFor,
     instructionFor,
     clipUrl,
+    englishLine,
+    glossesOf,
     isChoiceFormat,
     isListenFormat,
+    isPassageFormat,
     isSpeakFormat,
     isTeachFormat,
     isTypedFormat,
     languageName,
+    passageAnswers,
+    passageLines,
+    passageQuestions,
     strings,
     text,
 } from '@/lib/lessonPayload';
@@ -50,6 +58,7 @@ const match = ref<{ complete: boolean; wrong: string[] }>({
     complete: false,
     wrong: [],
 });
+const choices = ref<(string | null)[]>([]);
 const spoken = ref<string[]>([]);
 const starting = ref(false);
 
@@ -60,6 +69,19 @@ const locale = computed(() => props.settings.speechLocale);
 const phase = lesson.phase;
 const inFeedback = computed(() => phase.value !== 'answering');
 
+const glosses = computed(() =>
+    exercise.value === null ? [] : glossesOf(exercise.value.payload),
+);
+const english = computed(() =>
+    exercise.value === null ? '' : englishLine(exercise.value.payload),
+);
+const questions = computed(() =>
+    exercise.value === null ? [] : passageQuestions(exercise.value.payload),
+);
+const attemptKey = computed(
+    () => `${exercise.value?.id}-${lesson.current.value?.attempt ?? 1}`,
+);
+
 const canCheck = computed(() => {
     if (isTeachFormat(format.value)) {
         return true;
@@ -67,6 +89,13 @@ const canCheck = computed(() => {
 
     if (isChoiceFormat(format.value)) {
         return choice.value !== null;
+    }
+
+    if (isPassageFormat(format.value)) {
+        return (
+            questions.value.length > 0 &&
+            questions.value.every((_, index) => choices.value[index] != null)
+        );
     }
 
     if (format.value === 'match_pairs') {
@@ -87,7 +116,8 @@ const canHint = computed(
         exercise.value !== null &&
         !isTeachFormat(format.value) &&
         !isSpeakFormat(format.value) &&
-        format.value !== 'match_pairs' &&
+        !isPassageFormat(format.value) &&
+        !['match_pairs', 'build_sentence'].includes(format.value) &&
         (expectedAnswer(exercise.value) !== '' ||
             (isListenFormat(format.value) &&
                 (clipUrl(exercise.value.payload.audioSlowUrl) !== null ||
@@ -115,6 +145,16 @@ const instruction = computed(() => {
             return t('lesson.instruction.listenPair');
         case 'listen_type':
             return t('lesson.instruction.listenType');
+        case 'listen_passage':
+            return t('lesson.instruction.listenPassage');
+        case 'read_passage':
+            return t('lesson.instruction.readPassage');
+        case 'build_sentence':
+            return t('lesson.instruction.buildSentence');
+        case 'write_guided':
+            return t('lesson.instruction.writeGuided');
+        case 'transform_sentence':
+            return text(exercise.value?.payload.prompt);
         default:
             return instructionFor(format.value, language.value);
     }
@@ -181,6 +221,7 @@ watch(
     () => {
         typed.value = '';
         choice.value = null;
+        choices.value = [];
         spoken.value = [];
         match.value = { complete: false, wrong: [] };
     },
@@ -195,6 +236,8 @@ function check() {
         void lesson.submit({});
     } else if (isChoiceFormat(format.value)) {
         void lesson.submit({ choice: choice.value });
+    } else if (isPassageFormat(format.value)) {
+        void lesson.submit({ choices: choices.value });
     } else if (format.value === 'match_pairs') {
         void lesson.submit({ wrong: match.value.wrong });
     } else if (isSpeakFormat(format.value)) {
@@ -231,6 +274,21 @@ function startNext() {
     router.post(
         startRun({ unit: props.unit.id, lesson: props.run.next.lessonId }).url,
         {},
+        { onFinish: () => (starting.value = false) },
+    );
+}
+
+function startFor(kind: 'practice' | 'retake') {
+    const remediation = props.run.remediation;
+
+    if (remediation === null) {
+        return;
+    }
+
+    starting.value = true;
+    router.post(
+        startRun({ unit: props.unit.id, lesson: remediation.lessonId }).url,
+        { kind },
         { onFinish: () => (starting.value = false) },
     );
 }
@@ -327,6 +385,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 :is-check="!props.settings.feedback"
                 :next="props.run.next"
                 :starting="starting"
+                :remediation="props.run.remediation"
+                @practice="startFor('practice')"
+                @retake="startFor('retake')"
                 @next="startNext"
                 @unit="router.visit(showUnit(props.unit.id).url)"
             />
@@ -454,7 +515,48 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     :instruction="instructionFor(format, language)"
                     :options="strings(exercise.payload.options)"
                     :answer="lesson.feedback.value?.expected ?? null"
+                    :english="english"
+                    :glosses="glosses"
                     :disabled="inFeedback"
+                />
+
+                <PassageExercise
+                    v-else-if="isPassageFormat(format)"
+                    :key="attemptKey"
+                    v-model="choices"
+                    :lines="passageLines(exercise.payload)"
+                    :questions="questions"
+                    :instruction="instruction"
+                    :locale="locale"
+                    :listen="format === 'listen_passage'"
+                    :answers="
+                        inFeedback && props.settings.feedback
+                            ? passageAnswers(exercise.payload)
+                            : null
+                    "
+                    :show-transcript="
+                        phase === 'feedback' && props.settings.feedback
+                    "
+                    :glosses="glosses"
+                    :speed="props.settings.audioSpeed < 1 ? 'slow' : 'normal'"
+                    :replay-limit="props.settings.replayLimit"
+                    :offers-slower="
+                        props.settings.offersSlowerAudio ||
+                        lesson.hintShown.value
+                    "
+                    :disabled="inFeedback"
+                />
+
+                <TilesExercise
+                    v-else-if="format === 'build_sentence'"
+                    :key="attemptKey"
+                    :prompt="text(exercise.payload.prompt)"
+                    :instruction="instruction"
+                    :tiles="strings(exercise.payload.tiles)"
+                    :english="english"
+                    :glosses="glosses"
+                    :disabled="inFeedback"
+                    @change="typed = $event"
                 />
 
                 <MatchExercise
@@ -475,8 +577,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                         exercise.id + '-' + (lesson.current.value?.attempt ?? 1)
                     "
                     v-model="typed"
-                    :prompt="text(exercise.payload.prompt)"
-                    :instruction="instructionFor(format, language)"
+                    :prompt="
+                        format === 'transform_sentence'
+                            ? text(exercise.payload.source)
+                            : text(exercise.payload.prompt)
+                    "
+                    :instruction="instruction"
+                    :english="english"
+                    :glosses="glosses"
+                    :chips="strings(exercise.payload.chips)"
+                    :gap="format === 'type_gap'"
+                    :multiline="format === 'write_guided'"
                     :locale="locale"
                     :pattern="text(exercise.payload.hint) || null"
                     :hint="hintText"
@@ -624,6 +735,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 <template v-else-if="lesson.feedback.value">
                     <AnswerFeedback
                         :feedback="lesson.feedback.value"
+                        :guided="format === 'write_guided'"
                         @flag="lesson.flag"
                     />
                     <Button
