@@ -27,5 +27,34 @@
         "button": "App installeren",
         "iosHint": "Tik op Deel en kies Zet op beginscherm om Hablas te installeren.",
         "androidHint": "Open het browsermenu en kies App installeren om Hablas te installeren."
+    },
+    "credits": {
+        "title": "Bronvermelding",
+        "link": "Bronvermelding",
+        "back": "Terug",
+        "intro": "De gesproken audio in Hablas is door een machine gemaakt. Je hoort vooraf gemaakte fragmenten van de stemmen hieronder.",
+        "voicesHeading": "Stemmen",
+        "engine": "Spraakengine",
+        "voices": "Stemmen",
+        "licence": "Licentie",
+        "attribution": "Bronvermelding",
+        "source": "Bron",
+        "restrictionsHeading": "Wat de licentie niet toestaat",
+        "restrictionsIntro": "Deze gebruiksbeperkingen horen bij de licentie van de stem en gelden voor iedereen die de audio gebruikt. Houd je er alsjeblieft aan.",
+        "restrictions": {
+            "law": "Op een manier die in strijd is met de toepasselijke wet- of regelgeving.",
+            "minors": "Om minderjarigen uit te buiten of te schaden, of dat te proberen.",
+            "disinformation": "Om aantoonbaar onjuiste informatie te maken of te verspreiden met als doel anderen te schaden.",
+            "pii": "Om persoonsgegevens te maken of te verspreiden waarmee een persoon kan worden geschaad.",
+            "machine_generated": "Om gegenereerde inhoud ergens te plaatsen zonder duidelijk te zeggen dat die door een machine is gemaakt.",
+            "harassment": "Om anderen te belasteren, zwart te maken of lastig te vallen.",
+            "impersonation": "Om je zonder toestemming voor een ander uit te geven, bijvoorbeeld met deepfakes.",
+            "automated_decisions": "Voor volledig geautomatiseerde besluiten die iemands rechten nadelig raken of een bindende verplichting creëren.",
+            "social_discrimination": "Om mensen te discrimineren of te schaden op basis van hun online of offline sociale gedrag of persoonlijke kenmerken.",
+            "vulnerable_groups": "Om de kwetsbaarheid van een groep mensen uit te buiten, op basis van leeftijd of sociale, lichamelijke of geestelijke kenmerken, op een manier die waarschijnlijk schade veroorzaakt.",
+            "protected_discrimination": "Om mensen te discrimineren op basis van wettelijk beschermde kenmerken.",
+            "medical": "Om medisch advies te geven of medische uitslagen te interpreteren.",
+            "justice": "Voor rechtspleging, wetshandhaving of immigratie- en asielprocedures."
+        }
     }
 }

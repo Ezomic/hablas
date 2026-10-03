@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TtsPreviewController;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::get('credits', CreditsController::class)->name('credits');
 
 Route::get('manifest.webmanifest', WebManifestController::class)
     ->withoutMiddleware([
