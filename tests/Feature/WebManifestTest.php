@@ -38,3 +38,28 @@ it('lands signed-in users on the dashboard when they launch the installed app', 
 it('still shows signed-in users the welcome page on a plain visit', function (): void {
     $this->actingAs(User::factory()->create())->get('/')->assertOk();
 });
+
+it('sets no cookies and allows caching the manifest for an hour', function (): void {
+    $response = $this->get(route('manifest'))->assertOk();
+
+    expect($response->headers->getCookies())->toBeEmpty()
+        ->and($response->headers->get('Cache-Control'))->toContain('public')->toContain('max-age=3600');
+});
+
+it('points every manifest icon at a file that exists', function (): void {
+    $icons = $this->get(route('manifest'))->json('icons');
+
+    foreach ($icons as $icon) {
+        expect(public_path(ltrim($icon['src'], '/')))->toBeFile();
+    }
+});
+
+it('still redirects a signed-in launch that carries extra query parameters', function (): void {
+    $this->actingAs(User::factory()->create())
+        ->get('/?source=pwa&utm_campaign=x')
+        ->assertRedirect(route('dashboard'));
+});
+
+it('does not redirect signed-in users for another source value', function (): void {
+    $this->actingAs(User::factory()->create())->get('/?source=newsletter')->assertOk();
+});

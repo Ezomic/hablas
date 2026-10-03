@@ -7,11 +7,30 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TtsPreviewController;
 use App\Http\Controllers\WebManifestController;
 use App\Http\Middleware\EnsurePlacementTestCompleted;
+use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SetLocale;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', HomeController::class)->name('home');
 
-Route::get('manifest.webmanifest', WebManifestController::class)->name('manifest');
+Route::get('manifest.webmanifest', WebManifestController::class)
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        HandleAppearance::class,
+        SetLocale::class,
+        HandleInertiaRequests::class,
+    ])
+    ->name('manifest');
 
 // Temporary, removed in HAB-109 PR 1. No nav link, reachable by URL only.
 Route::get('voice-test', TtsPreviewController::class)->middleware('auth')->name('tts-preview');

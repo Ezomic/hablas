@@ -14,6 +14,7 @@ const installed = ref(false);
 const androidHintReady = ref(false);
 
 let initialized = false;
+let teardown: (() => void) | null = null;
 
 function isStandalone(): boolean {
     const iosStandalone = (navigator as Navigator & { standalone?: boolean })
@@ -29,7 +30,9 @@ function isStandalone(): boolean {
 function platform(): 'ios' | 'android' | 'other' {
     const ua = navigator.userAgent;
 
-    if (/iPad|iPhone|iPod/.test(ua)) {
+    const isIpadOs = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+
+    if (/iPad|iPhone|iPod/.test(ua) || isIpadOs) {
         return /CriOS|FxiOS|EdgiOS/.test(ua) ? 'other' : 'ios';
     }
 
@@ -44,32 +47,63 @@ export function initializeInstallPrompt(): void {
     initialized = true;
     installed.value = isStandalone();
 
-    window.addEventListener('beforeinstallprompt', (event) => {
+    const onPrompt = (event: Event) => {
         event.preventDefault();
         deferredPrompt.value = event as BeforeInstallPromptEvent;
-    });
-
-    window.addEventListener('appinstalled', () => {
+    };
+    const onInstalled = () => {
         installed.value = true;
         deferredPrompt.value = null;
-    });
+    };
+    const onDisplayMode = (event: MediaQueryListEvent) => {
+        installed.value = event.matches;
+    };
+    const displayMode =
+        typeof window.matchMedia === 'function'
+            ? window.matchMedia('(display-mode: standalone)')
+            : null;
 
-    if (typeof window.matchMedia === 'function') {
-        window
-            .matchMedia('(display-mode: standalone)')
-            .addEventListener('change', (event) => {
-                installed.value = event.matches;
-            });
-    }
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('appinstalled', onInstalled);
+    displayMode?.addEventListener('change', onDisplayMode);
 
     // Chrome fires beforeinstallprompt shortly after load, so the manual
     // Android hint waits to avoid flashing before the real button appears.
-    window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
         androidHintReady.value = true;
     }, ANDROID_HINT_DELAY_MS);
+
+    void detectInstalledRelatedApp();
+
+    teardown = () => {
+        window.removeEventListener('beforeinstallprompt', onPrompt);
+        window.removeEventListener('appinstalled', onInstalled);
+        displayMode?.removeEventListener('change', onDisplayMode);
+        window.clearTimeout(timer);
+    };
+}
+
+async function detectInstalledRelatedApp(): Promise<void> {
+    const nav = navigator as Navigator & {
+        getInstalledRelatedApps?: () => Promise<unknown[]>;
+    };
+
+    if (typeof nav.getInstalledRelatedApps !== 'function') {
+        return;
+    }
+
+    try {
+        if ((await nav.getInstalledRelatedApps()).length > 0) {
+            installed.value = true;
+        }
+    } catch {
+        // Best effort only, the hint just stays visible.
+    }
 }
 
 export function resetInstallPromptForTests(): void {
+    teardown?.();
+    teardown = null;
     initialized = false;
     deferredPrompt.value = null;
     installed.value = false;

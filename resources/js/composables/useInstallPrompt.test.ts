@@ -10,11 +10,16 @@ const IOS_UA =
 const ANDROID_UA =
     'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36';
 
-function stubEnvironment(userAgent: string, standalone = false): void {
-    vi.stubGlobal('navigator', { userAgent });
+function stubEnvironment(
+    userAgent: string,
+    standalone = false,
+    extra: Record<string, unknown> = {},
+): void {
+    vi.stubGlobal('navigator', { userAgent, ...extra });
     window.matchMedia = vi.fn().mockReturnValue({
         matches: standalone,
         addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
     }) as never;
 }
 
@@ -126,5 +131,58 @@ describe('useInstallPrompt', () => {
         window.dispatchEvent(promptEvent());
 
         expect(useInstallPrompt().hint.value).toBeNull();
+    });
+
+    it('treats an iPad that reports as a Mac as iOS', () => {
+        stubEnvironment(
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605 Version/17 Safari/605',
+            false,
+            { maxTouchPoints: 5 },
+        );
+        initializeInstallPrompt();
+
+        expect(useInstallPrompt().hint.value).toBe('ios');
+    });
+
+    it('gives a real Mac no hint', () => {
+        stubEnvironment(
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+            false,
+            {
+                maxTouchPoints: 0,
+            },
+        );
+        initializeInstallPrompt();
+
+        expect(useInstallPrompt().hint.value).toBeNull();
+    });
+
+    it('suppresses the Android hint when the app is already installed', async () => {
+        stubEnvironment(ANDROID_UA, false, {
+            getInstalledRelatedApps: vi.fn().mockResolvedValue([{}]),
+        });
+        initializeInstallPrompt();
+        await vi.advanceTimersByTimeAsync(3000);
+
+        expect(useInstallPrompt().hint.value).toBeNull();
+    });
+
+    it('keeps the Android hint when the installed apps lookup fails', async () => {
+        stubEnvironment(ANDROID_UA, false, {
+            getInstalledRelatedApps: vi.fn().mockRejectedValue(new Error('x')),
+        });
+        initializeInstallPrompt();
+        await vi.advanceTimersByTimeAsync(3000);
+
+        expect(useInstallPrompt().hint.value).toBe('android');
+    });
+
+    it('removes its listeners on reset', () => {
+        stubEnvironment('Mozilla/5.0 Chrome/120');
+        initializeInstallPrompt();
+        resetInstallPromptForTests();
+        window.dispatchEvent(promptEvent());
+
+        expect(useInstallPrompt().canInstall.value).toBe(false);
     });
 });

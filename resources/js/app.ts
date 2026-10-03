@@ -13,6 +13,9 @@ import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeLocaleSync } from '@/lib/localeSync';
 import { initializeServiceWorker } from '@/lib/registerServiceWorker';
 
+// Registered before the app boots so an early beforeinstallprompt is not missed...
+initializeInstallPrompt();
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -68,6 +71,3 @@ initializeOfflineSync();
 
 // This will register the service worker for offline support...
 initializeServiceWorker();
-
-// This will capture the browser's install prompt for the in-app install button...
-initializeInstallPrompt();
