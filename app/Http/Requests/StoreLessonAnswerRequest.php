@@ -35,6 +35,8 @@ final class StoreLessonAnswerRequest extends FormRequest
             'response.choice' => ['nullable', 'string', 'max:500'],
             'response.wrong' => ['nullable', 'array', 'max:40'],
             'response.wrong.*' => ['string', 'max:200'],
+            'response.transcripts' => ['nullable', 'array', 'max:3'],
+            'response.transcripts.*' => ['string', 'max:500'],
             'response.choices' => ['nullable', 'array', 'max:20'],
             'response.choices.*' => ['nullable', 'string', 'max:500'],
             'self_graded_correct' => ['nullable', 'boolean'],

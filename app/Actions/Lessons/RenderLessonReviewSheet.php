@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions\Lessons;
 
-use App\Enums\ExerciseFamily;
 use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonStage;
 use App\Lessons\ExerciseDefinition;
@@ -104,7 +103,7 @@ final class RenderLessonReviewSheet
     private function exercises(Unit $unit, UnitContent $content, bool $forOwner): array
     {
         try {
-            $lessons = $this->buildUnitLessons->handle($unit, new PreviewContent($content), [ExerciseFamily::Choice, ExerciseFamily::Writing]);
+            $lessons = $this->buildUnitLessons->handle($unit, new PreviewContent($content));
         } catch (InvalidLessonContent $exception) {
             return ['', '## Generated exercises', '', "The words do not build: {$exception->getMessage()}"];
         }
@@ -136,8 +135,8 @@ final class RenderLessonReviewSheet
             LessonExerciseFormat::TeachWord => "- teach: {$this->text($payload['term'] ?? '')} = {$this->text($payload['translation'] ?? '')}",
             LessonExerciseFormat::TeachGrammar => "- grammar card: {$this->text($payload['title'] ?? '')}",
             LessonExerciseFormat::MatchPairs => '- match: '.implode(', ', array_map(fn (mixed $pair): string => is_array($pair) ? $this->text($pair['left'] ?? '').' = '.$this->text($pair['right'] ?? '') : '', is_array($payload['pairs'] ?? null) ? $payload['pairs'] : [])),
-            LessonExerciseFormat::ChooseMeaning, LessonExerciseFormat::ChooseWord, LessonExerciseFormat::ChooseGap => "- {$exercise->format->value}: {$this->text($payload['prompt'] ?? '')} | options: ".implode(' / ', array_map($this->text(...), is_array($payload['options'] ?? null) ? $payload['options'] : []))." | answer: {$this->text($payload['answer'] ?? '')}",
-            default => "- {$exercise->format->value}".($exercise->probeSet === null ? '' : " (check set {$exercise->probeSet})").": {$this->text($payload['prompt'] ?? '')} | accepted: ".implode(' / ', array_map(fn (mixed $entry): string => is_array($entry) ? $this->text($entry['text'] ?? '') : '', is_array($payload['accepted'] ?? null) ? $payload['accepted'] : [])),
+            LessonExerciseFormat::ChooseMeaning, LessonExerciseFormat::ChooseWord, LessonExerciseFormat::ChooseGap, LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => "- {$exercise->format->value}: {$this->text($payload['prompt'] ?? $payload['text'] ?? '')} | options: ".implode(' / ', array_map($this->text(...), is_array($payload['options'] ?? null) ? $payload['options'] : []))." | answer: {$this->text($payload['answer'] ?? '')}",
+            default => "- {$exercise->format->value}".($exercise->probeSet === null ? '' : " (check set {$exercise->probeSet})").": {$this->text($payload['prompt'] ?? $payload['text'] ?? '')} | accepted: ".implode(' / ', array_map(fn (mixed $entry): string => is_array($entry) ? $this->text($entry['text'] ?? '') : '', is_array($payload['accepted'] ?? null) ? $payload['accepted'] : [])),
         };
     }
 

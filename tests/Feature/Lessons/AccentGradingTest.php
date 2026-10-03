@@ -357,10 +357,6 @@ describe('other formats', function () {
             ->and($grade->targets)->toHaveCount(1);
     });
 
-    it('does not grade speaking before the speaking release', function () {
-        (new GradeLessonAnswer)->handle(seededExercise('meet.speak_repeat.la-habitacion'), ['transcripts' => ['la habitación']]);
-    })->throws(LogicException::class);
-
     it('refuses an exact-match exercise that has no accepted answers', function () {
         $exercise = typedExercise(LessonWorld::spanish(), LessonStage::Recall, []);
 

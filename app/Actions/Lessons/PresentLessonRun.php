@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Lessons;
 
+use App\Actions\Settings\GetUserSettings;
+use App\Enums\ExerciseFamily;
 use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonState;
@@ -24,6 +26,7 @@ final class PresentLessonRun
         private readonly SpeechLocaleResolver $speechLocaleResolver = new SpeechLocaleResolver,
         private readonly SummarizeLessonRun $summarizeLessonRun = new SummarizeLessonRun,
         private readonly LessonProgress $lessonProgress = new LessonProgress,
+        private readonly GetUserSettings $getUserSettings = new GetUserSettings,
     ) {}
 
     /**
@@ -35,6 +38,11 @@ final class PresentLessonRun
      * keys: nothing on the device can show or grade them, and the exercise
      * key, which names the word, is replaced by the id. Once a run is
      * completed it also carries its summary and the lesson to play next.
+     *
+     * What a learner has to hear is sent as audio, never as readable text: a
+     * dictation never carries its text, and neither does a spoken answer, and
+     * a check strips the spoken text of every listening and speaking exercise
+     * as well as the answers.
      *
      * @return array<string, mixed>
      */
@@ -53,6 +61,8 @@ final class PresentLessonRun
             ->keyBy('id');
 
         $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all())));
+        $user = $run->user ?? throw new LogicException("Run {$run->id} has no user.");
+        $settings = $this->getUserSettings->handle($user);
 
         $plan = [];
 
@@ -94,6 +104,10 @@ final class PresentLessonRun
                 'replayLimit' => $stage->replayLimit(),
                 'offersSlowerAudio' => $stage->offersSlowerAudio(),
                 'speechLocale' => $this->speechLocaleResolver->forLanguage($language),
+                'pauses' => [
+                    'listening' => $settings->activePause(ExerciseFamily::Listening)?->toIso8601String(),
+                    'speaking' => $settings->activePause(ExerciseFamily::Speaking)?->toIso8601String(),
+                ],
             ],
             'plan' => $plan,
             'answers' => $run->answers()->orderBy('id')->get()->map(fn (LessonAnswer $answer): array => [
@@ -102,6 +116,7 @@ final class PresentLessonRun
                 'attempt' => $answer->attempt,
                 'hinted' => $answer->hinted,
                 'skipped' => $answer->skipped,
+                'skipReason' => $answer->skip_reason?->value,
                 'correct' => $hidesAnswers ? null : $answer->is_correct,
                 'flagged' => $answer->flagged_at !== null,
                 'settled' => $answer->skipped ? false : ($hidesAnswers || $answer->settlesExercise()),
@@ -136,12 +151,14 @@ final class PresentLessonRun
      */
     private function exercise(LessonExercise $exercise, bool $hidesAnswers, array $clips): array
     {
+        $payload = $hidesAnswers ? $this->withoutKeys($exercise->format, $exercise->payload) : $this->withoutSpans($exercise->payload);
+
         return [
             'id' => $exercise->id,
             'key' => $hidesAnswers ? (string) $exercise->id : $exercise->key,
             'block' => $exercise->block,
             'format' => $exercise->format->value,
-            'payload' => $this->withClips($exercise->format, $hidesAnswers ? $this->withoutKeys($exercise->payload) : $this->withoutSpans($exercise->payload), $clips),
+            'payload' => $this->withClips($exercise->format, $exercise->payload, $payload, $clips),
         ];
     }
 
@@ -176,16 +193,32 @@ final class PresentLessonRun
                 array_map(fn (mixed $example): mixed => is_array($example) ? ($example['text'] ?? null) : null, is_array($payload['examples'] ?? null) ? $payload['examples'] : []),
                 is_string(...),
             )),
+            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer => array_filter([$this->spokenText($format, $payload)], is_string(...)),
             default => [],
         };
     }
 
     /**
+     * The text a clip is made from. A spoken answer to an English cue plays its
+     * model answer once it is over; one that answers a question in the
+     * language plays the question first.
+     *
      * @param  array<string, mixed>  $payload
+     */
+    private function spokenText(LessonExerciseFormat $format, array $payload): ?string
+    {
+        $text = $payload['text'] ?? ($format === LessonExerciseFormat::SpeakAnswer ? $payload['prompt'] ?? null : null);
+
+        return is_string($text) ? $text : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $raw  the stored payload
+     * @param  array<string, mixed>  $payload  the payload with its answer keys already handled
      * @param  array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>  $clips
      * @return array<string, mixed>
      */
-    private function withClips(LessonExerciseFormat $format, array $payload, array $clips): array
+    private function withClips(LessonExerciseFormat $format, array $raw, array $payload, array $clips): array
     {
         $none = ['audioUrl' => null, 'audioSlowUrl' => null];
 
@@ -200,7 +233,39 @@ final class PresentLessonRun
             );
         }
 
-        return $payload;
+        $spoken = $this->spokenText($format, $raw);
+
+        if ($spoken === null || ! in_array($format, [LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer], true)) {
+            return $payload;
+        }
+
+        $audio = $clips[$spoken];
+        $playsFirst = $format !== LessonExerciseFormat::SpeakAnswer || ! isset($raw['text']);
+
+        return [...$this->withoutSpokenText($format, $payload), ...$audio, 'audioRole' => $playsFirst ? 'prompt' : 'model'];
+    }
+
+    /**
+     * What is left of a listening or speaking exercise once the text that
+     * gives its answer away is taken out. A dictation never carries its text
+     * and a spoken answer never carries its model answer, because the
+     * verdict shows them afterwards. A word heard and chosen keeps its text,
+     * which the answer shows once it is over and which the browser reads when
+     * a clip is missing, since its answer is already among the options.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function withoutSpokenText(LessonExerciseFormat $format, array $payload): array
+    {
+        $remove = match ($format) {
+            LessonExerciseFormat::ListenType => ['text', 'accepted'],
+            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => [],
+            LessonExerciseFormat::SpeakRepeat => ['accepted'],
+            default => ['text', 'accepted', 'pattern'],
+        };
+
+        return array_diff_key($payload, array_flip([...$remove, 'slots']));
     }
 
     /**
@@ -217,12 +282,27 @@ final class PresentLessonRun
     }
 
     /**
+     * A check gives no verdict, so nothing in its payload may carry an answer:
+     * not the accepted texts, the keyword slots or the question answers, and
+     * not the text a listening or speaking exercise is made from, which is
+     * its answer. A spoken question is heard, never read, so it goes too.
+     *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function withoutKeys(array $payload): array
+    private function withoutKeys(LessonExerciseFormat $format, array $payload): array
     {
+        $heardQuestion = $format === LessonExerciseFormat::SpeakAnswer && ! isset($payload['text']);
+
         unset($payload['accepted'], $payload['answer'], $payload['slots'], $payload['required'], $payload['substitute_questions']);
+
+        if (in_array($format, [LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer], true)) {
+            unset($payload['text'], $payload['pattern']);
+        }
+
+        if ($heardQuestion) {
+            unset($payload['prompt'], $payload['english']);
+        }
 
         if (is_array($payload['questions'] ?? null)) {
             $payload['questions'] = array_values(array_map(function (mixed $question): mixed {
