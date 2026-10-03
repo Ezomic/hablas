@@ -14,6 +14,11 @@ final class FakeSpeechEngine implements SpeechEngine
     {
         return "{$voice->id}|{$speed->value}|{$text}";
     }
+
+    public function synthesizeBatch(VoiceConfig $voice, SpeechSpeed $speed, array $texts): array
+    {
+        return array_map(fn (string $text): string => $this->synthesize($voice, $speed, $text), $texts);
+    }
 }
 
 it('resolves the engine named in config', function (): void {

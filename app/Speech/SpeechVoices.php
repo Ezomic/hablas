@@ -10,6 +10,14 @@ final class SpeechVoices
 {
     public function __construct(private readonly Repository $config) {}
 
+    /** @return list<string> */
+    public function languages(): array
+    {
+        $languages = $this->config->get('speech.languages', []);
+
+        return is_array($languages) ? array_map(strval(...), array_keys($languages)) : [];
+    }
+
     /** @return list<VoiceConfig> */
     public function forLanguage(string $language): array
     {

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Speech\SupertonicEngine;
+
 $supertonic = static fn (string $voice, bool $primary = false): array => [
     'id' => 'supertonic-'.strtolower($voice),
     'engine' => 'supertonic',
@@ -28,7 +30,13 @@ return [
 
     'normaliser_version' => 1,
 
-    'engines' => [],
+    'python' => env('SPEECH_PYTHON', 'python3'),
+
+    'models_dir' => env('SPEECH_MODELS_DIR'),
+
+    'engines' => [
+        'supertonic' => SupertonicEngine::class,
+    ],
 
     'languages' => [
         'es' => ['require_audio' => true, 'voices' => $voices()],
