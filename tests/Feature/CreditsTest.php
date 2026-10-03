@@ -30,11 +30,15 @@ it('keeps the NOTICE file in sync with the config', function (): void {
 it('regenerates the NOTICE file with speech:notice', function (): void {
     $before = file_get_contents(base_path('NOTICE'));
 
-    file_put_contents(base_path('NOTICE'), 'stale');
+    try {
+        file_put_contents(base_path('NOTICE'), 'stale');
 
-    $this->artisan('speech:notice')->assertSuccessful();
+        $this->artisan('speech:notice')->assertSuccessful();
 
-    expect(file_get_contents(base_path('NOTICE')))->toBe($before);
+        expect(file_get_contents(base_path('NOTICE')))->toBe($before);
+    } finally {
+        file_put_contents(base_path('NOTICE'), $before);
+    }
 });
 
 it('translates every use restriction in both interface languages', function (): void {

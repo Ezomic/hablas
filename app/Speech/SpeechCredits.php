@@ -10,6 +10,7 @@ final class SpeechCredits
 
     /**
      * @return list<array{
+     *     key: string,
      *     engine: string,
      *     license: string,
      *     licenseUrl: string,
@@ -25,9 +26,10 @@ final class SpeechCredits
 
         foreach ($this->voices->languages() as $language) {
             foreach ($this->voices->forLanguage($language) as $voice) {
-                $key = implode('|', [$voice->engine, $voice->license, $voice->attribution, $voice->sourceUrl]);
+                $key = md5(serialize([$voice->engine, $voice->license, $voice->licenseUrl, $voice->attribution, $voice->sourceUrl, $voice->restrictions]));
 
                 $credits[$key] ??= [
+                    'key' => $key,
                     'engine' => $voice->engine,
                     'license' => $voice->license,
                     'licenseUrl' => $voice->licenseUrl,

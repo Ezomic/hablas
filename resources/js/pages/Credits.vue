@@ -4,6 +4,7 @@ import HablasLogoIcon from '@/components/HablasLogoIcon.vue';
 import { home } from '@/routes';
 
 type Credit = {
+    key: string;
     engine: string;
     license: string;
     licenseUrl: string;
@@ -48,7 +49,7 @@ const voiceList = (voices: Record<string, string[]>): string =>
 
             <section
                 v-for="credit in credits"
-                :key="credit.attribution"
+                :key="credit.key"
                 class="mt-10 border-t border-border pt-8"
                 data-test="credit"
             >
