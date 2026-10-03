@@ -68,13 +68,14 @@ def main() -> int:
     for line in sys.stdin:
         if not line.strip():
             continue
-        request = json.loads(line)
+        request = {}
         try:
+            request = json.loads(line)
             mp3, duration_ms = encode(base64.b64decode(request["wav"]))
             result = {"id": request["id"], "mp3": base64.b64encode(mp3).decode("ascii"), "duration_ms": duration_ms}
         except Exception as error:
             failed += 1
-            result = {"id": request.get("id"), "error": str(error)}
+            result = {"id": request.get("id") if isinstance(request, dict) else None, "error": str(error)}
         sys.stdout.write(json.dumps(result) + "\n")
         sys.stdout.flush()
     return 1 if failed else 0

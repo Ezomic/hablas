@@ -10,6 +10,8 @@ use App\Services\UnitContentRegistry;
 use App\Speech\AudioEncoder;
 use App\Speech\SpeechKey;
 use App\Speech\SpeechVoices;
+use App\Speech\SupertonicEngine;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\FakeAudioEncoder;
 use Tests\Support\FakeSpeechEngine;
@@ -137,6 +139,61 @@ describe('speech:generate', function (): void {
             ->assertSuccessful();
     });
 
+    it('rejects a limit that is not a positive integer', function (string $limit): void {
+        $this->artisan('speech:generate', ['language' => 'es', '--limit' => $limit])
+            ->expectsOutputToContain('The limit must be a positive integer.')
+            ->assertFailed();
+
+        expect(FakeSpeechEngine::$batches)->toBe([]);
+    })->with(['0', '-3', 'abc', '2.5']);
+
+    it('leaves a good file in place when the write fails and keeps no temporary file', function (): void {
+        $this->artisan('speech:generate', ['language' => 'es', '--limit' => '1'])->assertSuccessful();
+        $path = primaryPath('el gato', SpeechSpeed::Normal);
+        $row = SpeechClip::query()->where('speed', 'normal')->firstOrFail();
+
+        $real = Storage::disk('public');
+        $failing = Mockery::mock($real)->makePartial();
+        $failing->shouldReceive('move')->andThrow(new RuntimeException('disk full'));
+        Storage::set('public', $failing);
+        $real->put($path, 'good');
+
+        $this->artisan('speech:generate', ['language' => 'es', '--limit' => '1', '--force' => true])
+            ->expectsOutputToContain('error: disk full')
+            ->assertFailed();
+
+        expect($real->get($path))->toBe('good')
+            ->and($real->allFiles('speech'))->each->not->toEndWith('.tmp')
+            ->and($row->fresh()?->bytes)->toBe($row->bytes);
+    });
+
+    it('resumes a half-finished run and clears stale temporary files', function (): void {
+        $this->artisan('speech:generate', ['language' => 'es', '--limit' => '1'])->assertSuccessful();
+        $stale = primaryPath('la casa', SpeechSpeed::Normal).'.tmp';
+        Storage::disk('public')->put($stale, 'half');
+
+        $this->artisan('speech:generate', ['language' => 'es'])
+            ->expectsOutputToContain('generated 4 of 4 clips, 0 failed, 2 skipped')
+            ->assertSuccessful();
+
+        Storage::disk('public')->assertMissing($stale);
+        expect(SpeechClip::query()->count())->toBe(6);
+    });
+
+    it('shows the first helper errors', function (): void {
+        config(['speech.engines.supertonic' => SupertonicEngine::class]);
+        Process::fake(['*' => Process::result(implode("\n", array_map(
+            fn (int $id): string => json_encode(['id' => $id, 'error' => "model exploded {$id}"], JSON_THROW_ON_ERROR),
+            range(0, 9),
+        ))."\n", exitCode: 1)]);
+
+        $this->artisan('speech:generate', ['language' => 'es', '--speed' => 'normal'])
+            ->expectsOutputToContain('error: model exploded 0')
+            ->expectsOutputToContain('error: model exploded 2')
+            ->doesntExpectOutputToContain('model exploded 3')
+            ->assertFailed();
+    });
+
     it('reports clips the engine could not speak and fails', function (): void {
         VocabularyItem::factory()->create(['language_id' => Language::query()->where('code', 'es')->value('id'), 'term' => FakeSpeechEngine::FAILING_TEXT]);
 
@@ -183,6 +240,15 @@ describe('speech:index', function (): void {
             ->and(SpeechClip::query()->where('speed', 'slow')->value('bytes'))->toBe(6);
     });
 
+    it('ignores empty files and stray temporary files', function (): void {
+        Storage::disk('public')->put(primaryPath('el gato', SpeechSpeed::Normal), '');
+        Storage::disk('public')->put(primaryPath('la casa', SpeechSpeed::Normal).'.tmp', 'half');
+
+        $this->artisan('speech:index')->expectsOutputToContain('Indexed 0 clips.')->assertSuccessful();
+
+        expect(SpeechClip::query()->count())->toBe(0);
+    });
+
     it('keeps a known duration and corrects a changed size', function (): void {
         $this->artisan('speech:generate', ['language' => 'es', '--limit' => '1'])->assertSuccessful();
         Storage::disk('public')->put(primaryPath('el gato', SpeechSpeed::Normal), 'changed');
@@ -215,6 +281,41 @@ describe('speech:prune', function (): void {
         expect(Storage::disk('public')->allFiles('speech'))->toHaveCount(6)
             ->and(SpeechClip::query()->count())->toBe(6);
         Storage::disk('public')->assertExists(primaryPath('el gato', SpeechSpeed::Normal));
+    });
+
+    it('ignores temporary files', function (): void {
+        Storage::disk('public')->put('speech/es/supertonic-f1/ab/half.mp3.tmp', 'half');
+
+        $this->artisan('speech:prune', ['--force' => true])->expectsOutputToContain('Removed 1 files')->assertSuccessful();
+
+        Storage::disk('public')->assertExists('speech/es/supertonic-f1/ab/half.mp3.tmp');
+    });
+
+    it('refuses to delete anything when the corpus is empty', function (): void {
+        VocabularyItem::query()->delete();
+
+        $this->artisan('speech:prune', ['--force' => true, '--allow-mass-delete' => true])
+            ->expectsOutputToContain('The current corpus has no clips')
+            ->assertFailed();
+
+        expect(Storage::disk('public')->allFiles('speech'))->toHaveCount(7)
+            ->and(SpeechClip::query()->count())->toBe(7);
+    });
+
+    it('refuses to delete more than half of the files unless allowed', function (): void {
+        foreach (range(1, 7) as $number) {
+            Storage::disk('public')->put("speech/es/supertonic-f1/aa/orphan{$number}.mp3", 'x');
+        }
+
+        $this->artisan('speech:prune', ['--force' => true])
+            ->expectsOutputToContain('pass --allow-mass-delete')
+            ->assertFailed();
+
+        expect(Storage::disk('public')->allFiles('speech'))->toHaveCount(14);
+
+        $this->artisan('speech:prune', ['--force' => true, '--allow-mass-delete' => true])->assertSuccessful();
+
+        expect(Storage::disk('public')->allFiles('speech'))->toHaveCount(6);
     });
 
     it('treats clips of every configured voice as current', function (): void {
@@ -256,7 +357,7 @@ describe('speech:verify', function (): void {
         $this->artisan('speech:verify', ['language' => 'es'])->expectsOutputToContain('... and 16 more')->assertFailed();
     });
 
-    it('passes for a language without voices', function (): void {
-        $this->artisan('speech:verify', ['language' => 'xx'])->expectsOutputToContain('0 clips without audio.')->assertSuccessful();
+    it('fails for a language without a configured voice', function (): void {
+        $this->artisan('speech:verify', ['language' => 'xx'])->expectsOutputToContain('No voice configured for [xx].')->assertFailed();
     });
 });

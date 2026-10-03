@@ -29,6 +29,13 @@ class SpeechGenerate extends Command
         $language = $this->argument('language');
         $languages = is_string($language) ? [$language] : $voices->languages();
         $limit = $this->option('limit');
+
+        if ($limit !== null && preg_match('/^[1-9][0-9]*$/', $limit) !== 1) {
+            $this->error('The limit must be a positive integer.');
+
+            return self::FAILURE;
+        }
+
         $failed = false;
 
         foreach ($languages as $code) {

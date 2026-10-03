@@ -29,7 +29,7 @@ final class SpeechLibrary
 
         foreach ($this->voices->languages() as $language) {
             foreach ($this->inventory->clips($language) as $clip) {
-                if (! isset($onDisk[$clip->path()])) {
+                if (! isset($onDisk[$clip->path()]) || $disk->size($clip->path()) === 0) {
                     continue;
                 }
 
@@ -70,8 +70,8 @@ final class SpeechLibrary
         return array_values(array_filter($clips, fn (SpeechClipSpec $clip): bool => ! isset($existing[$clip->hash])));
     }
 
-    /** @return array{files: list<string>, rows: int} the files and rows the current corpus no longer asks for, removed only when forced */
-    public function prune(bool $force): array
+    /** @return array{files: list<string>, rows: int, total: int, refusal: string|null} the files and rows the current corpus no longer asks for, removed only when forced and not refused */
+    public function prune(bool $force, bool $allowMassDelete = false): array
     {
         $paths = [];
         $hashes = [];
@@ -84,13 +84,22 @@ final class SpeechLibrary
         }
 
         $disk = $this->disk();
-        $orphanFiles = array_values(array_filter($disk->allFiles('speech'), fn (string $path): bool => ! isset($paths[$path])));
+        $onDisk = array_values(array_filter($disk->allFiles('speech'), fn (string $path): bool => ! str_ends_with($path, '.tmp')));
+        $orphanFiles = array_values(array_filter($onDisk, fn (string $path): bool => ! isset($paths[$path])));
         $orphanRows = SpeechClip::query()->get(['id', 'hash'])
             ->reject(fn (SpeechClip $row): bool => isset($hashes[$row->hash]))
             ->pluck('id')
             ->all();
 
-        if ($force) {
+        $refusal = null;
+
+        if ($force && $paths === []) {
+            $refusal = 'The current corpus has no clips, so every file would be an orphan.';
+        } elseif ($force && ! $allowMassDelete && count($orphanFiles) * 2 > count($onDisk)) {
+            $refusal = 'More than half of the files on disk are orphans; pass --allow-mass-delete to remove them.';
+        }
+
+        if ($force && $refusal === null) {
             $disk->delete($orphanFiles);
 
             foreach (array_chunk($orphanRows, self::CHUNK) as $ids) {
@@ -98,7 +107,7 @@ final class SpeechLibrary
             }
         }
 
-        return ['files' => $orphanFiles, 'rows' => count($orphanRows)];
+        return ['files' => $orphanFiles, 'rows' => count($orphanRows), 'total' => count($onDisk), 'refusal' => $refusal];
     }
 
     private function disk(): Filesystem

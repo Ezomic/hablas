@@ -10,10 +10,13 @@ use Closure;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Filesystem\Factory;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Throwable;
 
 final class SpeechGenerator
 {
     private const BATCH = 10;
+
+    private const SHOWN_ERRORS = 3;
 
     private const NORMAL_BYTES_PER_CHARACTER = 550;
 
@@ -25,6 +28,7 @@ final class SpeechGenerator
         private readonly AudioEncoder $encoder,
         private readonly Repository $config,
         private readonly Factory $filesystem,
+        private readonly SpeechFailures $failures,
     ) {}
 
     /**
@@ -51,6 +55,13 @@ final class SpeechGenerator
             return new SpeechRunReport(count($pending), $skipped, 0, 0, $this->estimate($pending));
         }
 
+        $disk->delete(array_values(array_filter(
+            $disk->allFiles("speech/{$language}/{$voice->id}"),
+            fn (string $path): bool => str_ends_with($path, '.tmp'),
+        )));
+
+        $this->failures->drain();
+        $shown = 0;
         $generated = 0;
         $failed = 0;
         $bytes = 0;
@@ -66,6 +77,12 @@ final class SpeechGenerator
                 $bytes += array_sum($stored);
 
                 $progress("{$speed->value}: ".($generated + $failed).' of '.count($pending).' clips');
+
+                foreach ($this->failures->drain() as $message) {
+                    if ($shown++ < self::SHOWN_ERRORS) {
+                        $progress("error: {$message}");
+                    }
+                }
             }
         }
 
@@ -98,7 +115,17 @@ final class SpeechGenerator
             }
 
             $clip = $clips[$position];
-            $disk->put($clip->path(), $audio->bytes);
+            $temporary = $clip->path().'.tmp';
+
+            try {
+                $disk->put($temporary, $audio->bytes);
+                $disk->move($temporary, $clip->path());
+            } catch (Throwable $error) {
+                $disk->delete($temporary);
+                $this->failures->record($error->getMessage());
+
+                continue;
+            }
 
             SpeechClip::query()->updateOrCreate(['hash' => $clip->hash], [
                 'language' => $voice->language,

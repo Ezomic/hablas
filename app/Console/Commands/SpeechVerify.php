@@ -19,6 +19,12 @@ class SpeechVerify extends Command
     public function handle(SpeechLibrary $library, SpeechVoices $voices): int
     {
         $language = (string) $this->argument('language');
+        if ($voices->primary($language) === null) {
+            $this->error("No voice configured for [{$language}].");
+
+            return self::FAILURE;
+        }
+
         $missing = $library->missing($language);
 
         foreach (array_slice($missing, 0, self::SHOWN) as $clip) {

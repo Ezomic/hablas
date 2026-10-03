@@ -10,7 +10,10 @@ use RuntimeException;
 
 final class SpeechPython
 {
-    public function __construct(private readonly Repository $config) {}
+    public function __construct(
+        private readonly Repository $config,
+        private readonly SpeechFailures $failures,
+    ) {}
 
     /**
      * @param  list<array<string, mixed>>  $requests
@@ -36,6 +39,10 @@ final class SpeechPython
 
         foreach (explode("\n", $result->output()) as $line) {
             $row = json_decode($line, true);
+
+            if (is_array($row) && is_string($row['error'] ?? null)) {
+                $this->failures->record($row['error']);
+            }
 
             if (is_array($row) && is_int($row['id'] ?? null)) {
                 $answers[$row['id']] = array_filter($row, is_string(...), ARRAY_FILTER_USE_KEY);

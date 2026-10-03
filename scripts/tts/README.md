@@ -33,3 +33,5 @@ rsync -a --ignore-existing storage/app/public/speech/ <box>:/home/hablas/shared/
 ```
 
 `speech:generate` also takes `--voice=` (id or name, default is the primary voice), `--speed=normal|slow`, `--limit=` (texts, not clips) and `--force` (regenerate existing files).
+
+The speed multipliers in `config/speech.php` are not part of the clip hash. After changing one, run `speech:generate --force` or bump `normaliser_version`.

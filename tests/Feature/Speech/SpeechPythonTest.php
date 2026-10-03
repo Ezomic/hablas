@@ -103,6 +103,12 @@ it('encodes WAVs to MP3 through the encode helper', function (): void {
         && str_contains((string) $process->input, base64_encode('wav-a')));
 });
 
+it('treats an empty MP3 as a failed clip', function (): void {
+    Process::fake(['*' => Process::result(helperOutput(['id' => 0, 'mp3' => '', 'duration_ms' => 10]))]);
+
+    expect(app(Mp3Encoder::class)->encode(['wav']))->toBe([null]);
+});
+
 it('binds the MP3 encoder as the audio encoder', function (): void {
     expect(app(AudioEncoder::class))->toBeInstanceOf(Mp3Encoder::class);
 });

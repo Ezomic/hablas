@@ -22,7 +22,7 @@ final class Mp3Encoder implements AudioEncoder
             $duration = $answers[$position]['duration_ms'] ?? null;
             $bytes = is_string($mp3) ? base64_decode($mp3, true) : false;
 
-            $clips[] = is_string($bytes) && is_int($duration) ? new EncodedAudio($bytes, $duration) : null;
+            $clips[] = is_string($bytes) && $bytes !== '' && is_int($duration) ? new EncodedAudio($bytes, $duration) : null;
         }
 
         return $clips;
