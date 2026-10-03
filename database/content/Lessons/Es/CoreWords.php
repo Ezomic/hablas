@@ -7,9 +7,10 @@ namespace Database\Content\Lessons\Es;
 /**
  * The A1 function words and forms every unit may use without teaching them:
  * articles, pronouns, the common forms of ser, estar, tener, haber and ir,
- * numbers to twenty, question words, small prepositions and the set phrases
- * of politeness. Any other word in a unit's text has to be one of the unit's
- * own words, a form its content declares, or glossed where it appears.
+ * numbers to twenty, question words, small prepositions, the set phrases of
+ * politeness and four first names. Any other word in a unit's text has to be
+ * one of the unit's own words, a form its content declares, or glossed where
+ * it appears.
  */
 final class CoreWords
 {
@@ -31,6 +32,7 @@ final class CoreWords
             'a', 'de', 'en', 'con', 'sin', 'para', 'por', 'y', 'o', 'pero',
             'no', 'sí', 'aquí', 'allí', 'muy', 'bien', 'también',
             'hola', 'buenos', 'buenas', 'días', 'tardes', 'gracias', 'muchas', 'favor', 'adiós',
+            'ana', 'pablo', 'marta', 'luis',
         ];
     }
 }
