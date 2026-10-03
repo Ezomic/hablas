@@ -41,6 +41,19 @@ final class LocaleCatalogs
     /**
      * @return list<string>
      */
+    public static function placeholders(string $message): array
+    {
+        preg_match_all('/\{(\w+)\}/', $message, $matches);
+
+        $names = array_values(array_unique($matches[1]));
+        sort($names);
+
+        return $names;
+    }
+
+    /**
+     * @return list<string>
+     */
     public static function phpSourceFiles(): array
     {
         $files = [];

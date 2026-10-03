@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
+import { setLocale } from '@/i18n';
 import type { ReviewForecast as Forecast } from '@/types/forecast';
 import ReviewForecast from './ReviewForecast.vue';
 
@@ -126,5 +127,20 @@ describe('review forecast', () => {
         );
         expect(wrapper.text()).not.toContain('Plus');
         expect(wrapper.find('ol').exists()).toBe(false);
+    });
+
+    it('names the days and counts the cards in the interface language', () => {
+        setLocale('nl');
+
+        const wrapper = mountForecast([3, 0, 5], 2, 1);
+
+        expect(wrapper.text()).toContain(
+            '8 kaarten te herhalen in de komende 14 dagen',
+        );
+        expect(wrapper.text()).toContain(
+            'Daarnaast 1 zwak punt om weg te werken en 2 nieuwe kaarten wachten.',
+        );
+        expect(wrapper.text()).toContain('Vandaag: 3 kaarten');
+        expect(wrapper.text()).toContain('vr 2 okt: 0 kaarten');
     });
 });

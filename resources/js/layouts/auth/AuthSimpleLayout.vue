@@ -6,12 +6,14 @@ import { home } from '@/routes';
 defineProps<{
     title?: string;
     description?: string;
+    reserveTop?: boolean;
 }>();
 </script>
 
 <template>
     <div
-        class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
+        class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background md:p-10"
+        :class="reserveTop ? 'px-6 pt-16 pb-6' : 'p-6'"
     >
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">

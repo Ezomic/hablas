@@ -8,7 +8,14 @@
         "logIn": "Log in",
         "createAccount": "Create account",
         "emailAddress": "Email address",
-        "somethingWentWrong": "Something went wrong."
+        "somethingWentWrong": "Something went wrong.",
+        "name": "Name",
+        "fullName": "Full name",
+        "previous": "Previous",
+        "next": "Next",
+        "reviewNow": "Review now",
+        "noActiveLanguage": "No active language yet.",
+        "days": "{count} day | {count} days"
     },
     "nav": {
         "settings": "Settings",
@@ -60,6 +67,111 @@
             "security": "Security",
             "appearance": "Appearance",
             "learning": "Learning"
+        },
+        "profile": {
+            "headTitle": "Profile settings",
+            "description": "Update your name and email address",
+            "unverified": "Your email address is unverified.",
+            "resend": "Click here to re-send the verification email.",
+            "linkSent": "A new verification link has been sent to your email address."
+        },
+        "appearance": {
+            "headTitle": "Appearance settings",
+            "description": "Update the appearance settings for your account",
+            "light": "Light",
+            "dark": "Dark",
+            "system": "System"
+        },
+        "security": {
+            "headTitle": "Security settings"
+        },
+        "delete": {
+            "title": "Delete account",
+            "description": "Delete your account and all of its resources",
+            "warning": "Warning",
+            "caution": "Please proceed with caution, this cannot be undone.",
+            "confirmTitle": "Are you sure you want to delete your account?",
+            "confirmBody": "Once your account is deleted, all of its resources and data will also be permanently deleted. We’ll ask you to confirm it’s you before this goes through."
+        },
+        "passkeys": {
+            "title": "Passkeys",
+            "description": "Manage your passkeys for passwordless sign-in",
+            "none": "No passkeys yet",
+            "noneHint": "Add a passkey to sign in without a password",
+            "added": "Added {when}",
+            "lastUsed": "Last used {when}",
+            "remove": "Remove",
+            "removeTitle": "Remove passkey",
+            "removeBody": "Are you sure you want to remove the \"{name}\" passkey? You will no longer be able to use it to sign in.",
+            "removing": "Removing...",
+            "unsupported": "Passkeys are not supported in this browser.",
+            "add": "Add passkey",
+            "nameLabel": "Passkey name",
+            "namePlaceholder": "e.g., MacBook Pro, iPhone",
+            "nameHint": "A name helps you identify this passkey later.",
+            "registering": "Registering...",
+            "register": "Register passkey"
+        },
+        "twoFactor": {
+            "title": "Two-factor authentication",
+            "description": "Manage your two-factor authentication settings",
+            "enableIntro": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+            "continueSetup": "Continue setup",
+            "enable": "Enable 2FA",
+            "enabledIntro": "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+            "disable": "Disable 2FA"
+        },
+        "recovery": {
+            "title": "2FA recovery codes",
+            "description": "Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.",
+            "hide": "Hide recovery codes",
+            "view": "View recovery codes",
+            "regenerate": "Regenerate codes",
+            "note": "Each recovery code can be used once to access your account and will be removed after use. If you need more, click {regenerate} above."
+        },
+        "learning": {
+            "headTitle": "Learning settings",
+            "description": "Control reminders, new-item pacing, and content focus",
+            "reminderFrequency": "Reminder frequency",
+            "frequency": {
+                "daily": "Daily",
+                "weekly": "Weekly",
+                "never": "Never"
+            },
+            "capLabel": "Daily new-item cap override",
+            "capPlaceholder": "Adaptive (default)",
+            "capNote": "Leave blank to let the app adjust your daily new-item limit automatically based on your review backlog.",
+            "contentFocus": "Content focus",
+            "focus": {
+                "none": "No preference",
+                "travel": "Travel",
+                "everyday_social": "Everyday & social",
+                "professional": "Professional"
+            },
+            "reviewStyle": "Review style",
+            "mode": {
+                "recognition": "Recognise: read, then reveal",
+                "production": "Produce: type the word",
+                "mix": "Mix"
+            },
+            "modeNote": "Producing asks you to type each word from its English meaning. Mix does that only for words you already know well. Grammar cards are always read, then revealed.",
+            "push": {
+                "title": "Push notifications",
+                "digest": "Get a browser notification for your daily digest instead of (or alongside) email.",
+                "daily": "With Daily reminders, you also get at most one push a day, between noon and 10 pm Amsterdam time, when your due reviews climb to 20 or more.",
+                "enable": "Enable push notifications"
+            },
+            "interests": {
+                "title": "Interests",
+                "note": "Units that match your interests are prioritized when picking what to learn next.",
+                "football": "Football",
+                "cooking": "Cooking",
+                "tech": "Tech",
+                "music": "Music",
+                "travel": "Travel",
+                "food": "Food",
+                "save": "Save interests"
+            }
         }
     },
     "welcome": {
@@ -315,6 +427,225 @@
             "practiceButton": "Practise the missed items",
             "retakeNote": "{n} item not proven yet. Your retake is open. | {n} items not proven yet. Your retake is open.",
             "practiceNote": "{n} item not proven yet. Your retake opens tomorrow, so practise first. | {n} items not proven yet. Your retake opens tomorrow, so practise first."
+        }
+    },
+    "skills": {
+        "reading": "Reading",
+        "listening": "Listening",
+        "speaking": "Speaking",
+        "writing": "Writing"
+    },
+    "dashboard": {
+        "ceiling": {
+            "one": "Your overall level is held by {skill}. Practice {skill} to move it, or re-take the {skill} placement if that level looks wrong.",
+            "many": "Your overall level is held by {skills}. Practice them to move it, or re-take a placement if one of those levels looks wrong."
+        },
+        "breakdown": "Per-skill breakdown",
+        "viewPlacement": "View placement results",
+        "retake": "Re-take {skill}",
+        "retakeAvailable": "Available on {date}",
+        "portuguese": {
+            "label": "New language unlocked",
+            "title": "Ready to start Portuguese?",
+            "body": "You've reached A2 in Spanish. Portuguese shares a lot with Spanish, but we'll flag the differences as you go.",
+            "start": "Start learning Portuguese"
+        },
+        "nextUp": "Next up",
+        "reinforce": {
+            "title": "Reinforce what's tricky first",
+            "body": "Your recent reviews have had a lot of misses — revisit those before starting something new."
+        },
+        "continue": "Continue",
+        "inProgress": "In progress",
+        "continueLine": "Continue lesson {number} of {count}: {title}",
+        "startLine": "Start lesson {number} of {count}: {title}",
+        "continueButton": "Continue lesson {number} of {count}",
+        "startButton": "Start lesson {number} of {count}",
+        "startUnit": "Start unit",
+        "results": {
+            "label": "Results are in",
+            "title": "{unit}: {lesson}",
+            "see": "See results"
+        },
+        "cardsDue": "{count} card due | {count} cards due",
+        "startReview": "Start review",
+        "weakSpots": {
+            "count": "{count} card to revisit | {count} cards to revisit",
+            "body": "Cards you've missed a few times in a row, set aside until you get them right once more.",
+            "review": "Review weak spots"
+        },
+        "streak": {
+            "title": "Streak",
+            "longest": "Longest streak: {days}",
+            "freezeDays": "Freeze days remaining: {count}",
+            "freezeNote": "A missed day uses a freeze day instead of breaking your streak.",
+            "earnBack": "Earn one back in {count} more active day. | Earn one back in {count} more active days."
+        },
+        "share": {
+            "label": "Share",
+            "link": "Get shareable link"
+        }
+    },
+    "units": {
+        "intro": "Every {language} unit by level. Completed units stay open as a reference.",
+        "reinforce": {
+            "title": "Reinforce what's tricky first",
+            "body": "Your recent reviews have had a lot of misses, so new units wait until you've revisited them."
+        },
+        "filters": {
+            "skill": "Skill",
+            "progress": "Progress",
+            "allSkills": "All skills",
+            "allUnits": "All units",
+            "notCompleted": "Not completed"
+        },
+        "availability": {
+            "completed": "Completed",
+            "in_progress": "In progress",
+            "available": "Available",
+            "held_back": "After review",
+            "locked": "Locked"
+        },
+        "none": "No {language} units yet.",
+        "noMatch": "No units match these filters.",
+        "notes": {
+            "lesson": "Lesson {current} of {count}",
+            "locked": "Unlocks when your overall level reaches {level}.",
+            "heldBack": "Opens once your recent reviews are back on track."
+        },
+        "watchOut": "Watch out for",
+        "wordsAndGrammar": "Words and grammar in this unit",
+        "alreadyCompleted": "You've already completed this unit. Its cards are in your review deck.",
+        "markAgain": "Mark complete again",
+        "complete": "Complete unit and add to review deck",
+        "cognate": "cognate",
+        "grammar": "Grammar"
+    },
+    "vocabulary": {
+        "intro": "Every word and grammar point from the units you've completed.",
+        "searchPlaceholder": "Search words or translations",
+        "searchLabel": "Search vocabulary",
+        "sortBy": "Sort by",
+        "sort": {
+            "recent": "Recently added",
+            "due": "Due date",
+            "alphabetical": "A to Z"
+        },
+        "count": "{count} card | {count} cards",
+        "state": {
+            "new": "New",
+            "learning": "Learning",
+            "review": "Review",
+            "relearning": "Relearning"
+        },
+        "weakSpot": "Weak spot",
+        "notStudied": "Not studied yet",
+        "empty": "Complete a unit to start your deck.",
+        "noMatch": "Nothing matches that search.",
+        "pages": "Pages",
+        "page": "Page {current} of {last}"
+    },
+    "review": {
+        "due": {
+            "overdue": "Overdue",
+            "today": "Due today",
+            "tomorrow": "Due tomorrow",
+            "inDays": "Due in {count} day | Due in {count} days"
+        },
+        "emptyDue": "All caught up, no cards due for review.",
+        "emptyWeakSpots": "No weak spots right now, nicely done.",
+        "weakSpotsIntro": "Cards you've missed a few times in a row. Get one right to move it back into your normal review rotation.",
+        "rating": {
+            "again": "Again",
+            "hard": "Hard",
+            "good": "Good",
+            "easy": "Easy"
+        },
+        "errorTags": {
+            "wrong_gender": "Wrong gender",
+            "ser_estar_confusion": "Ser vs estar",
+            "false_friend": "False friend",
+            "wrong_tense": "Wrong tense",
+            "portunol_slip": "Portuñol slip",
+            "other": "Something else"
+        },
+        "deck": {
+            "offline": "You're offline, so ratings are saved and will sync once you're back online.",
+            "typeWithArticle": "Type the word, with its article",
+            "type": "Type the word",
+            "check": "Check",
+            "correct": "Correct",
+            "youWrote": "You wrote “{answer}”.",
+            "unchecked": "Couldn't check your answer, so compare it yourself. You wrote “{answer}”.",
+            "showAnswer": "Show answer",
+            "spaceKey": "space",
+            "whatWentWrong": "What went wrong?",
+            "notSure": "Not sure",
+            "left": {
+                "card": "{count} card left | {count} cards left",
+                "weakSpot": "{count} weak spot left | {count} weak spots left"
+            },
+            "complete": "Session complete",
+            "reviewed": {
+                "card": "{count} card reviewed. | {count} cards reviewed.",
+                "weakSpot": "{count} weak spot reviewed. | {count} weak spots reviewed."
+            },
+            "stillDue": {
+                "card": "{count} more card still due. Start another session whenever you're ready. | {count} more cards still due. Start another session whenever you're ready.",
+                "weakSpot": "{count} more weak spot still due. Start another session whenever you're ready. | {count} more weak spots still due. Start another session whenever you're ready."
+            },
+            "nothingDue": "Nothing else due right now.",
+            "saveFailed": "Couldn't save that rating, try again."
+        },
+        "forecast": {
+            "comingUp": "Coming up",
+            "today": "Today",
+            "dayLabel": "{name}: {count} card | {name}: {count} cards",
+            "none": "No cards due in the next {days} days",
+            "due": "{count} card due in the next {days} days | {count} cards due in the next {days} days",
+            "toClear": "{count} weak spot to clear | {count} weak spots to clear",
+            "waiting": "{count} new card waiting | {count} new cards waiting",
+            "plus": "Plus {list}.",
+            "list": "{list}.",
+            "chartLabel": "Cards due each day"
+        }
+    },
+    "progress": {
+        "unitsCompleted": "Units completed",
+        "mixedUp": "Frequently mixed up",
+        "errorTags": {
+            "wrong_gender": "Wrong gender",
+            "ser_estar_confusion": "Ser/estar confusion",
+            "false_friend": "False friend",
+            "wrong_tense": "Wrong tense",
+            "portunol_slip": "Portuñol slip",
+            "other": "Other"
+        },
+        "card": {
+            "noLevel": "No level yet",
+            "level": "CEFR level",
+            "streak": "Streak",
+            "units": "Units completed"
+        },
+        "public": {
+            "title": "{name}'s progress",
+            "sharedFrom": "Shared from Hablas"
+        },
+        "share": {
+            "title": "Share your progress",
+            "description": "Anyone with this link can view a read-only snapshot of your progress — no login required.",
+            "needPlacement": "Complete placement first to build a shareable snapshot.",
+            "copied": "Copied!",
+            "copy": "Copy link",
+            "regenerate": "Regenerate link",
+            "regenerateNote": "Regenerating replaces this link — the old one stops working.",
+            "imageTitle": "Share an image",
+            "imageNote": "A picture of your level, streak and units completed. Your name isn't on it.",
+            "download": "Download image",
+            "shareImage": "Share image",
+            "createFailed": "Couldn't create the image.",
+            "shareFailed": "Couldn't share the image.",
+            "imageDescription": "Hablas progress in {language}. CEFR level: {level}. Streak: {streak}. Units completed: {completion}."
         }
     }
 }

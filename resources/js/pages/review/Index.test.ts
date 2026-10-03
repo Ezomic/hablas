@@ -6,6 +6,7 @@ import Index from './Index.vue';
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
 }));
 
 vi.mock('@/routes/review/reviews', () => ({

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import {
     Card,
     CardContent,
@@ -6,8 +7,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { pluralizeDays } from '@/lib/pluralize';
-import { skillLabels } from '@/lib/skillLabels';
+import { skillKeys, skillLabel } from '@/lib/skillLabels';
 
 export interface ProgressSnapshot {
     language: { code: string; name: string };
@@ -22,14 +22,13 @@ defineProps<{
     snapshot: ProgressSnapshot;
 }>();
 
-const errorTagLabels: Record<string, string> = {
-    wrong_gender: 'Wrong gender',
-    ser_estar_confusion: 'Ser/estar confusion',
-    false_friend: 'False friend',
-    wrong_tense: 'Wrong tense',
-    portunol_slip: 'Portuñol slip',
-    other: 'Other',
-};
+const { t, te } = useI18n();
+
+function errorTagLabel(category: string): string {
+    const key = `progress.errorTags.${category}`;
+
+    return te(key) ? t(key) : category;
+}
 </script>
 
 <template>
@@ -43,11 +42,11 @@ const errorTagLabels: Record<string, string> = {
             </CardHeader>
             <CardContent class="flex flex-col gap-2">
                 <div
-                    v-for="skill in Object.keys(skillLabels)"
+                    v-for="skill in skillKeys"
                     :key="skill"
                     class="flex items-center justify-between border-b pb-2 text-sm last:border-b-0"
                 >
-                    <span>{{ skillLabels[skill] }}</span>
+                    <span>{{ skillLabel(skill) }}</span>
                     <span class="font-medium">{{
                         snapshot.skillLevels[skill] ?? '—'
                     }}</span>
@@ -57,21 +56,27 @@ const errorTagLabels: Record<string, string> = {
 
         <Card>
             <CardHeader>
-                <CardDescription>Streak</CardDescription>
+                <CardDescription>{{
+                    t('dashboard.streak.title')
+                }}</CardDescription>
                 <CardTitle class="text-4xl">
-                    {{ snapshot.streak.currentLength }}
-                    {{ pluralizeDays(snapshot.streak.currentLength) }}
+                    {{ t('common.days', snapshot.streak.currentLength) }}
                 </CardTitle>
             </CardHeader>
             <CardContent class="text-sm text-muted-foreground">
-                Longest streak: {{ snapshot.streak.longestLength }}
-                {{ pluralizeDays(snapshot.streak.longestLength) }}
+                {{
+                    t('dashboard.streak.longest', {
+                        days: t('common.days', snapshot.streak.longestLength),
+                    })
+                }}
             </CardContent>
         </Card>
 
         <Card>
             <CardHeader>
-                <CardDescription>Units completed</CardDescription>
+                <CardDescription>{{
+                    t('progress.unitsCompleted')
+                }}</CardDescription>
                 <CardTitle class="text-4xl">
                     {{ snapshot.unitCompletionPercentage }}%
                 </CardTitle>
@@ -80,7 +85,7 @@ const errorTagLabels: Record<string, string> = {
 
         <Card v-if="snapshot.topErrorTags.length > 0">
             <CardHeader>
-                <CardDescription>Frequently mixed up</CardDescription>
+                <CardDescription>{{ t('progress.mixedUp') }}</CardDescription>
             </CardHeader>
             <CardContent class="flex flex-col gap-2">
                 <div
@@ -88,9 +93,7 @@ const errorTagLabels: Record<string, string> = {
                     :key="tag.category"
                     class="flex items-center justify-between text-sm"
                 >
-                    <span>{{
-                        errorTagLabels[tag.category] ?? tag.category
-                    }}</span>
+                    <span>{{ errorTagLabel(tag.category) }}</span>
                     <span class="text-muted-foreground">{{ tag.count }}×</span>
                 </div>
             </CardContent>

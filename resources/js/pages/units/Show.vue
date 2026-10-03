@@ -2,6 +2,7 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +23,8 @@ import type {
     UnitVocabularyItem,
 } from '@/components/UnitReference.vue';
 import UnitReference from '@/components/UnitReference.vue';
-import { skillLabels } from '@/lib/skillLabels';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
+import { skillLabel } from '@/lib/skillLabels';
 import { index as unitsIndex } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 import type { UnitLessonOverview } from '@/types/lesson';
@@ -46,11 +48,9 @@ const props = defineProps<{
     speechLocale: string | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Units', href: unitsIndex() }],
-    },
-});
+const { t } = useI18n();
+
+useBreadcrumbs(() => [{ title: t('nav.units'), href: unitsIndex() }]);
 
 const form = useForm({});
 const referenceOpen = ref(false);
@@ -68,8 +68,7 @@ function complete() {
             <div class="flex items-center gap-2">
                 <Badge variant="secondary">{{ props.unit.cefrLevel }}</Badge>
                 <Badge variant="outline">{{
-                    skillLabels[props.unit.primarySkill] ??
-                    props.unit.primarySkill
+                    skillLabel(props.unit.primarySkill)
                 }}</Badge>
             </div>
             <h1 class="text-2xl font-semibold">{{ props.unit.title }}</h1>
@@ -80,7 +79,7 @@ function complete() {
 
         <Card v-if="props.unit.contrastNote">
             <CardHeader>
-                <CardDescription>Watch out for</CardDescription>
+                <CardDescription>{{ t('units.watchOut') }}</CardDescription>
             </CardHeader>
             <CardContent class="text-sm">
                 {{ props.unit.contrastNote }}
@@ -101,7 +100,7 @@ function complete() {
                 <CollapsibleTrigger
                     class="flex w-fit items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
-                    Words and grammar in this unit
+                    {{ t('units.wordsAndGrammar') }}
                     <ChevronDown
                         class="size-4 transition-transform"
                         :class="{ 'rotate-180': referenceOpen }"
@@ -125,16 +124,15 @@ function complete() {
             />
 
             <p v-if="props.isCompleted" class="text-sm text-muted-foreground">
-                You've already completed this unit. Its cards are in your review
-                deck.
+                {{ t('units.alreadyCompleted') }}
             </p>
 
             <Button :disabled="form.processing" @click="complete">
                 <Spinner v-if="form.processing" />
                 {{
                     props.isCompleted
-                        ? 'Mark complete again'
-                        : 'Complete unit and add to review deck'
+                        ? t('units.markAgain')
+                        : t('units.complete')
                 }}
             </Button>
         </template>

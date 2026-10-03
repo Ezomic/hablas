@@ -1,5 +1,5 @@
 import type { ProgressSnapshot } from '@/components/ProgressSnapshotSummary.vue';
-import { pluralizeDays } from '@/lib/pluralize';
+import { i18n } from '@/i18n';
 
 export const PROGRESS_CARD_WIDTH = 1200;
 export const PROGRESS_CARD_HEIGHT = 630;
@@ -30,12 +30,12 @@ const DIVIDER_X = 640;
 const RIGHT_COLUMN_X = DIVIDER_X + MARGIN;
 
 export function progressCardText(snapshot: ProgressSnapshot): ProgressCardText {
-    const streak = snapshot.streak.currentLength;
+    const { t } = i18n.global;
 
     return {
         language: snapshot.language.name,
-        level: snapshot.blendedLevel ?? 'No level yet',
-        streak: `${streak} ${pluralizeDays(streak)}`,
+        level: snapshot.blendedLevel ?? t('progress.card.noLevel'),
+        streak: t('common.days', snapshot.streak.currentLength),
         completion: `${snapshot.unitCompletionPercentage}%`,
     };
 }
@@ -90,6 +90,7 @@ export function drawProgressCard(
 ): void {
     const leftWidth = DIVIDER_X - 2 * MARGIN;
     const rightWidth = PROGRESS_CARD_WIDTH - RIGHT_COLUMN_X - MARGIN;
+    const { t } = i18n.global;
     const label = { weight: REGULAR, size: 32, color: PALETTE.muted };
     const value = { weight: SEMIBOLD, size: 72, color: PALETTE.foreground };
 
@@ -115,7 +116,7 @@ export function drawProgressCard(
     });
 
     context.textAlign = 'left';
-    drawText(context, 'CEFR level', MARGIN, 280, {
+    drawText(context, t('progress.card.level'), MARGIN, 280, {
         ...label,
         maxWidth: leftWidth,
     });
@@ -137,7 +138,7 @@ export function drawProgressCard(
     context.lineTo(DIVIDER_X, 520);
     context.stroke();
 
-    drawText(context, 'Streak', RIGHT_COLUMN_X, 280, {
+    drawText(context, t('progress.card.streak'), RIGHT_COLUMN_X, 280, {
         ...label,
         maxWidth: rightWidth,
     });
@@ -145,7 +146,7 @@ export function drawProgressCard(
         ...value,
         maxWidth: rightWidth,
     });
-    drawText(context, 'Units completed', RIGHT_COLUMN_X, 440, {
+    drawText(context, t('progress.card.units'), RIGHT_COLUMN_X, 440, {
         ...label,
         maxWidth: rightWidth,
     });

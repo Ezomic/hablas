@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Heading from '@/components/Heading.vue';
 import ProgressSnapshotSummary from '@/components/ProgressSnapshotSummary.vue';
 import type { ProgressSnapshot } from '@/components/ProgressSnapshotSummary.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import {
     progressCardFileName,
     progressCardText,
@@ -19,20 +21,31 @@ const props = defineProps<{
     languageId: number | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            { title: 'Share your progress', href: '/progress/share' },
-        ],
-    },
-});
+const { t } = useI18n();
+
+useBreadcrumbs(() => [
+    { title: t('progress.share.title'), href: '/progress/share' },
+]);
 
 const copied = ref(false);
-const image = ref<{ file: File; url: string; description: string } | null>(
-    null,
-);
+const image = ref<{
+    file: File;
+    url: string;
+    text: ReturnType<typeof progressCardText>;
+} | null>(null);
 const canShareImage = ref(false);
-const imageError = ref<string | null>(null);
+const imageError = ref<'create' | 'share' | null>(null);
+
+const imageDescription = computed(() =>
+    image.value
+        ? t('progress.share.imageDescription', {
+              language: image.value.text.language,
+              level: image.value.text.level,
+              streak: image.value.text.streak,
+              completion: image.value.text.completion,
+          })
+        : '',
+);
 
 // Drawn on page load rather than on click: Safari only opens the share sheet
 // while the tap that asked for it is still fresh.
@@ -51,13 +64,13 @@ onMounted(async () => {
         image.value = {
             file,
             url: URL.createObjectURL(file),
-            description: `Hablas progress in ${text.language}. CEFR level: ${text.level}. Streak: ${text.streak}. Units completed: ${text.completion}.`,
+            text,
         };
         canShareImage.value =
             typeof navigator.canShare === 'function' &&
             navigator.canShare({ files: [file] });
     } catch {
-        imageError.value = "Couldn't create the image.";
+        imageError.value = 'create';
     }
 });
 
@@ -87,7 +100,7 @@ async function shareImage() {
         await navigator.share({ files: [image.value.file] });
     } catch (error) {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
-            imageError.value = "Couldn't share the image.";
+            imageError.value = 'share';
         }
     }
 }
@@ -106,17 +119,17 @@ function regenerateLink() {
 </script>
 
 <template>
-    <Head title="Share your progress" />
+    <Head :title="t('progress.share.title')" />
 
     <div class="flex flex-col gap-6 p-4">
         <Heading
             variant="small"
-            title="Share your progress"
-            description="Anyone with this link can view a read-only snapshot of your progress — no login required."
+            :title="t('progress.share.title')"
+            :description="t('progress.share.description')"
         />
 
         <p v-if="!props.snapshot" class="text-muted-foreground">
-            Complete placement first to build a shareable snapshot.
+            {{ t('progress.share.needPlacement') }}
         </p>
 
         <template v-else>
@@ -124,44 +137,53 @@ function regenerateLink() {
                 <div class="flex gap-2">
                     <Input :model-value="props.shareUrl ?? ''" readonly />
                     <Button @click="copyLink">{{
-                        copied ? 'Copied!' : 'Copy link'
+                        copied
+                            ? t('progress.share.copied')
+                            : t('progress.share.copy')
                     }}</Button>
                 </div>
-                <Button variant="outline" class="w-fit" @click="regenerateLink"
-                    >Regenerate link</Button
+                <Button
+                    variant="outline"
+                    class="w-fit"
+                    @click="regenerateLink"
+                    >{{ t('progress.share.regenerate') }}</Button
                 >
                 <p class="text-sm text-muted-foreground">
-                    Regenerating replaces this link — the old one stops working.
+                    {{ t('progress.share.regenerateNote') }}
                 </p>
             </div>
 
             <div class="flex flex-col gap-3">
                 <Heading
                     variant="small"
-                    title="Share an image"
-                    description="A picture of your level, streak and units completed. Your name isn't on it."
+                    :title="t('progress.share.imageTitle')"
+                    :description="t('progress.share.imageNote')"
                 />
                 <img
                     v-if="image"
                     :src="image.url"
-                    :alt="image.description"
+                    :alt="imageDescription"
                     class="aspect-[1200/630] w-full max-w-md rounded-lg border"
                 />
                 <div v-if="image" class="flex flex-wrap gap-2">
                     <Button as-child variant="outline">
-                        <a :href="image.url" :download="image.file.name"
-                            >Download image</a
-                        >
+                        <a :href="image.url" :download="image.file.name">{{
+                            t('progress.share.download')
+                        }}</a>
                     </Button>
                     <Button
                         v-if="canShareImage"
                         variant="outline"
                         @click="shareImage"
-                        >Share image</Button
+                        >{{ t('progress.share.shareImage') }}</Button
                     >
                 </div>
                 <p v-if="imageError" class="text-sm text-destructive">
-                    {{ imageError }}
+                    {{
+                        imageError === 'create'
+                            ? t('progress.share.createFailed')
+                            : t('progress.share.shareFailed')
+                    }}
                 </p>
             </div>
 

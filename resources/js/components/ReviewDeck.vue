@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { Directive } from 'vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useOfflineSync } from '@/composables/useOfflineSync';
-import { errorTagLabels } from '@/lib/errorTagLabels';
 import { fetchJson } from '@/lib/http';
-import { pluralize } from '@/lib/pluralize';
 import type { ErrorTag, Rating, ReviewCard } from '@/types/review';
 
 const props = withDefaults(
@@ -17,7 +16,7 @@ const props = withDefaults(
         cards: ReviewCard[];
         reviewUrl: (cardId: number) => string;
         answerUrl: (cardId: number) => string;
-        countNoun: string;
+        countNoun: 'card' | 'weakSpot';
         emptyMessage: string;
         dueRemaining?: number;
         speechLocale?: string | null;
@@ -29,6 +28,7 @@ const CHECK_TIMEOUT_MS = 8000;
 
 type Verdict = 'correct' | 'wrong' | 'unchecked';
 
+const { t } = useI18n();
 const { submitOrQueue } = useOfflineSync();
 
 const queue = ref<ReviewCard[]>([...props.cards]);
@@ -42,12 +42,7 @@ const isChecking = ref(false);
 const verdict = ref<Verdict | null>(null);
 const suggestedRating = ref<Rating | null>(null);
 
-const ratings: { value: Rating; label: string }[] = [
-    { value: 'again', label: 'Again' },
-    { value: 'hard', label: 'Hard' },
-    { value: 'good', label: 'Good' },
-    { value: 'easy', label: 'Easy' },
-];
+const ratings: Rating[] = ['again', 'hard', 'good', 'easy'];
 
 const verdictRatings: Record<Verdict, Rating | null> = {
     correct: 'good',
@@ -55,7 +50,14 @@ const verdictRatings: Record<Verdict, Rating | null> = {
     unchecked: null,
 };
 
-const errorTags = Object.keys(errorTagLabels) as ErrorTag[];
+const errorTags: ErrorTag[] = [
+    'wrong_gender',
+    'ser_estar_confusion',
+    'false_friend',
+    'wrong_tense',
+    'portunol_slip',
+    'other',
+];
 
 const tally = ref<Record<Rating, number>>({
     again: 0,
@@ -65,7 +67,7 @@ const tally = ref<Record<Rating, number>>({
 });
 
 const reviewed = computed(() =>
-    ratings.reduce((total, rating) => total + tally.value[rating.value], 0),
+    ratings.reduce((total, rating) => total + tally.value[rating], 0),
 );
 
 const isFinished = computed(
@@ -266,8 +268,21 @@ function handleKeydown(event: KeyboardEvent) {
 
     if (rating) {
         event.preventDefault();
-        rate(rating.value);
+        rate(rating);
     }
+}
+
+function termLang(
+    card: ReviewCard,
+    side: 'front' | 'back',
+): string | undefined {
+    if (card.kind !== 'vocabulary') {
+        return undefined;
+    }
+
+    const targetSide = card.direction === 'production' ? 'back' : 'front';
+
+    return side === targetSide ? (props.speechLocale ?? undefined) : undefined;
 }
 
 function isTyping(event: KeyboardEvent): boolean {
@@ -289,14 +304,15 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 
 <template>
     <p v-if="queuedOffline" class="text-sm text-muted-foreground">
-        You're offline, so ratings are saved and will sync once you're back
-        online.
+        {{ t('review.deck.offline') }}
     </p>
 
     <Card v-if="queue[0]">
         <CardHeader>
             <CardTitle class="flex items-center gap-2 text-2xl">
-                {{ queue[0].front }}
+                <span :lang="termLang(queue[0], 'front')">{{
+                    queue[0].front
+                }}</span>
                 <SpeakButton
                     v-if="queue[0].kind === 'vocabulary' && !isProduction"
                     :text="queue[0].front"
@@ -315,8 +331,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                 <Label :for="`answer-${queue[0].id}`">
                     {{
                         queue[0].needsArticle
-                            ? 'Type the word, with its article'
-                            : 'Type the word'
+                            ? t('review.deck.typeWithArticle')
+                            : t('review.deck.type')
                     }}
                 </Label>
                 <div class="flex gap-2">
@@ -334,14 +350,16 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                         type="submit"
                         :disabled="isChecking || !typedAnswer.trim()"
                     >
-                        Check
+                        {{ t('review.deck.check') }}
                     </Button>
                 </div>
             </form>
 
             <div v-if="revealed && isProduction" class="flex flex-col gap-1">
                 <p class="flex items-center gap-2 text-lg font-medium">
-                    {{ queue[0].back }}
+                    <span :lang="termLang(queue[0], 'back')">{{
+                        queue[0].back
+                    }}</span>
                     <SpeakButton
                         :text="queue[0].back"
                         :locale="props.speechLocale"
@@ -353,23 +371,34 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     v-if="verdict === 'correct'"
                     class="text-sm font-medium text-green-600 dark:text-green-500"
                 >
-                    Correct
+                    {{ t('review.deck.correct') }}
                 </p>
                 <p
                     v-else-if="verdict === 'wrong'"
                     class="text-sm font-medium text-red-600 dark:text-red-500"
                 >
-                    You wrote “{{ typedAnswer.trim() }}”.
+                    {{
+                        t('review.deck.youWrote', {
+                            answer: typedAnswer.trim(),
+                        })
+                    }}
                 </p>
                 <p
                     v-else-if="verdict === 'unchecked'"
                     class="text-sm text-muted-foreground"
                 >
-                    Couldn't check your answer, so compare it yourself. You
-                    wrote “{{ typedAnswer.trim() }}”.
+                    {{
+                        t('review.deck.unchecked', {
+                            answer: typedAnswer.trim(),
+                        })
+                    }}
                 </p>
             </div>
-            <p v-else-if="revealed" class="text-lg text-muted-foreground">
+            <p
+                v-else-if="revealed"
+                class="text-lg text-muted-foreground"
+                :lang="termLang(queue[0], 'back')"
+            >
                 {{ queue[0].back }}
             </p>
 
@@ -378,16 +407,18 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                 :variant="isProduction ? 'ghost' : 'default'"
                 @click="showAnswer"
             >
-                Show answer
+                {{ t('review.deck.showAnswer') }}
                 <kbd
                     v-if="!isProduction"
                     class="ml-1 rounded border px-1 text-xs font-normal opacity-70"
-                    >space</kbd
+                    >{{ t('review.deck.spaceKey') }}</kbd
                 >
             </Button>
 
             <div v-else-if="pendingMiss" class="flex flex-col gap-3">
-                <p class="text-sm font-medium">What went wrong?</p>
+                <p class="text-sm font-medium">
+                    {{ t('review.deck.whatWentWrong') }}
+                </p>
                 <div class="grid grid-cols-2 gap-2">
                     <Button
                         v-for="tag in errorTags"
@@ -400,7 +431,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                         :disabled="isSubmitting"
                         @click="tagMiss(tag)"
                     >
-                        {{ errorTagLabels[tag] }}
+                        {{ t(`review.errorTags.${tag}`) }}
                     </Button>
                 </div>
                 <Button
@@ -408,76 +439,77 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     :disabled="isSubmitting"
                     @click="tagMiss(null)"
                 >
-                    Not sure
+                    {{ t('review.deck.notSure') }}
                 </Button>
             </div>
 
-            <div v-else class="grid grid-cols-4 gap-2">
+            <div v-else class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Button
                     v-for="(rating, index) in ratings"
-                    :key="rating.value"
+                    :key="rating"
                     :variant="
-                        rating.value === suggestedRating ? 'default' : 'outline'
+                        rating === suggestedRating ? 'default' : 'outline'
                     "
                     :disabled="isSubmitting"
-                    @click="rate(rating.value)"
+                    @click="rate(rating)"
                 >
-                    {{ rating.label }}
+                    {{ t(`review.rating.${rating}`) }}
                     <kbd
                         class="ml-1 rounded border px-1 text-xs font-normal opacity-70"
-                        >{{
-                            rating.value === suggestedRating ? '↵' : index + 1
-                        }}</kbd
+                        >{{ rating === suggestedRating ? '↵' : index + 1 }}</kbd
                     >
                 </Button>
             </div>
 
             <p class="text-sm text-muted-foreground">
-                {{ queue.length }}
-                {{ pluralize(props.countNoun, queue.length) }} left
+                {{ t(`review.deck.left.${props.countNoun}`, queue.length) }}
             </p>
 
             <p
                 v-if="submitFailed"
                 class="text-sm font-medium text-red-600 dark:text-red-500"
             >
-                Couldn't save that rating, try again.
+                {{ t('review.deck.saveFailed') }}
             </p>
         </CardContent>
     </Card>
 
     <Card v-else-if="isFinished">
         <CardHeader>
-            <CardTitle class="text-2xl">Session complete</CardTitle>
+            <CardTitle class="text-2xl">{{
+                t('review.deck.complete')
+            }}</CardTitle>
         </CardHeader>
         <CardContent class="flex flex-col gap-4">
             <p class="text-sm text-muted-foreground">
-                {{ reviewed }} {{ pluralize(props.countNoun, reviewed) }}
-                reviewed.
+                {{ t(`review.deck.reviewed.${props.countNoun}`, reviewed) }}
             </p>
 
-            <div class="grid grid-cols-4 gap-2 text-center">
+            <div class="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
                 <div
                     v-for="rating in ratings"
-                    :key="rating.value"
+                    :key="rating"
                     class="rounded-md border p-2"
                 >
                     <div class="text-xl font-semibold">
-                        {{ tally[rating.value] }}
+                        {{ tally[rating] }}
                     </div>
                     <div class="text-xs text-muted-foreground">
-                        {{ rating.label }}
+                        {{ t(`review.rating.${rating}`) }}
                     </div>
                 </div>
             </div>
 
             <p v-if="props.dueRemaining" class="text-sm text-muted-foreground">
-                {{ props.dueRemaining }} more
-                {{ pluralize(props.countNoun, props.dueRemaining) }} still due.
-                Start another session whenever you're ready.
+                {{
+                    t(
+                        `review.deck.stillDue.${props.countNoun}`,
+                        props.dueRemaining,
+                    )
+                }}
             </p>
             <p v-else class="text-sm text-muted-foreground">
-                Nothing else due right now.
+                {{ t('review.deck.nothingDue') }}
             </p>
         </CardContent>
     </Card>

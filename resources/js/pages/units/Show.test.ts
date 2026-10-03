@@ -18,6 +18,7 @@ vi.mock('@/routes/lessons/runs', () => ({
 vi.mock('@inertiajs/vue3', () => ({
     router,
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
     useForm: () => {
         const form = reactive({ processing: false, post: vi.fn() });
         forms.push(form);
