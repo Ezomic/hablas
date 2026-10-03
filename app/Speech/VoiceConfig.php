@@ -10,6 +10,7 @@ final readonly class VoiceConfig
 {
     /**
      * @param  array<string, float>  $speeds  the engine speed parameter per speed variant
+     * @param  array<string, string>  $restrictions  use-based restrictions of the licence, by id
      */
     public function __construct(
         public string $id,
@@ -21,6 +22,8 @@ final readonly class VoiceConfig
         public string $license,
         public string $attribution,
         public string $sourceUrl,
+        public string $licenseUrl = '',
+        public array $restrictions = [],
     ) {}
 
     public function speedFor(SpeechSpeed $speed): float

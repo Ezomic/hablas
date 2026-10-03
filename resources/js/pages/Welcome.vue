@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import HablasLogoIcon from '@/components/HablasLogoIcon.vue';
 import InstallAppButton from '@/components/InstallAppButton.vue';
 import { Button } from '@/components/ui/button';
-import { dashboard, login, register } from '@/routes';
+import { credits, dashboard, login, register } from '@/routes';
 
 /**
  * Deliberately restrained copy. The planning docs' premise is that this app is
@@ -257,6 +257,11 @@ const pacing = [
                         >FSI</a
                     >
                     pacing data.
+                    <Link
+                        :href="credits()"
+                        class="ml-2 underline underline-offset-4 hover:text-foreground"
+                        >{{ $t('credits.link') }}</Link
+                    >
                 </span>
             </div>
         </footer>

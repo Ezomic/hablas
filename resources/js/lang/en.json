@@ -28,6 +28,32 @@
         "iosHint": "To install Hablas, tap Share, then Add to Home Screen.",
         "androidHint": "To install Hablas, open your browser menu and choose Install app."
     },
+    "credits": {
+        "title": "Credits",
+        "link": "Credits",
+        "intro": "The spoken audio in Hablas is machine generated. It is made in advance with the voices below and played back as pre-rendered clips.",
+        "engine": "Engine",
+        "voices": "Voices",
+        "licence": "Licence",
+        "source": "Source",
+        "restrictionsHeading": "What the licence does not allow",
+        "restrictionsIntro": "These use-based restrictions come with the voice licence and apply to the voice model and its output. Please respect them.",
+        "restrictions": {
+            "law": "In any way that violates any applicable law or regulation.",
+            "minors": "To exploit or harm minors, or attempt to.",
+            "disinformation": "To generate or spread verifiably false information in order to harm others.",
+            "pii": "To generate or spread personal information that can be used to harm an individual.",
+            "machine_generated": "To place generated content in any context without clearly saying it is machine generated.",
+            "harassment": "To defame, disparage or harass others.",
+            "impersonation": "To impersonate others without their consent, for example with deepfakes.",
+            "automated_decisions": "For fully automated decisions that adversely affect the legal rights of a person or create or modify a binding, enforceable obligation.",
+            "social_discrimination": "To discriminate against or harm people based on online or offline social behaviour or personal characteristics.",
+            "vulnerable_groups": "To exploit the vulnerabilities of a group of people, based on age or social, physical or mental characteristics, in order to materially distort their behaviour in a way that is likely to cause physical or psychological harm.",
+            "protected_discrimination": "To discriminate against people based on legally protected characteristics.",
+            "medical": "To give medical advice or interpret medical results.",
+            "justice": "To generate or spread information meant for administration of justice, law enforcement, immigration or asylum processes."
+        }
+    },
     "lesson": {
         "instruction": {
             "listenChoose": "Listen and choose the meaning",

@@ -26,7 +26,7 @@ final class SpeechVoices
         $voices = [];
 
         foreach (is_array($entries) ? $entries : [] as $entry) {
-            /** @var array{id: string, engine: string, voice: string, speeds: array<string, float>, primary?: bool, license: string, attribution: string, source_url: string} $entry */
+            /** @var array{id: string, engine: string, voice: string, speeds: array<string, float>, primary?: bool, license: string, attribution: string, source_url: string, license_url?: string, restrictions?: array<string, string>} $entry */
             $voices[] = new VoiceConfig(
                 id: $entry['id'],
                 language: $language,
@@ -37,6 +37,8 @@ final class SpeechVoices
                 license: $entry['license'],
                 attribution: $entry['attribution'],
                 sourceUrl: $entry['source_url'],
+                licenseUrl: $entry['license_url'] ?? '',
+                restrictions: $entry['restrictions'] ?? [],
             );
         }
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
+import { credits } from '@/routes';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editLearning } from '@/routes/learning';
 import { edit as editProfile } from '@/routes/profile';
@@ -60,6 +61,13 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                             <component :is="item.icon" class="h-4 w-4" />
                             {{ item.title }}
                         </Link>
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        class="w-full justify-start"
+                        as-child
+                    >
+                        <Link :href="credits()">{{ $t('credits.link') }}</Link>
                     </Button>
                 </nav>
             </aside>
