@@ -21,6 +21,8 @@ final class SpeechLocaleResolver
     private const LOCALES = [
         'es' => 'es-ES',
         'pt' => 'pt-PT',
+        'fr' => 'fr-FR',
+        'it' => 'it-IT',
     ];
 
     public function forLanguage(Language $language): ?string
