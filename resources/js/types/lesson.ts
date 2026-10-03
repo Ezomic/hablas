@@ -9,6 +9,7 @@ export type LessonState =
     | 'opens_tomorrow'
     | 'in_progress'
     | 'completed'
+    | 'remediation'
     | 'coming';
 
 export interface ExerciseBase {
@@ -103,6 +104,12 @@ export interface NextLesson {
     state: LessonState;
 }
 
+export interface Remediation {
+    lessonId: number;
+    missing: number;
+    retake: 'open' | 'opens_tomorrow';
+}
+
 export interface RunProps {
     id: number;
     kind: LessonRunKind;
@@ -114,6 +121,7 @@ export interface RunProps {
     summary: RunSummary | null;
     next: NextLesson | null;
     summarySeen: boolean;
+    remediation: Remediation | null;
 }
 
 export interface LessonSettings {
@@ -148,8 +156,14 @@ export interface AnswerVerdict {
     score: number | null;
 }
 
+export interface GuidedDetails {
+    found: string[];
+    missing: string[];
+}
+
 export interface AnswerResponse extends Partial<AnswerVerdict> {
     saved?: boolean;
+    details?: GuidedDetails | null;
     run: {
         completed: boolean;
         unitCompleted: boolean;
@@ -173,6 +187,7 @@ export interface UnitLessonOverview {
     skipped: { listening: number; speaking: number };
     contentPending: boolean;
     canTestOut: boolean;
+    remediation: Remediation | null;
 }
 
 export type WordVerdict =

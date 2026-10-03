@@ -7,8 +7,10 @@ namespace App\Actions\Lessons;
 use App\Actions\Settings\GetUserSettings;
 use App\Enums\ExerciseFamily;
 use App\Enums\LessonExerciseFormat;
+use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonState;
+use App\Lessons\SpokenTexts;
 use App\Models\Lesson;
 use App\Models\LessonAnswer;
 use App\Models\LessonExercise;
@@ -94,6 +96,7 @@ final class PresentLessonRun
                 'result' => $completed ? $run->result : null,
                 'summary' => $completed ? $this->summarizeLessonRun->handle($run) : null,
                 'next' => $completed ? $this->next($run, $unit) : null,
+                'remediation' => $completed && $run->kind !== LessonRunKind::Lesson ? $this->lessonProgress->remediation($user, $unit) : null,
                 'summarySeen' => $run->summary_seen_at !== null,
             ],
             'lesson' => ['id' => $lesson->id, 'unitId' => $unit->id, 'stage' => $stage->value, 'title' => $lesson->title, 'position' => $lesson->position],
@@ -151,19 +154,65 @@ final class PresentLessonRun
      */
     private function exercise(LessonExercise $exercise, bool $hidesAnswers, array $clips): array
     {
+        if ($exercise->format === LessonExerciseFormat::ListenPassage) {
+            return $this->summary($exercise, $hidesAnswers, $this->listenPassage($exercise->payload, $hidesAnswers, $clips));
+        }
+
         $payload = match (true) {
             $this->isSpoken($exercise->format) => $this->allowed($exercise->format, $exercise->payload, $hidesAnswers),
             $hidesAnswers => $this->withoutKeys($exercise->payload),
             default => $this->withoutSpans($exercise->payload),
         };
 
+        return $this->summary($exercise, $hidesAnswers, $this->withClips($exercise->format, $exercise->payload, $payload, $hidesAnswers, $clips));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{id: int, key: string, block: string, format: string, payload: array<string, mixed>}
+     */
+    private function summary(LessonExercise $exercise, bool $hidesAnswers, array $payload): array
+    {
         return [
             'id' => $exercise->id,
             'key' => $hidesAnswers ? (string) $exercise->id : $exercise->key,
             'block' => $exercise->block,
             'format' => $exercise->format->value,
-            'payload' => $this->withClips($exercise->format, $exercise->payload, $payload, $hidesAnswers, $clips),
+            'payload' => $payload,
         ];
+    }
+
+    /**
+     * A dialogue that is heard goes out as one clip per line. Its text is sent
+     * only in a lesson, where the verdict shows the transcript afterwards; a
+     * check never sends it, nor the answers.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>  $clips
+     * @return array<string, mixed>
+     */
+    private function listenPassage(array $payload, bool $hidesAnswers, array $clips): array
+    {
+        $lines = [];
+
+        foreach (is_array($payload['dialogue'] ?? null) ? $payload['dialogue'] : [] as $line) {
+            $text = is_array($line) && is_string($line['text'] ?? null) ? $line['text'] : null;
+
+            if ($text === null) {
+                continue;
+            }
+
+            $lines[] = [
+                'speaker' => is_string($line['speaker'] ?? null) ? $line['speaker'] : '',
+                ...($hidesAnswers ? [] : ['text' => $text]),
+                ...($clips[$text] ?? ['audioUrl' => null, 'audioSlowUrl' => null]),
+            ];
+        }
+
+        $rest = $hidesAnswers ? $this->withoutKeys($payload) : $this->withoutSpans($payload);
+        unset($rest['dialogue']);
+
+        return [...$rest, 'lines' => $lines];
     }
 
     /**
@@ -191,29 +240,7 @@ final class PresentLessonRun
      */
     private function spoken(LessonExerciseFormat $format, array $payload, bool $hidesAnswers): array
     {
-        return match ($format) {
-            LessonExerciseFormat::TeachWord => is_string($payload['term'] ?? null) ? [$payload['term']] : [],
-            LessonExerciseFormat::TeachGrammar => array_values(array_filter(
-                array_map(fn (mixed $example): mixed => is_array($example) ? ($example['text'] ?? null) : null, is_array($payload['examples'] ?? null) ? $payload['examples'] : []),
-                is_string(...),
-            )),
-            LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat, LessonExerciseFormat::SpeakAnswer => $this->hidesModelClip($format, $payload, $hidesAnswers) ? [] : array_filter([$this->spokenText($format, $payload)], is_string(...)),
-            default => [],
-        };
-    }
-
-    /**
-     * The text a clip is made from. A spoken answer to an English cue plays its
-     * model answer once it is over; one that answers a question in the
-     * language plays the question first.
-     *
-     * @param  array<string, mixed>  $payload
-     */
-    private function spokenText(LessonExerciseFormat $format, array $payload): ?string
-    {
-        $text = $payload['text'] ?? ($format === LessonExerciseFormat::SpeakAnswer ? $payload['prompt'] ?? null : null);
-
-        return is_string($text) ? $text : null;
+        return $this->hidesModelClip($format, $payload, $hidesAnswers) ? [] : SpokenTexts::ofPayload($format, $payload);
     }
 
     /**
@@ -237,7 +264,7 @@ final class PresentLessonRun
             );
         }
 
-        $spoken = $this->spokenText($format, $raw);
+        $spoken = SpokenTexts::clipText($format, $raw);
 
         if ($spoken === null || ! $this->isSpoken($format) || $this->hidesModelClip($format, $raw, $hidesAnswers)) {
             return $payload;
@@ -297,6 +324,8 @@ final class PresentLessonRun
      */
     private function withoutSpans(array $payload): array
     {
+        unset($payload['model']);
+
         if (is_array($payload['accepted'] ?? null)) {
             $payload['accepted'] = array_values(array_map(fn (mixed $entry): mixed => is_array($entry) ? ($entry['text'] ?? '') : $entry, $payload['accepted']));
         }
@@ -313,7 +342,7 @@ final class PresentLessonRun
      */
     private function withoutKeys(array $payload): array
     {
-        unset($payload['accepted'], $payload['answer'], $payload['slots'], $payload['required'], $payload['substitute_questions']);
+        unset($payload['accepted'], $payload['answer'], $payload['slots'], $payload['required'], $payload['substitute_questions'], $payload['why'], $payload['model'], $payload['glosses']);
 
         if (is_array($payload['questions'] ?? null)) {
             $payload['questions'] = array_values(array_map(function (mixed $question): mixed {

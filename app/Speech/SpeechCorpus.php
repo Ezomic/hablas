@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Speech;
 
 use App\Enums\LessonExerciseFormat;
+use App\Lessons\SpokenTexts;
 use App\Lessons\UnitContent;
 use App\Models\Language;
 use App\Models\ListeningExercise;
@@ -15,13 +16,6 @@ use App\Services\UnitContentRegistry;
 
 final class SpeechCorpus
 {
-    private const SPOKEN_PAYLOAD_FORMATS = [
-        LessonExerciseFormat::ListenChoose,
-        LessonExerciseFormat::ListenPair,
-        LessonExerciseFormat::ListenType,
-        LessonExerciseFormat::SpeakRepeat,
-    ];
-
     public function __construct(
         private readonly UnitContentRegistry $registry,
         private readonly SpeechText $text,
@@ -77,40 +71,20 @@ final class SpeechCorpus
         }
 
         foreach ($content->exercises() as $exercise) {
-            if (in_array($exercise->format, self::SPOKEN_PAYLOAD_FORMATS, true)) {
-                $spoken = $exercise->payload['text']
-                    ?? $exercise->accepted[0]
-                    ?? ($exercise->format === LessonExerciseFormat::ListenPair ? $exercise->payload['answer'] ?? null : null);
+            $payload = $exercise->payload;
 
-                if (is_string($spoken)) {
-                    $strings[] = $spoken;
-                }
+            if (! isset($payload['text'])) {
+                $payload['text'] = match ($exercise->format) {
+                    LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat => $exercise->accepted[0] ?? null,
+                    LessonExerciseFormat::ListenPair => $payload['answer'] ?? null,
+                    default => null,
+                };
             }
 
-            if ($exercise->format === LessonExerciseFormat::SpeakAnswer && is_string($exercise->payload['prompt'] ?? null)) {
-                $strings[] = $exercise->payload['prompt'];
-            }
-
-            if ($exercise->format->isPassage()) {
-                array_push($strings, ...$this->dialogueLines($exercise->payload['dialogue'] ?? null));
-            }
+            array_push($strings, ...SpokenTexts::ofPayload($exercise->format, $payload));
         }
 
         return $strings;
-    }
-
-    /** @return list<string> */
-    private function dialogueLines(mixed $dialogue): array
-    {
-        $lines = [];
-
-        foreach (is_array($dialogue) ? $dialogue : [] as $line) {
-            if (is_array($line) && is_string($line['text'] ?? null)) {
-                $lines[] = $line['text'];
-            }
-        }
-
-        return $lines;
     }
 
     /** @return list<string> */

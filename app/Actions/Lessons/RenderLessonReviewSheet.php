@@ -9,6 +9,8 @@ use App\Enums\LessonStage;
 use App\Lessons\ExerciseDefinition;
 use App\Lessons\InvalidLessonContent;
 use App\Lessons\PreviewContent;
+use App\Lessons\TargetDefinition;
+use App\Lessons\TargetRef;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 use App\Models\Unit;
@@ -36,7 +38,7 @@ final class RenderLessonReviewSheet
             "Language: {$content->languageCode()}. Unit: {$unit->slug}. Level: {$unit->cefr_level->value}.",
             '',
             "Task: {$unit->task_description}",
-            '',
+            ...($forOwner ? [''] : $this->checklist()),
             '## Words',
             '',
             '| Term | Part of speech | Gloss | Recall cue | Also accepted | Forms | Common gender |',
@@ -67,6 +69,26 @@ final class RenderLessonReviewSheet
         array_push($lines, ...$this->exercises($unit, $content, $forOwner));
 
         return implode("\n", $lines)."\n";
+    }
+
+    /** @return list<string> */
+    private function checklist(): array
+    {
+        return [
+            '',
+            '## Checklist for the reviewer',
+            '',
+            '- Grammar: every Spanish sentence is correct, and natural in Spain.',
+            '- Level: A1, present tense, only the unit words, the core words and the glossed words.',
+            '- Accepted answers: nothing right is missing (dropped subject, free word order, tu and usted, synonyms) and nothing wrong is accepted.',
+            '- Distractors: no wrong option or tile is also a correct answer.',
+            '- Gender and article: every noun has the right article, and the common-gender noun accepts both.',
+            '- Spain, not Latin America: no Latin American word or form.',
+            '- Contrast items: each one has exactly one right answer, and its why-note is true.',
+            '- Dictations: no word that can be heard two ways without a context that settles it.',
+            '- Keyword slots and required words: every right spoken or written answer is covered.',
+            '',
+        ];
     }
 
     /** @return list<string> */
@@ -103,12 +125,13 @@ final class RenderLessonReviewSheet
     private function exercises(Unit $unit, UnitContent $content, bool $forOwner): array
     {
         try {
-            $lessons = $this->buildUnitLessons->handle($unit, new PreviewContent($content));
+            $lessons = $this->buildUnitLessons->handle($unit, new PreviewContent($content, withLessons: true));
         } catch (InvalidLessonContent $exception) {
             return ['', '## Generated exercises', '', "The words do not build: {$exception->getMessage()}"];
         }
 
-        $lines = ['', '## Generated exercises'];
+        $labels = $this->labels($unit);
+        $lines = ['', '## Exercises'];
 
         foreach ($lessons as $lesson) {
             if ($forOwner && $lesson->stage === LessonStage::Check) {
@@ -120,24 +143,109 @@ final class RenderLessonReviewSheet
             $lines[] = '';
 
             foreach ($lesson->exercises as $exercise) {
-                $lines[] = $this->exercise($exercise);
+                array_push($lines, ...$this->exercise($exercise, $labels));
             }
         }
 
         return $lines;
     }
 
-    private function exercise(ExerciseDefinition $exercise): string
+    /** @return array<string, string> a target's name by its key */
+    private function labels(Unit $unit): array
+    {
+        $labels = [];
+
+        foreach ($unit->vocabularyItems as $item) {
+            $labels[TargetRef::vocabulary($item->id)->key()] = $item->term;
+        }
+
+        foreach ($unit->grammarPoints as $point) {
+            $labels[TargetRef::grammar($point->id)->key()] = 'grammar: '.$point->title;
+        }
+
+        return $labels;
+    }
+
+    /**
+     * @param  array<string, string>  $labels
+     * @return list<string>
+     */
+    private function exercise(ExerciseDefinition $exercise, array $labels): array
     {
         $payload = $exercise->payload;
+        $lines = [$this->headline($exercise)];
+
+        if ($exercise->format->isTeach()) {
+            return $lines;
+        }
+
+        $detail = fn (string $name, mixed $value) => is_scalar($value) && (string) $value !== '' ? ["  - {$name}: {$value}"] : [];
+
+        array_push($lines, ...$detail('English', $payload['english'] ?? null), ...$detail('Source', $payload['source'] ?? null), ...$detail('Why', $payload['why'] ?? null), ...$detail('Model answer', $payload['model'] ?? null));
+
+        if (is_array($payload['tiles'] ?? null)) {
+            $lines[] = '  - tiles: '.implode(' | ', array_map($this->text(...), $payload['tiles']));
+        }
+
+        if (is_array($payload['slots'] ?? null)) {
+            $lines[] = '  - keyword slots: '.implode(' ; ', array_map(fn (mixed $slot): string => is_array($slot) ? implode(' / ', array_map($this->text(...), $slot)) : '', $payload['slots']));
+        }
+
+        if (is_array($payload['required'] ?? null)) {
+            $lines[] = '  - required words: '.implode(' ; ', array_map(fn (mixed $entry): string => is_array($entry) && is_array($entry['forms'] ?? null) ? implode(' / ', array_map($this->text(...), $entry['forms'])) : '', $payload['required']));
+        }
+
+        if (is_array($payload['glosses'] ?? null)) {
+            $lines[] = '  - glossed: '.implode(', ', array_map(fn (mixed $meaning, string|int $word): string => "{$word} = {$this->text($meaning)}", $payload['glosses'], array_keys($payload['glosses'])));
+        }
+
+        array_push($lines, ...$this->passage($payload));
+
+        if ($exercise->targets !== []) {
+            $lines[] = '  - targets: '.implode('; ', array_map(fn (TargetDefinition $target): string => ($labels[$target->ref->key()] ?? '?').($target->form === null ? '' : " as '{$target->form}'").($target->isContrast ? ', contrast' : '').($target->isProbe ? ', probe' : ''), $exercise->targets));
+        }
+
+        return $lines;
+    }
+
+    private function headline(ExerciseDefinition $exercise): string
+    {
+        $payload = $exercise->payload;
+        $suffix = $exercise->substituteForKey === null ? '' : ' [substitute, used when a skip replaces its original]';
 
         return match ($exercise->format) {
             LessonExerciseFormat::TeachWord => "- teach: {$this->text($payload['term'] ?? '')} = {$this->text($payload['translation'] ?? '')}",
             LessonExerciseFormat::TeachGrammar => "- grammar card: {$this->text($payload['title'] ?? '')}",
             LessonExerciseFormat::MatchPairs => '- match: '.implode(', ', array_map(fn (mixed $pair): string => is_array($pair) ? $this->text($pair['left'] ?? '').' = '.$this->text($pair['right'] ?? '') : '', is_array($payload['pairs'] ?? null) ? $payload['pairs'] : [])),
-            LessonExerciseFormat::ChooseMeaning, LessonExerciseFormat::ChooseWord, LessonExerciseFormat::ChooseGap, LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => "- {$exercise->format->value}: {$this->text($payload['prompt'] ?? $payload['text'] ?? '')} | options: ".implode(' / ', array_map($this->text(...), is_array($payload['options'] ?? null) ? $payload['options'] : []))." | answer: {$this->text($payload['answer'] ?? '')}",
-            default => "- {$exercise->format->value}".($exercise->probeSet === null ? '' : " (check set {$exercise->probeSet})").": {$this->text($payload['prompt'] ?? $payload['text'] ?? '')} | accepted: ".implode(' / ', array_map(fn (mixed $entry): string => is_array($entry) ? $this->text($entry['text'] ?? '') : '', is_array($payload['accepted'] ?? null) ? $payload['accepted'] : [])),
+            LessonExerciseFormat::ChooseMeaning, LessonExerciseFormat::ChooseWord, LessonExerciseFormat::ChooseGap, LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => "- {$exercise->format->value}: {$this->text($payload['prompt'] ?? $payload['text'] ?? '')} | options: ".implode(' / ', array_map($this->text(...), is_array($payload['options'] ?? null) ? $payload['options'] : []))." | answer: {$this->text($payload['answer'] ?? '')}{$suffix}",
+            LessonExerciseFormat::ReadPassage, LessonExerciseFormat::ListenPassage, LessonExerciseFormat::WriteGuided, LessonExerciseFormat::SpeakAnswer => "- {$exercise->format->value}".($exercise->probeSet === null ? '' : " (check set {$exercise->probeSet})").": {$this->text($payload['prompt'] ?? '')}{$suffix}",
+            default => "- {$exercise->format->value}".($exercise->probeSet === null ? '' : " (check set {$exercise->probeSet})").": {$this->text($payload['prompt'] ?? $payload['text'] ?? '')} | accepted: ".implode(' / ', array_map(fn (mixed $entry): string => is_array($entry) ? $this->text($entry['text'] ?? '') : '', is_array($payload['accepted'] ?? null) ? $payload['accepted'] : []))."{$suffix}",
         };
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return list<string>
+     */
+    private function passage(array $payload): array
+    {
+        $lines = [];
+
+        foreach (is_array($payload['dialogue'] ?? null) ? $payload['dialogue'] : [] as $line) {
+            if (is_array($line)) {
+                $lines[] = "  - {$this->text($line['speaker'] ?? '')}: {$this->text($line['text'] ?? '')}";
+            }
+        }
+
+        foreach (['questions' => 'question', 'substitute_questions' => 'question if skipped'] as $key => $label) {
+            foreach (is_array($payload[$key] ?? null) ? $payload[$key] : [] as $question) {
+                if (is_array($question)) {
+                    $lines[] = "  - {$label}: {$this->text($question['prompt'] ?? '')} | ".implode(' / ', array_map($this->text(...), is_array($question['options'] ?? null) ? $question['options'] : []))." | answer: {$this->text($question['answer'] ?? '')}";
+                }
+            }
+        }
+
+        return $lines;
     }
 
     private function text(mixed $value): string

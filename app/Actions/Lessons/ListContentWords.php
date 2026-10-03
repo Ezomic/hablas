@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Lessons;
 
+use App\Lessons\AuthoredTexts;
 use App\Lessons\UnitContent;
 use App\Models\Language;
 use App\Services\TextNormalizerResolver;
@@ -35,7 +36,7 @@ final class ListContentWords
         }
 
         foreach ($content->exercises() as $exercise) {
-            array_push($texts, ...$exercise->accepted);
+            array_push($texts, ...AuthoredTexts::of($exercise));
         }
 
         $words = [];

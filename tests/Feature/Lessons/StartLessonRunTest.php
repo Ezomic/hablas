@@ -11,6 +11,7 @@ use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
+use App\Enums\LessonState;
 use App\Enums\SrsRating;
 use App\Enums\UnitProgressStatus;
 use App\Lessons\TargetRef;
@@ -24,6 +25,7 @@ use App\Models\Unit;
 use App\Models\UnitItemMastery;
 use App\Models\UserUnitProgress;
 use App\Models\VocabularyItem;
+use App\Services\LessonProgress;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -378,6 +380,76 @@ describe('remediation', function () {
         expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake)))->toBe('Finish the run you have open for this lesson first.')
             ->and((new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Practice)->id)->toBe($practice->id)
             ->and(LessonRun::query()->where('open_lesson_id', $this->check->id)->count())->toBe(1);
+    });
+
+    it('refuses another full check after one was taken, today and on any later day, and leaves only practice and a retake', function () {
+        finishedCheck($this, ['check.a.type_word.la-llave']);
+        $message = 'Practise the missed items and retake them, instead of taking the whole check again.';
+
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Check)))->toBe($message)
+            ->and((new LessonProgress)->state($this->user, $this->check))->toBe(LessonState::Remediation);
+
+        $this->travel(1)->days();
+
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Check)))->toBe($message)
+            ->and((new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake)->kind)->toBe(LessonRunKind::Retake);
+    });
+
+    it('spaces a retake of a retake by a day as well, and still refuses the full check', function () {
+        finishedCheck($this, ['check.a.type_word.la-llave']);
+        $this->travel(1)->days();
+
+        $retake = (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake);
+
+        foreach ($retake->planExerciseIds() as $id) {
+            $exercise = LessonExercise::query()->findOrFail($id);
+            LessonWorld::answer($this->user, $retake, $exercise, ['response' => LessonWorld::wrongResponse($exercise)]);
+        }
+
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake)))->toBe('The retake opens tomorrow.')
+            ->and(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Check)))->toContain('Practise the missed items');
+
+        $this->travel(1)->days();
+
+        expect((new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake)->probe_set)->toBe('a');
+    });
+
+    it('does not reopen the full check on the same day when a lesson is replayed after a failed check', function () {
+        finishedCheck($this, ['check.a.type_word.la-llave']);
+        $replay = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Task));
+        LessonWorld::play($this->user, $replay);
+
+        expect((new LessonProgress)->state($this->user, $this->check))->toBe(LessonState::OpensTomorrow);
+
+        $this->travel(1)->days();
+
+        expect((new LessonProgress)->state($this->user, $this->check))->toBe(LessonState::Available);
+    });
+
+    it('lets the check follow the lessons when only a test-out came before them', function () {
+        $testOut = (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::TestOut);
+        $testOut = LessonWorld::play($this->user, $testOut, fn (LessonExercise $exercise): bool => $exercise->key === 'check.a.type_word.la-llave');
+        $testOut->forceFill(['completed_at' => now()->subDays(5)])->save();
+        LessonWorld::finishTeachingLessons($this->user, $this->unit);
+
+        expect((new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Check)->kind)->toBe(LessonRunKind::Check);
+    });
+
+    it('describes what is left to do after a check, and says nothing once everything is proven', function () {
+        $check = finishedCheck($this, ['check.a.type_word.la-llave']);
+        $progress = new LessonProgress;
+
+        expect($progress->remediation($this->user, $this->unit))->toBe(['lessonId' => $this->check->id, 'missing' => 1, 'retake' => 'opens_tomorrow']);
+
+        $this->travel(1)->days();
+
+        expect($progress->remediation($this->user, $this->unit)['retake'])->toBe('open');
+
+        $retake = (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake);
+        LessonWorld::play($this->user, $retake);
+
+        expect($progress->remediation($this->user, $this->unit))->toBeNull()
+            ->and($check->status)->toBe(LessonRunStatus::Completed);
     });
 
     it('refuses the retake when everything is mastered', function () {

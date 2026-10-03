@@ -44,12 +44,18 @@ export function isTypedFormat(format: string): boolean {
         'type_word',
         'type_gap',
         'translate_sentence',
+        'transform_sentence',
+        'write_guided',
         'listen_type',
     ].includes(format);
 }
 
 export function isListenFormat(format: string): boolean {
     return ['listen_choose', 'listen_pair', 'listen_type'].includes(format);
+}
+
+export function isPassageFormat(format: string): boolean {
+    return ['read_passage', 'listen_passage'].includes(format);
 }
 
 export function isSpeakFormat(format: string): boolean {
@@ -100,4 +106,79 @@ export function instructionFor(format: string, language: string): string {
         default:
             return '';
     }
+}
+
+export interface PassageQuestion {
+    prompt: string;
+    options: string[];
+    answer: string | null;
+}
+
+export interface PassageLine {
+    speaker: string;
+    text: string;
+    audioUrl: string | null;
+    audioSlowUrl: string | null;
+}
+
+function records(value: unknown): Record<string, unknown>[] {
+    return Array.isArray(value)
+        ? value.filter(
+              (item): item is Record<string, unknown> =>
+                  typeof item === 'object' && item !== null,
+          )
+        : [];
+}
+
+export function passageQuestions(
+    payload: Record<string, unknown>,
+): PassageQuestion[] {
+    return records(payload.questions).map((question) => ({
+        prompt: text(question.prompt),
+        options: strings(question.options),
+        answer: text(question.answer) || null,
+    }));
+}
+
+export function passageLines(payload: Record<string, unknown>): PassageLine[] {
+    return records(payload.lines ?? payload.dialogue).map((line) => ({
+        speaker: text(line.speaker),
+        text: text(line.text),
+        audioUrl: clipUrl(line.audioUrl),
+        audioSlowUrl: clipUrl(line.audioSlowUrl),
+    }));
+}
+
+/** The answers of every question, or null when any is missing, as in a check. */
+export function passageAnswers(
+    payload: Record<string, unknown>,
+): string[] | null {
+    const questions = passageQuestions(payload);
+
+    return questions.length > 0 &&
+        questions.every((question) => question.answer !== null)
+        ? questions.map((question) => question.answer as string)
+        : null;
+}
+
+export function glossesOf(
+    payload: Record<string, unknown>,
+): [string, string][] {
+    const glosses = payload.glosses;
+
+    if (typeof glosses !== 'object' || glosses === null) {
+        return [];
+    }
+
+    return Object.entries(glosses).filter(
+        (entry): entry is [string, string] =>
+            typeof entry[1] === 'string' && entry[1] !== '',
+    );
+}
+
+/** The English line shown under a prompt, unless it only repeats the prompt. */
+export function englishLine(payload: Record<string, unknown>): string {
+    const english = text(payload.english);
+
+    return english !== '' && english !== text(payload.prompt) ? english : '';
 }

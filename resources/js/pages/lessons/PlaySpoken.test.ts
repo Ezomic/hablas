@@ -220,6 +220,7 @@ function props(overrides: Partial<PlayProps> = {}): PlayProps {
             summary: null,
             next: null,
             summarySeen: false,
+            remediation: null,
         },
         lesson: {
             id: 9,

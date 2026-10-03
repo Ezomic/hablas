@@ -99,6 +99,15 @@ final class StartLessonRun
         });
     }
 
+    /**
+     * The kind of run a learner has open on a lesson, so that "Continue" on
+     * the check lesson resumes a practice run or a retake as what it is.
+     */
+    public function openKind(User $user, Lesson $lesson): ?LessonRunKind
+    {
+        return $this->openRun($user, $lesson)?->kind;
+    }
+
     private function openRun(User $user, Lesson $lesson): ?LessonRun
     {
         return LessonRun::query()
@@ -138,6 +147,7 @@ final class StartLessonRun
             LessonState::Locked => throw $this->refuse('Finish the lessons before the check.'),
             LessonState::OpensTomorrow => throw $this->refuse('The check opens tomorrow.'),
             LessonState::Completed => throw $this->refuse('You have passed this unit check.'),
+            LessonState::Remediation => throw $this->refuse('Practise the missed items and retake them, instead of taking the whole check again.'),
             default => null,
         };
     }

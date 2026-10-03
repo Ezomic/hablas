@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { CircleCheck, CircleX } from '@lucide/vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import type { Feedback } from '@/composables/useLessonRun';
 
-const props = defineProps<{ feedback: Feedback }>();
+const props = defineProps<{ feedback: Feedback; guided?: boolean }>();
+
+const { t } = useI18n();
 
 const emit = defineEmits<{ flag: [] }>();
 
@@ -60,12 +63,49 @@ const marked = computed(() => {
 
         <p v-if="note" class="text-sm">{{ note }}</p>
 
+        <p
+            v-if="props.feedback.why && !props.feedback.correct"
+            class="text-sm"
+            data-testid="why"
+        >
+            {{ props.feedback.why }}
+        </p>
+
+        <template v-if="props.guided">
+            <p v-if="props.feedback.details?.found.length" class="text-sm">
+                {{
+                    t('lesson.feedback.used', {
+                        words: props.feedback.details.found.join(', '),
+                    })
+                }}
+            </p>
+            <p v-if="props.feedback.details?.missing.length" class="text-sm">
+                {{
+                    t('lesson.feedback.missing', {
+                        words: props.feedback.details.missing.join(', '),
+                    })
+                }}
+            </p>
+            <p
+                v-if="props.feedback.expected"
+                class="text-sm"
+                data-testid="model"
+            >
+                {{ t('lesson.feedback.model') }}:
+                <span class="font-semibold">{{ props.feedback.expected }}</span>
+            </p>
+        </template>
+
         <template v-if="!props.feedback.correct">
-            <p v-if="props.feedback.expected" class="text-sm">
+            <p v-if="props.feedback.expected && !props.guided" class="text-sm">
                 Correct answer:
                 <span class="font-semibold">{{ props.feedback.expected }}</span>
             </p>
-            <p v-if="marked.length" class="text-sm" data-testid="given">
+            <p
+                v-if="marked.length && !props.guided"
+                class="text-sm"
+                data-testid="given"
+            >
                 Your answer:
                 <template v-for="(item, index) in marked" :key="index">
                     <span

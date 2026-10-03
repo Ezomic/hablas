@@ -61,7 +61,11 @@
             "listenType": "Listen and type what you hear",
             "speakRepeat": "Say it out loud",
             "speakQuestion": "Listen, then answer out loud",
-            "speakCue": "Say it out loud in the language you are learning"
+            "speakCue": "Say it out loud in the language you are learning",
+            "buildSentence": "Tap the words to build the sentence",
+            "writeGuided": "Write it in the language you are learning",
+            "readPassage": "Read the dialogue, then answer the questions",
+            "listenPassage": "Listen to the dialogue, then answer the questions"
         },
         "listen": {
             "play": "Play",
@@ -104,6 +108,30 @@
             "bannerListening": "Listening is off until {time}",
             "bannerSpeaking": "Speaking is off until {time}",
             "turnOn": "Turn it back on"
+        },
+        "build": {
+            "answerLine": "Your sentence",
+            "tiles": "Words to choose from",
+            "empty": "Tap the words below"
+        },
+        "guided": {
+            "useThese": "Use these words"
+        },
+        "feedback": {
+            "used": "Used: {words}",
+            "missing": "Still missing: {words}",
+            "model": "Model answer"
+        },
+        "passage": {
+            "dialogue": "Dialogue",
+            "transcript": "Transcript"
+        },
+        "remediation": {
+            "status": "Practise the missed items, then retake",
+            "missing": "{n} item not proven yet | {n} items not proven yet",
+            "practise": "Practise the missed items",
+            "retake": "Retake",
+            "retakeLater": "The retake opens tomorrow, so what you practise has time to settle."
         }
     }
 }

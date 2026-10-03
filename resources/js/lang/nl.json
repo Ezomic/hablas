@@ -61,7 +61,11 @@
             "listenType": "Luister en typ wat je hoort",
             "speakRepeat": "Zeg het hardop",
             "speakQuestion": "Luister en antwoord dan hardop",
-            "speakCue": "Zeg het hardop in de taal die je leert"
+            "speakCue": "Zeg het hardop in de taal die je leert",
+            "buildSentence": "Tik op de woorden om de zin te maken",
+            "writeGuided": "Schrijf het op in de taal die je leert",
+            "readPassage": "Lees de dialoog en beantwoord de vragen",
+            "listenPassage": "Luister naar de dialoog en beantwoord de vragen"
         },
         "listen": {
             "play": "Afspelen",
@@ -104,6 +108,30 @@
             "bannerListening": "Luisteren staat uit tot {time}",
             "bannerSpeaking": "Spreken staat uit tot {time}",
             "turnOn": "Zet het weer aan"
+        },
+        "build": {
+            "answerLine": "Jouw zin",
+            "tiles": "Woorden om uit te kiezen",
+            "empty": "Tik op de woorden hieronder"
+        },
+        "guided": {
+            "useThese": "Gebruik deze woorden"
+        },
+        "feedback": {
+            "used": "Gebruikt: {words}",
+            "missing": "Nog niet gebruikt: {words}",
+            "model": "Voorbeeldantwoord"
+        },
+        "passage": {
+            "dialogue": "Dialoog",
+            "transcript": "Uitgeschreven tekst"
+        },
+        "remediation": {
+            "status": "Oefen de gemiste items en doe de check daarna opnieuw",
+            "missing": "{n} item nog niet bewezen | {n} items nog niet bewezen",
+            "practise": "Oefen de gemiste items",
+            "retake": "Opnieuw doen",
+            "retakeLater": "Opnieuw doen kan vanaf morgen, zodat wat je oefent de tijd krijgt om te beklijven."
         }
     }
 }
