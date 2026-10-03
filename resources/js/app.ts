@@ -1,6 +1,7 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
+import { initializeInstallPrompt } from '@/composables/useInstallPrompt';
 import { initializeOfflineSync } from '@/composables/useOfflineSync';
 import { i18n, setLocale } from '@/i18n';
 import type { InterfaceLocale } from '@/i18n';
@@ -11,6 +12,9 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeLocaleSync } from '@/lib/localeSync';
 import { initializeServiceWorker } from '@/lib/registerServiceWorker';
+
+// Registered before the app boots so an early beforeinstallprompt is not missed...
+initializeInstallPrompt();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

@@ -4,11 +4,17 @@ import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
 import { PAGE_CACHE_NAME } from '../js/lib/pageCache';
+import { handlePwaLaunch, isPwaLaunch } from '../js/lib/pwaLaunch';
 
 declare const self: ServiceWorkerGlobalScope;
 
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
+
+registerRoute(
+    ({ request }) => isPwaLaunch(request),
+    ({ request }) => handlePwaLaunch(request),
+);
 
 // Cache the last-seen render of each visited page so it can be revisited
 // offline, falling back to the network first since page data should stay
