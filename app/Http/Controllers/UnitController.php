@@ -16,6 +16,7 @@ use App\Models\Lesson;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\SpeechClipResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,12 +36,16 @@ final class UnitController extends Controller
         ]);
     }
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver): Response
     {
         $availability = $this->authorizeUnit($unit, $getCurrentLanguage, $determineUnitAvailability);
         $overview = $getUnitLessonOverview->handle($this->currentUser(), $unit);
 
         $unit->load(['vocabularyItems', 'grammarPoints']);
+
+        $clips = $unit->language === null
+            ? []
+            : $speechClipResolver->resolveBoth($unit->language->code, array_values($unit->vocabularyItems->map(fn (VocabularyItem $item): string => $item->term)->all()));
 
         return Inertia::render('units/Show', [
             'unit' => [
@@ -58,6 +63,8 @@ final class UnitController extends Controller
                 'partOfSpeech' => $item->part_of_speech,
                 'isCognate' => $item->is_cognate,
                 'contrastNote' => $item->contrast_note,
+                'audioUrl' => $clips[$item->term]['audioUrl'] ?? null,
+                'audioSlowUrl' => $clips[$item->term]['audioSlowUrl'] ?? null,
             ])->values(),
             'grammarPoints' => $unit->grammarPoints->map(fn (GrammarPoint $point): array => [
                 'id' => $point->id,

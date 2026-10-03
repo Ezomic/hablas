@@ -144,6 +144,8 @@ function changeSort(value: unknown) {
                                 v-if="item.kind === 'vocabulary'"
                                 :text="item.term"
                                 :locale="props.speechLocale"
+                                :audio-url="item.audioUrl"
+                                :audio-slow-url="item.audioSlowUrl"
                             />
                             <Badge v-else variant="outline" class="ml-1"
                                 >Grammar</Badge

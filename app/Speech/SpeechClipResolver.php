@@ -26,7 +26,35 @@ final class SpeechClipResolver
      */
     public function resolve(string $language, array $texts, ?string $voiceId = null, SpeechSpeed $speed = SpeechSpeed::Normal): array
     {
-        $none = array_fill_keys($texts, null);
+        return array_map(
+            fn (array $urls): ?string => $urls[$speed->value],
+            $this->lookup($language, $texts, $voiceId, [$speed]),
+        );
+    }
+
+    /**
+     * Both speed variants of every text from one lookup, shaped the way the
+     * pages send them: the normal clip as audioUrl, the slow one as audioSlowUrl.
+     *
+     * @param  list<string>  $texts
+     * @return array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>
+     */
+    public function resolveBoth(string $language, array $texts, ?string $voiceId = null): array
+    {
+        return array_map(
+            fn (array $urls): array => ['audioUrl' => $urls[SpeechSpeed::Normal->value], 'audioSlowUrl' => $urls[SpeechSpeed::Slow->value]],
+            $this->lookup($language, $texts, $voiceId, SpeechSpeed::cases()),
+        );
+    }
+
+    /**
+     * @param  list<string>  $texts
+     * @param  list<SpeechSpeed>  $speeds
+     * @return array<array-key, array<string, string|null>>
+     */
+    private function lookup(string $language, array $texts, ?string $voiceId, array $speeds): array
+    {
+        $none = array_fill_keys($texts, array_fill_keys(array_map(fn (SpeechSpeed $speed): string => $speed->value, $speeds), null));
 
         if ($texts === [] || ! $this->config->boolean('speech.enabled')) {
             return $none;
@@ -41,22 +69,27 @@ final class SpeechClipResolver
         $hashes = [];
 
         foreach ($texts as $text) {
-            $hashes[$text] = $this->key->make($language, $voice->id, $speed, $text);
+            foreach ($speeds as $speed) {
+                $hashes[$text][$speed->value] = $this->key->make($language, $voice->id, $speed, $text);
+            }
         }
 
         $existing = [];
 
-        foreach (array_chunk(array_values($hashes), self::CHUNK) as $chunk) {
+        foreach (array_chunk(array_merge(...array_map(array_values(...), array_values($hashes))), self::CHUNK) as $chunk) {
             foreach (SpeechClip::query()->whereIn('hash', $chunk)->get(['hash']) as $clip) {
                 $existing[$clip->hash] = true;
             }
         }
+
         $disk = $this->filesystem->disk($this->config->string('speech.disk'));
 
         $urls = [];
 
-        foreach ($hashes as $text => $hash) {
-            $urls[$text] = isset($existing[$hash]) ? $disk->url(SpeechClip::pathFor($language, $voice->id, $hash)) : null;
+        foreach ($hashes as $text => $byspeed) {
+            foreach ($byspeed as $speed => $hash) {
+                $urls[$text][$speed] = isset($existing[$hash]) ? $disk->url(SpeechClip::pathFor($language, $voice->id, $hash)) : null;
+            }
         }
 
         return $urls;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { Volume2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { LoaderCircle, Volume2 } from '@lucide/vue';
+import { computed, onMounted, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,18 +17,18 @@ import { useOfflineSync } from '@/composables/useOfflineSync';
 import { useSpeech } from '@/composables/useSpeech';
 import { showMilestone } from '@/lib/milestone';
 import { store as storeAttempt } from '@/routes/listening/attempts';
+import type { SpeechClipUrls } from '@/types/speech';
 
 interface Question {
     prompt: string;
     options: string[];
 }
 
-interface Exercise {
+interface Exercise extends SpeechClipUrls {
     id: number;
     title: string;
     cefrLevel: string;
     transcript: string;
-    audioUrl: string | null;
     questions: Question[];
 }
 
@@ -45,7 +45,9 @@ defineOptions({
 });
 
 const { submitOrQueue } = useOfflineSync();
-const { isSupported, isSpeaking, speak } = useSpeech(() => props.speechLocale);
+const { isSupported, isSpeaking, isLoading, speak, prefetch } = useSpeech(
+    () => props.speechLocale,
+);
 
 const answers = ref<string[]>(
     props.exercise ? props.exercise.questions.map(() => '') : [],
@@ -69,13 +71,21 @@ const allAnswered = computed(() =>
     answers.value.every((answer) => answer !== ''),
 );
 
-function play() {
+onMounted(() => prefetch(props.exercise?.audioUrl));
+
+async function play() {
     if (!props.exercise || !canPlay.value) {
         return;
     }
 
-    playCount.value++;
-    speak(props.exercise.transcript, props.exercise.audioUrl);
+    const started = await speak(
+        props.exercise.transcript,
+        props.exercise.audioUrl,
+    );
+
+    if (started) {
+        playCount.value++;
+    }
 }
 
 async function submit() {
@@ -146,11 +156,23 @@ async function submit() {
 
                     <Button
                         v-else
-                        :disabled="!canPlay || isSpeaking"
+                        :disabled="!canPlay || isSpeaking || isLoading"
+                        :aria-busy="isLoading"
+                        class="min-w-40"
                         @click="play"
                     >
-                        <Volume2 class="size-4" />
-                        {{ hasStarted ? 'Play again' : 'Play the clip' }}
+                        <LoaderCircle
+                            v-if="isLoading"
+                            class="size-4 animate-spin"
+                        />
+                        <Volume2 v-else class="size-4" />
+                        {{
+                            isLoading
+                                ? 'Loading clip…'
+                                : hasStarted
+                                  ? 'Play again'
+                                  : 'Play the clip'
+                        }}
                     </Button>
 
                     <p class="text-sm text-muted-foreground">

@@ -114,3 +114,24 @@ it('chunks the lookup so a large list stays within bind limits', function (): vo
 it('refuses to build a path from an unsafe segment', function (): void {
     SpeechClip::pathFor('es', '../x', str_repeat('a', 64));
 })->throws(InvalidArgumentException::class);
+
+it('returns both speed variants from one lookup, each null where missing', function (): void {
+    $normal = storeClip('es', 'supertonic-f1', SpeechSpeed::Normal, 'Hola');
+    storeClip('es', 'supertonic-f1', SpeechSpeed::Normal, 'Gracias');
+    $slow = storeClip('es', 'supertonic-f1', SpeechSpeed::Slow, 'Gracias');
+
+    DB::enableQueryLog();
+    $clips = app(SpeechClipResolver::class)->resolveBoth('es', ['Hola', 'Gracias', 'Adiós']);
+
+    expect(DB::getQueryLog())->toHaveCount(1)
+        ->and($clips['Hola'])->toBe(['audioUrl' => Storage::disk('public')->url($normal->path()), 'audioSlowUrl' => null])
+        ->and($clips['Gracias']['audioSlowUrl'])->toBe(Storage::disk('public')->url($slow->path()))
+        ->and($clips['Adiós'])->toBe(['audioUrl' => null, 'audioSlowUrl' => null]);
+});
+
+it('returns no urls for either speed when speech is disabled', function (): void {
+    storeClip('es', 'supertonic-f1', SpeechSpeed::Normal, 'Hola');
+    config(['speech.enabled' => false]);
+
+    expect(app(SpeechClipResolver::class)->resolveBoth('es', ['Hola']))->toBe(['Hola' => ['audioUrl' => null, 'audioSlowUrl' => null]]);
+});

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Lessons;
 
+use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonState;
 use App\Models\Lesson;
@@ -13,11 +14,13 @@ use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Services\LessonProgress;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\SpeechClipResolver;
 use LogicException;
 
 final class PresentLessonRun
 {
     public function __construct(
+        private readonly SpeechClipResolver $speechClipResolver,
         private readonly SpeechLocaleResolver $speechLocaleResolver = new SpeechLocaleResolver,
         private readonly SummarizeLessonRun $summarizeLessonRun = new SummarizeLessonRun,
         private readonly LessonProgress $lessonProgress = new LessonProgress,
@@ -49,6 +52,8 @@ final class PresentLessonRun
             ->get()
             ->keyBy('id');
 
+        $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all())));
+
         $plan = [];
 
         foreach ($run->plan as $entry) {
@@ -59,9 +64,9 @@ final class PresentLessonRun
             }
 
             $plan[] = [
-                ...$this->exercise($exercise, $hidesAnswers),
+                ...$this->exercise($exercise, $hidesAnswers, $clips),
                 'origin' => $entry['origin'],
-                'substitute' => $exercise->substitute === null ? null : $this->exercise($exercise->substitute, $hidesAnswers),
+                'substitute' => $exercise->substitute === null ? null : $this->exercise($exercise->substitute, $hidesAnswers, $clips),
             ];
         }
 
@@ -126,17 +131,76 @@ final class PresentLessonRun
     }
 
     /**
+     * @param  array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>  $clips
      * @return array{id: int, key: string, block: string, format: string, payload: array<string, mixed>}
      */
-    private function exercise(LessonExercise $exercise, bool $hidesAnswers): array
+    private function exercise(LessonExercise $exercise, bool $hidesAnswers, array $clips): array
     {
         return [
             'id' => $exercise->id,
             'key' => $hidesAnswers ? (string) $exercise->id : $exercise->key,
             'block' => $exercise->block,
             'format' => $exercise->format->value,
-            'payload' => $hidesAnswers ? $this->withoutKeys($exercise->payload) : $this->withoutSpans($exercise->payload),
+            'payload' => $this->withClips($exercise->format, $hidesAnswers ? $this->withoutKeys($exercise->payload) : $this->withoutSpans($exercise->payload), $clips),
         ];
+    }
+
+    /**
+     * @param  list<LessonExercise>  $exercises
+     * @return list<string>
+     */
+    private function spokenTexts(array $exercises): array
+    {
+        $texts = [];
+
+        foreach ($exercises as $exercise) {
+            array_push($texts, ...$this->spoken($exercise->format, $exercise->payload));
+
+            if ($exercise->substitute !== null) {
+                array_push($texts, ...$this->spoken($exercise->substitute->format, $exercise->substitute->payload));
+            }
+        }
+
+        return array_values(array_unique($texts));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return list<string>
+     */
+    private function spoken(LessonExerciseFormat $format, array $payload): array
+    {
+        return match ($format) {
+            LessonExerciseFormat::TeachWord => is_string($payload['term'] ?? null) ? [$payload['term']] : [],
+            LessonExerciseFormat::TeachGrammar => array_values(array_filter(
+                array_map(fn (mixed $example): mixed => is_array($example) ? ($example['text'] ?? null) : null, is_array($payload['examples'] ?? null) ? $payload['examples'] : []),
+                is_string(...),
+            )),
+            default => [],
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>  $clips
+     * @return array<string, mixed>
+     */
+    private function withClips(LessonExerciseFormat $format, array $payload, array $clips): array
+    {
+        $none = ['audioUrl' => null, 'audioSlowUrl' => null];
+
+        if ($format === LessonExerciseFormat::TeachWord) {
+            return [...$payload, ...(is_string($payload['term'] ?? null) ? $clips[$payload['term']] : $none)];
+        }
+
+        if ($format === LessonExerciseFormat::TeachGrammar && is_array($payload['examples'] ?? null)) {
+            $payload['examples'] = array_map(
+                fn (mixed $example): mixed => is_array($example) ? [...$example, ...(is_string($example['text'] ?? null) ? $clips[$example['text']] : $none)] : $example,
+                $payload['examples'],
+            );
+        }
+
+        return $payload;
     }
 
     /**

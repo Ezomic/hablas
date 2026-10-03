@@ -11,6 +11,7 @@ use App\Concerns\InteractsWithCurrentUser;
 use App\Http\Requests\StoreShadowingAttemptRequest;
 use App\Models\ShadowingExercise;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\SpeechClipResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,7 +21,7 @@ final class ShadowingExerciseController extends Controller
 {
     use InteractsWithCurrentUser;
 
-    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver): Response
+    public function index(Request $request, GetCurrentLanguage $getCurrentLanguage, SelectExerciseForUser $selectExercise, SpeechLocaleResolver $speechLocaleResolver, SpeechClipResolver $speechClipResolver): Response
     {
         $language = $getCurrentLanguage->handle($this->currentUser());
 
@@ -37,7 +38,7 @@ final class ShadowingExerciseController extends Controller
             'exercise' => $exercise === null ? null : [
                 'id' => $exercise->id,
                 'target_transcript' => $exercise->target_transcript,
-                'audio_url' => $exercise->audio_url,
+                ...$speechClipResolver->resolveBoth($language->code, [$exercise->target_transcript])[$exercise->target_transcript],
             ],
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
