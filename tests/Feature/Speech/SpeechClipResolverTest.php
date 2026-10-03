@@ -85,3 +85,32 @@ it('returns nothing for an empty list, an unknown voice or an unknown language',
         ->and($resolver->resolve('es', ['Hola'], 'nope'))->toBe(['Hola' => null])
         ->and($resolver->resolve('xx', ['Hola']))->toBe(['Hola' => null]);
 });
+
+it('keeps numeric-string texts addressable by their original string', function (): void {
+    storeClip('es', 'supertonic-f1', SpeechSpeed::Normal, '5');
+    storeClip('es', 'supertonic-f1', SpeechSpeed::Normal, '007');
+
+    $urls = app(SpeechClipResolver::class)->resolve('es', ['5', '007', '8']);
+
+    expect($urls['5'])->not->toBeNull()
+        ->and($urls['007'])->not->toBeNull()
+        ->and($urls['8'])->toBeNull()
+        ->and($urls)->toHaveCount(3);
+});
+
+it('chunks the lookup so a large list stays within bind limits', function (): void {
+    storeClip('es', 'supertonic-f1', SpeechSpeed::Normal, 'text 1200');
+
+    $texts = array_map(fn (int $i): string => "text {$i}", range(1, 1200));
+
+    DB::enableQueryLog();
+    $urls = app(SpeechClipResolver::class)->resolve('es', $texts);
+
+    expect(DB::getQueryLog())->toHaveCount(3)
+        ->and($urls['text 1200'])->not->toBeNull()
+        ->and($urls['text 1'])->toBeNull();
+});
+
+it('refuses to build a path from an unsafe segment', function (): void {
+    SpeechClip::pathFor('es', '../x', str_repeat('a', 64));
+})->throws(InvalidArgumentException::class);

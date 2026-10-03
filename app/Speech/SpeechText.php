@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Speech;
 
+use InvalidArgumentException;
 use Normalizer;
 
 final class SpeechText
@@ -12,6 +13,10 @@ final class SpeechText
 
     public function normalise(string $text): string
     {
+        if (! mb_check_encoding($text, 'UTF-8')) {
+            throw new InvalidArgumentException('Speech text must be valid UTF-8.');
+        }
+
         $composed = Normalizer::normalize($text, Normalizer::FORM_C);
 
         $unified = str_replace(self::APOSTROPHES, "'", is_string($composed) ? $composed : $text);

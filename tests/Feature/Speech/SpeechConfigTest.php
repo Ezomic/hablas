@@ -39,11 +39,13 @@ it('maps the speed variants to engine speeds', function (): void {
         ->and($voice->speedFor(SpeechSpeed::Slow))->toBe(0.8);
 });
 
-it('requires audio for spanish but not for portuguese', function (): void {
+it('requires audio for spanish only', function (): void {
     $voices = app(SpeechVoices::class);
 
     expect($voices->requiresAudio('es'))->toBeTrue()
         ->and($voices->requiresAudio('pt'))->toBeFalse()
+        ->and($voices->requiresAudio('fr'))->toBeFalse()
+        ->and($voices->requiresAudio('it'))->toBeFalse()
         ->and($voices->requiresAudio('xx'))->toBeFalse();
 });
 
@@ -60,4 +62,14 @@ it('falls back to the first voice when none is marked primary', function (): voi
     config(['speech.languages.es.voices.0.primary' => false]);
 
     expect(app(SpeechVoices::class)->primary('es')?->id)->toBe('supertonic-f1');
+});
+
+it('keeps voice ids and language codes safe for storage paths', function (): void {
+    foreach (['es', 'pt', 'fr', 'it'] as $language) {
+        expect($language)->toMatch('/^[a-z0-9-]+$/');
+
+        foreach (app(SpeechVoices::class)->forLanguage($language) as $voice) {
+            expect($voice->id)->toMatch('/^[a-z0-9-]+$/');
+        }
+    }
 });

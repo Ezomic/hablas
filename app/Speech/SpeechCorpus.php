@@ -6,17 +6,18 @@ namespace App\Speech;
 
 use App\Enums\LessonExerciseFormat;
 use App\Lessons\UnitContent;
+use App\Models\Language;
 use App\Models\ListeningExercise;
 use App\Models\PronunciationDrillExercise;
 use App\Models\ShadowingExercise;
 use App\Models\VocabularyItem;
 use App\Services\UnitContentRegistry;
-use Illuminate\Database\Eloquent\Builder;
 
 final class SpeechCorpus
 {
     private const SPOKEN_PAYLOAD_FORMATS = [
         LessonExerciseFormat::ListenChoose,
+        LessonExerciseFormat::ListenPair,
         LessonExerciseFormat::ListenType,
         LessonExerciseFormat::SpeakRepeat,
     ];
@@ -42,7 +43,7 @@ final class SpeechCorpus
         }
 
         $texts = array_map(strval(...), array_keys($normalised));
-        sort($texts);
+        sort($texts, SORT_STRING);
 
         return $texts;
     }
@@ -76,8 +77,14 @@ final class SpeechCorpus
         }
 
         foreach ($content->exercises() as $exercise) {
-            if (in_array($exercise->format, self::SPOKEN_PAYLOAD_FORMATS, true) && is_string($exercise->payload['text'] ?? null)) {
-                $strings[] = $exercise->payload['text'];
+            if (in_array($exercise->format, self::SPOKEN_PAYLOAD_FORMATS, true)) {
+                $spoken = $exercise->payload['text']
+                    ?? $exercise->accepted[0]
+                    ?? ($exercise->format === LessonExerciseFormat::ListenPair ? $exercise->payload['answer'] ?? null : null);
+
+                if (is_string($spoken)) {
+                    $strings[] = $spoken;
+                }
             }
 
             if ($exercise->format === LessonExerciseFormat::SpeakAnswer && is_string($exercise->payload['prompt'] ?? null)) {
@@ -109,13 +116,19 @@ final class SpeechCorpus
     /** @return list<string> */
     private function stored(string $language): array
     {
-        $inLanguage = fn (Builder $query): Builder => $query->where('code', $language);
+        $languageId = Language::query()->where('code', $language)->value('id');
 
-        $strings = VocabularyItem::query()->whereHas('language', $inLanguage)->pluck('term')->all();
-        array_push($strings, ...ListeningExercise::query()->whereHas('language', $inLanguage)->pluck('transcript')->all());
-        array_push($strings, ...ShadowingExercise::query()->whereHas('language', $inLanguage)->pluck('target_transcript')->all());
+        if ($languageId === null) {
+            return [];
+        }
 
-        foreach (PronunciationDrillExercise::query()->whereHas('language', $inLanguage)->get() as $drill) {
+        $strings = VocabularyItem::query()->where('language_id', $languageId)->pluck('term')->all();
+        array_push($strings, ...ListeningExercise::query()->where('language_id', $languageId)->pluck('transcript')->all());
+        array_push($strings, ...ShadowingExercise::query()->where('language_id', $languageId)->pluck('target_transcript')->all());
+
+        $drills = PronunciationDrillExercise::query()->where('language_id', $languageId)->get(['word_a', 'word_b', 'target_word']);
+
+        foreach ($drills as $drill) {
             array_push($strings, $drill->word_a, $drill->word_b, $drill->target_word);
         }
 

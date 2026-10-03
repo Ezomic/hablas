@@ -43,6 +43,10 @@ final class PortugueseStubContent implements UnitContent
         return [
             new AuthoredExercise(Stage::Task, Format::SpeakAnswer, 'x', ['prompt' => 'Fala português?']),
             new AuthoredExercise(Stage::Task, Format::TypeWord, 'y', ['text' => 'not spoken']),
+            new AuthoredExercise(Stage::Task, Format::ListenType, 'z', [], accepted: ['Eu vivo aqui.']),
+            new AuthoredExercise(Stage::Task, Format::SpeakRepeat, 'w', ['text' => 'Bom dia.'], accepted: ['ignored']),
+            new AuthoredExercise(Stage::Task, Format::ListenPair, 'p', ['options' => ['a casa', 'o carro'], 'answer' => 'a casa', 'english' => 'the house']),
+            new AuthoredExercise(Stage::Task, Format::ListenPassage, 'q', ['dialogue' => [['speaker' => 'A', 'text' => 'Olá!'], 'junk', ['speaker' => 'B']]]),
         ];
     }
 
@@ -73,7 +77,7 @@ it('collects the spoken strings of unit content for one language', function (): 
 it('speaks the prompt of a speak-answer exercise and nothing from text-only formats', function (): void {
     $texts = corpus(new PortugueseStubContent)->texts('pt');
 
-    expect($texts)->toBe(['Fala português?', 'o pão']);
+    expect($texts)->toBe(['Bom dia.', 'Eu vivo aqui.', 'Fala português?', 'Olá!', 'a casa', 'o pão']);
 });
 
 it('collects stored vocabulary, transcripts, shadowing and drills', function (): void {
@@ -97,4 +101,8 @@ it('returns each normalised string once, sorted', function (): void {
     ShadowingExercise::factory()->create(['language_id' => $es->id, 'target_transcript' => '   ']);
 
     expect(corpus()->texts('es'))->toBe(['la casa']);
+});
+
+it('returns nothing stored for an unknown language', function (): void {
+    expect(corpus()->texts('xx'))->toBe([]);
 });

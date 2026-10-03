@@ -8,6 +8,7 @@ use App\Enums\SpeechSpeed;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 
 /**
  * @property int $id
@@ -32,6 +33,12 @@ class SpeechClip extends Model
 
     public static function pathFor(string $language, string $voiceId, string $hash): string
     {
+        foreach ([$language, $voiceId] as $segment) {
+            if (preg_match('/^[a-z0-9-]+$/', $segment) !== 1) {
+                throw new InvalidArgumentException("Invalid speech path segment [{$segment}].");
+            }
+        }
+
         return "speech/{$language}/{$voiceId}/".substr($hash, 0, 2)."/{$hash}.mp3";
     }
 

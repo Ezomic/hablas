@@ -19,3 +19,7 @@ it('unifies apostrophes', function (): void {
 it('keeps case and punctuation, which carry prosody', function (): void {
     expect((new SpeechText)->normalise('¡Hola, Ana!'))->toBe('¡Hola, Ana!');
 });
+
+it('rejects invalid UTF-8 instead of returning an empty string', function (): void {
+    (new SpeechText)->normalise("caf\xE9");
+})->throws(InvalidArgumentException::class, 'valid UTF-8');
