@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TtsPreviewController;
+use App\Http\Controllers\WebManifestController;
 use App\Http\Middleware\EnsurePlacementTestCompleted;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', fn () => Inertia::render('Welcome'))->name('home');
+Route::get('/', HomeController::class)->name('home');
+
+Route::get('manifest.webmanifest', WebManifestController::class)->name('manifest');
 
 // Temporary, removed in HAB-109 PR 1. No nav link, reachable by URL only.
 Route::get('voice-test', TtsPreviewController::class)->middleware('auth')->name('tts-preview');

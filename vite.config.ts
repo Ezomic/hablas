@@ -59,39 +59,10 @@ export default defineConfig({
             outDir: 'public',
             base: '/',
             scope: '/',
-            manifest: {
-                name: 'Hablas',
-                short_name: 'Hablas',
-                description: 'Spanish/Portuguese learning app',
-                theme_color: '#be185d',
-                background_color: '#be185d',
-                display: 'standalone',
-                start_url: '/dashboard',
-                // Without these the PWA install prompt has no icon at all.
-                // "maskable" lets Android crop to its own shape without
-                // clipping the glyph; "any" keeps the rounded square intact
-                // everywhere else.
-                icons: [
-                    {
-                        src: '/pwa-192.png',
-                        sizes: '192x192',
-                        type: 'image/png',
-                        purpose: 'any',
-                    },
-                    {
-                        src: '/pwa-512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                        purpose: 'any',
-                    },
-                    {
-                        src: '/pwa-maskable-512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                        purpose: 'maskable',
-                    },
-                ],
-            },
+            // The manifest is served by Laravel (WebManifestController) so it
+            // gets the application/manifest+json content type and stays the
+            // single source of truth.
+            manifest: false,
             injectManifest: {
                 // Precache only the built static assets (JS/CSS/fonts) so the
                 // app shell can boot offline — server-rendered page HTML is

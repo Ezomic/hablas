@@ -1,6 +1,7 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
+import { initializeInstallPrompt } from '@/composables/useInstallPrompt';
 import { initializeOfflineSync } from '@/composables/useOfflineSync';
 import { i18n, setLocale } from '@/i18n';
 import type { InterfaceLocale } from '@/i18n';
@@ -67,3 +68,6 @@ initializeOfflineSync();
 
 // This will register the service worker for offline support...
 initializeServiceWorker();
+
+// This will capture the browser's install prompt for the in-app install button...
+initializeInstallPrompt();

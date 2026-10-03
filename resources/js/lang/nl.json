@@ -14,5 +14,10 @@
         "switcherLabel": "Taal van de interface",
         "en": "English",
         "nl": "Nederlands"
+    },
+    "install": {
+        "button": "App installeren",
+        "iosHint": "Tik op Deel en kies Zet op beginscherm om Hablas te installeren.",
+        "androidHint": "Open het browsermenu en kies App installeren om Hablas te installeren."
     }
 }

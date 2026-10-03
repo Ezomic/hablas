@@ -14,5 +14,10 @@
         "switcherLabel": "Interface language",
         "en": "English",
         "nl": "Nederlands"
+    },
+    "install": {
+        "button": "Install app",
+        "iosHint": "To install Hablas, tap Share, then Add to Home Screen.",
+        "androidHint": "To install Hablas, open your browser menu and choose Install app."
     }
 }

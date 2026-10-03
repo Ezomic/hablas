@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import HablasLogoIcon from '@/components/HablasLogoIcon.vue';
+import InstallAppButton from '@/components/InstallAppButton.vue';
 import { Button } from '@/components/ui/button';
 import { dashboard, login, register } from '@/routes';
 
@@ -136,6 +137,7 @@ const pacing = [
                             >
                         </Button>
                     </template>
+                    <InstallAppButton />
                 </div>
 
                 <p class="mt-4 text-sm text-muted-foreground">
