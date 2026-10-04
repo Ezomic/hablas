@@ -482,7 +482,9 @@
         "accentKeys": "Accenttoetsen",
         "language": {
             "es": "Spaans",
-            "pt": "Portugees"
+            "pt": "Portugees",
+            "fr": "Frans",
+            "it": "Italiaans"
         },
         "note": {
             "accent": "Let op het accent: {expected}",

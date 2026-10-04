@@ -102,8 +102,10 @@ export function hintFor(exercise: ExerciseBase): string {
 }
 
 export function languageName(locale: string | null): string {
+    const code = locale?.slice(0, 2) ?? 'es';
+
     return i18n.global.t(
-        locale?.startsWith('pt') ? 'lesson.language.pt' : 'lesson.language.es',
+        `lesson.language.${['es', 'pt', 'fr', 'it'].includes(code) ? code : 'es'}`,
     );
 }
 

@@ -23,5 +23,15 @@ class LanguageSeeder extends Seeder
             ['code' => 'pt'],
             ['name' => 'Portuguese'],
         );
+
+        Language::query()->updateOrCreate(
+            ['code' => 'fr'],
+            ['name' => 'French'],
+        );
+
+        Language::query()->updateOrCreate(
+            ['code' => 'it'],
+            ['name' => 'Italian'],
+        );
     }
 }

@@ -84,6 +84,6 @@ it('serves no tag when the user has no active language', function () {
 it('resolves a tag for french and italian', function () {
     $resolver = new SpeechLocaleResolver;
 
-    expect($resolver->forLanguage(Language::factory()->create(['code' => 'fr'])))->toBe('fr-FR')
-        ->and($resolver->forLanguage(Language::factory()->create(['code' => 'it'])))->toBe('it-IT');
+    expect($resolver->forLanguage(Language::query()->firstOrCreate(['code' => 'fr'], ['name' => 'French'])))->toBe('fr-FR')
+        ->and($resolver->forLanguage(Language::query()->firstOrCreate(['code' => 'it'], ['name' => 'Italian'])))->toBe('it-IT');
 });

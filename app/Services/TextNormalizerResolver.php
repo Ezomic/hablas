@@ -15,6 +15,8 @@ final class TextNormalizerResolver
         return match ($language->code) {
             'es' => new SpanishTextNormalizer,
             'pt' => new PortugueseTextNormalizer,
+            'fr' => new FrenchTextNormalizer,
+            'it' => new ItalianTextNormalizer,
             default => throw new RuntimeException("No text normalizer for language '{$language->code}'."),
         };
     }

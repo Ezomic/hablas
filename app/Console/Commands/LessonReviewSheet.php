@@ -11,7 +11,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('lessons:review-sheet {language : The language code, es or pt} {unit : The unit slug} {--audience=reviewer : reviewer or owner}')]
+#[Signature('lessons:review-sheet {language : The language code, es, pt, fr or it} {unit : The unit slug} {--audience=reviewer : reviewer or owner}')]
 #[Description('Render a unit as a Markdown review sheet; the owner sheet leaves out the check')]
 class LessonReviewSheet extends Command
 {
