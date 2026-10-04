@@ -32,6 +32,7 @@ import {
     isSpeakFormat,
     isTeachFormat,
     isTypedFormat,
+    answersInLearnedLanguage,
     languageName,
     passageAnswers,
     passageLines,
@@ -383,6 +384,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 v-if="showSummary && props.run.summary"
                 :summary="props.run.summary"
                 :is-check="!props.settings.feedback"
+                :locale="locale"
                 :next="props.run.next"
                 :starting="starting"
                 :remediation="props.run.remediation"
@@ -750,6 +752,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     <AnswerFeedback
                         :feedback="lesson.feedback.value"
                         :guided="format === 'write_guided'"
+                        :locale="
+                            answersInLearnedLanguage(format) ? locale : null
+                        "
                         @flag="lesson.flag"
                     />
                     <Button

@@ -31,6 +31,12 @@ it('catches each kind of raw string the guard exists for', function (string $lin
     ["ValidationException::withMessages(['lesson' => 'Nope.'])", 'a validation message'],
     ["\$this->refuse('Nope.')", 'a refusal'],
     ["'response.required' => 'Select one.'", 'a custom request message'],
+    ["abort(403, 'Not yours.')", 'an abort message'],
+    ["abort_if(\$unit === null, 404, 'Gone.')", 'an abort message'],
+    ['abort_unless($ok, 403, "Nope.")', 'an abort message'],
+    ["Inertia::flash('toast', 'Saved.')", 'a flashed message'],
+    ["self::Meet => 'Meet the words.'", 'a sentence in a match arm or array'],
+    ["'note' => 'That is a different word.'", 'a sentence in a match arm or array'],
     ["back()->with('status', 'Sent.')", 'a status or toast message'],
     ["['type' => 'success', 'message' => 'Saved.']", 'a status or toast message'],
 ]);
@@ -40,6 +46,11 @@ it('does not flag text that goes through __()', function (string $line): void {
         expect(preg_match($pattern, $line))->toBe(0);
     }
 })->with([
+    'abort(403)',
+    'abort_if($unit === null, 404)',
+    "Inertia::flash('toast', \$milestone)",
+    "self::Meet => __('Meet the words.')",
+    "'status' => 'queued'",
     "->subject(__('Hello'))",
     '->line(__("Hello"))',
     "\$this->refuse(__('Nope.'))",

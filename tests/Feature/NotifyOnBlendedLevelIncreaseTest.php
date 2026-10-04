@@ -51,7 +51,7 @@ it('words the milestone in the app locale', function () {
 
     expect($milestone)->toBe([
         'type' => 'milestone',
-        'message' => 'Je hebt A2 bereikt in Spanish!',
+        'message' => 'Je hebt A2 bereikt in Spaans!',
     ]);
 });
 

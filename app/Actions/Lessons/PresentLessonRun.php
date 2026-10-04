@@ -99,7 +99,7 @@ final class PresentLessonRun
                 'remediation' => $completed && $run->kind !== LessonRunKind::Lesson ? $this->lessonProgress->remediation($user, $unit) : null,
                 'summarySeen' => $run->summary_seen_at !== null,
             ],
-            'lesson' => ['id' => $lesson->id, 'unitId' => $unit->id, 'stage' => $stage->value, 'title' => $lesson->title, 'position' => $lesson->position],
+            'lesson' => ['id' => $lesson->id, 'unitId' => $unit->id, 'stage' => $stage->value, 'title' => $stage->label(), 'position' => $lesson->position],
             'settings' => [
                 'feedback' => ! $run->kind->isCheck(),
                 'hintsAreFree' => $stage->hintsAreFree(),
@@ -141,7 +141,7 @@ final class PresentLessonRun
             $state = $states[$lesson->id] ?? LessonState::Coming;
 
             if (in_array($state, [LessonState::Available, LessonState::InProgress, LessonState::OpensTomorrow], true)) {
-                return ['lessonId' => $lesson->id, 'title' => $lesson->title, 'position' => $lesson->position, 'stage' => $lesson->stage->value, 'state' => $state->value];
+                return ['lessonId' => $lesson->id, 'title' => $lesson->stage->label(), 'position' => $lesson->position, 'stage' => $lesson->stage->value, 'state' => $state->value];
             }
         }
 

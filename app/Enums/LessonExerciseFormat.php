@@ -47,6 +47,23 @@ enum LessonExerciseFormat: string
         return $this->family() === null;
     }
 
+    public function answersInLearnedLanguage(): bool
+    {
+        return in_array($this, [
+            self::TypeWord,
+            self::TypeGap,
+            self::BuildSentence,
+            self::TranslateSentence,
+            self::TransformSentence,
+            self::WriteGuided,
+            self::ListenType,
+            self::ListenPair,
+            self::ChooseWord,
+            self::ChooseGap,
+            self::SpeakRepeat,
+        ], true);
+    }
+
     public function isSkippable(): bool
     {
         return in_array($this->family(), [ExerciseFamily::Listening, ExerciseFamily::Speaking], true);

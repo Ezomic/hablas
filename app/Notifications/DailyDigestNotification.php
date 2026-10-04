@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Models\Language;
 use App\Models\User;
 use App\Services\OutboundMailLimit;
 use Illuminate\Bus\Queueable;
@@ -66,7 +67,7 @@ class DailyDigestNotification extends Notification implements ShouldQueue
     public function toMail(User $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject(__('Your :language learning digest', ['language' => $this->languageName]))
+            ->subject(__('Your :language learning digest', ['language' => Language::localize($this->languageName)]))
             ->greeting(__('Hi :name,', ['name' => $notifiable->name]));
 
         if ($this->dueReviewCount > 0) {
@@ -89,7 +90,7 @@ class DailyDigestNotification extends Notification implements ShouldQueue
             : __(':streak streak', ['streak' => $this->streakPhrase()]);
 
         return (new WebPushMessage)
-            ->title(__('Your :language learning digest', ['language' => $this->languageName]))
+            ->title(__('Your :language learning digest', ['language' => Language::localize($this->languageName)]))
             ->body($body)
             ->data(['url' => '/dashboard']);
     }

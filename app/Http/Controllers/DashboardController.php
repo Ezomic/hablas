@@ -81,7 +81,7 @@ final class DashboardController extends Controller
         $nextLesson = $nextUnit === null ? null : $describeNextLesson->handle($this->currentUser(), $nextUnit);
 
         return Inertia::render('Dashboard', [
-            'language' => ['code' => $language->code, 'name' => $language->name],
+            'language' => ['code' => $language->code, 'name' => $language->localizedName()],
             'blendedLevel' => $describeBlendedLevel->handle($skillLevels),
             'blendedLevelCeiling' => $ceiling->map(fn (Skill $skill): string => $skill->value)->all(),
             'retakeAvailableOn' => $ceiling->isEmpty() ? [] : $determineRetakeAvailability->handle($this->currentUser(), $language),

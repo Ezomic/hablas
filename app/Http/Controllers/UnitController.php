@@ -32,7 +32,7 @@ final class UnitController extends Controller
         $language = $getCurrentLanguage->handle($this->currentUser());
 
         return Inertia::render('units/Index', [
-            'language' => $language === null ? null : ['name' => $language->name],
+            'language' => $language === null ? null : ['name' => $language->localizedName()],
             'units' => $language === null ? [] : $listUnitLibrary->handle($this->currentUser(), $language),
         ]);
     }

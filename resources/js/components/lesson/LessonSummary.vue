@@ -13,6 +13,7 @@ const props = defineProps<{
     next: NextLesson | null;
     starting?: boolean;
     remediation?: Remediation | null;
+    locale?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -116,7 +117,9 @@ const nextIsOpen = computed(
                         class="flex items-center gap-2"
                     >
                         <Check class="size-4 text-green-600" />
-                        {{ item.term }}
+                        <span :lang="props.locale ?? undefined">{{
+                            item.term
+                        }}</span>
                     </p>
                 </CardContent>
             </Card>
@@ -134,7 +137,9 @@ const nextIsOpen = computed(
                         class="flex items-center gap-2"
                     >
                         <X class="size-4 text-red-600" />
-                        {{ item.term }}
+                        <span :lang="props.locale ?? undefined">{{
+                            item.term
+                        }}</span>
                         <span
                             v-if="item.translation"
                             class="text-muted-foreground"
@@ -165,15 +170,33 @@ const nextIsOpen = computed(
                                     ? 'text-green-700 dark:text-green-300'
                                     : 'text-red-700 dark:text-red-300'
                             "
+                            :lang="
+                                answer.given && answer.learnedLanguage
+                                    ? (props.locale ?? undefined)
+                                    : undefined
+                            "
                             >{{
                                 answer.given || t('lesson.summary.noAnswer')
                             }}</span
                         >
-                        <span v-if="!answer.correct" class="font-medium">{{
-                            t('lesson.summary.correct', {
-                                expected: answer.expected,
-                            })
-                        }}</span>
+                        <i18n-t
+                            v-if="!answer.correct"
+                            keypath="lesson.summary.correct"
+                            scope="global"
+                            tag="span"
+                            class="font-medium"
+                        >
+                            <template #expected>
+                                <span
+                                    :lang="
+                                        answer.learnedLanguage
+                                            ? (props.locale ?? undefined)
+                                            : undefined
+                                    "
+                                    >{{ answer.expected }}</span
+                                >
+                            </template>
+                        </i18n-t>
                     </p>
                 </CardContent>
             </Card>

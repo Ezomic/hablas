@@ -62,7 +62,7 @@ it('lists the mastered and missing items and every answer once a check is over',
     $row = collect($summary['answers'])->first(fn (array $answer): bool => $answer['given'] === 'zzz');
     $items = collect($summary['items']);
 
-    expect($row)->toBe(['prompt' => 'hotel', 'given' => 'zzz', 'expected' => 'el hotel', 'correct' => false])
+    expect($row)->toBe(['prompt' => 'hotel', 'given' => 'zzz', 'expected' => 'el hotel', 'correct' => false, 'learnedLanguage' => true])
         ->and($items->firstWhere('term', 'el hotel'))->toBe(['term' => 'el hotel', 'translation' => 'hotel', 'mastered' => false])
         ->and($items->where('mastered', true))->not->toBeEmpty()
         ->and($summary['retried'])->toBe([]);
@@ -113,8 +113,8 @@ it('shows an empty prompt and expected answer for an exercise that has none', fu
     LessonAnswer::factory()->create(['lesson_run_id' => $run->id, 'lesson_exercise_id' => LessonExercise::factory()->create(['lesson_id' => $run->lesson_id, 'format' => 'type_word', 'payload' => []])->id, 'response' => null, 'is_correct' => true]);
 
     expect((new SummarizeLessonRun)->handle($run)['answers'])->toBe([
-        ['prompt' => '', 'given' => 'x', 'expected' => '', 'correct' => false],
-        ['prompt' => '', 'given' => '', 'expected' => '', 'correct' => true],
+        ['prompt' => '', 'given' => 'x', 'expected' => '', 'correct' => false, 'learnedLanguage' => true],
+        ['prompt' => '', 'given' => '', 'expected' => '', 'correct' => true, 'learnedLanguage' => true],
     ]);
 });
 

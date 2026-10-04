@@ -33,7 +33,7 @@ final class DescribeNextLesson
             if (in_array($state, [LessonState::Available, LessonState::InProgress], true)) {
                 return [
                     'lessonId' => $lesson->id,
-                    'title' => $lesson->title,
+                    'title' => $lesson->stage->label(),
                     'number' => $index + 1,
                     'count' => $lessons->count(),
                     'resumes' => $state === LessonState::InProgress,
@@ -48,7 +48,7 @@ final class DescribeNextLesson
                 if ($remediation !== null) {
                     return [
                         'lessonId' => $lesson->id,
-                        'title' => $lesson->title,
+                        'title' => $lesson->stage->label(),
                         'number' => $index + 1,
                         'count' => $lessons->count(),
                         'resumes' => false,

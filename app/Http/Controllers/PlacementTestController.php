@@ -70,7 +70,7 @@ final class PlacementTestController extends Controller
 
         return Inertia::render('placement/Index', [
             'item' => $this->serializeItem($item),
-            'language' => ['code' => $language->code, 'name' => $language->name],
+            'language' => ['code' => $language->code, 'name' => $language->localizedName()],
             'dontKnowResponse' => PlacementTestResponse::DONT_KNOW,
             'progress' => $computePlacementProgress->handle($attempt),
             'skill' => $attempt->skill?->value,
@@ -166,7 +166,7 @@ final class PlacementTestController extends Controller
         $inProgress = (clone $attempts)->whereNull('completed_at')->first();
 
         return Inertia::render('placement/Results', [
-            'language' => ['code' => $language->code, 'name' => $language->name],
+            'language' => ['code' => $language->code, 'name' => $language->localizedName()],
             'result' => $buildPlacementResult->handle($completed),
             'retakeAvailableOn' => $determineRetakeAvailability->handle($this->currentUser(), $language),
             'openAttempt' => $inProgress === null ? null : ['skill' => $inProgress->skill?->value],

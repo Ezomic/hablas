@@ -50,7 +50,7 @@ final class BuildProgressSnapshot
             ->count();
 
         return [
-            'language' => ['code' => $language->code, 'name' => $language->name],
+            'language' => ['code' => $language->code, 'name' => $language->localizedName()],
             'blendedLevel' => $this->describeBlendedLevel->handle($skillLevels),
             'skillLevels' => $skillLevels->mapWithKeys(fn (UserSkillLevel $skillLevel): array => [
                 $skillLevel->skill->value => $skillLevel->displayLevel(),

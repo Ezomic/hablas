@@ -4,6 +4,7 @@ import type { Feedback } from '@/composables/useLessonRun';
 import { setLocale } from '@/i18n';
 import AccentKeys from './AccentKeys.vue';
 import AnswerFeedback from './AnswerFeedback.vue';
+import LessonSummary from './LessonSummary.vue';
 import ListenPlayer from './ListenPlayer.vue';
 import PassageExercise from './PassageExercise.vue';
 import TeachCard from './TeachCard.vue';
@@ -53,6 +54,79 @@ describe('the lesson components in Dutch', () => {
         expect(wrapper.get('[data-testid="model"]').text()).toBe(
             'Voorbeeldantwoord: la habitación',
         );
+    });
+
+    it('marks the learned-language text in the feedback and leaves the labels alone', () => {
+        const wrapper = mount(AnswerFeedback, {
+            props: { locale: 'es-ES', feedback: feedback() },
+        });
+        const tagged = wrapper.findAll('[lang="es-ES"]').map((n) => n.text());
+
+        expect(tagged).toContain('la habitación');
+        expect(tagged).toContain('la');
+        expect(wrapper.get('[data-testid="feedback"]').attributes('lang')).toBe(
+            undefined,
+        );
+    });
+
+    it('tags no language when the answer is not in the learned language', () => {
+        const wrapper = mount(AnswerFeedback, {
+            props: { feedback: feedback() },
+        });
+
+        expect(wrapper.find('[lang]').exists()).toBe(false);
+    });
+
+    it('marks the summary terms and answers in the learned language', () => {
+        const wrapper = mount(LessonSummary, {
+            props: {
+                locale: 'es-ES',
+                isCheck: true,
+                next: null,
+                summary: {
+                    accuracy: {},
+                    retried: [],
+                    items: [
+                        {
+                            term: 'el hotel',
+                            translation: 'hotel',
+                            mastered: true,
+                        },
+                        {
+                            term: 'la llave',
+                            translation: 'key',
+                            mastered: false,
+                        },
+                    ],
+                    answers: [
+                        {
+                            prompt: 'key',
+                            given: 'la llabe',
+                            expected: 'la llave',
+                            correct: false,
+                            learnedLanguage: true,
+                        },
+                        {
+                            prompt: 'la llave',
+                            given: 'hotel',
+                            expected: 'key',
+                            correct: false,
+                            learnedLanguage: false,
+                        },
+                    ],
+                    cardsEnrolled: 0,
+                    unitCompleted: false,
+                },
+            },
+        });
+        const tagged = wrapper.findAll('[lang="es-ES"]').map((n) => n.text());
+
+        expect(tagged).toEqual(
+            expect.arrayContaining(['el hotel', 'la llave', 'la llabe']),
+        );
+        expect(tagged.filter((text) => text === 'la llave')).toHaveLength(2);
+        expect(tagged).not.toContain('key');
+        expect(wrapper.text()).toContain('Goed: la llave');
     });
 
     it('labels the flag button as flagged', () => {

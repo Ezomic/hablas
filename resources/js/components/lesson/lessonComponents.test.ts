@@ -531,6 +531,7 @@ describe('LessonSummary', () => {
                 given: 'llave',
                 expected: 'la llave',
                 correct: false,
+                learnedLanguage: true,
             },
         ],
         cardsEnrolled: 1,
