@@ -18,24 +18,24 @@ use App\Models\LessonExercise;
 use App\Models\Unit;
 use App\Models\UnitItemMastery;
 use App\Models\UserUnitProgress;
-use App\Services\SpanishTextNormalizer;
+use App\Services\PortugueseTextNormalizer;
 use App\Services\UnitContentRegistry;
 use Database\Seeders\LanguageSeeder;
-use Database\Seeders\SpanishA1Seeder;
+use Database\Seeders\PortugueseA1Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Lessons\LessonWorld;
 
-foreach (['greetings-and-introductions', 'at-the-airport', 'ordering-food-at-a-restaurant', 'asking-for-directions', 'shopping-for-clothes', 'talking-about-your-family', 'describing-your-daily-routine'] as $slug) {
+foreach (['greetings-and-introductions', 'at-the-airport', 'checking-into-a-hotel', 'ordering-food-at-a-restaurant', 'asking-for-directions', 'shopping-for-clothes', 'talking-about-your-family', 'describing-your-daily-routine'] as $slug) {
     describe("the full path of {$slug}", function () use ($slug) {
         beforeEach(function () use ($slug) {
             $this->seed(LanguageSeeder::class);
-            $this->seed(SpanishA1Seeder::class);
+            $this->seed(PortugueseA1Seeder::class);
             $this->unit = Unit::query()->where('slug', $slug)->firstOrFail();
-            $registered = collect(app(UnitContentRegistry::class)->all())->first(fn ($content): bool => $content->languageCode() === 'es' && $content->unitSlug() === $slug);
+            $registered = collect(app(UnitContentRegistry::class)->all())->first(fn ($content): bool => $content->languageCode() === 'pt' && $content->unitSlug() === $slug);
             $this->content = $registered;
             $this->released = new PreviewContent($registered, withLessons: true);
-            $this->user = LessonWorld::learner();
+            $this->user = LessonWorld::learner(language: LessonWorld::portuguese());
             $this->check = fn (): Lesson => LessonWorld::lesson($this->unit, LessonStage::Check);
             (new SyncUnitLessons)->handle($this->unit, (new BuildUnitLessons)->handle($this->unit, $this->released));
         });
@@ -117,9 +117,9 @@ foreach (['greetings-and-introductions', 'at-the-airport', 'ordering-food-at-a-r
         });
 
         it('renders the review sheet with the checklist, the authored lessons and both check sets, and an owner sheet without the check', function () {
-            Artisan::call('lessons:review-sheet', ['language' => 'es', 'unit' => $this->unit->slug]);
+            Artisan::call('lessons:review-sheet', ['language' => 'pt', 'unit' => $this->unit->slug]);
             $reviewer = Artisan::output();
-            Artisan::call('lessons:review-sheet', ['language' => 'es', 'unit' => $this->unit->slug, '--audience' => 'owner']);
+            Artisan::call('lessons:review-sheet', ['language' => 'pt', 'unit' => $this->unit->slug, '--audience' => 'owner']);
             $owner = Artisan::output();
 
             expect($reviewer)->toContain('## Checklist for the reviewer', '### Lesson 3: Build sentences', '### Lesson 4: Do the task', 'check set a', 'check set b', 'question if skipped:')
@@ -130,12 +130,12 @@ foreach (['greetings-and-introductions', 'at-the-airport', 'ordering-food-at-a-r
         });
 
         it('lists every word of the authored content for the spelling pass', function () {
-            Artisan::call('lessons:words', ['language' => 'es', 'unit' => $this->unit->slug]);
+            Artisan::call('lessons:words', ['language' => 'pt', 'unit' => $this->unit->slug]);
             $words = explode("\n", trim(Artisan::output()));
 
             foreach ($this->content->exercises() as $exercise) {
                 foreach (AuthoredTexts::of($exercise) as $text) {
-                    foreach (explode(' ', (new SpanishTextNormalizer)->exactKey($text)) as $word) {
+                    foreach (explode(' ', (new PortugueseTextNormalizer)->exactKey($text)) as $word) {
                         expect($words)->toContain($word);
                     }
                 }

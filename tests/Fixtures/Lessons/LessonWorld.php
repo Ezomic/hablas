@@ -52,6 +52,11 @@ final class LessonWorld
         return Language::query()->firstOrCreate(['code' => 'es'], ['name' => 'Spanish']);
     }
 
+    public static function portuguese(): Language
+    {
+        return Language::query()->firstOrCreate(['code' => 'pt'], ['name' => 'Portuguese']);
+    }
+
     public static function hotelUnit(?Language $language = null, string $slug = 'checking-into-a-hotel'): Unit
     {
         $language ??= self::spanish();
@@ -100,11 +105,11 @@ final class LessonWorld
     }
 
     /**
-     * A learner studying Spanish, with every skill at the given level.
+     * A learner studying Spanish, or the given language, with every skill at the given level.
      */
-    public static function learner(CefrLevel $level = CefrLevel::A1): User
+    public static function learner(CefrLevel $level = CefrLevel::A1, ?Language $language = null): User
     {
-        $spanish = self::spanish();
+        $spanish = $language ?? self::spanish();
         $user = User::factory()->create(['current_language_id' => $spanish->id]);
         (new UnlockLanguageForUser)->handle($user, $spanish);
 

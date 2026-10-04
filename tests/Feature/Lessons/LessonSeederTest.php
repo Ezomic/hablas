@@ -188,8 +188,11 @@ it('finds no content classes in an empty content folder', function () {
     expect((new UnitContentRegistry(path: sys_get_temp_dir().'/no-such-content-folder'))->all())->toBe([]);
 });
 
-it('finds the eight Spanish content classes in the content folder', function () {
-    expect(array_map(fn ($content): string => $content->unitSlug(), (new UnitContentRegistry)->all()))->toHaveCount(8);
+it('finds the eight Spanish and the eight Portuguese content classes in the content folder', function () {
+    $contents = (new UnitContentRegistry)->all();
+
+    expect(array_filter($contents, fn ($content): bool => $content->languageCode() === 'es'))->toHaveCount(8)
+        ->and(array_filter($contents, fn ($content): bool => $content->languageCode() === 'pt'))->toHaveCount(8);
 });
 
 it('syncs a unit whose content lost a whole lesson by retiring that lesson\'s exercises', function () {

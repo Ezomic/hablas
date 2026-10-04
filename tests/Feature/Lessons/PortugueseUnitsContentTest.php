@@ -16,76 +16,80 @@ use App\Lessons\UnitContent;
 use App\Models\Lesson;
 use App\Models\LessonExercise;
 use App\Models\Unit;
-use App\Services\SpanishTextNormalizer;
+use App\Services\PortugueseTextNormalizer;
 use App\Services\UnitContentRegistry;
 use App\Speech\SpeechCorpus;
 use App\Speech\SpeechText;
-use Database\Content\Lessons\Es\AskingForDirections;
-use Database\Content\Lessons\Es\AtTheAirport;
-use Database\Content\Lessons\Es\CheckingIntoAHotel;
-use Database\Content\Lessons\Es\CoreWords;
-use Database\Content\Lessons\Es\DescribingYourDailyRoutine;
-use Database\Content\Lessons\Es\GreetingsAndIntroductions;
-use Database\Content\Lessons\Es\OrderingFoodAtARestaurant;
-use Database\Content\Lessons\Es\ShoppingForClothes;
-use Database\Content\Lessons\Es\TalkingAboutYourFamily;
+use Database\Content\Lessons\Pt\CoreWords;
 use Database\Seeders\ContentSeeder;
 use Database\Seeders\LanguageSeeder;
-use Database\Seeders\SpanishA1Seeder;
+use Database\Seeders\PortugueseA1Seeder;
 use Illuminate\Support\Collection;
 use Tests\Support\AuthoredContent;
+use Tests\Support\PortugalGuard;
 
 /** @return array<string, UnitContent> */
-function spanishUnits(): array
+function portugueseUnits(): array
 {
     $units = [];
 
-    foreach ([new GreetingsAndIntroductions, new AtTheAirport, new CheckingIntoAHotel, new OrderingFoodAtARestaurant, new AskingForDirections, new ShoppingForClothes, new TalkingAboutYourFamily, new DescribingYourDailyRoutine] as $content) {
-        $units[$content->unitSlug()] = $content;
+    foreach ((new UnitContentRegistry(path: __DIR__.'/../../../database/content/Lessons'))->all() as $content) {
+        if ($content->languageCode() === 'pt') {
+            $units[$content->unitSlug()] = $content;
+        }
     }
 
     return $units;
 }
 
-describe('every Spanish unit with authored lessons stays behind the review gate', function () {
+describe('every Portuguese unit stays behind the review gate', function () {
     beforeEach(function () {
         $this->seed(LanguageSeeder::class);
-        $this->seed(SpanishA1Seeder::class);
+        $this->seed(PortugueseA1Seeder::class);
     });
 
-    it('is written but not released: it needs the independent AI review and the owner approval of the lessons', function () {
-        foreach (spanishUnits() as $slug => $content) {
-            expect(ReviewGate::wordsReleased($content))->toBeTrue($slug)
+    it('has a class for each of the eight Portuguese units and no other', function () {
+        expect(array_keys(portugueseUnits()))->toEqualCanonicalizing(Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('slug')->all())
+            ->and(portugueseUnits())->toHaveCount(8);
+    });
+
+    it('is written but released at no level: no independent AI review or owner approval is recorded, so neither the words nor the lessons are seeded', function () {
+        foreach (portugueseUnits() as $slug => $content) {
+            expect($content->reviews())->toBe([], $slug)
+                ->and(ReviewGate::wordsReleased($content))->toBeFalse($slug)
                 ->and(ReviewGate::lessonsReleased($content))->toBeFalse($slug)
-                ->and($content->exercises())->not->toBeEmpty($slug)
-                ->and(collect($content->reviews())->every(fn ($review): bool => $review->scope->value === 'words'))->toBeTrue($slug);
+                ->and($content->exercises())->not->toBeEmpty($slug);
         }
     });
 
-    it('seeds no authored lesson through ContentSeeder, so learners keep lessons 1 and 2 and the words check', function () {
+    it('seeds no lesson of any Portuguese unit through ContentSeeder, so none of them can be played', function () {
         $this->seed(ContentSeeder::class);
 
-        foreach (spanishUnits() as $slug => $content) {
-            $unit = Unit::query()->where('slug', $slug)->firstOrFail();
-            $lessons = Lesson::query()->where('unit_id', $unit->id)->orderBy('position')->get();
-            $exercises = LessonExercise::query()->whereIn('lesson_id', $lessons->pluck('id'))->get();
-            $authoredKeys = collect($content->exercises())->map(fn (AuthoredExercise $exercise): string => $exercise->key);
+        $units = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('id');
 
-            expect($lessons->map(fn (Lesson $lesson): string => $lesson->stage->value)->all())->toBe(['meet', 'recall', 'check'], $slug)
-                ->and($exercises->pluck('key')->intersect($authoredKeys)->all())->toBe([], $slug)
-                ->and($exercises->filter(fn (LessonExercise $exercise): bool => $exercise->lesson->stage === LessonStage::Check && $exercise->block !== 'recall')->count())->toBe(0, $slug);
+        expect($units)->toHaveCount(8)
+            ->and(Lesson::query()->whereIn('unit_id', $units)->count())->toBe(0)
+            ->and(LessonExercise::query()->whereHas('lesson', fn ($query) => $query->whereIn('unit_id', $units))->count())->toBe(0)
+            ->and(Lesson::query()->playable()->whereIn('unit_id', $units)->count())->toBe(0);
+    });
+
+    it('builds no lesson from unreleased content', function () {
+        foreach (portugueseUnits() as $slug => $content) {
+            $unit = Unit::query()->where('slug', $slug)->whereHas('language', fn ($query) => $query->where('code', 'pt'))->firstOrFail();
+
+            expect((new BuildUnitLessons)->handle($unit, $content))->toBe([], $slug);
         }
     });
 });
 
-foreach (spanishUnits() as $slug => $unitContent) {
+foreach (portugueseUnits() as $slug => $unitContent) {
     describe("the authored content of {$slug}", function () use ($slug, $unitContent) {
         beforeEach(function () use ($slug, $unitContent) {
             $this->seed(LanguageSeeder::class);
-            $this->seed(SpanishA1Seeder::class);
+            $this->seed(PortugueseA1Seeder::class);
             $this->content = $unitContent;
             $this->unit = Unit::query()->where('slug', $slug)->firstOrFail();
-            $this->normalizer = new SpanishTextNormalizer;
+            $this->normalizer = new PortugueseTextNormalizer;
             $this->lessons = collect((new BuildUnitLessons)->handle($this->unit, new PreviewContent($unitContent, withLessons: true)))
                 ->keyBy(fn (LessonDefinition $lesson): string => $lesson->stage->value);
             $this->authored = collect($unitContent->exercises());
@@ -371,18 +375,18 @@ foreach (spanishUnits() as $slug => $unitContent) {
             }
         });
 
-        it('keeps Latin American forms out', function () {
-            $guard = require base_path('tests/Fixtures/Lessons/es-latam-forms.php');
+        it('keeps Brazilian forms and Brazilian pronoun placement out', function () {
+            $forms = require base_path('tests/Fixtures/Lessons/pt-br-forms.php');
 
             foreach ($this->authored as $exercise) {
-                $words = collect(AuthoredTexts::of($exercise))->flatMap(fn (string $text): array => explode(' ', $this->normalizer->exactKey($text)))->all();
-
-                expect(array_intersect($words, $guard))->toBe([], $exercise->key);
+                foreach (AuthoredTexts::of($exercise) as $text) {
+                    expect(PortugalGuard::violations($text, $forms))->toBe([], "{$exercise->key}: {$text}");
+                }
             }
         });
 
         it('marks every dictation that holds a word with a homophone', function () {
-            $homophones = ['hola', 'ola', 'hay', 'ay', 'echo', 'hecho', 'tuvo', 'tubo', 'vaya', 'valla', 'a', 'ha', 'e', 'he'];
+            $homophones = ['há', 'à', 'a', 'cem', 'sem', 'concerto', 'conserto'];
 
             foreach ($this->authored->filter(fn (AuthoredExercise $exercise): bool => $exercise->format === Format::ListenType) as $exercise) {
                 $words = explode(' ', $this->normalizer->exactKey($exercise->accepted[0]));
@@ -411,7 +415,7 @@ foreach (spanishUnits() as $slug => $unitContent) {
 
         it('asks for every text the player may play, so speech:generate covers them', function () {
             app()->instance(UnitContentRegistry::class, new UnitContentRegistry([$this->content]));
-            $corpus = app(SpeechCorpus::class)->texts('es');
+            $corpus = app(SpeechCorpus::class)->texts('pt');
             $speech = app(SpeechText::class);
             $missing = [];
 

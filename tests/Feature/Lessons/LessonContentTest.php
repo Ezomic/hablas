@@ -38,7 +38,7 @@ const SPANISH_FAMILIES = [ExerciseFamily::Choice, ExerciseFamily::Writing];
 beforeEach(function () {
     $this->seed(LanguageSeeder::class);
     $this->seed(SpanishA1Seeder::class);
-    $this->contents = (new UnitContentRegistry)->all();
+    $this->contents = array_values(array_filter((new UnitContentRegistry)->all(), fn (UnitContent $content): bool => $content->languageCode() === 'es'));
     $this->unitOf = fn (UnitContent $content): Unit => Unit::query()->where('slug', $content->unitSlug())->whereHas('language', fn ($query) => $query->where('code', 'es'))->firstOrFail();
     $this->build = fn (UnitContent $content): array => (new BuildUnitLessons)->handle(($this->unitOf)($content), new PreviewContent($content), SPANISH_FAMILIES);
 });
