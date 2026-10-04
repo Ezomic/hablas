@@ -361,7 +361,14 @@
             "buildSentence": "Tap the words to build the sentence",
             "writeGuided": "Write it in the language you are learning",
             "readPassage": "Read the dialogue, then answer the questions",
-            "listenPassage": "Listen to the dialogue, then answer the questions"
+            "listenPassage": "Listen to the dialogue, then answer the questions",
+            "chooseMeaning": "Choose the meaning",
+            "chooseWord": "Choose the {language} word",
+            "chooseGap": "Choose the word that fits",
+            "matchPairs": "Match each word with its meaning",
+            "typeWord": "Type it in {language}",
+            "typeGap": "Type the missing word",
+            "translate": "Translate it into {language}"
         },
         "listen": {
             "play": "Play",
@@ -416,7 +423,13 @@
         "feedback": {
             "used": "Used: {words}",
             "missing": "Still missing: {words}",
-            "model": "Model answer"
+            "model": "Model answer:",
+            "right": "Right",
+            "notQuite": "Not quite",
+            "correctAnswer": "Correct answer:",
+            "yourAnswer": "Your answer:",
+            "flag": "My answer should count",
+            "flagged": "Thanks, we will look at it"
         },
         "passage": {
             "dialogue": "Dialogue",
@@ -434,6 +447,71 @@
             "practiceButton": "Practise the missed items",
             "retakeNote": "{n} item not proven yet. Your retake is open. | {n} items not proven yet. Your retake is open.",
             "practiceNote": "{n} item not proven yet. Your retake opens tomorrow, so practise first. | {n} items not proven yet. Your retake opens tomorrow, so practise first."
+        },
+        "leave": "Leave the lesson",
+        "progress": "Lesson progress",
+        "finishing": "Finishing up",
+        "offlineSaved": {
+            "title": "All answers saved on this device.",
+            "note": "Your results will appear when you are back online."
+        },
+        "study": "Study it, then answer from memory: {answer}",
+        "unavailable": "This exercise is not available yet.",
+        "hint": {
+            "show": "Show a hint",
+            "startsWith": "Starts with \"{letter}\", {count} letters | Starts with \"{letter}\", {count} letters"
+        },
+        "saved": "Answer saved",
+        "check": "Check",
+        "gotIt": "Got it",
+        "checking": "Checking",
+        "selfCheck": {
+            "prompt": "You are offline, so this answer is graded when it syncs. The answer is {expected}. Did you have it?",
+            "yes": "Yes",
+            "no": "No"
+        },
+        "saveFailed": "That could not be saved. Try again.",
+        "tryAgain": "Try again",
+        "answerLabel": "Your answer",
+        "accentKeys": "Accent keys",
+        "language": {
+            "es": "Spanish",
+            "pt": "Portuguese"
+        },
+        "note": {
+            "accent": "Watch the accent: {expected}",
+            "article": "Check the article: {expected}",
+            "otherWord": "That is a different word. Check the accent.",
+            "portunol": "That is Spanish, not Portuguese."
+        },
+        "teach": {
+            "newWord": "New word",
+            "cognate": "cognate",
+            "grammar": "Grammar"
+        },
+        "summary": {
+            "unitComplete": "Unit complete",
+            "checkFinished": "Check finished",
+            "lessonComplete": "Lesson complete",
+            "unitProven": "Every word and the grammar point are proven.",
+            "accuracy": "Right the first time",
+            "family": {
+                "choice": "Multiple choice",
+                "writing": "Writing",
+                "listening": "Listening",
+                "speaking": "Speaking"
+            },
+            "retried": "Needed a second go",
+            "proven": "Proven ({n})",
+            "notProven": "Not proven yet ({n})",
+            "everyAnswer": "Every answer",
+            "noAnswer": "No answer",
+            "correct": "Correct: {expected}",
+            "cardsJoined": "{n} card joined your review deck. | {n} cards joined your review deck.",
+            "takeCheck": "Take the unit check",
+            "nextLesson": "Next lesson: {title}",
+            "checkLater": "The unit check opens tomorrow, so what you learned has time to settle.",
+            "backToUnit": "Back to the unit"
         }
     },
     "skills": {

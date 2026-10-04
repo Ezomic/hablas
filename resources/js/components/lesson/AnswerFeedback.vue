@@ -11,18 +11,20 @@ const { t } = useI18n();
 
 const emit = defineEmits<{ flag: [] }>();
 
-const notes: Record<string, (expected: string) => string> = {
-    accent: (expected) => `Watch the accent: ${expected}`,
-    article: (expected) => `Check the article: ${expected}`,
-    other_word: () => 'That is a different word. Check the accent.',
-    portunol: () => 'That is Spanish, not Portuguese.',
+const notes: Record<string, string> = {
+    accent: 'lesson.note.accent',
+    article: 'lesson.note.article',
+    other_word: 'lesson.note.otherWord',
+    portunol: 'lesson.note.portunol',
 };
 
-const note = computed(() =>
-    props.feedback.note === null
+const note = computed(() => {
+    const key = notes[props.feedback.note ?? ''];
+
+    return key === undefined
         ? null
-        : (notes[props.feedback.note]?.(props.feedback.expected) ?? null),
-);
+        : t(key, { expected: props.feedback.expected });
+});
 
 function words(value: string): string[] {
     return value
@@ -58,7 +60,11 @@ const marked = computed(() => {
         <p class="flex items-center gap-2 text-lg font-semibold">
             <CircleCheck v-if="props.feedback.correct" class="size-5" />
             <CircleX v-else class="size-5" />
-            {{ props.feedback.correct ? 'Right' : 'Not quite' }}
+            {{
+                props.feedback.correct
+                    ? t('lesson.feedback.right')
+                    : t('lesson.feedback.notQuite')
+            }}
         </p>
 
         <p v-if="note" class="text-sm">{{ note }}</p>
@@ -91,14 +97,14 @@ const marked = computed(() => {
                 class="text-sm"
                 data-testid="model"
             >
-                {{ t('lesson.feedback.model') }}:
+                {{ t('lesson.feedback.model') }}
                 <span class="font-semibold">{{ props.feedback.expected }}</span>
             </p>
         </template>
 
         <template v-if="!props.feedback.correct">
             <p v-if="props.feedback.expected && !props.guided" class="text-sm">
-                Correct answer:
+                {{ t('lesson.feedback.correctAnswer') }}
                 <span class="font-semibold">{{ props.feedback.expected }}</span>
             </p>
             <p
@@ -106,7 +112,7 @@ const marked = computed(() => {
                 class="text-sm"
                 data-testid="given"
             >
-                Your answer:
+                {{ t('lesson.feedback.yourAnswer') }}
                 <template v-for="(item, index) in marked" :key="index">
                     <span
                         :class="
@@ -129,8 +135,8 @@ const marked = computed(() => {
             >
                 {{
                     props.feedback.flagged
-                        ? 'Thanks, we will look at it'
-                        : 'My answer should count'
+                        ? t('lesson.feedback.flagged')
+                        : t('lesson.feedback.flag')
                 }}
             </Button>
         </template>

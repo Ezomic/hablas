@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import type { ExerciseBase } from '@/types/lesson';
 
 export function text(value: unknown): string {
@@ -76,33 +77,37 @@ export function hintFor(exercise: ExerciseBase): string {
 
     const letters = expected.replace(/[^\p{L}]/gu, '').length;
 
-    return `Starts with "${expected.charAt(0)}", ${letters} letters`;
+    return i18n.global.t(
+        'lesson.hint.startsWith',
+        { letter: expected.charAt(0), count: letters },
+        letters,
+    );
 }
 
 export function languageName(locale: string | null): string {
-    if (locale?.startsWith('pt')) {
-        return 'Portuguese';
-    }
-
-    return 'Spanish';
+    return i18n.global.t(
+        locale?.startsWith('pt') ? 'lesson.language.pt' : 'lesson.language.es',
+    );
 }
 
 export function instructionFor(format: string, language: string): string {
+    const { t } = i18n.global;
+
     switch (format) {
         case 'choose_meaning':
-            return 'Choose the meaning';
+            return t('lesson.instruction.chooseMeaning');
         case 'choose_word':
-            return `Choose the ${language} word`;
+            return t('lesson.instruction.chooseWord', { language });
         case 'choose_gap':
-            return 'Choose the word that fits';
+            return t('lesson.instruction.chooseGap');
         case 'match_pairs':
-            return 'Match each word with its meaning';
+            return t('lesson.instruction.matchPairs');
         case 'type_word':
-            return `Type it in ${language}`;
+            return t('lesson.instruction.typeWord', { language });
         case 'type_gap':
-            return 'Type the missing word';
+            return t('lesson.instruction.typeGap');
         case 'translate_sentence':
-            return `Translate it into ${language}`;
+            return t('lesson.instruction.translate', { language });
         default:
             return '';
     }

@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent } from 'vue';
+import { setLocale } from '@/i18n';
 import { useExercisePauses } from './useExercisePauses';
 
 vi.mock('@/routes/exercise-pauses', () => ({
@@ -133,6 +134,16 @@ describe('useExercisePauses', () => {
 
         expect(api.endsAt('listening')).toMatch(/\d{1,2}[:.]\d{2}/);
         expect(api.endsAt('speaking')).toMatch(/\d{1,2}[:.]\d{2}/);
+    });
+
+    it('writes the time of day in 24 hours in Dutch', () => {
+        setLocale('nl');
+        const { api } = harness({
+            listening: '2026-10-03T14:40:00Z',
+            speaking: null,
+        });
+
+        expect(api.endsAt('listening')).toMatch(/^\d{2}:\d{2}$/);
     });
 
     it('stops its clock when unmounted', () => {

@@ -30,6 +30,7 @@ function retake() {
         <Button
             variant="outline"
             size="sm"
+            class="h-auto text-left whitespace-normal"
             :disabled="props.availableOn !== null || form.processing"
             @click="retake"
         >

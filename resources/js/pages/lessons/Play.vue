@@ -325,7 +325,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 as-child
                 variant="ghost"
                 size="icon"
-                aria-label="Leave the lesson"
+                :aria-label="t('lesson.leave')"
             >
                 <Link :href="showUnit(props.unit.id)">
                     <X />
@@ -333,7 +333,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             </Button>
             <Progress
                 :model-value="showSummary ? 100 : lesson.percent.value"
-                aria-label="Lesson progress"
+                :aria-label="t('lesson.progress')"
                 class="h-3"
             />
             <PauseMenu
@@ -375,7 +375,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
         </div>
 
         <p class="px-4 pt-2 text-xs text-muted-foreground">
-            {{ props.unit.title }}: {{ props.lesson.title }}
+            {{ `${props.unit.title}: ${props.lesson.title}` }}
         </p>
 
         <main class="flex flex-1 flex-col gap-4 px-4 py-6">
@@ -399,25 +399,31 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             >
                 <template v-if="lesson.isOnline.value">
                     <Spinner />
-                    <p>Finishing up</p>
+                    <p>{{ t('lesson.finishing') }}</p>
                 </template>
                 <template v-else>
-                    <p class="font-medium">All answers saved on this device.</p>
+                    <p class="font-medium">
+                        {{ t('lesson.offlineSaved.title') }}
+                    </p>
                     <p class="text-sm text-muted-foreground">
-                        Your results will appear when you are back online.
+                        {{ t('lesson.offlineSaved.note') }}
                     </p>
                 </template>
             </section>
 
             <template v-else-if="exercise">
-                <p
+                <i18n-t
                     v-if="studyAnswer"
+                    keypath="lesson.study"
+                    tag="p"
+                    scope="global"
                     class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100"
                     data-testid="study"
                 >
-                    Study it, then answer from memory:
-                    <span class="font-semibold">{{ studyAnswer }}</span>
-                </p>
+                    <template #answer>
+                        <span class="font-semibold">{{ studyAnswer }}</span>
+                    </template>
+                </i18n-t>
 
                 <p
                     v-if="swapNotice"
@@ -486,6 +492,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
                     <p
                         v-if="heardText"
+                        :lang="locale ?? undefined"
                         class="text-center text-lg font-semibold"
                         data-testid="heard"
                     >
@@ -596,7 +603,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 />
 
                 <p v-else class="text-muted-foreground">
-                    This exercise is not available yet.
+                    {{ t('lesson.unavailable') }}
                 </p>
 
                 <SpeakButton
@@ -617,7 +624,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     @click="lesson.showHint"
                 >
                     <Lightbulb />
-                    Show a hint
+                    {{ t('lesson.hint.show') }}
                 </Button>
 
                 <div
@@ -672,7 +679,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     class="text-sm text-muted-foreground"
                     data-testid="saved"
                 >
-                    Answer saved
+                    {{ t('lesson.saved') }}
                 </p>
 
                 <template v-if="phase === 'answering'">
@@ -681,38 +688,46 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                         :disabled="!canCheck"
                         @click="check"
                     >
-                        {{ isTeachFormat(format) ? 'Got it' : 'Check' }}
+                        {{
+                            isTeachFormat(format)
+                                ? t('lesson.gotIt')
+                                : t('lesson.check')
+                        }}
                     </Button>
                 </template>
 
                 <template v-else-if="phase === 'checking'">
                     <Button class="h-12 w-full" disabled>
                         <Spinner />
-                        Checking
+                        {{ t('lesson.checking') }}
                     </Button>
                 </template>
 
                 <template
                     v-else-if="phase === 'self_check' && lesson.feedback.value"
                 >
-                    <p class="text-sm">
-                        You are offline, so this answer is graded when it syncs.
-                        The answer is
-                        <span class="font-semibold">{{
-                            lesson.feedback.value.expected
-                        }}</span
-                        >. Did you have it?
-                    </p>
+                    <i18n-t
+                        keypath="lesson.selfCheck.prompt"
+                        tag="p"
+                        scope="global"
+                        class="text-sm"
+                    >
+                        <template #expected>
+                            <span class="font-semibold">{{
+                                lesson.feedback.value.expected
+                            }}</span>
+                        </template>
+                    </i18n-t>
                     <div class="grid grid-cols-2 gap-2">
                         <Button
                             class="h-12"
                             variant="outline"
                             @click="lesson.selfCheck(false)"
                         >
-                            No
+                            {{ t('lesson.selfCheck.no') }}
                         </Button>
                         <Button class="h-12" @click="lesson.selfCheck(true)">
-                            Yes
+                            {{ t('lesson.selfCheck.yes') }}
                         </Button>
                     </div>
                 </template>
@@ -723,13 +738,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                         role="alert"
                     >
                         {{
-                            lesson.errorMessage.value ||
-                            'That could not be saved. Try again.'
+                            lesson.errorMessage.value || t('lesson.saveFailed')
                         }}
                     </p>
-                    <Button class="h-12 w-full" @click="lesson.retry"
-                        >Try again</Button
-                    >
+                    <Button class="h-12 w-full" @click="lesson.retry">{{
+                        t('lesson.tryAgain')
+                    }}</Button>
                 </template>
 
                 <template v-else-if="lesson.feedback.value">
@@ -743,7 +757,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                         :disabled="lesson.feedback.value.saving"
                         @click="lesson.advance"
                     >
-                        Continue
+                        {{ t('common.continue') }}
                     </Button>
                 </template>
             </div>

@@ -361,7 +361,14 @@
             "buildSentence": "Tik op de woorden om de zin te maken",
             "writeGuided": "Schrijf het op in de taal die je leert",
             "readPassage": "Lees de dialoog en beantwoord de vragen",
-            "listenPassage": "Luister naar de dialoog en beantwoord de vragen"
+            "listenPassage": "Luister naar de dialoog en beantwoord de vragen",
+            "chooseMeaning": "Kies de betekenis",
+            "chooseWord": "Kies het woord in het {language}",
+            "chooseGap": "Kies het woord dat past",
+            "matchPairs": "Koppel elk woord aan zijn betekenis",
+            "typeWord": "Typ het in het {language}",
+            "typeGap": "Typ het ontbrekende woord",
+            "translate": "Vertaal het naar het {language}"
         },
         "listen": {
             "play": "Afspelen",
@@ -416,14 +423,20 @@
         "feedback": {
             "used": "Gebruikt: {words}",
             "missing": "Nog niet gebruikt: {words}",
-            "model": "Voorbeeldantwoord"
+            "model": "Voorbeeldantwoord:",
+            "right": "Goed",
+            "notQuite": "Nog niet helemaal",
+            "correctAnswer": "Goed antwoord:",
+            "yourAnswer": "Jouw antwoord:",
+            "flag": "Mijn antwoord moet meetellen",
+            "flagged": "Bedankt, we kijken ernaar"
         },
         "passage": {
             "dialogue": "Dialoog",
             "transcript": "Uitgeschreven tekst"
         },
         "remediation": {
-            "status": "Oefen de gemiste items en doe de check daarna opnieuw",
+            "status": "Oefen de gemiste items en doe de toets daarna opnieuw",
             "missing": "{n} item nog niet bewezen | {n} items nog niet bewezen",
             "practise": "Oefen de gemiste items",
             "retake": "Opnieuw doen",
@@ -434,6 +447,71 @@
             "practiceButton": "Oefen de gemiste items",
             "retakeNote": "{n} item nog niet bewezen. Je herkansing staat open. | {n} items nog niet bewezen. Je herkansing staat open.",
             "practiceNote": "{n} item nog niet bewezen. Je herkansing opent morgen, dus oefen eerst. | {n} items nog niet bewezen. Je herkansing opent morgen, dus oefen eerst."
+        },
+        "leave": "De les verlaten",
+        "progress": "Voortgang van de les",
+        "finishing": "Even afronden",
+        "offlineSaved": {
+            "title": "Alle antwoorden zijn op dit toestel opgeslagen.",
+            "note": "Je resultaten verschijnen zodra je weer online bent."
+        },
+        "study": "Leer het en antwoord dan uit je hoofd: {answer}",
+        "unavailable": "Deze oefening is nog niet beschikbaar.",
+        "hint": {
+            "show": "Toon een hint",
+            "startsWith": "Begint met \"{letter}\", {count} letter | Begint met \"{letter}\", {count} letters"
+        },
+        "saved": "Antwoord opgeslagen",
+        "check": "Controleren",
+        "gotIt": "Begrepen",
+        "checking": "Aan het controleren",
+        "selfCheck": {
+            "prompt": "Je bent offline, dus dit antwoord wordt beoordeeld zodra het is gesynchroniseerd. Het antwoord is {expected}. Had je het goed?",
+            "yes": "Ja",
+            "no": "Nee"
+        },
+        "saveFailed": "Dit kon niet worden opgeslagen. Probeer het opnieuw.",
+        "tryAgain": "Opnieuw proberen",
+        "answerLabel": "Jouw antwoord",
+        "accentKeys": "Accenttoetsen",
+        "language": {
+            "es": "Spaans",
+            "pt": "Portugees"
+        },
+        "note": {
+            "accent": "Let op het accent: {expected}",
+            "article": "Controleer het lidwoord: {expected}",
+            "otherWord": "Dat is een ander woord. Controleer het accent.",
+            "portunol": "Dat is Spaans, geen Portugees."
+        },
+        "teach": {
+            "newWord": "Nieuw woord",
+            "cognate": "verwant woord",
+            "grammar": "Grammatica"
+        },
+        "summary": {
+            "unitComplete": "Eenheid voltooid",
+            "checkFinished": "Toets afgerond",
+            "lessonComplete": "Les voltooid",
+            "unitProven": "Elk woord en het grammaticapunt zijn bewezen.",
+            "accuracy": "Meteen goed",
+            "family": {
+                "choice": "Meerkeuze",
+                "writing": "Schrijven",
+                "listening": "Luisteren",
+                "speaking": "Spreken"
+            },
+            "retried": "Had een tweede poging nodig",
+            "proven": "Bewezen ({n})",
+            "notProven": "Nog niet bewezen ({n})",
+            "everyAnswer": "Elk antwoord",
+            "noAnswer": "Geen antwoord",
+            "correct": "Goed: {expected}",
+            "cardsJoined": "{n} kaart is toegevoegd aan je herhaalstapel. | {n} kaarten zijn toegevoegd aan je herhaalstapel.",
+            "takeCheck": "Doe de eenheidstoets",
+            "nextLesson": "Volgende les: {title}",
+            "checkLater": "De eenheidstoets opent morgen, zodat wat je hebt geleerd de tijd krijgt om te beklijven.",
+            "backToUnit": "Terug naar de eenheid"
         }
     },
     "skills": {
