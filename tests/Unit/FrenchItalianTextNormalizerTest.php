@@ -40,3 +40,7 @@ it('sorts elided nouns under the noun and searches oe for the ligature', functio
         ->and((new ItalianTextNormalizer)->sortKey("l'amico"))->toBe('amico')
         ->and($french->searchKey('sœur'))->toBe($french->searchKey('soeur'));
 });
+
+it('strips a hyphen in unique words without splitting the word', function () {
+    expect((new ItalianTextNormalizer)->uniqueWords('Capo-reparto, ciao')->values()->all())->toBe(['caporeparto', 'ciao']);
+});

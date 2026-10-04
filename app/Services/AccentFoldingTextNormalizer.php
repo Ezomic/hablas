@@ -39,7 +39,10 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
      */
     public function uniqueWords(string $text): Collection
     {
-        return collect($this->words($this->foldAccents($text)))->unique();
+        $unified = $this->unifyApostrophes($this->foldAccents($text));
+        $stripped = preg_replace("/[^\p{L}\p{N}\s']/u", '', $unified) ?? '';
+
+        return collect($this->words($stripped))->unique();
     }
 
     public function answerKey(string $text): string
@@ -83,6 +86,11 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
         return is_string($composed) ? $composed : $text;
     }
 
+    private function unifyApostrophes(string $text): string
+    {
+        return str_replace(["\u{2019}", "\u{2018}", "\u{02BC}", '`', "\u{00B4}"], "'", $text);
+    }
+
     /**
      * An apostrophe inside a word is part of it (l'italiano, j'ai), so a typed
      * answer without it is not the same answer; search and sort keys split on it.
@@ -91,7 +99,7 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
      */
     private function words(string $text, bool $splitApostrophes = false): array
     {
-        $text = str_replace(["\u{2019}", "\u{2018}", "\u{02BC}", '`', "\u{00B4}"], "'", $text);
+        $text = $this->unifyApostrophes($text);
 
         if ($splitApostrophes) {
             return preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];

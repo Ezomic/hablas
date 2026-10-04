@@ -22,8 +22,9 @@ interface TextNormalizer
     public function collapseWhitespace(string $text): string;
 
     /**
-     * Accent-folds, strips punctuation, and splits into unique words, for
-     * word-overlap style matching.
+     * Accent-folds, strips punctuation (an apostrophe inside a word is kept
+     * and unified) without splitting on it, and splits on whitespace into
+     * unique words, for word-overlap style matching.
      *
      * @return Collection<int, non-empty-string>
      */
@@ -31,7 +32,9 @@ interface TextNormalizer
 
     /**
      * For grading a whole typed answer: folds what grading folds and treats
-     * punctuation as a break between words, but keeps every word in order,
+     * punctuation as a break between words, except an apostrophe inside a word
+     * (l'italiano), which is kept and unified; searchKey and sortKey split on
+     * it. Keeps every word in order,
      * so a missing or repeated word still counts ("poco a" is not "poco a
      * poco").
      */
