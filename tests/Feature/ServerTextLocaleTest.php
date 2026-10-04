@@ -6,11 +6,13 @@ use App\Actions\Auth\SendEmailCode;
 use App\Enums\EmailCodePurpose;
 use App\Enums\LessonStage;
 use App\Enums\Skill;
+use App\Models\Language;
 use App\Models\User;
 use App\Notifications\DailyDigestNotification;
 use App\Notifications\DueReviewsReminder;
 use App\Notifications\EmailCodeNotification;
 use Carbon\CarbonImmutable;
+use Database\Seeders\LanguageSeeder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -113,9 +115,9 @@ it('queues the daily digest and renders it in the learner locale', function (): 
 
     $mail = sentMail();
 
-    expect($mail->getSubject())->toBe('Je leeroverzicht voor Spanish');
+    expect($mail->getSubject())->toBe('Je leeroverzicht voor Spaans');
 
-    foreach (['Hoi Sam,', 'Je hebt 3 herhaalkaarten open staan.', 'Huidige reeks: 5 dagen.', 'Je hebt de reflectie van deze week nog niet ingediend.'] as $line) {
+    foreach (['Hoi Sam,', 'Je hebt 3 herhaalkaarten open staan.', 'Huidige streak: 5 dagen.', 'Je hebt de reflectie van deze week nog niet ingediend.'] as $line) {
         expect((string) $mail->getHtmlBody())->toContain($line);
     }
 });
@@ -155,9 +157,9 @@ it('renders the digest push body in both locales with plurals', function (string
     ['en', 1, 1, 'Your Spanish learning digest', '1 review card due · 1 day streak'],
     ['en', 3, 0, 'Your Spanish learning digest', '3 review cards due · 0 days streak'],
     ['en', 0, 4, 'Your Spanish learning digest', '4 days streak'],
-    ['nl', 1, 1, 'Je leeroverzicht voor Spanish', '1 herhaalkaart open · reeks van 1 dag'],
-    ['nl', 3, 2, 'Je leeroverzicht voor Spanish', '3 herhaalkaarten open · reeks van 2 dagen'],
-    ['nl', 0, 4, 'Je leeroverzicht voor Spanish', 'Reeks van 4 dagen'],
+    ['nl', 1, 1, 'Je leeroverzicht voor Spaans', '1 herhaalkaart open · streak van 1 dag'],
+    ['nl', 3, 2, 'Je leeroverzicht voor Spaans', '3 herhaalkaarten open · streak van 2 dagen'],
+    ['nl', 0, 4, 'Je leeroverzicht voor Spaans', 'Streak van 4 dagen'],
 ]);
 
 it('renders the due reviews reminder push in both locales', function (string $locale, int $count, string $title, string $body): void {
@@ -170,8 +172,8 @@ it('renders the due reviews reminder push in both locales', function (string $lo
 })->with([
     ['en', 12, 'Reviews are due', '12 Spanish cards are ready to review'],
     ['en', 1, 'Reviews are due', '1 Spanish cards are ready to review'],
-    ['nl', 12, 'Herhalingen staan klaar', 'Er staan 12 kaarten klaar om te herhalen (Spanish).'],
-    ['nl', 1, 'Herhalingen staan klaar', 'Er staat 1 kaart klaar om te herhalen (Spanish).'],
+    ['nl', 12, 'Herhalingen staan klaar', 'Er staan 12 kaarten klaar om te herhalen (Spaans).'],
+    ['nl', 1, 'Herhalingen staan klaar', 'Er staat 1 kaart klaar om te herhalen (Spaans).'],
 ]);
 
 it('renders the sign-in mail subject for both purposes in English', function (EmailCodePurpose $purpose, string $subject): void {
@@ -244,3 +246,78 @@ it('uses Dutch month names in the placement retake message', function (): void {
 
     expect(CarbonImmutable::parse('2026-10-05')->translatedFormat('j F'))->toBe('5 oktober');
 });
+
+it('names the learned language in the learner locale and keeps English as stored', function (string $locale, string $name, string $expected): void {
+    App::setLocale($locale);
+
+    expect(Language::localize($name))->toBe($expected);
+})->with([
+    ['en', 'Spanish', 'Spanish'],
+    ['en', 'Portuguese', 'Portuguese'],
+    ['nl', 'Spanish', 'Spaans'],
+    ['nl', 'Portuguese', 'Portugees'],
+    ['nl', 'Klingon', 'Klingon'],
+]);
+
+it('words the level milestone with the Dutch language name', function (): void {
+    App::setLocale('nl');
+
+    expect(__("You've reached :level in :language!", ['level' => 'A2', 'language' => Language::localize('Spanish')]))->toBe('Je hebt A2 bereikt in Spaans!');
+});
+
+it('names the Dutch validation attributes of every nested response field', function (string $attribute, string $name): void {
+    App::setLocale('nl');
+
+    $validator = Validator::make([], [$attribute => ['required']]);
+
+    expect($validator->errors()->first($attribute))->toBe(ucfirst($name).' is verplicht.');
+})->with([
+    ['response.text', 'antwoord'],
+    ['response.choice', 'keuze'],
+    ['response.transcripts', 'transcripties'],
+    ['response.wrong', 'foute pogingen'],
+    ['answers', 'antwoorden'],
+    ['self_graded_correct', 'zelfbeoordeling'],
+]);
+
+it('words the Dutch digits and compromised password messages neutrally', function (): void {
+    App::setLocale('nl');
+
+    $digits = Validator::make(['code' => '1'], ['code' => ['digits_between:4,6']]);
+
+    expect($digits->errors()->first('code'))->toBe('Code moet tussen 4 en 6 cijfers bevatten.')
+        ->and(__('validation.password.uncompromised', ['attribute' => 'wachtwoord']))->toBe('Wachtwoord is gevonden in een datalek. Kies een andere waarde.');
+});
+
+it('translates every seeded language name under nl', function (): void {
+    $this->seed(LanguageSeeder::class);
+    App::setLocale('nl');
+
+    $names = Language::query()->pluck('name');
+
+    expect($names)->not->toBeEmpty();
+
+    foreach ($names as $name) {
+        expect(Language::localize($name))->not->toBe($name, "{$name} needs a localize() arm and an nl.json key");
+    }
+});
+
+it('titles every lesson stage like its English label', function (LessonStage $stage): void {
+    App::setLocale('en');
+
+    expect($stage->title())->toBe($stage->label());
+})->with(LessonStage::cases());
+
+it('names the Dutch attribute of every wildcard field', function (array $data, string $rule, string $message): void {
+    App::setLocale('nl');
+
+    $validator = Validator::make($data, [$rule => 'required']);
+
+    expect($validator->errors()->first())->toBe($message);
+})->with([
+    'answers' => [['answers' => [null]], 'answers.*', 'Antwoord is verplicht.'],
+    'choices' => [['response' => ['choices' => [null]]], 'response.choices.*', 'Keuze is verplicht.'],
+    'can do' => [['can_do_ids' => [null]], 'can_do_ids.*', 'Kunnen-doen-uitspraak is verplicht.'],
+    'statements' => [['statement_ids' => [null]], 'statement_ids.*', 'Uitspraak is verplicht.'],
+    'interests' => [['interest_tags' => [null]], 'interest_tags.*', 'Interesse is verplicht.'],
+]);

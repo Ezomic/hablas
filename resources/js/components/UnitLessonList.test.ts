@@ -137,4 +137,15 @@ describe('unit lesson list', () => {
             }),
         );
     });
+
+    it('uses the singular for a single skipped exercise in Dutch', () => {
+        setLocale('nl');
+
+        const wrapper = mountList([row('words', 'completed', 0.82)], {
+            listening: 1,
+            speaking: 0,
+        });
+
+        expect(wrapper.text()).toContain('1 luisteroefening.');
+    });
 });

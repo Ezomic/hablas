@@ -24,6 +24,20 @@ class Language extends Model
     /** @use HasFactory<LanguageFactory> */
     use HasFactory;
 
+    public static function localize(string $name): string
+    {
+        return match ($name) {
+            'Spanish' => __('Spanish'),
+            'Portuguese' => __('Portuguese'),
+            default => $name,
+        };
+    }
+
+    public function localizedName(): string
+    {
+        return self::localize($this->name);
+    }
+
     /** @return HasMany<UserSkillLevel, $this> */
     public function userSkillLevels(): HasMany
     {

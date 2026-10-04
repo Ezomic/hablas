@@ -5,7 +5,11 @@ import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import type { Feedback } from '@/composables/useLessonRun';
 
-const props = defineProps<{ feedback: Feedback; guided?: boolean }>();
+const props = defineProps<{
+    feedback: Feedback;
+    guided?: boolean;
+    locale?: string | null;
+}>();
 
 const { t } = useI18n();
 
@@ -98,14 +102,18 @@ const marked = computed(() => {
                 data-testid="model"
             >
                 {{ t('lesson.feedback.model') }}
-                <span class="font-semibold">{{ props.feedback.expected }}</span>
+                <span class="font-semibold" :lang="props.locale ?? undefined">{{
+                    props.feedback.expected
+                }}</span>
             </p>
         </template>
 
         <template v-if="!props.feedback.correct">
             <p v-if="props.feedback.expected && !props.guided" class="text-sm">
                 {{ t('lesson.feedback.correctAnswer') }}
-                <span class="font-semibold">{{ props.feedback.expected }}</span>
+                <span class="font-semibold" :lang="props.locale ?? undefined">{{
+                    props.feedback.expected
+                }}</span>
             </p>
             <p
                 v-if="marked.length && !props.guided"
@@ -115,6 +123,7 @@ const marked = computed(() => {
                 {{ t('lesson.feedback.yourAnswer') }}
                 <template v-for="(item, index) in marked" :key="index">
                     <span
+                        :lang="props.locale ?? undefined"
                         :class="
                             item.wrong
                                 ? 'font-semibold underline decoration-red-600 decoration-wavy'

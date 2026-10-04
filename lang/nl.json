@@ -4,7 +4,7 @@
     "Profile updated.": "Profiel bijgewerkt.",
     "Unit complete. :count card is now in your review deck.|Unit complete. :count cards are now in your review deck.": "Eenheid afgerond. :count kaart staat nu in je herhaalstapel.|Eenheid afgerond. :count kaarten staan nu in je herhaalstapel.",
     "Unit complete. :enrolled cards added, :deferred held back until you have cleared more reviews.": "Eenheid afgerond. :enrolled kaarten toegevoegd, :deferred achtergehouden tot je meer herhalingen hebt gedaan.",
-    "Unit complete. Your review backlog is full, so its cards will be added once you have caught up.": "Eenheid afgerond. Je herhalingenachterstand is vol, dus de kaarten worden toegevoegd zodra je bent bijgewerkt.",
+    "Unit complete. Your review backlog is full, so its cards will be added once you have caught up.": "Eenheid afgerond. Je herhaalachterstand is vol, dus de kaarten worden toegevoegd zodra je bent bijgewerkt.",
     "Unauthorized": "Niet geautoriseerd",
     "Payment Required": "Betaling vereist",
     "Forbidden": "Geen toegang",
@@ -16,11 +16,11 @@
     "Your :language learning digest": "Je leeroverzicht voor :language",
     "Hi :name,": "Hoi :name,",
     "You have :reviews due.": "Je hebt :reviews open staan.",
-    "Current streak: :streak.": "Huidige reeks: :streak.",
+    "Current streak: :streak.": "Huidige streak: :streak.",
     "You haven't submitted this week's reflection yet.": "Je hebt de reflectie van deze week nog niet ingediend.",
     "Open Hablas": "Open Hablas",
-    ":reviews due · :streak streak": ":reviews open · reeks van :streak",
-    ":streak streak": "Reeks van :streak",
+    ":reviews due · :streak streak": ":reviews open · streak van :streak",
+    ":streak streak": "Streak van :streak",
     ":count review card|:count review cards": ":count herhaalkaart|:count herhaalkaarten",
     ":count day|:count days": ":count dag|:count dagen",
     "Reviews are due": "Herhalingen staan klaar",
@@ -69,5 +69,7 @@
     "Hello!": "Hallo!",
     "Regards,": "Met vriendelijke groet,",
     "All rights reserved.": "Alle rechten voorbehouden.",
-    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Lukt het klikken op de knop \":actionText\" niet? Kopieer dan de onderstaande URL\nen plak die in je browser:"
+    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Lukt het klikken op de knop \":actionText\" niet? Kopieer dan de onderstaande URL\nen plak die in je browser:",
+    "Spanish": "Spaans",
+    "Portuguese": "Portugees"
 }

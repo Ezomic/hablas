@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-use Illuminate\Support\Facades\App;
-
 enum LessonStage: string
 {
     case Meet = 'meet';
@@ -27,14 +25,13 @@ enum LessonStage: string
 
     public function title(): string
     {
-        $locale = App::getLocale();
-        App::setLocale('en');
-
-        try {
-            return $this->label();
-        } finally {
-            App::setLocale($locale);
-        }
+        return match ($this) {
+            self::Meet => 'Meet the words',
+            self::Recall => 'Recall the words',
+            self::Sentences => 'Build sentences',
+            self::Task => 'Do the task',
+            self::Check => 'Unit check',
+        };
     }
 
     public function label(): string

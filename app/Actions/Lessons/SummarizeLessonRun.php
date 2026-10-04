@@ -27,7 +27,7 @@ final class SummarizeLessonRun
      *     accuracy: array<string, float>,
      *     retried: list<string>,
      *     items: list<array{term: string, translation: string|null, mastered: bool}>,
-     *     answers: list<array{prompt: string, given: string, expected: string, correct: bool}>,
+     *     answers: list<array{prompt: string, given: string, expected: string, correct: bool, learnedLanguage: bool}>,
      *     cardsEnrolled: int,
      *     unitCompleted: bool
      * }
@@ -130,7 +130,7 @@ final class SummarizeLessonRun
         return $item === null ? null : ['term' => $item->term, 'translation' => $item->translation_en];
     }
 
-    /** @return list<array{prompt: string, given: string, expected: string, correct: bool}> */
+    /** @return list<array{prompt: string, given: string, expected: string, correct: bool, learnedLanguage: bool}> */
     private function answers(LessonRun $run): array
     {
         $last = [];
@@ -150,6 +150,7 @@ final class SummarizeLessonRun
                     'given' => $this->given($answer),
                     'expected' => $this->expected($exercise),
                     'correct' => $answer->is_correct === true && $answer->flagged_at === null,
+                    'learnedLanguage' => $exercise->format->answersInLearnedLanguage(),
                 ];
             }
         }

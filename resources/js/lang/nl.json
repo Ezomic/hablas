@@ -184,7 +184,7 @@
             "title": "Leer Spaans op de manier waarop het volgens onderzoek echt lukt.",
             "body": "Hablas is gebouwd op het CEFR-raamwerk, begrijpelijke input en gespreid herhalen: wat taalinstituten echt gebruiken. Geen punten, geen ranglijsten, geen schuldgevoel als je een dag mist. Gewoon een eerlijk beeld van hoe goed je wordt.",
             "goToDashboard": "Ga naar je dashboard",
-            "startPlacement": "Begin met een niveautest",
+            "startPlacement": "Begin met een plaatsingstest",
             "haveAccount": "Ik heb al een account",
             "passwordless": "Geen wachtwoord om te onthouden: log in met een code per e-mail of met een passkey."
         },
@@ -240,7 +240,7 @@
         },
         "cta": {
             "title": "Ontdek waar je echt staat.",
-            "body": "Een niveautest beoordeelt elke vaardigheid apart en bepaalt je beginniveau. Alles daarna wordt afgestemd op wat je onthoudt, niet op waar je op klikte.",
+            "body": "Een plaatsingstest beoordeelt elke vaardigheid apart en bepaalt je beginniveau. Alles daarna wordt afgestemd op wat je onthoudt, niet op waar je op klikte.",
             "createYourAccount": "Maak je account aan"
         },
         "footer": {
@@ -648,11 +648,11 @@
         },
         "errorTags": {
             "wrong_gender": "Verkeerd geslacht",
-            "ser_estar_confusion": "Ser of estar",
+            "ser_estar_confusion": "Ser/estar-verwarring",
             "false_friend": "Valse vriend",
             "wrong_tense": "Verkeerde tijd",
             "portunol_slip": "Portuñol-foutje",
-            "other": "Iets anders"
+            "other": "Overig"
         },
         "deck": {
             "offline": "Je bent offline, dus beoordelingen worden bewaard en gesynchroniseerd zodra je weer online bent.",
@@ -734,32 +734,32 @@
         }
     },
     "placement": {
-        "breadcrumb": "Instaltoets",
-        "title": "Instaltoets {language}",
+        "breadcrumb": "Plaatsingstest",
+        "title": "Plaatsingstest {language}",
         "retakeTitle": "Niveau {skill} {language} opnieuw bepalen",
         "introRetake": "Beantwoord elke vraag, de volgende past zich aan aan hoe je het doet. Hiermee bepaal je je niveau voor {skill} opnieuw, hoger of lager. Je andere vaardigheden houden hun niveau.",
         "intro": "Beantwoord elke vraag, de volgende past zich aan aan hoe je het doet. Hiermee bepaal je je startniveau (CEFR) voor lezen, luisteren, spreken en schrijven apart.",
         "progress": "Voortgang",
         "saveFailed": "Dat antwoord kon niet worden opgeslagen. Probeer het opnieuw.",
         "dontKnow": "Ik weet het niet",
-        "notReady": "Nog niet klaar voor een toets?",
+        "notReady": "Nog niet klaar voor een plaatsingstest?",
         "skip": "Overslaan en beginnen op A1",
         "results": {
-            "breadcrumb": "Resultaten instaltoets",
-            "title": "Resultaten instaltoets {language}",
-            "intro": "Dit is het beginpunt dat de toets voor je heeft bepaald. Je gecombineerde niveau is het laagste van de vier vaardigheden, bewust voorzichtig, zodat niets te hoog gegrepen voelt.",
+            "breadcrumb": "Resultaten plaatsingstest",
+            "title": "Resultaten plaatsingstest {language}",
+            "intro": "Dit is het beginpunt dat de plaatsingstest voor je heeft bepaald. Je gecombineerde niveau is het laagste van de vier vaardigheden, bewust voorzichtig, zodat niets te hoog gegrepen voelt.",
             "startingLevel": "Je startniveau",
             "blendedLevel": "gecombineerd niveau",
             "retakeHint": "Lijkt een niveau niet te kloppen? Doe die vaardigheid dan apart opnieuw. Het nieuwe resultaat vervangt het oude, hoger of lager, en elke vaardigheid kun je één keer per week opnieuw doen.",
-            "openTest": "Je instaltoets staat nog open.",
+            "openTest": "Je plaatsingstest staat nog open.",
             "openSkill": "Je herkansing voor {skill} staat nog open.",
-            "skipped": "Je hebt de instaltoets overgeslagen, dus elke vaardigheid begint op A1.",
-            "takeTest": "Doe de toets",
+            "skipped": "Je hebt de plaatsingstest overgeslagen, dus elke vaardigheid begint op A1.",
+            "takeTest": "Doe de plaatsingstest",
             "skippedAfter": "wanneer je maar wilt om een nauwkeuriger niveau in te stellen.",
             "questionByQuestion": "Vraag voor vraag",
             "yourAnswer": "Jouw antwoord:",
             "didntKnowAnswer": "wist het niet",
-            "correctAnswer": "Goede antwoord:",
+            "correctAnswer": "Goed antwoord:",
             "toDashboard": "Verder naar het dashboard",
             "status": {
                 "correct": "Goed",
@@ -814,33 +814,33 @@
     },
     "reflections": {
         "intro": "Vink aan wat je deze week met vertrouwen kunt.",
-        "done": "Je hebt de terugblik van deze week al afgerond. Kom volgende week terug voor een nieuwe.",
-        "submit": "Terugblik versturen"
+        "done": "Je hebt de reflectie van deze week al afgerond. Kom volgende week terug voor een nieuwe.",
+        "submit": "Reflectie versturen"
     },
     "unitLessons": {
         "mastered": "Beheerst",
         "wordsMastered": "Beheerste woorden",
         "masteredCount": "{mastered} van {total} beheerst",
-        "heldBack": "Werk eerst je herhalingen af en begin dan aan deze unit.",
-        "skippedBoth": "Overgeslagen: luisteren in {listening} en spreken in {speaking} oefeningen.",
-        "skippedListening": "Overgeslagen: luisteren in {listening} oefeningen.",
-        "skippedSpeaking": "Overgeslagen: spreken in {speaking} oefeningen.",
+        "heldBack": "Werk eerst je herhalingen af en begin dan aan deze eenheid.",
+        "skippedBoth": "Overgeslagen: luisteroefeningen ({listening}) en spreekoefeningen ({speaking}).",
+        "skippedListening": "Overgeslagen: {listening} luisteroefening. | Overgeslagen: {listening} luisteroefeningen.",
+        "skippedSpeaking": "Overgeslagen: {speaking} spreekoefening. | Overgeslagen: {speaking} spreekoefeningen.",
         "continue": "Verder",
         "replay": "Opnieuw",
-        "start": "Beginnen",
+        "start": "Starten",
         "status": {
             "lockedCheck": "Opent na de lessen ervoor",
             "locked": "Rond eerst de les ervoor af",
             "opensTomorrow": "Opent morgen",
             "coming": "Komt eraan",
             "inProgress": "Bezig",
-            "doneBest": "Klaar, beste score {percent}% in één keer goed",
+            "doneBest": "Klaar, hoogste score {percent}% meteen goed",
             "done": "Klaar",
             "ready": "Klaar om te beginnen"
         },
         "soon": "Binnenkort",
-        "contentPending": "Zinnen- en grammaticalessen voor deze unit komen eraan. De unit blijft bezig tot ze klaar zijn en je de toets ervan hebt gehaald.",
-        "takeCheck": "Doe nu de unittoets"
+        "contentPending": "Zinnen- en grammaticalessen voor deze eenheid komen eraan. De eenheid blijft bezig tot ze klaar zijn en je de eenheidstoets hebt gehaald.",
+        "takeCheck": "Doe nu de eenheidstoets"
     },
     "twoFactorSetup": {
         "enabledTitle": "Tweestapsverificatie ingeschakeld",

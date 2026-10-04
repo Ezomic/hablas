@@ -466,7 +466,13 @@ describe('the summary and the remediation in Dutch', () => {
             { term: 'la llave', translation: 'key', mastered: false },
         ],
         answers: [
-            { prompt: 'key', given: '', expected: 'la llave', correct: false },
+            {
+                prompt: 'key',
+                given: '',
+                expected: 'la llave',
+                correct: false,
+                learnedLanguage: true,
+            },
         ],
         cardsEnrolled: 2,
         unitCompleted: false,

@@ -82,6 +82,9 @@ final class LocaleCatalogs
             'a validation message' => '/withMessages\(\s*\[[^\]]*=>\s*\[?\s*[\'"]/s',
             'a refusal' => '/\brefuse\(\s*[\'"]/',
             'a custom request message' => '/[\'"][\w*]+\.\w+[\'"]\s*=>\s*[\'"]/',
+            'an abort message' => '/\babort(?:_if|_unless)?\((?:[^;]*?,)?\s*\d{3}\s*,\s*[\'"]/',
+            'a flashed message' => '/Inertia::flash\(\s*[\'"]\w+[\'"]\s*,\s*[\'"]/',
+            'a sentence in a match arm or array' => '/=>\s*[\'"][A-Z][a-z]+(?:\s+[\w\']+)+[.!?][\'"]/',
             'a status or toast message' => '/->with\(\s*[\'"](?:status|error|success)[\'"]\s*,\s*[\'"]|[\'"]message[\'"]\s*=>\s*[\'"]/',
         ];
     }

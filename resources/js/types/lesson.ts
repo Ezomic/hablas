@@ -85,6 +85,7 @@ export interface SummaryAnswer {
     given: string;
     expected: string;
     correct: boolean;
+    learnedLanguage: boolean;
 }
 
 export interface RunSummary {

@@ -66,7 +66,7 @@ class HandleInertiaRequests extends Middleware
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()
                     ->get(['languages.id', 'languages.code', 'languages.name'])
-                    ->map(fn (Language $language): array => ['id' => $language->id, 'code' => $language->code, 'name' => $language->name])
+                    ->map(fn (Language $language): array => ['id' => $language->id, 'code' => $language->code, 'name' => $language->localizedName()])
                 : [],
         ];
     }

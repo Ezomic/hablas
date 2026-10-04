@@ -51,6 +51,23 @@ export function isTypedFormat(format: string): boolean {
     ].includes(format);
 }
 
+export function answersInLearnedLanguage(format: string): boolean {
+    return [
+        'type_word',
+        'type_gap',
+        'build_sentence',
+        'translate_sentence',
+        'transform_sentence',
+        'write_guided',
+        'listen_type',
+        'listen_pair',
+        'choose_word',
+        'choose_gap',
+        'speak_repeat',
+        'speak_answer',
+    ].includes(format);
+}
+
 export function isListenFormat(format: string): boolean {
     return ['listen_choose', 'listen_pair', 'listen_type'].includes(format);
 }

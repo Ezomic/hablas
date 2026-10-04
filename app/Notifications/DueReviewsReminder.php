@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Models\Language;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,7 +39,7 @@ class DueReviewsReminder extends Notification implements ShouldQueue
     {
         return (new WebPushMessage)
             ->title(__('Reviews are due'))
-            ->body(trans_choice(':count :language cards are ready to review', $this->dueRepetitionCount, ['language' => $this->languageName]))
+            ->body(trans_choice(':count :language cards are ready to review', $this->dueRepetitionCount, ['language' => Language::localize($this->languageName)]))
             ->data(['url' => route('review.index', absolute: false)])
             ->options(['TTL' => self::TTL_SECONDS]);
     }

@@ -36,7 +36,7 @@ final class GetUnseenLessonResults
             $unit = $lesson?->unit;
 
             if ($lesson !== null && $unit !== null) {
-                $results[] = ['runId' => $run->id, 'unitTitle' => $unit->title, 'lessonTitle' => $lesson->title, 'isCheck' => $run->kind->isCheck()];
+                $results[] = ['runId' => $run->id, 'unitTitle' => $unit->title, 'lessonTitle' => $lesson->stage->label(), 'isCheck' => $run->kind->isCheck()];
             }
         }
 

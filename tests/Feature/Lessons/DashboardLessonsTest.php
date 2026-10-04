@@ -38,6 +38,15 @@ it('offers lesson 1 of a new unit to start', function () {
         );
 });
 
+it('names the next lesson stage in the learner locale', function () {
+    config(['app.supported_locales' => ['en', 'nl']]);
+    $this->user->forceFill(['interface_locale' => 'nl'])->save();
+
+    $this->actingAs($this->user)
+        ->get(route('dashboard'))
+        ->assertInertia(fn ($page) => $page->where('nextUnit.lesson.title', 'Maak kennis met de woorden'));
+});
+
 it('offers the lesson in progress to continue', function () {
     (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Meet));
 
