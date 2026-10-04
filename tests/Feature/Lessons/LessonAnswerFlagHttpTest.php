@@ -79,6 +79,14 @@ it('refuses to flag an answer in a check, which gives no feedback', function () 
     ($this->flag)($answer->step, $check)->assertUnprocessable()->assertJsonValidationErrors('lesson');
 });
 
+it('words the dispute refusal in the learner locale', function () {
+    $answer = ($this->answer)(LessonWorld::rightResponse($this->typed));
+    $this->user->forceFill(['interface_locale' => 'nl'])->save();
+    config(['app.supported_locales' => ['en', 'nl']]);
+
+    ($this->flag)($answer->step)->assertUnprocessable()->assertJsonValidationErrors(['lesson' => 'Alleen een fout antwoord kan worden betwist.']);
+});
+
 it('answers 404 for a step that is not in the run', function () {
     ($this->flag)((string) Str::uuid())->assertNotFound();
 });

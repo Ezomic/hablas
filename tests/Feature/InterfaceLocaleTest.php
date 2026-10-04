@@ -272,6 +272,8 @@ it('has a Dutch line for every literal translation key in PHP and no unused ones
     $readByFramework = [
         'Unauthorized', 'Payment Required', 'Forbidden', 'Not Found',
         'Page Expired', 'Too Many Requests', 'Server Error', 'Service Unavailable',
+        'Whoops!', 'Hello!', 'Regards,', 'All rights reserved.',
+        "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:",
     ];
 
     expect(array_values(array_diff($used, $catalog)))->toBe([])

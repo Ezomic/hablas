@@ -46,10 +46,10 @@ final class StartSkillPlacement
             $availableOn = $this->determineRetakeAvailability->handle($user, $language)[$skill->value];
 
             if ($availableOn !== null) {
-                $date = CarbonImmutable::parse($availableOn)->format('j F');
+                $date = CarbonImmutable::parse($availableOn)->translatedFormat('j F');
 
                 throw ValidationException::withMessages([
-                    'skill' => "You can re-take {$skill->value} on {$date}.",
+                    'skill' => __('You can re-take :skill on :date.', ['skill' => $skill->label(), 'date' => $date]),
                 ]);
             }
 

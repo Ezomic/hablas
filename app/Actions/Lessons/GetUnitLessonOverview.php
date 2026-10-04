@@ -51,7 +51,7 @@ final class GetUnitLessonOverview
 
             $rows[] = [
                 'stage' => $stage->value,
-                'title' => $stage->title(),
+                'title' => $stage->label(),
                 'position' => $stage->position(),
                 'lessonId' => $lesson?->id,
                 'state' => $lesson === null ? LessonState::Coming->value : ($states[$lesson->id] ?? LessonState::Coming)->value,

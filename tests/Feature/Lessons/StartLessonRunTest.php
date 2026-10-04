@@ -245,6 +245,13 @@ describe('where the unit stands', function () {
         expect(UserUnitProgress::query()->where('user_id', $this->user->id)->value('status'))->toBe(UnitProgressStatus::Completed);
     });
 
+    it('words a refusal in the language of the app locale', function () {
+        LessonExercise::query()->where('lesson_id', $this->lesson1->id)->update(['retired_at' => now()]);
+        app()->setLocale('nl');
+
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->lesson1)))->toBe('Deze les heeft nog geen oefeningen.');
+    });
+
     it('refuses a lesson that has no exercises', function () {
         LessonExercise::query()->where('lesson_id', $this->lesson1->id)->update(['retired_at' => now()]);
 

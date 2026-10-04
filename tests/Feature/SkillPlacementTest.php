@@ -218,6 +218,17 @@ it('refuses a re-take within a week of the last placement of that skill, and nam
     expect(openAttemptsOf($user))->toHaveCount(1);
 });
 
+it('names the skill and the date of a refused re-take in Dutch', function () {
+    $user = retakeLearner($this->spanish, '2026-09-29 21:15:54');
+    $user->forceFill(['interface_locale' => 'nl'])->save();
+    config(['app.supported_locales' => ['en', 'nl']]);
+
+    $this->actingAs($user)
+        ->from(route('placement.results'))
+        ->post(route('placement.skills.store', Skill::Reading))
+        ->assertSessionHasErrors(['skill' => 'Je kunt lezen opnieuw doen op 6 oktober.']);
+});
+
 it('starts the cooldown again from a finished re-take', function () {
     $user = retakeLearner($this->spanish);
 

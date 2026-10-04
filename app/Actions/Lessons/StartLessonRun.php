@@ -53,14 +53,14 @@ final class StartLessonRun
 
         if ($open !== null) {
             if ($open->kind !== $kind) {
-                throw $this->refuse('Finish the run you have open for this lesson first.');
+                throw $this->refuse(__('Finish the run you have open for this lesson first.'));
             }
 
             return $open;
         }
 
         if ($availability === UnitAvailability::HeldBack) {
-            throw $this->refuse('Clear your reviews first, then start this unit.');
+            throw $this->refuse(__('Clear your reviews first, then start this unit.'));
         }
 
         $this->assertKindIsOpen($user, $unit, $lesson, $kind);
@@ -68,7 +68,7 @@ final class StartLessonRun
         $built = $this->buildLessonPlan->handle($user, $lesson, $kind);
 
         if ($built['plan'] === []) {
-            throw $this->refuse('This lesson has no exercises yet.');
+            throw $this->refuse(__('This lesson has no exercises yet.'));
         }
 
         return DB::transaction(function () use ($user, $unit, $lesson, $kind, $built): LessonRun {
@@ -121,7 +121,7 @@ final class StartLessonRun
         $isCheckLesson = $lesson->stage === LessonStage::Check;
 
         if ($kind === LessonRunKind::Lesson && $isCheckLesson || $kind !== LessonRunKind::Lesson && ! $isCheckLesson) {
-            throw $this->refuse('That kind of run does not belong to this lesson.');
+            throw $this->refuse(__('That kind of run does not belong to this lesson.'));
         }
 
         $state = $this->lessonProgress->state($user, $lesson);
@@ -137,17 +137,17 @@ final class StartLessonRun
     private function assertNotLocked(LessonState $state): void
     {
         if ($state === LessonState::Locked) {
-            throw $this->refuse('Finish the lesson before it first.');
+            throw $this->refuse(__('Finish the lesson before it first.'));
         }
     }
 
     private function assertCheckIsOpen(LessonState $state): void
     {
         match ($state) {
-            LessonState::Locked => throw $this->refuse('Finish the lessons before the check.'),
-            LessonState::OpensTomorrow => throw $this->refuse('The check opens tomorrow.'),
-            LessonState::Completed => throw $this->refuse('You have passed this unit check.'),
-            LessonState::Remediation => throw $this->refuse('Practise the missed items and retake them, instead of taking the whole check again.'),
+            LessonState::Locked => throw $this->refuse(__('Finish the lessons before the check.')),
+            LessonState::OpensTomorrow => throw $this->refuse(__('The check opens tomorrow.')),
+            LessonState::Completed => throw $this->refuse(__('You have passed this unit check.')),
+            LessonState::Remediation => throw $this->refuse(__('Practise the missed items and retake them, instead of taking the whole check again.')),
             default => null,
         };
     }
@@ -161,7 +161,7 @@ final class StartLessonRun
             ->exists();
 
         if ($started || $state === LessonState::Completed) {
-            throw $this->refuse('Taking the check now is for a unit you have not started.');
+            throw $this->refuse(__('Taking the check now is for a unit you have not started.'));
         }
     }
 
@@ -170,15 +170,15 @@ final class StartLessonRun
         $last = $this->lessonProgress->lastCheck($user, $unit);
 
         if ($last === null) {
-            throw $this->refuse('Take the unit check first.');
+            throw $this->refuse(__('Take the unit check first.'));
         }
 
         if ($this->unitMasteryReader->missing($user, $unit) === []) {
-            throw $this->refuse('Nothing is left to practise.');
+            throw $this->refuse(__('Nothing is left to practise.'));
         }
 
         if ($kind === LessonRunKind::Retake && $this->lessonProgress->completedToday($last->completed_at)) {
-            throw $this->refuse('The retake opens tomorrow.');
+            throw $this->refuse(__('The retake opens tomorrow.'));
         }
     }
 

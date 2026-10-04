@@ -35,7 +35,7 @@ final class AnswerPlacementItemRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'response.required' => 'Select an answer before continuing.',
+            'response.required' => __('Select an answer before continuing.'),
         ];
     }
 }
