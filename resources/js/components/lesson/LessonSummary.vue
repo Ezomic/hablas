@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Check, X } from '@lucide/vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import RemediationActions from '@/components/RemediationActions.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,12 +22,20 @@ const emit = defineEmits<{
     retake: [];
 }>();
 
+const { t } = useI18n();
+
 const families: Record<string, string> = {
-    choice: 'Multiple choice',
-    writing: 'Writing',
-    listening: 'Listening',
-    speaking: 'Speaking',
+    choice: 'lesson.summary.family.choice',
+    writing: 'lesson.summary.family.writing',
+    listening: 'lesson.summary.family.listening',
+    speaking: 'lesson.summary.family.speaking',
 };
+
+function familyLabel(family: string | number): string {
+    const key = families[family];
+
+    return key === undefined ? String(family) : t(key);
+}
 
 const missing = computed(() =>
     props.summary.items.filter((item) => !item.mastered),
@@ -48,10 +57,10 @@ const nextIsOpen = computed(
         <h2 class="text-2xl font-semibold">
             {{
                 props.summary.unitCompleted
-                    ? 'Unit complete'
+                    ? t('lesson.summary.unitComplete')
                     : props.isCheck
-                      ? 'Check finished'
-                      : 'Lesson complete'
+                      ? t('lesson.summary.checkFinished')
+                      : t('lesson.summary.lessonComplete')
             }}
         </h2>
 
@@ -59,12 +68,14 @@ const nextIsOpen = computed(
             v-if="props.summary.unitCompleted"
             class="text-sm text-muted-foreground"
         >
-            Every word and the grammar point are proven.
+            {{ t('lesson.summary.unitProven') }}
         </p>
 
         <Card v-if="Object.keys(props.summary.accuracy).length">
             <CardHeader>
-                <CardTitle class="text-base">Right the first time</CardTitle>
+                <CardTitle class="text-base">{{
+                    t('lesson.summary.accuracy')
+                }}</CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-1 text-sm">
                 <p
@@ -72,7 +83,7 @@ const nextIsOpen = computed(
                     :key="family"
                     class="flex justify-between"
                 >
-                    <span>{{ families[family] ?? family }}</span>
+                    <span>{{ familyLabel(family) }}</span>
                     <span class="font-medium"
                         >{{ Math.round(value * 100) }}%</span
                     >
@@ -82,7 +93,9 @@ const nextIsOpen = computed(
 
         <Card v-if="props.summary.retried.length">
             <CardHeader>
-                <CardTitle class="text-base">Needed a second go</CardTitle>
+                <CardTitle class="text-base">{{
+                    t('lesson.summary.retried')
+                }}</CardTitle>
             </CardHeader>
             <CardContent class="text-sm">
                 {{ props.summary.retried.join(', ') }}
@@ -92,9 +105,9 @@ const nextIsOpen = computed(
         <template v-if="props.isCheck">
             <Card v-if="mastered.length">
                 <CardHeader>
-                    <CardTitle class="text-base"
-                        >Proven ({{ mastered.length }})</CardTitle
-                    >
+                    <CardTitle class="text-base">{{
+                        t('lesson.summary.proven', { n: mastered.length })
+                    }}</CardTitle>
                 </CardHeader>
                 <CardContent class="flex flex-col gap-1 text-sm">
                     <p
@@ -110,9 +123,9 @@ const nextIsOpen = computed(
 
             <Card v-if="missing.length">
                 <CardHeader>
-                    <CardTitle class="text-base"
-                        >Not proven yet ({{ missing.length }})</CardTitle
-                    >
+                    <CardTitle class="text-base">{{
+                        t('lesson.summary.notProven', { n: missing.length })
+                    }}</CardTitle>
                 </CardHeader>
                 <CardContent class="flex flex-col gap-1 text-sm">
                     <p
@@ -125,7 +138,7 @@ const nextIsOpen = computed(
                         <span
                             v-if="item.translation"
                             class="text-muted-foreground"
-                            >({{ item.translation }})</span
+                            >{{ `(${item.translation})` }}</span
                         >
                     </p>
                 </CardContent>
@@ -133,7 +146,9 @@ const nextIsOpen = computed(
 
             <Card v-if="props.summary.answers.length">
                 <CardHeader>
-                    <CardTitle class="text-base">Every answer</CardTitle>
+                    <CardTitle class="text-base">{{
+                        t('lesson.summary.everyAnswer')
+                    }}</CardTitle>
                 </CardHeader>
                 <CardContent class="flex flex-col gap-2 text-sm">
                     <p
@@ -150,11 +165,15 @@ const nextIsOpen = computed(
                                     ? 'text-green-700 dark:text-green-300'
                                     : 'text-red-700 dark:text-red-300'
                             "
-                            >{{ answer.given || 'No answer' }}</span
+                            >{{
+                                answer.given || t('lesson.summary.noAnswer')
+                            }}</span
                         >
-                        <span v-if="!answer.correct" class="font-medium"
-                            >Correct: {{ answer.expected }}</span
-                        >
+                        <span v-if="!answer.correct" class="font-medium">{{
+                            t('lesson.summary.correct', {
+                                expected: answer.expected,
+                            })
+                        }}</span>
                     </p>
                 </CardContent>
             </Card>
@@ -163,9 +182,9 @@ const nextIsOpen = computed(
                 v-if="props.summary.cardsEnrolled"
                 class="text-sm text-muted-foreground"
             >
-                {{ props.summary.cardsEnrolled }}
-                {{ props.summary.cardsEnrolled === 1 ? 'card' : 'cards' }}
-                joined your review deck.
+                {{
+                    t('lesson.summary.cardsJoined', props.summary.cardsEnrolled)
+                }}
             </p>
         </template>
 
@@ -185,20 +204,21 @@ const nextIsOpen = computed(
             >
                 {{
                     props.next.stage === 'check'
-                        ? 'Take the unit check'
-                        : `Next lesson: ${props.next.title}`
+                        ? t('lesson.summary.takeCheck')
+                        : t('lesson.summary.nextLesson', {
+                              title: props.next.title,
+                          })
                 }}
             </Button>
             <p
                 v-else-if="props.next?.state === 'opens_tomorrow'"
                 class="text-sm text-muted-foreground"
             >
-                The unit check opens tomorrow, so what you learned has time to
-                settle.
+                {{ t('lesson.summary.checkLater') }}
             </p>
-            <Button variant="outline" @click="emit('unit')"
-                >Back to the unit</Button
-            >
+            <Button variant="outline" @click="emit('unit')">{{
+                t('lesson.summary.backToUnit')
+            }}</Button>
         </div>
     </section>
 </template>

@@ -1,5 +1,7 @@
 import { onUnmounted, reactive, ref } from 'vue';
 import type { SubmitResult } from '@/composables/useOfflineSync';
+import { i18n } from '@/i18n';
+import { intlTag } from '@/lib/intlLocale';
 import { store as storePause } from '@/routes/exercise-pauses';
 import type { ExerciseFamily } from '@/types/lesson';
 
@@ -34,10 +36,13 @@ export function useExercisePauses(
     }
 
     function endsAt(family: ExerciseFamily): string {
-        return (until[family] ?? new Date(now.value)).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+        // English keeps the browser's own clock format, as before the interface had languages.
+        const locale = i18n.global.locale.value === 'en' ? [] : intlTag();
+
+        return (until[family] ?? new Date(now.value)).toLocaleTimeString(
+            locale,
+            { hour: '2-digit', minute: '2-digit' },
+        );
     }
 
     async function send(family: ExerciseFamily, minutes: number) {

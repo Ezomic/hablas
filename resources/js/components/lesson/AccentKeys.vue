@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 
 const props = defineProps<{ locale: string | null }>();
+
+const { t } = useI18n();
 
 const emit = defineEmits<{ insert: [character: string] }>();
 
@@ -15,7 +18,11 @@ const keys = computed(() =>
 </script>
 
 <template>
-    <div class="flex flex-wrap gap-1" role="group" aria-label="Accent keys">
+    <div
+        class="flex flex-wrap gap-1"
+        role="group"
+        :aria-label="t('lesson.accentKeys')"
+    >
         <Button
             v-for="key in keys"
             :key="key"

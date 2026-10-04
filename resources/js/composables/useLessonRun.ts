@@ -6,6 +6,7 @@ import {
     deviceBelongsToSomeoneElse,
     useOfflineSync,
 } from '@/composables/useOfflineSync';
+import { i18n } from '@/i18n';
 import { isRetryable } from '@/lib/http';
 import {
     forgetJournal,
@@ -379,7 +380,7 @@ export function useLessonRun(props: PlayProps) {
                 .json()
                 .catch(() => null)) as { message?: string } | null;
             errorMessage.value =
-                failure?.message ?? 'That could not be saved. Try again.';
+                failure?.message ?? i18n.global.t('lesson.saveFailed');
 
             return { queued: false, ok: false, data: null };
         }

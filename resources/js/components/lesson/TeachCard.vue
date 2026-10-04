@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { clipUrl, text } from '@/lib/lessonPayload';
@@ -9,6 +10,8 @@ const props = defineProps<{
     exercise: ExerciseBase;
     locale: string | null;
 }>();
+
+const { t } = useI18n();
 
 interface Example {
     text: string;
@@ -41,9 +44,13 @@ const examples = computed<Example[]>(() => {
         class="flex flex-col items-center gap-4 rounded-xl border bg-card p-6 text-center"
         data-testid="teach-word"
     >
-        <p class="text-sm text-muted-foreground">New word</p>
+        <p class="text-sm text-muted-foreground">
+            {{ t('lesson.teach.newWord') }}
+        </p>
         <p class="flex items-center gap-1 text-3xl font-semibold">
-            {{ text(props.exercise.payload.term) }}
+            <span :lang="props.locale ?? undefined">{{
+                text(props.exercise.payload.term)
+            }}</span>
             <SpeakButton
                 :text="text(props.exercise.payload.term)"
                 :locale="props.locale"
@@ -54,9 +61,9 @@ const examples = computed<Example[]>(() => {
         <p class="text-xl">{{ text(props.exercise.payload.translation) }}</p>
         <div class="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{{ text(props.exercise.payload.part_of_speech) }}</span>
-            <Badge v-if="props.exercise.payload.is_cognate" variant="outline"
-                >cognate</Badge
-            >
+            <Badge v-if="props.exercise.payload.is_cognate" variant="outline">{{
+                t('lesson.teach.cognate')
+            }}</Badge>
         </div>
         <p
             v-if="text(props.exercise.payload.contrast_note)"
@@ -71,7 +78,9 @@ const examples = computed<Example[]>(() => {
         class="flex flex-col gap-4 rounded-xl border bg-card p-6"
         data-testid="teach-grammar"
     >
-        <p class="text-sm text-muted-foreground">Grammar</p>
+        <p class="text-sm text-muted-foreground">
+            {{ t('lesson.teach.grammar') }}
+        </p>
         <h2 class="text-xl font-semibold">
             {{ text(props.exercise.payload.title) }}
         </h2>
@@ -85,7 +94,11 @@ const examples = computed<Example[]>(() => {
                 class="flex items-center justify-between gap-2 rounded-md bg-muted px-3 py-2"
             >
                 <span>
-                    <span class="block font-medium">{{ example.text }}</span>
+                    <span
+                        class="block font-medium"
+                        :lang="props.locale ?? undefined"
+                        >{{ example.text }}</span
+                    >
                     <span class="block text-sm text-muted-foreground">{{
                         example.english
                     }}</span>

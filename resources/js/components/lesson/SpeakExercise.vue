@@ -73,7 +73,11 @@ const verdictStyle: Record<WordVerdict, string> = {
         </p>
 
         <template v-if="isRepeat">
-            <h2 class="text-2xl font-semibold" data-testid="prompt">
+            <h2
+                class="text-2xl font-semibold"
+                :lang="props.locale ?? undefined"
+                data-testid="prompt"
+            >
                 {{ text(props.payload.text) }}
             </h2>
             <p v-if="text(props.payload.english)" class="text-muted-foreground">

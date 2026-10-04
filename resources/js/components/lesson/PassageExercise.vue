@@ -91,8 +91,9 @@ const shownLines = computed(() => {
                 v-for="(line, index) in shownLines"
                 :key="index"
                 class="text-base"
+                :lang="props.locale ?? undefined"
             >
-                <span class="font-semibold">{{ line.speaker }}:</span>
+                <span class="font-semibold">{{ `${line.speaker}:` }}</span>
                 {{ line.text }}
             </li>
         </ol>
