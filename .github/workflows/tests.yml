@@ -29,8 +29,8 @@ jobs:
         id: diff
         run: |
           code=true
-          if files=$(git diff --name-only HEAD^1 HEAD) && [ -n "$files" ]; then
-            if ! printf '%s\n' "$files" | grep -qvE '^(docs/|public/tts-preview/|LICENSE$)|\.md$'; then
+          if files=$(git diff --no-renames --name-only HEAD^1 HEAD) && [ -n "$files" ]; then
+            if ! printf '%s\n' "$files" | grep -qvE '^(docs/|[^/]+\.md$|LICENSE$)'; then
               code=false
             fi
           fi
@@ -144,8 +144,10 @@ jobs:
       - name: Verify results
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
+          CHANGES: ${{ needs.changes.result }}
         run: |
           echo "results: $RESULTS"
+          [ "$CHANGES" = success ] || exit 1
           case " $RESULTS " in
             *" failure "*|*" cancelled "*) exit 1 ;;
           esac

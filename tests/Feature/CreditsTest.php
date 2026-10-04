@@ -28,16 +28,16 @@ it('keeps the NOTICE file in sync with the config', function (): void {
 });
 
 it('regenerates the NOTICE file with speech:notice', function (): void {
-    $before = file_get_contents(base_path('NOTICE'));
+    $path = tempnam(sys_get_temp_dir(), 'notice');
 
     try {
-        file_put_contents(base_path('NOTICE'), 'stale');
+        file_put_contents($path, 'stale');
 
-        $this->artisan('speech:notice')->assertSuccessful();
+        $this->artisan('speech:notice', ['--path' => $path])->assertSuccessful();
 
-        expect(file_get_contents(base_path('NOTICE')))->toBe($before);
+        expect(file_get_contents($path))->toBe(app(SpeechNotice::class)->handle());
     } finally {
-        file_put_contents(base_path('NOTICE'), $before);
+        unlink($path);
     }
 });
 
