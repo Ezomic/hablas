@@ -39,10 +39,7 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
      */
     public function uniqueWords(string $text): Collection
     {
-        $normalized = preg_replace('/[^\p{L}\p{N}\s]/u', '', $this->foldAccents($text)) ?? '';
-        $words = preg_split('/\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
-        return collect($words)->unique();
+        return collect($this->words($this->foldAccents($text)))->unique();
     }
 
     public function answerKey(string $text): string
@@ -57,7 +54,7 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
 
     public function searchKey(string $text): string
     {
-        return implode(' ', $this->words(strtr($this->foldAccents($text), self::SEARCH_ONLY_FOLDS)));
+        return implode(' ', $this->words(strtr($this->foldAccents($text), self::SEARCH_ONLY_FOLDS), splitApostrophes: true));
     }
 
     /**
@@ -66,7 +63,7 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
      */
     public function sortKey(string $text): string
     {
-        $words = $this->words(Str::lower($text));
+        $words = $this->words(Str::lower($text), splitApostrophes: true);
 
         if (count($words) > 1 && in_array($words[0], $this->articles(), true)) {
             array_shift($words);
@@ -87,10 +84,31 @@ abstract class AccentFoldingTextNormalizer implements TextNormalizer
     }
 
     /**
-     * @return list<string>
+     * An apostrophe inside a word is part of it (l'italiano, j'ai), so a typed
+     * answer without it is not the same answer; search and sort keys split on it.
+     *
+     * @return list<non-empty-string>
      */
-    private function words(string $text): array
+    private function words(string $text, bool $splitApostrophes = false): array
     {
-        return preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $text = str_replace(["\u{2019}", "\u{2018}", "\u{02BC}", '`', "\u{00B4}"], "'", $text);
+
+        if ($splitApostrophes) {
+            return preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        }
+
+        $words = preg_split("/[^\p{L}\p{N}']+/u", $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $trimmed = [];
+
+        foreach ($words as $word) {
+            $word = trim($word, "'");
+
+            if ($word !== '') {
+                $trimmed[] = $word;
+            }
+        }
+
+        return $trimmed;
     }
 }
