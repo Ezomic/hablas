@@ -39,12 +39,16 @@ const checkLesson = computed(
 
 const skippedNote = computed(() => {
     const { listening, speaking } = props.overview.skipped;
-    const parts = [
-        listening ? `listening in ${listening}` : null,
-        speaking ? `speaking in ${speaking}` : null,
-    ].filter((part) => part !== null);
 
-    return parts.length ? `Skipped ${parts.join(' and ')} exercises.` : null;
+    if (listening && speaking) {
+        return t('unitLessons.skippedBoth', { listening, speaking });
+    }
+
+    if (listening) {
+        return t('unitLessons.skippedListening', { listening });
+    }
+
+    return speaking ? t('unitLessons.skippedSpeaking', { speaking }) : null;
 });
 
 function start(
@@ -72,11 +76,11 @@ function start(
 function label(row: UnitLessonRow): string {
     switch (row.state) {
         case 'in_progress':
-            return 'Continue';
+            return t('unitLessons.continue');
         case 'completed':
-            return 'Replay';
+            return t('unitLessons.replay');
         default:
-            return 'Start';
+            return t('unitLessons.start');
     }
 }
 
@@ -84,22 +88,24 @@ function status(row: UnitLessonRow): string {
     switch (row.state) {
         case 'locked':
             return row.stage === 'check'
-                ? 'Opens after the lessons before it'
-                : 'Finish the lesson before it first';
+                ? t('unitLessons.status.lockedCheck')
+                : t('unitLessons.status.locked');
         case 'opens_tomorrow':
-            return 'Opens tomorrow';
+            return t('unitLessons.status.opensTomorrow');
         case 'coming':
-            return 'Coming soon';
+            return t('unitLessons.status.coming');
         case 'remediation':
             return t('lesson.remediation.status');
         case 'in_progress':
-            return 'In progress';
+            return t('unitLessons.status.inProgress');
         case 'completed':
             return row.bestAccuracy === null
-                ? 'Done'
-                : `Done, best ${Math.round(row.bestAccuracy * 100)}% first time`;
+                ? t('unitLessons.status.done')
+                : t('unitLessons.status.doneBest', {
+                      percent: Math.round(row.bestAccuracy * 100),
+                  });
         default:
-            return 'Ready';
+            return t('unitLessons.status.ready');
     }
 }
 
@@ -120,20 +126,26 @@ function playable(row: UnitLessonRow): boolean {
 
         <Alert v-else-if="props.isHeldBack">
             <AlertDescription>
-                Clear your reviews first, then start this unit.
+                {{ t('unitLessons.heldBack') }}
             </AlertDescription>
         </Alert>
 
         <Card>
             <CardHeader class="gap-2">
-                <CardTitle class="text-base">Mastered</CardTitle>
+                <CardTitle class="text-base">{{
+                    t('unitLessons.mastered')
+                }}</CardTitle>
                 <p class="text-sm text-muted-foreground" data-testid="mastery">
-                    {{ props.overview.mastery.mastered }} of
-                    {{ props.overview.mastery.total }} mastered
+                    {{
+                        t('unitLessons.masteredCount', {
+                            mastered: props.overview.mastery.mastered,
+                            total: props.overview.mastery.total,
+                        })
+                    }}
                 </p>
                 <Progress
                     :model-value="masteryPercent"
-                    aria-label="Words mastered"
+                    :aria-label="t('unitLessons.wordsMastered')"
                 />
                 <p v-if="skippedNote" class="text-xs text-muted-foreground">
                     {{ skippedNote }}
@@ -187,9 +199,9 @@ function playable(row: UnitLessonRow): boolean {
                     <Spinner v-if="starting === row.lessonId" />
                     {{ label(row) }}
                 </Button>
-                <Badge v-else-if="row.state === 'coming'" variant="outline"
-                    >Soon</Badge
-                >
+                <Badge v-else-if="row.state === 'coming'" variant="outline">{{
+                    t('unitLessons.soon')
+                }}</Badge>
             </li>
         </ol>
 
@@ -209,8 +221,7 @@ function playable(row: UnitLessonRow): boolean {
             class="text-sm text-muted-foreground"
             data-testid="content-pending"
         >
-            Sentence and grammar lessons for this unit are coming. The unit
-            stays in progress until they are done and you have passed its check.
+            {{ t('unitLessons.contentPending') }}
         </p>
 
         <Button
@@ -219,7 +230,7 @@ function playable(row: UnitLessonRow): boolean {
             :disabled="starting !== null"
             @click="start(checkLesson, 'test_out')"
         >
-            Take the unit check now
+            {{ t('unitLessons.takeCheck') }}
         </Button>
     </section>
 </template>

@@ -14,9 +14,11 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { useOfflineSync } from '@/composables/useOfflineSync';
 import { useSpeech } from '@/composables/useSpeech';
 import { showMilestone } from '@/lib/milestone';
+import { index } from '@/routes/listening';
 import { store as storeAttempt } from '@/routes/listening/attempts';
 import type { SpeechClipUrls } from '@/types/speech';
 
@@ -39,13 +41,9 @@ const props = defineProps<{
     maxReplays: number;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Listening practice', href: '/listening' }],
-    },
-});
-
 const { t } = useI18n();
+
+useBreadcrumbs(() => [{ title: t('listening.title'), href: index() }]);
 const { submitOrQueue } = useOfflineSync();
 const { isSupported, isSpeaking, isLoading, speak, prefetch } = useSpeech(
     () => props.speechLocale,
@@ -120,7 +118,7 @@ async function submit() {
         }
 
         if (!result.response.ok) {
-            errorMessage.value = "Couldn't submit that. Try again.";
+            errorMessage.value = t('practice.submitFailed');
 
             return;
         }
@@ -135,10 +133,10 @@ async function submit() {
 </script>
 
 <template>
-    <Head title="Listening practice" />
+    <Head :title="t('listening.title')" />
 
     <div class="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-        <h1 class="text-2xl font-semibold">Listening practice</h1>
+        <h1 class="text-2xl font-semibold">{{ t('listening.title') }}</h1>
 
         <template v-if="props.exercise">
             <Card>
@@ -157,8 +155,7 @@ async function submit() {
                         v-if="!isSupported && !props.exercise.audioUrl"
                         class="text-sm text-muted-foreground"
                     >
-                        Your browser can't play this clip. Try Chrome on
-                        desktop.
+                        {{ t('listening.cantPlay') }}
                     </p>
 
                     <Button
@@ -177,16 +174,13 @@ async function submit() {
                             isLoading
                                 ? t('listening.loadingClip')
                                 : hasStarted
-                                  ? 'Play again'
-                                  : 'Play the clip'
+                                  ? t('listening.playAgain')
+                                  : t('listening.playClip')
                         }}
                     </Button>
 
                     <p class="text-sm text-muted-foreground">
-                        {{ replaysLeft }} replay{{
-                            replaysLeft === 1 ? '' : 's'
-                        }}
-                        left
+                        {{ t('listening.replaysLeft', replaysLeft) }}
                     </p>
                 </CardContent>
             </Card>
@@ -233,20 +227,19 @@ async function submit() {
                     type="submit"
                     :disabled="!allAnswered || isSubmitting"
                 >
-                    Check answers
+                    {{ t('practice.checkAnswers') }}
                 </Button>
             </form>
 
             <p v-else class="text-muted-foreground">
-                Play the clip to see the questions.
+                {{ t('listening.playToSee') }}
             </p>
 
             <p v-if="isQueued" class="text-sm text-muted-foreground">
-                You're offline, so this is saved and will be scored once you're
-                back online.
+                {{ t('practice.offlineQueued') }}
             </p>
             <p v-else-if="score !== null" class="text-lg font-medium">
-                You scored {{ score }}%.
+                {{ t('practice.scored', { score }) }}
             </p>
             <p
                 v-if="errorMessage"
@@ -257,7 +250,7 @@ async function submit() {
         </template>
 
         <p v-else class="text-muted-foreground">
-            No listening clips available at your level yet.
+            {{ t('listening.empty') }}
         </p>
     </div>
 </template>

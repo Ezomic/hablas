@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +13,10 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { useOfflineSync } from '@/composables/useOfflineSync';
 import { showMilestone } from '@/lib/milestone';
+import { index } from '@/routes/reading';
 import { store as storeAttempt } from '@/routes/reading/attempts';
 
 interface Question {
@@ -33,11 +36,9 @@ const props = defineProps<{
     passage: Passage | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Reading practice', href: '/reading' }],
-    },
-});
+const { t } = useI18n();
+
+useBreadcrumbs(() => [{ title: t('reading.title'), href: index() }]);
 
 const { submitOrQueue } = useOfflineSync();
 
@@ -74,7 +75,7 @@ async function submit() {
         }
 
         if (!result.response.ok) {
-            errorMessage.value = "Couldn't submit that. Try again.";
+            errorMessage.value = t('practice.submitFailed');
 
             return;
         }
@@ -89,10 +90,10 @@ async function submit() {
 </script>
 
 <template>
-    <Head title="Reading practice" />
+    <Head :title="t('reading.title')" />
 
     <div class="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-        <h1 class="text-2xl font-semibold">Reading practice</h1>
+        <h1 class="text-2xl font-semibold">{{ t('reading.title') }}</h1>
 
         <template v-if="props.passage">
             <Card>
@@ -151,16 +152,15 @@ async function submit() {
                     type="submit"
                     :disabled="!allAnswered || isSubmitting"
                 >
-                    Check answers
+                    {{ t('practice.checkAnswers') }}
                 </Button>
             </form>
 
             <p v-if="isQueued" class="text-sm text-muted-foreground">
-                You're offline, so this is saved and will be scored once you're
-                back online.
+                {{ t('practice.offlineQueued') }}
             </p>
             <p v-else-if="score !== null" class="text-lg font-medium">
-                You scored {{ score }}%.
+                {{ t('practice.scored', { score }) }}
             </p>
             <p
                 v-if="errorMessage"
@@ -171,7 +171,7 @@ async function submit() {
         </template>
 
         <p v-else class="text-muted-foreground">
-            No reading passages available at your level yet.
+            {{ t('reading.empty') }}
         </p>
     </div>
 </template>
