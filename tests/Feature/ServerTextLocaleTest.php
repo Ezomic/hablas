@@ -12,6 +12,7 @@ use App\Notifications\DailyDigestNotification;
 use App\Notifications\DueReviewsReminder;
 use App\Notifications\EmailCodeNotification;
 use Carbon\CarbonImmutable;
+use Database\Seeders\LanguageSeeder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -255,7 +256,7 @@ it('names the learned language in the learner locale and keeps English as stored
     ['en', 'Portuguese', 'Portuguese'],
     ['nl', 'Spanish', 'Spaans'],
     ['nl', 'Portuguese', 'Portugees'],
-    ['nl', 'French', 'French'],
+    ['nl', 'Klingon', 'Klingon'],
 ]);
 
 it('words the level milestone with the Dutch language name', function (): void {
@@ -287,3 +288,36 @@ it('words the Dutch digits and compromised password messages neutrally', functio
     expect($digits->errors()->first('code'))->toBe('Code moet tussen 4 en 6 cijfers bevatten.')
         ->and(__('validation.password.uncompromised', ['attribute' => 'wachtwoord']))->toBe('Wachtwoord is gevonden in een datalek. Kies een andere waarde.');
 });
+
+it('translates every seeded language name under nl', function (): void {
+    $this->seed(LanguageSeeder::class);
+    App::setLocale('nl');
+
+    $names = Language::query()->pluck('name');
+
+    expect($names)->not->toBeEmpty();
+
+    foreach ($names as $name) {
+        expect(Language::localize($name))->not->toBe($name, "{$name} needs a localize() arm and an nl.json key");
+    }
+});
+
+it('titles every lesson stage like its English label', function (LessonStage $stage): void {
+    App::setLocale('en');
+
+    expect($stage->title())->toBe($stage->label());
+})->with(LessonStage::cases());
+
+it('names the Dutch attribute of every wildcard field', function (array $data, string $rule, string $message): void {
+    App::setLocale('nl');
+
+    $validator = Validator::make($data, [$rule => 'required']);
+
+    expect($validator->errors()->first())->toBe($message);
+})->with([
+    'answers' => [['answers' => [null]], 'answers.*', 'Antwoord is verplicht.'],
+    'choices' => [['response' => ['choices' => [null]]], 'response.choices.*', 'Keuze is verplicht.'],
+    'can do' => [['can_do_ids' => [null]], 'can_do_ids.*', 'Kunnen-doen-uitspraak is verplicht.'],
+    'statements' => [['statement_ids' => [null]], 'statement_ids.*', 'Uitspraak is verplicht.'],
+    'interests' => [['interest_tags' => [null]], 'interest_tags.*', 'Interesse is verplicht.'],
+]);

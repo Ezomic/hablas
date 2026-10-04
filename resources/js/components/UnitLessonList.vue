@@ -45,10 +45,12 @@ const skippedNote = computed(() => {
     }
 
     if (listening) {
-        return t('unitLessons.skippedListening', { listening });
+        return t('unitLessons.skippedListening', { listening }, listening);
     }
 
-    return speaking ? t('unitLessons.skippedSpeaking', { speaking }) : null;
+    return speaking
+        ? t('unitLessons.skippedSpeaking', { speaking }, speaking)
+        : null;
 });
 
 function start(

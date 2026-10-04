@@ -64,6 +64,7 @@ export function answersInLearnedLanguage(format: string): boolean {
         'choose_word',
         'choose_gap',
         'speak_repeat',
+        'speak_answer',
     ].includes(format);
 }
 

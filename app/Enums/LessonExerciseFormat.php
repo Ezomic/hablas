@@ -61,6 +61,7 @@ enum LessonExerciseFormat: string
             self::ChooseWord,
             self::ChooseGap,
             self::SpeakRepeat,
+            self::SpeakAnswer,
         ], true);
     }
 
