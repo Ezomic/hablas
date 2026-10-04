@@ -56,9 +56,45 @@ final class LocaleCatalogs
      */
     public static function phpSourceFiles(): array
     {
+        return self::phpFilesIn([app_path(), base_path('routes')]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function serverTextFiles(): array
+    {
+        return self::phpFilesIn([
+            app_path('Notifications'),
+            app_path('Http/Requests'),
+            app_path('Http/Controllers'),
+            app_path('Actions'),
+        ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function rawTextPatterns(): array
+    {
+        return [
+            'a notification line' => '/->(?:subject|line|greeting|action|title|body)\(\s*[\'"]/',
+            'a validation message' => '/withMessages\(\s*\[[^\]]*=>\s*\[?\s*[\'"]/s',
+            'a refusal' => '/\brefuse\(\s*[\'"]/',
+            'a custom request message' => '/[\'"][\w*]+\.\w+[\'"]\s*=>\s*[\'"]/',
+            'a status or toast message' => '/->with\(\s*[\'"](?:status|error|success)[\'"]\s*,\s*[\'"]|[\'"]message[\'"]\s*=>\s*[\'"]/',
+        ];
+    }
+
+    /**
+     * @param  list<string>  $directories
+     * @return list<string>
+     */
+    private static function phpFilesIn(array $directories): array
+    {
         $files = [];
 
-        foreach ([app_path(), base_path('routes')] as $directory) {
+        foreach ($directories as $directory) {
             /** @var SplFileInfo $file */
             foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)) as $file) {
                 if ($file->getExtension() === 'php') {

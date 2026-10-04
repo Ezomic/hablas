@@ -31,6 +31,30 @@ it('returns a milestone payload when the blended level increases', function () {
     ]);
 });
 
+it('words the milestone in the app locale', function () {
+    config(['app.supported_locales' => ['en', 'nl']]);
+    app()->setLocale('nl');
+    $user = User::factory()->create();
+    $language = Language::factory()->create(['name' => 'Spanish']);
+    $skillLevel = UserSkillLevel::factory()->create([
+        'user_id' => $user->id,
+        'language_id' => $language->id,
+        'skill' => Skill::Writing,
+        'cefr_level' => CefrLevel::A1,
+    ]);
+
+    $milestone = (new NotifyOnBlendedLevelIncrease)->handle(
+        $user,
+        $language,
+        fn () => $skillLevel->forceFill(['cefr_level' => CefrLevel::A2])->save(),
+    );
+
+    expect($milestone)->toBe([
+        'type' => 'milestone',
+        'message' => 'Je hebt A2 bereikt in Spanish!',
+    ]);
+});
+
 it('returns a milestone payload when the user had no prior blended level', function () {
     $user = User::factory()->create();
     $language = Language::factory()->create(['name' => 'Spanish']);

@@ -31,11 +31,11 @@ final class FlagLessonAnswer
             $answer = LessonAnswer::query()->where('lesson_run_id', $run->id)->where('step', $step)->firstOrFail();
 
             if ($run->kind->isCheck()) {
-                throw ValidationException::withMessages(['lesson' => ['A check gives no feedback, so there is nothing to dispute.']]);
+                throw ValidationException::withMessages(['lesson' => [__('A check gives no feedback, so there is nothing to dispute.')]]);
             }
 
             if ($answer->is_correct !== false) {
-                throw ValidationException::withMessages(['lesson' => ['Only a wrong answer can be disputed.']]);
+                throw ValidationException::withMessages(['lesson' => [__('Only a wrong answer can be disputed.')]]);
             }
 
             if ($answer->flagged_at === null) {

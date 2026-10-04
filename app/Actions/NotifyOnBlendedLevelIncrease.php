@@ -47,7 +47,7 @@ final class NotifyOnBlendedLevelIncrease
 
         return [
             'type' => 'milestone',
-            'message' => "You've reached {$levelAfter->value} in {$language->name}!",
+            'message' => __("You've reached :level in :language!", ['level' => $levelAfter->value, 'language' => $language->name]),
         ];
     }
 

@@ -33,26 +33,26 @@ class EmailCodeNotification extends Notification
     {
         return (new MailMessage)
             ->subject($this->subject())
-            ->greeting("Hi {$notifiable->name},")
+            ->greeting(__('Hi :name,', ['name' => $notifiable->name]))
             ->line($this->intro())
-            ->line("Your code is: {$this->code}")
-            ->line("It expires in {$this->expiresInMinutes} minutes and can only be used once.")
-            ->line("If you didn't request this, you can safely ignore this email.");
+            ->line(__('Your code is: :code', ['code' => $this->code]))
+            ->line(__('It expires in :minutes minutes and can only be used once.', ['minutes' => $this->expiresInMinutes]))
+            ->line(__("If you didn't request this, you can safely ignore this email."));
     }
 
     private function subject(): string
     {
         return match ($this->purpose) {
-            EmailCodePurpose::Login => 'Your Hablas sign-in code',
-            EmailCodePurpose::Confirm => 'Confirm it\'s you on Hablas',
+            EmailCodePurpose::Login => __('Your Hablas sign-in code'),
+            EmailCodePurpose::Confirm => __("Confirm it's you on Hablas"),
         };
     }
 
     private function intro(): string
     {
         return match ($this->purpose) {
-            EmailCodePurpose::Login => 'Use this code to sign in to Hablas.',
-            EmailCodePurpose::Confirm => 'Use this code to confirm this action.',
+            EmailCodePurpose::Login => __('Use this code to sign in to Hablas.'),
+            EmailCodePurpose::Confirm => __('Use this code to confirm this action.'),
         };
     }
 }

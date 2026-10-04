@@ -53,14 +53,14 @@ final class RecordLessonAnswer
 
             if ($existing !== null) {
                 if ($existing->lesson_run_id !== $run->id) {
-                    throw ValidationException::withMessages(['step' => ['This step belongs to another run.']]);
+                    throw ValidationException::withMessages(['step' => [__('This step belongs to another run.')]]);
                 }
 
                 return $this->result($run, $existing, true, null);
             }
 
             if ($run->status === LessonRunStatus::Completed) {
-                throw ValidationException::withMessages(['run' => ['This lesson is already completed.']]);
+                throw ValidationException::withMessages(['run' => [__('This lesson is already completed.')]]);
             }
 
             $exercise = $this->exercise($run, $input['exercise_id']);
@@ -117,7 +117,7 @@ final class RecordLessonAnswer
         $planIds = $run->planExerciseIds();
 
         if ($exercise === null || (! in_array($exercise->id, $planIds, true) && ! in_array($exercise->substitute_for_id, $planIds, true))) {
-            throw ValidationException::withMessages(['exercise_id' => ['That exercise is not part of this lesson.']]);
+            throw ValidationException::withMessages(['exercise_id' => [__('That exercise is not part of this lesson.')]]);
         }
 
         return $exercise;
@@ -128,7 +128,7 @@ final class RecordLessonAnswer
         $hasSubstitute = LessonExercise::query()->where('substitute_for_id', $exercise->id)->whereNull('retired_at')->exists();
 
         if (! $exercise->format->isSkippable() || ! $hasSubstitute) {
-            throw ValidationException::withMessages(['lesson' => ['This exercise cannot be skipped.']]);
+            throw ValidationException::withMessages(['lesson' => [__('This exercise cannot be skipped.')]]);
         }
     }
 

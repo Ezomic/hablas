@@ -11,7 +11,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\Middleware\RateLimited;
-use Illuminate\Support\Str;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
 
@@ -67,41 +66,41 @@ class DailyDigestNotification extends Notification implements ShouldQueue
     public function toMail(User $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject("Your {$this->languageName} learning digest")
-            ->greeting("Hi {$notifiable->name},");
+            ->subject(__('Your :language learning digest', ['language' => $this->languageName]))
+            ->greeting(__('Hi :name,', ['name' => $notifiable->name]));
 
         if ($this->dueReviewCount > 0) {
-            $message->line("You have {$this->dueReviewPhrase()} due.");
+            $message->line(__('You have :reviews due.', ['reviews' => $this->dueReviewPhrase()]));
         }
 
-        $message->line("Current streak: {$this->streakPhrase()}.");
+        $message->line(__('Current streak: :streak.', ['streak' => $this->streakPhrase()]));
 
         if ($this->hasUnsubmittedWeeklyReflection) {
-            $message->line("You haven't submitted this week's reflection yet.");
+            $message->line(__("You haven't submitted this week's reflection yet."));
         }
 
-        return $message->action('Open Hablas', url('/dashboard'));
+        return $message->action(__('Open Hablas'), url('/dashboard'));
     }
 
     public function toWebPush(User $notifiable): WebPushMessage
     {
         $body = $this->dueReviewCount > 0
-            ? "{$this->dueReviewPhrase()} due · {$this->streakPhrase()} streak"
-            : "{$this->streakPhrase()} streak";
+            ? __(':reviews due · :streak streak', ['reviews' => $this->dueReviewPhrase(), 'streak' => $this->streakPhrase()])
+            : __(':streak streak', ['streak' => $this->streakPhrase()]);
 
         return (new WebPushMessage)
-            ->title("Your {$this->languageName} learning digest")
+            ->title(__('Your :language learning digest', ['language' => $this->languageName]))
             ->body($body)
             ->data(['url' => '/dashboard']);
     }
 
     private function dueReviewPhrase(): string
     {
-        return "{$this->dueReviewCount} review ".Str::plural('card', $this->dueReviewCount);
+        return trans_choice(':count review card|:count review cards', $this->dueReviewCount);
     }
 
     private function streakPhrase(): string
     {
-        return "{$this->streakCurrentLength} ".Str::plural('day', $this->streakCurrentLength);
+        return trans_choice(':count day|:count days', $this->streakCurrentLength);
     }
 }

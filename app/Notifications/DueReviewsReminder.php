@@ -37,8 +37,8 @@ class DueReviewsReminder extends Notification implements ShouldQueue
     public function toWebPush(User $notifiable): WebPushMessage
     {
         return (new WebPushMessage)
-            ->title('Reviews are due')
-            ->body("{$this->dueRepetitionCount} {$this->languageName} cards are ready to review")
+            ->title(__('Reviews are due'))
+            ->body(trans_choice(':count :language cards are ready to review', $this->dueRepetitionCount, ['language' => $this->languageName]))
             ->data(['url' => route('review.index', absolute: false)])
             ->options(['TTL' => self::TTL_SECONDS]);
     }

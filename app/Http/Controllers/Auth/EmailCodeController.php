@@ -32,7 +32,7 @@ final class EmailCodeController extends Controller
             $sendEmailCode->handle($user, EmailCodePurpose::Login);
         }
 
-        return back()->with('status', 'If that email has an account, we\'ve sent it a sign-in code.');
+        return back()->with('status', __("If that email has an account, we've sent it a sign-in code."));
     }
 
     /**
@@ -46,6 +46,6 @@ final class EmailCodeController extends Controller
 
         $sendEmailCode->handle($user, EmailCodePurpose::Confirm);
 
-        return back()->with('status', 'We\'ve sent a confirmation code to your email.');
+        return back()->with('status', __("We've sent a confirmation code to your email."));
     }
 }
