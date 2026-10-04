@@ -69,13 +69,19 @@
         "lint:check": [
             "pint --parallel --test"
         ],
-        "ci:check": [
+        "ci:static": [
             "Composer\\Config::disableProcessTimeout",
             "npm run lint:check",
             "npm run format:check",
             "npm run types:check",
             "npm run test",
-            "@test"
+            "@lint:check",
+            "@types:check"
+        ],
+        "ci:check": [
+            "@ci:static",
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
@@ -88,7 +94,7 @@
         ],
         "test:coverage": [
             "@php artisan config:clear --ansi",
-            "@php artisan test --coverage --min=93"
+            "@php -d memory_limit=-1 artisan test --parallel --coverage --min=93"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
