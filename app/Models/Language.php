@@ -29,6 +29,8 @@ class Language extends Model
         return match ($name) {
             'Spanish' => __('Spanish'),
             'Portuguese' => __('Portuguese'),
+            'French' => __('French'),
+            'Italian' => __('Italian'),
             default => $name,
         };
     }

@@ -9,7 +9,9 @@ it('never generates the reserved es or pt codes seeded by LanguageSeeder', funct
     $codes = Language::factory()->count(50)->make()->pluck('code');
 
     expect($codes)->not->toContain('es')
-        ->and($codes)->not->toContain('pt');
+        ->and($codes)->not->toContain('pt')
+        ->and($codes)->not->toContain('fr')
+        ->and($codes)->not->toContain('it');
 });
 
 it('does not collide with LanguageSeeder rows when factory-creating alongside it', function () {
@@ -17,8 +19,8 @@ it('does not collide with LanguageSeeder rows when factory-creating alongside it
 
     Language::factory()->count(50)->create();
 
-    expect(Language::query()->count())->toBe(52)
-        ->and(Language::query()->distinct('code')->count('code'))->toBe(52);
+    expect(Language::query()->count())->toBe(54)
+        ->and(Language::query()->distinct('code')->count('code'))->toBe(54);
 });
 
 it('generates unique codes well past the ~184 real ISO codes without exhausting a pool', function () {

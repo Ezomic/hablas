@@ -74,6 +74,10 @@ final class RenderLessonReviewSheet
     /** @return list<string> */
     private function checklist(string $language): array
     {
+        if ($language === 'fr' || $language === 'it') {
+            return $this->romanceChecklist($language);
+        }
+
         if ($language === 'pt') {
             return [
                 '',
@@ -103,6 +107,32 @@ final class RenderLessonReviewSheet
             '- Distractors: no wrong option or tile is also a correct answer.',
             '- Gender and article: every noun has the right article, and the common-gender noun accepts both.',
             '- Spain, not Latin America: no Latin American word or form.',
+            '- Contrast items: each one has exactly one right answer, and its why-note is true.',
+            '- Dictations: no word that can be heard two ways without a context that settles it.',
+            '- Keyword slots and required words: every right spoken or written answer is covered.',
+            '',
+        ];
+    }
+
+    /** @return list<string> */
+    private function romanceChecklist(string $language): array
+    {
+        $name = $language === 'fr' ? 'French' : 'Italian';
+        $country = $language === 'fr' ? 'France' : 'Italy';
+        $specific = $language === 'fr'
+            ? '- Elision and liaison: l\', j\', d\' before a vowel, and the accents (é, è, à, où) are right and the accent-sensitive pairs (a/à, ou/où, la/là) are not accepted for each other.'
+            : '- Doubles and accents: double consonants (pizza, anno) and the accents (è/e, dà/da, sì/si) are right and the accent-sensitive pairs are not accepted for each other.';
+
+        return [
+            '',
+            '## Checklist for the reviewer',
+            '',
+            "- Grammar: every {$name} sentence is correct, and natural in {$country}.",
+            '- Level: A1, present tense, only the unit words, the core words and the glossed words.',
+            '- Accepted answers: nothing right is missing (dropped subject where natural, free word order, formal and informal you, synonyms) and nothing wrong is accepted.',
+            '- Distractors: no wrong option or tile is also a correct answer.',
+            '- Gender and article: every noun has the right article, and the common-gender noun accepts both.',
+            $specific,
             '- Contrast items: each one has exactly one right answer, and its why-note is true.',
             '- Dictations: no word that can be heard two ways without a context that settles it.',
             '- Keyword slots and required words: every right spoken or written answer is covered.',

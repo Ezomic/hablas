@@ -109,6 +109,8 @@ describe('the instruction and hint text', () => {
     it('names the language and each instruction in English', () => {
         expect(languageName('es-ES')).toBe('Spanish');
         expect(languageName('pt-PT')).toBe('Portuguese');
+        expect(languageName('fr-FR')).toBe('French');
+        expect(languageName('it-IT')).toBe('Italian');
         expect(languageName(null)).toBe('Spanish');
         expect(instructionFor('choose_meaning', 'Spanish')).toBe(
             'Choose the meaning',

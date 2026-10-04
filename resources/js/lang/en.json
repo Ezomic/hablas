@@ -482,7 +482,9 @@
         "accentKeys": "Accent keys",
         "language": {
             "es": "Spanish",
-            "pt": "Portuguese"
+            "pt": "Portuguese",
+            "fr": "French",
+            "it": "Italian"
         },
         "note": {
             "accent": "Watch the accent: {expected}",
