@@ -164,6 +164,10 @@ export default defineConfigWithVueTs(
                             'aria-placeholder',
                             'placeholder',
                             'alt',
+                            'description',
+                            'label',
+                            'empty-message',
+                            'aria-description',
                         ],
                     },
                     ignoreText: [

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Heading from '@/components/Heading.vue';
 import ProgressSnapshotSummary from '@/components/ProgressSnapshotSummary.vue';
@@ -8,6 +8,7 @@ import type { ProgressSnapshot } from '@/components/ProgressSnapshotSummary.vue'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
+import { i18n } from '@/i18n';
 import {
     progressCardFileName,
     progressCardText,
@@ -49,7 +50,7 @@ const imageDescription = computed(() =>
 
 // Drawn on page load rather than on click: Safari only opens the share sheet
 // while the tap that asked for it is still fresh.
-onMounted(async () => {
+async function drawImage() {
     if (!props.snapshot) {
         return;
     }
@@ -60,6 +61,10 @@ onMounted(async () => {
             type: 'image/png',
         });
         const text = progressCardText(props.snapshot);
+
+        if (image.value) {
+            URL.revokeObjectURL(image.value.url);
+        }
 
         image.value = {
             file,
@@ -72,7 +77,11 @@ onMounted(async () => {
     } catch {
         imageError.value = 'create';
     }
-});
+}
+
+onMounted(drawImage);
+
+watch(() => i18n.global.locale.value, drawImage);
 
 onBeforeUnmount(() => {
     if (image.value) {

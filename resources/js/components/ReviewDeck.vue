@@ -443,19 +443,20 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                 </Button>
             </div>
 
-            <div v-else class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div v-else class="grid grid-cols-4 gap-2">
                 <Button
                     v-for="(rating, index) in ratings"
                     :key="rating"
                     :variant="
                         rating === suggestedRating ? 'default' : 'outline'
                     "
+                    class="min-w-0 px-2"
                     :disabled="isSubmitting"
                     @click="rate(rating)"
                 >
                     {{ t(`review.rating.${rating}`) }}
                     <kbd
-                        class="ml-1 rounded border px-1 text-xs font-normal opacity-70"
+                        class="ml-1 hidden rounded border px-1 text-xs font-normal opacity-70 sm:inline"
                         >{{ rating === suggestedRating ? '↵' : index + 1 }}</kbd
                     >
                 </Button>
@@ -485,7 +486,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                 {{ t(`review.deck.reviewed.${props.countNoun}`, reviewed) }}
             </p>
 
-            <div class="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+            <div class="grid grid-cols-4 gap-2 text-center">
                 <div
                     v-for="rating in ratings"
                     :key="rating"

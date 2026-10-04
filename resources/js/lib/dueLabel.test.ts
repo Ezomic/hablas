@@ -37,6 +37,6 @@ describe('due label', () => {
 
         expect(dueLabel(inTwoDays, now)).toBe('Over 2 dagen aan de beurt');
         expect(dueLabel(at(30, 9), now)).toBe('Vandaag aan de beurt');
-        expect(dueLabel(at(1, 9), now)).toBe('Te laat');
+        expect(dueLabel(at(1, 9), now)).toBe('Achterstallig');
     });
 });

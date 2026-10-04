@@ -150,7 +150,7 @@
             },
             "reviewStyle": "Herhaalstijl",
             "mode": {
-                "recognition": "Herkennen: lezen, dan onthullen",
+                "recognition": "Herkennen: lezen, dan tonen",
                 "production": "Produceren: typ het woord",
                 "mix": "Mix"
             },
@@ -442,7 +442,7 @@
         },
         "breakdown": "Niveau per vaardigheid",
         "viewPlacement": "Bekijk plaatsingsresultaten",
-        "retake": "Doe {skill} opnieuw",
+        "retake": "{skill} opnieuw doen",
         "retakeAvailable": "Beschikbaar op {date}",
         "portuguese": {
             "label": "Nieuwe taal ontgrendeld",
@@ -453,7 +453,7 @@
         "nextUp": "Hierna",
         "reinforce": {
             "title": "Versterk eerst wat lastig is",
-            "body": "Je laatste herhalingen bevatten veel fouten. Herhaal die eerst voordat je iets nieuws begint."
+            "body": "Recente herhalingen bevatten veel fouten. Herhaal die eerst voordat je iets nieuws begint."
         },
         "continue": "Verder",
         "inProgress": "Bezig",
@@ -490,7 +490,7 @@
         "intro": "Elke eenheid voor {language} per niveau. Voltooide eenheden blijven open als naslag.",
         "reinforce": {
             "title": "Versterk eerst wat lastig is",
-            "body": "Je laatste herhalingen bevatten veel fouten, dus nieuwe eenheden wachten tot je die hebt herhaald."
+            "body": "Recente herhalingen bevatten veel fouten, dus nieuwe eenheden wachten tot je die hebt herhaald."
         },
         "filters": {
             "skill": "Vaardigheid",
@@ -511,7 +511,7 @@
         "notes": {
             "lesson": "Les {current} van {count}",
             "locked": "Wordt ontgrendeld zodra je totaalniveau {level} bereikt.",
-            "heldBack": "Gaat open zodra je laatste herhalingen weer goed gaan."
+            "heldBack": "Gaat open zodra je recente herhalingen weer goed gaan."
         },
         "watchOut": "Let op",
         "wordsAndGrammar": "Woorden en grammatica in deze eenheid",
@@ -547,7 +547,7 @@
     },
     "review": {
         "due": {
-            "overdue": "Te laat",
+            "overdue": "Achterstallig",
             "today": "Vandaag aan de beurt",
             "tomorrow": "Morgen aan de beurt",
             "inDays": "Over {count} dag aan de beurt | Over {count} dagen aan de beurt"
