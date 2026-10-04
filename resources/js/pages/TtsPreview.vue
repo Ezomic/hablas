@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Download } from '@lucide/vue';
 import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -49,6 +51,7 @@ const languageNames: Record<string, string> = {
     pt: 'Portuguese (pt-PT)',
     fr: 'French',
     it: 'Italian',
+    nl: 'Dutch',
 };
 
 const groups = computed<LanguageGroup[]>(() =>
@@ -152,6 +155,17 @@ const src = (sample: TtsSample) => `/tts-preview/${sample.file}`;
                                     class="w-full"
                                     :src="src(voice.normal)"
                                 />
+                                <Button
+                                    as="a"
+                                    variant="outline"
+                                    size="sm"
+                                    :href="src(voice.normal)"
+                                    :download="voice.normal.file"
+                                    :aria-label="`Download ${voice.label} normal`"
+                                >
+                                    <Download />
+                                    Download
+                                </Button>
                             </div>
                             <div
                                 v-if="voice.slow"
@@ -166,6 +180,17 @@ const src = (sample: TtsSample) => `/tts-preview/${sample.file}`;
                                     class="w-full"
                                     :src="src(voice.slow)"
                                 />
+                                <Button
+                                    as="a"
+                                    variant="outline"
+                                    size="sm"
+                                    :href="src(voice.slow)"
+                                    :download="voice.slow.file"
+                                    :aria-label="`Download ${voice.label} slow`"
+                                >
+                                    <Download />
+                                    Download
+                                </Button>
                             </div>
                         </div>
                     </div>

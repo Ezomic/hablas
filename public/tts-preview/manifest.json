@@ -2590,5 +2590,101 @@
   "duration": 0.7,
   "bytes": 6336,
   "licence": "Kokoro 82M: Apache-2.0 (European Portuguese via espeak pt phonemes)"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "F1",
+  "speed": "normal",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-F1-normal.mp3",
+  "duration": 1.02,
+  "bytes": 11291,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "F1",
+  "speed": "slow",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-F1-slow.mp3",
+  "duration": 1.02,
+  "bytes": 11237,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "F2",
+  "speed": "normal",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-F2-normal.mp3",
+  "duration": 1.18,
+  "bytes": 13323,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "F2",
+  "speed": "slow",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-F2-slow.mp3",
+  "duration": 0.99,
+  "bytes": 11994,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "M1",
+  "speed": "normal",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-M1-normal.mp3",
+  "duration": 0.91,
+  "bytes": 12047,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "M1",
+  "speed": "slow",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-M1-slow.mp3",
+  "duration": 1.02,
+  "bytes": 12672,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "M2",
+  "speed": "normal",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-M2-normal.mp3",
+  "duration": 0.81,
+  "bytes": 10819,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
+ },
+ {
+  "language": "nl",
+  "engine": "supertonic",
+  "voice": "M2",
+  "speed": "slow",
+  "kind": "sentence",
+  "text": "Volgende halte",
+  "file": "volgende-halte-M2-slow.mp3",
+  "duration": 0.94,
+  "bytes": 12201,
+  "licence": "Supertonic 3 model: OpenRAIL-M (BigScience Open RAIL-M); sample code MIT"
  }
 ]

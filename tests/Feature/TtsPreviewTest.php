@@ -38,3 +38,12 @@ it('ships a sample file for every manifest entry', function () {
         expect(public_path('tts-preview/'.$sample['file']))->toBeFile();
     }
 });
+
+it('ships the Dutch samples for every voice at both speeds', function () {
+    $samples = collect(json_decode((string) file_get_contents(public_path('tts-preview/manifest.json')), true, flags: JSON_THROW_ON_ERROR))
+        ->where('language', 'nl');
+
+    expect($samples->pluck('voice')->unique()->sort()->values()->all())->toBe(['F1', 'F2', 'M1', 'M2'])
+        ->and($samples->pluck('speed')->unique()->sort()->values()->all())->toBe(['normal', 'slow'])
+        ->and($samples)->toHaveCount(8);
+});
