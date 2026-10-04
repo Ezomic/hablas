@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/routes/reflections';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
+import { skillKeys, skillLabel } from '@/lib/skillLabels';
+import { index, store } from '@/routes/reflections';
 
 interface Statement {
     id: number;
@@ -18,18 +21,9 @@ const props = defineProps<{
     submittedThisWeek: boolean;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Weekly reflection', href: '/reflections' }],
-    },
-});
+const { t } = useI18n();
 
-const skillLabels: Record<string, string> = {
-    reading: 'Reading',
-    listening: 'Listening',
-    speaking: 'Speaking',
-    writing: 'Writing',
-};
+useBreadcrumbs(() => [{ title: t('nav.weeklyReflection'), href: index() }]);
 
 const form = useForm<{ statement_ids: number[]; can_do_ids: number[] }>({
     statement_ids: props.statements.map((statement) => statement.id),
@@ -50,28 +44,29 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Weekly reflection" />
+    <Head :title="t('nav.weeklyReflection')" />
 
     <div class="mx-auto flex max-w-2xl flex-col gap-8 p-4">
         <div>
-            <h1 class="text-2xl font-semibold">Weekly reflection</h1>
+            <h1 class="text-2xl font-semibold">
+                {{ t('nav.weeklyReflection') }}
+            </h1>
             <p class="mt-1 text-muted-foreground">
-                Check off what you feel confident doing this week.
+                {{ t('reflections.intro') }}
             </p>
         </div>
 
         <p v-if="props.submittedThisWeek" class="text-muted-foreground">
-            You've already completed this week's reflection. Come back next week
-            for a new one.
+            {{ t('reflections.done') }}
         </p>
 
         <form v-else class="flex flex-col gap-8" @submit.prevent="submit">
             <div
-                v-for="skill in Object.keys(skillLabels)"
+                v-for="skill in skillKeys"
                 :key="skill"
                 class="flex flex-col gap-3"
             >
-                <h2 class="text-lg font-medium">{{ skillLabels[skill] }}</h2>
+                <h2 class="text-lg font-medium">{{ skillLabel(skill) }}</h2>
 
                 <Card
                     v-for="statement in props.statements.filter(
@@ -99,7 +94,7 @@ function submit() {
 
             <Button type="submit" :disabled="form.processing">
                 <Spinner v-if="form.processing" />
-                Submit reflection
+                {{ t('reflections.submit') }}
             </Button>
         </form>
     </div>

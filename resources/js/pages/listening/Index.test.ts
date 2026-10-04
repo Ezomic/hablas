@@ -1,14 +1,20 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { i18n, setLocale } from '@/i18n';
 import { FakeAudio } from '@/test/fakeAudio';
 import Index from './Index.vue';
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
 }));
 
 vi.mock('@/composables/useOfflineSync', () => ({
     useOfflineSync: () => ({ submitOrQueue: vi.fn() }),
+}));
+
+vi.mock('@/routes/listening', () => ({
+    index: () => ({ url: '/listening', method: 'get' }),
 }));
 
 vi.mock('@/routes/listening/attempts', () => ({
@@ -162,5 +168,38 @@ describe('listening page replays', () => {
         expect(utterances).toHaveLength(0);
         expect(wrapper.find('form').exists()).toBe(false);
         expect(wrapper.get('button').text()).toContain('Play the clip');
+    });
+});
+
+describe('listening page in Dutch', () => {
+    it('uses the catalog for the button, the replay count and the empty state', async () => {
+        setLocale('nl');
+
+        const wrapper = mountPage();
+
+        expect(wrapper.get('button').text()).toContain(
+            i18n.global.t('listening.playClip'),
+        );
+        expect(wrapper.text()).toContain(
+            i18n.global.t('listening.replaysLeft', 2),
+        );
+
+        await press(wrapper);
+        FakeAudio.last().onplaying?.();
+        await flushPromises();
+
+        expect(wrapper.text()).toContain('Who?');
+        expect(wrapper.get('button').text()).toContain(
+            i18n.global.t('listening.playAgain'),
+        );
+        expect(mountPage({ exercise: null }).text()).toContain(
+            i18n.global.t('listening.empty'),
+        );
+    });
+
+    it('says the clip needs a replay before the questions show', () => {
+        expect(mountPage().text()).toContain(
+            'Play the clip to see the questions.',
+        );
     });
 });

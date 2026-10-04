@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { Check, Copy, ScanLine } from '@lucide/vue';
 import { useClipboard } from '@vueuse/core';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AlertError from '@/components/AlertError.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ type Props = {
     twoFactorEnabled: boolean;
 };
 
+const { t } = useI18n();
 const { resolvedAppearance } = useAppearance();
 
 const props = defineProps<Props>();
@@ -46,26 +48,24 @@ const pinInputContainerRef = useTemplateRef('pinInputContainerRef');
 const modalConfig = computed<TwoFactorConfigContent>(() => {
     if (props.twoFactorEnabled) {
         return {
-            title: 'Two-factor authentication enabled',
-            description:
-                'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
-            buttonText: 'Close',
+            title: t('twoFactorSetup.enabledTitle'),
+            description: t('twoFactorSetup.enabledDescription'),
+            buttonText: t('common.close'),
         };
     }
 
     if (showVerificationStep.value) {
         return {
-            title: 'Verify authentication code',
-            description: 'Enter the 6-digit code from your authenticator app',
-            buttonText: 'Continue',
+            title: t('twoFactorSetup.verifyTitle'),
+            description: t('twoFactorSetup.verifyDescription'),
+            buttonText: t('common.continue'),
         };
     }
 
     return {
-        title: 'Enable two-factor authentication',
-        description:
-            'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-        buttonText: 'Continue',
+        title: t('twoFactorSetup.enableTitle'),
+        description: t('twoFactorSetup.enableDescription'),
+        buttonText: t('common.continue'),
     };
 });
 
@@ -196,9 +196,9 @@ watch(
                             <div
                                 class="absolute inset-0 top-1/2 h-px w-full bg-border"
                             />
-                            <span class="relative bg-card px-2 py-1"
-                                >or, enter the code manually</span
-                            >
+                            <span class="relative bg-card px-2 py-1">{{
+                                t('twoFactorSetup.manualEntry')
+                            }}</span>
                         </div>
 
                         <div
@@ -279,14 +279,14 @@ watch(
                                     @click="showVerificationStep = false"
                                     :disabled="processing"
                                 >
-                                    Back
+                                    {{ t('twoFactorSetup.back') }}
                                 </Button>
                                 <Button
                                     type="submit"
                                     class="w-auto flex-1"
                                     :disabled="processing || code.length < 6"
                                 >
-                                    Confirm
+                                    {{ t('twoFactorSetup.confirm') }}
                                 </Button>
                             </div>
                         </div>

@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { i18n } from '@/i18n';
 import { fetchJson } from '@/lib/http';
 import { destroy, store } from '@/routes/push-subscriptions';
 
@@ -32,6 +33,7 @@ function toSubscriptionPayload(subscription: PushSubscription) {
  * `push`/`notificationclick` events this activates.
  */
 export function useWebPush(vapidPublicKey: string) {
+    const { t } = i18n.global;
     const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
     const isSubscribing = ref(false);
     const error = ref<string | null>(null);
@@ -40,8 +42,7 @@ export function useWebPush(vapidPublicKey: string) {
         error.value = null;
 
         if (!isSupported) {
-            error.value =
-                'Push notifications are not supported in this browser.';
+            error.value = t('push.unsupported');
 
             return false;
         }
@@ -52,7 +53,7 @@ export function useWebPush(vapidPublicKey: string) {
             const permission = await Notification.requestPermission();
 
             if (permission !== 'granted') {
-                error.value = 'Notification permission was not granted.';
+                error.value = t('push.permissionDenied');
 
                 return false;
             }
@@ -74,7 +75,7 @@ export function useWebPush(vapidPublicKey: string) {
                 // it in place with no server-side record would orphan it, so
                 // roll it back rather than silently drifting out of sync.
                 await subscription.unsubscribe();
-                error.value = 'Failed to save the push subscription.';
+                error.value = t('push.saveFailed');
 
                 return false;
             }
@@ -85,7 +86,7 @@ export function useWebPush(vapidPublicKey: string) {
                 'Failed to subscribe to push notifications:',
                 caughtError,
             );
-            error.value = 'Failed to subscribe to push notifications.';
+            error.value = t('push.subscribeFailed');
 
             return false;
         } finally {
@@ -118,7 +119,7 @@ export function useWebPush(vapidPublicKey: string) {
                 );
 
                 if (!response.ok) {
-                    error.value = 'Failed to remove the push subscription.';
+                    error.value = t('push.removeFailed');
 
                     return false;
                 }
@@ -130,7 +131,7 @@ export function useWebPush(vapidPublicKey: string) {
                 'Failed to unsubscribe from push notifications:',
                 caughtError,
             );
-            error.value = 'Failed to unsubscribe from push notifications.';
+            error.value = t('push.unsubscribeFailed');
 
             return false;
         } finally {

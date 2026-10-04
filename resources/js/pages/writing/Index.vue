@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { useOfflineSync } from '@/composables/useOfflineSync';
 import { showMilestone } from '@/lib/milestone';
+import { index } from '@/routes/writing';
 import { store as storeAttempt } from '@/routes/writing/attempts';
 
 interface Exercise {
@@ -20,11 +23,12 @@ const props = defineProps<{
     exercise: Exercise | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Writing practice', href: '/writing' }],
-    },
-});
+const { t } = useI18n();
+
+useBreadcrumbs(() => [{ title: t('writing.title'), href: index() }]);
+
+const answerPlaceholder = 'Escribe tu respuesta...';
+const correctCheer = '¡Correcto!';
 
 const { submitOrQueue } = useOfflineSync();
 
@@ -73,10 +77,10 @@ async function submit() {
 </script>
 
 <template>
-    <Head title="Writing practice" />
+    <Head :title="t('writing.title')" />
 
     <div class="mx-auto flex max-w-xl flex-col gap-6 p-4">
-        <h1 class="text-2xl font-semibold">Writing practice</h1>
+        <h1 class="text-2xl font-semibold">{{ t('writing.title') }}</h1>
 
         <Card v-if="props.exercise">
             <CardHeader>
@@ -94,45 +98,44 @@ async function submit() {
                     v-if="props.exercise.type === 'guided_paragraph'"
                     v-model="response"
                     rows="5"
-                    placeholder="Escribe tu respuesta..."
+                    :placeholder="answerPlaceholder"
                 />
                 <Input
                     v-else
                     v-model="response"
-                    placeholder="Escribe tu respuesta..."
+                    :placeholder="answerPlaceholder"
                 />
 
                 <Button :disabled="isSubmitting || !response" @click="submit">
-                    Submit
+                    {{ t('writing.submit') }}
                 </Button>
 
                 <p v-if="isQueued" class="text-sm text-muted-foreground">
-                    You're offline — this answer is saved and will be graded
-                    once you're back online.
+                    {{ t('practice.offlineAnswer') }}
                 </p>
                 <p
                     v-else-if="isCorrect === true"
                     class="text-lg font-medium text-green-600 dark:text-green-500"
                 >
-                    ¡Correcto!
+                    {{ correctCheer }}
                 </p>
                 <p
                     v-else-if="isCorrect === false"
                     class="text-lg font-medium text-red-600 dark:text-red-500"
                 >
-                    Not quite — try again.
+                    {{ t('writing.notQuite') }}
                 </p>
                 <p
                     v-if="submitFailed"
                     class="text-sm font-medium text-red-600 dark:text-red-500"
                 >
-                    Couldn't submit that answer — try again.
+                    {{ t('writing.answerFailed') }}
                 </p>
             </CardContent>
         </Card>
 
         <p v-else class="text-muted-foreground">
-            No writing exercises available yet.
+            {{ t('writing.empty') }}
         </p>
     </div>
 </template>

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { useOfflineSync } from '@/composables/useOfflineSync';
 import { showMilestone } from '@/lib/milestone';
+import { index } from '@/routes/shadowing';
 import { store as storeAttempt } from '@/routes/shadowing/attempts';
 
 interface Exercise {
@@ -20,11 +23,9 @@ const props = defineProps<{
     speechLocale: string | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Shadowing practice', href: '/shadowing' }],
-    },
-});
+const { t } = useI18n();
+
+useBreadcrumbs(() => [{ title: t('shadowing.title'), href: index() }]);
 
 const { submitOrQueue } = useOfflineSync();
 
@@ -71,7 +72,7 @@ function startRecording() {
 
     recognition.onerror = () => {
         isRecording.value = false;
-        errorMessage.value = "We couldn't hear that clearly. Try again.";
+        errorMessage.value = t('practice.notHeard');
     };
 
     recognition.onend = () => {
@@ -98,7 +99,7 @@ async function submitAttempt() {
     }
 
     if (!result.response.ok) {
-        errorMessage.value = "Couldn't submit that attempt. Try again.";
+        errorMessage.value = t('practice.attemptFailed');
 
         return;
     }
@@ -110,10 +111,10 @@ async function submitAttempt() {
 </script>
 
 <template>
-    <Head title="Shadowing practice" />
+    <Head :title="t('shadowing.title')" />
 
     <div class="mx-auto flex max-w-xl flex-col gap-6 p-4">
-        <h1 class="text-2xl font-semibold">Shadowing practice</h1>
+        <h1 class="text-2xl font-semibold">{{ t('shadowing.title') }}</h1>
 
         <Card v-if="props.exercise">
             <CardHeader>
@@ -125,26 +126,28 @@ async function submitAttempt() {
                     :locale="props.speechLocale"
                     :audio-url="props.exercise.audioUrl"
                     :audio-slow-url="props.exercise.audioSlowUrl"
-                    label="Hear it first"
+                    :label="t('shadowing.hearFirst')"
                 />
 
                 <p v-if="!isSupported" class="text-sm text-muted-foreground">
-                    Your browser doesn't support speech recognition. Try Chrome
-                    on desktop.
+                    {{ t('practice.noSpeechRecognition') }}
                 </p>
                 <Button v-else :disabled="isRecording" @click="startRecording">
-                    {{ isRecording ? 'Listening…' : 'Repeat this phrase' }}
+                    {{
+                        isRecording
+                            ? t('practice.listening')
+                            : t('shadowing.repeat')
+                    }}
                 </Button>
 
                 <p v-if="transcriptGuess" class="text-sm text-muted-foreground">
-                    You said: "{{ transcriptGuess }}"
+                    {{ t('practice.youSaid', { text: transcriptGuess }) }}
                 </p>
                 <p v-if="isQueued" class="text-sm text-muted-foreground">
-                    You're offline — this attempt is saved and will be scored
-                    once you're back online.
+                    {{ t('practice.offlineAttempt') }}
                 </p>
                 <p v-else-if="score !== null" class="text-lg font-medium">
-                    Match score: {{ score }}%
+                    {{ t('shadowing.score', { score }) }}
                 </p>
                 <p
                     v-if="errorMessage"
@@ -156,7 +159,7 @@ async function submitAttempt() {
         </Card>
 
         <p v-else class="text-muted-foreground">
-            No shadowing exercises available yet.
+            {{ t('shadowing.empty') }}
         </p>
     </div>
 </template>

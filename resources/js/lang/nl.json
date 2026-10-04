@@ -310,7 +310,14 @@
         "loadingAudio": "Audio laden"
     },
     "listening": {
-        "loadingClip": "Fragment laden…"
+        "loadingClip": "Fragment laden…",
+        "title": "Luisteroefening",
+        "empty": "Er zijn nog geen luisterfragmenten op jouw niveau.",
+        "cantPlay": "Je browser kan dit fragment niet afspelen. Probeer Chrome op een computer.",
+        "playAgain": "Opnieuw afspelen",
+        "playClip": "Fragment afspelen",
+        "replaysLeft": "{count} herhaling over | {count} herhalingen over",
+        "playToSee": "Speel het fragment af om de vragen te zien."
     },
     "install": {
         "button": "App installeren",
@@ -647,5 +654,138 @@
             "shareFailed": "De afbeelding kon niet worden gedeeld.",
             "imageDescription": "Hablas-voortgang in {language}. CEFR-niveau: {level}. Streak: {streak}. Voltooide eenheden: {completion}."
         }
+    },
+    "placement": {
+        "breadcrumb": "Instaltoets",
+        "title": "Instaltoets {language}",
+        "retakeTitle": "Niveau {skill} {language} opnieuw bepalen",
+        "introRetake": "Beantwoord elke vraag, de volgende past zich aan aan hoe je het doet. Hiermee bepaal je je niveau voor {skill} opnieuw, hoger of lager. Je andere vaardigheden houden hun niveau.",
+        "intro": "Beantwoord elke vraag, de volgende past zich aan aan hoe je het doet. Hiermee bepaal je je startniveau (CEFR) voor lezen, luisteren, spreken en schrijven apart.",
+        "progress": "Voortgang",
+        "saveFailed": "Dat antwoord kon niet worden opgeslagen. Probeer het opnieuw.",
+        "dontKnow": "Ik weet het niet",
+        "notReady": "Nog niet klaar voor een toets?",
+        "skip": "Overslaan en beginnen op A1",
+        "results": {
+            "breadcrumb": "Resultaten instaltoets",
+            "title": "Resultaten instaltoets {language}",
+            "intro": "Dit is het beginpunt dat de toets voor je heeft bepaald. Je gecombineerde niveau is het laagste van de vier vaardigheden, bewust voorzichtig, zodat niets te hoog gegrepen voelt.",
+            "startingLevel": "Je startniveau",
+            "blendedLevel": "gecombineerd niveau",
+            "retakeHint": "Lijkt een niveau niet te kloppen? Doe die vaardigheid dan apart opnieuw. Het nieuwe resultaat vervangt het oude, hoger of lager, en elke vaardigheid kun je één keer per week opnieuw doen.",
+            "openTest": "Je instaltoets staat nog open.",
+            "openSkill": "Je herkansing voor {skill} staat nog open.",
+            "skipped": "Je hebt de instaltoets overgeslagen, dus elke vaardigheid begint op A1.",
+            "takeTest": "Doe de toets",
+            "skippedAfter": "wanneer je maar wilt om een nauwkeuriger niveau in te stellen.",
+            "questionByQuestion": "Vraag voor vraag",
+            "yourAnswer": "Jouw antwoord:",
+            "didntKnowAnswer": "wist het niet",
+            "correctAnswer": "Goede antwoord:",
+            "toDashboard": "Verder naar het dashboard",
+            "status": {
+                "correct": "Goed",
+                "incorrect": "Fout",
+                "dontKnow": "Wist het niet"
+            }
+        }
+    },
+    "practice": {
+        "offlineQueued": "Je bent offline, dus dit wordt bewaard en beoordeeld zodra je weer online bent.",
+        "offlineAttempt": "Je bent offline. Deze poging wordt bewaard en beoordeeld zodra je weer online bent.",
+        "offlineAnswer": "Je bent offline. Dit antwoord wordt bewaard en nagekeken zodra je weer online bent.",
+        "noSpeechRecognition": "Je browser ondersteunt geen spraakherkenning. Probeer Chrome op een computer.",
+        "notHeard": "We konden je niet goed verstaan. Probeer het opnieuw.",
+        "attemptFailed": "Die poging kon niet worden verstuurd. Probeer het opnieuw.",
+        "submitFailed": "Dat kon niet worden verstuurd. Probeer het opnieuw.",
+        "listening": "Aan het luisteren…",
+        "youSaid": "Je zei: \"{text}\"",
+        "scored": "Je score is {score}%.",
+        "checkAnswers": "Antwoorden controleren"
+    },
+    "reading": {
+        "title": "Leesoefening",
+        "empty": "Er zijn nog geen leesteksten op jouw niveau."
+    },
+    "shadowing": {
+        "title": "Naspreekoefening",
+        "empty": "Er zijn nog geen naspreekoefeningen.",
+        "hearFirst": "Eerst beluisteren",
+        "repeat": "Herhaal deze zin",
+        "score": "Overeenkomst: {score}%"
+    },
+    "writing": {
+        "title": "Schrijfoefening",
+        "empty": "Er zijn nog geen schrijfoefeningen.",
+        "submit": "Versturen",
+        "notQuite": "Nog niet helemaal, probeer het opnieuw.",
+        "answerFailed": "Dat antwoord kon niet worden verstuurd. Probeer het opnieuw."
+    },
+    "scriptedPrompts": {
+        "empty": "Er zijn nog geen vragen om hardop te beantwoorden.",
+        "answer": "Antwoord hardop",
+        "score": "Overeenkomst met sleutelwoorden: {score}%"
+    },
+    "pronunciation": {
+        "empty": "Er zijn nog geen uitspraakoefeningen.",
+        "versus": "tegenover",
+        "say": "Zeg:",
+        "sayWord": "Zeg dit woord",
+        "correct": "Goed!",
+        "tryAgain": "Probeer het nog eens."
+    },
+    "reflections": {
+        "intro": "Vink aan wat je deze week met vertrouwen kunt.",
+        "done": "Je hebt de terugblik van deze week al afgerond. Kom volgende week terug voor een nieuwe.",
+        "submit": "Terugblik versturen"
+    },
+    "unitLessons": {
+        "mastered": "Beheerst",
+        "wordsMastered": "Beheerste woorden",
+        "masteredCount": "{mastered} van {total} beheerst",
+        "heldBack": "Werk eerst je herhalingen af en begin dan aan deze unit.",
+        "skippedBoth": "Overgeslagen: luisteren in {listening} en spreken in {speaking} oefeningen.",
+        "skippedListening": "Overgeslagen: luisteren in {listening} oefeningen.",
+        "skippedSpeaking": "Overgeslagen: spreken in {speaking} oefeningen.",
+        "continue": "Verder",
+        "replay": "Opnieuw",
+        "start": "Beginnen",
+        "status": {
+            "lockedCheck": "Opent na de lessen ervoor",
+            "locked": "Rond eerst de les ervoor af",
+            "opensTomorrow": "Opent morgen",
+            "coming": "Komt eraan",
+            "inProgress": "Bezig",
+            "doneBest": "Klaar, beste score {percent}% in één keer goed",
+            "done": "Klaar",
+            "ready": "Klaar om te beginnen"
+        },
+        "soon": "Binnenkort",
+        "contentPending": "Zinnen- en grammaticalessen voor deze unit komen eraan. De unit blijft bezig tot ze klaar zijn en je de toets ervan hebt gehaald.",
+        "takeCheck": "Doe nu de unittoets"
+    },
+    "twoFactorSetup": {
+        "enabledTitle": "Tweestapsverificatie ingeschakeld",
+        "enabledDescription": "Tweestapsverificatie is nu ingeschakeld. Scan de QR-code of voer de installatiesleutel in je authenticator-app in.",
+        "verifyTitle": "Verificatiecode controleren",
+        "verifyDescription": "Voer de 6-cijferige code uit je authenticator-app in",
+        "enableTitle": "Tweestapsverificatie inschakelen",
+        "enableDescription": "Scan de QR-code of voer de installatiesleutel in je authenticator-app in om tweestapsverificatie af te ronden",
+        "manualEntry": "of voer de code handmatig in",
+        "back": "Terug",
+        "confirm": "Bevestigen",
+        "errors": {
+            "qrCode": "De QR-code kon niet worden opgehaald",
+            "setupKey": "De installatiesleutel kon niet worden opgehaald",
+            "recoveryCodes": "De herstelcodes konden niet worden opgehaald"
+        }
+    },
+    "push": {
+        "unsupported": "Pushmeldingen worden niet ondersteund in deze browser.",
+        "permissionDenied": "Er is geen toestemming voor meldingen gegeven.",
+        "saveFailed": "Het pushabonnement kon niet worden opgeslagen.",
+        "subscribeFailed": "Aanmelden voor pushmeldingen is mislukt.",
+        "removeFailed": "Het pushabonnement kon niet worden verwijderd.",
+        "unsubscribeFailed": "Afmelden voor pushmeldingen is mislukt."
     }
 }

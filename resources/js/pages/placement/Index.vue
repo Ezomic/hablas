@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Spinner } from '@/components/ui/spinner';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { fetchJson } from '@/lib/http';
-import { answer, results, skip } from '@/routes/placement';
+import { skillLabel } from '@/lib/skillLabels';
+import { answer, index, results, skip } from '@/routes/placement';
 
 interface PlacementTestItem {
     id: number;
@@ -26,29 +29,21 @@ const props = defineProps<{
     canSkip: boolean;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Placement test', href: '/placement' }],
-    },
-});
+const { t } = useI18n();
 
-const skillLabels: Record<string, string> = {
-    reading: 'Reading',
-    listening: 'Listening',
-    speaking: 'Speaking',
-    writing: 'Writing',
-};
+useBreadcrumbs(() => [{ title: t('placement.breadcrumb'), href: index() }]);
 
 const retakeSkillName = computed(() =>
-    props.skill
-        ? (skillLabels[props.skill] ?? props.skill).toLowerCase()
-        : null,
+    props.skill ? skillLabel(props.skill).toLowerCase() : null,
 );
 
 const title = computed(() =>
     retakeSkillName.value
-        ? `${props.language.name} ${retakeSkillName.value} re-placement`
-        : `${props.language.name} placement test`,
+        ? t('placement.retakeTitle', {
+              language: props.language.name,
+              skill: retakeSkillName.value,
+          })
+        : t('placement.title', { language: props.language.name }),
 );
 
 const currentItem = ref(props.item);
@@ -121,21 +116,17 @@ function skipTest() {
         <div>
             <h1 class="text-2xl font-semibold">{{ title }}</h1>
             <p v-if="retakeSkillName" class="mt-1 text-muted-foreground">
-                Answer each question, and the next one adjusts to how you're
-                doing. This sets your {{ retakeSkillName }} level again, up or
-                down. Your other skills keep theirs.
+                {{ t('placement.introRetake', { skill: retakeSkillName }) }}
             </p>
             <p v-else class="mt-1 text-muted-foreground">
-                Answer each question — the next one adjusts to how you're doing.
-                This sets your starting CEFR level for reading, listening,
-                speaking, and writing separately.
+                {{ t('placement.intro') }}
             </p>
 
             <div v-if="currentItem" class="mt-4 flex flex-col gap-1.5">
                 <div
                     class="flex items-center justify-between text-sm text-muted-foreground"
                 >
-                    <span>Progress</span>
+                    <span>{{ t('placement.progress') }}</span>
                     <span>{{ progress }}%</span>
                 </div>
                 <Progress :model-value="progress" />
@@ -144,7 +135,7 @@ function skipTest() {
 
         <div v-if="currentItem" class="flex flex-col gap-6">
             <h2 class="text-lg font-medium">
-                {{ skillLabels[currentItem.skill] ?? currentItem.skill }}
+                {{ skillLabel(currentItem.skill) }}
             </h2>
 
             <div class="flex flex-col gap-3">
@@ -166,7 +157,7 @@ function skipTest() {
 
             <InputError
                 v-if="submitFailed"
-                message="Couldn't save that answer — try again."
+                :message="t('placement.saveFailed')"
             />
 
             <div class="flex flex-col gap-3">
@@ -175,7 +166,7 @@ function skipTest() {
                     @click="submit(selectedAnswer ?? '')"
                 >
                     <Spinner v-if="isSubmitting" />
-                    Next
+                    {{ t('common.next') }}
                 </Button>
                 <!--
                     Records as incorrect (see PlacementTestResponse::DONT_KNOW),
@@ -188,7 +179,7 @@ function skipTest() {
                     :disabled="isSubmitting"
                     @click="submit(props.dontKnowResponse)"
                 >
-                    I don't know
+                    {{ t('placement.dontKnow') }}
                 </Button>
             </div>
         </div>
@@ -197,14 +188,14 @@ function skipTest() {
             v-if="props.canSkip"
             class="border-t pt-6 text-center text-sm text-muted-foreground"
         >
-            Not ready for a test?
+            {{ t('placement.notReady') }}
             <button
                 type="button"
                 class="underline underline-offset-4"
                 :disabled="skipForm.processing"
                 @click="skipTest"
             >
-                Skip and start at A1
+                {{ t('placement.skip') }}
             </button>
         </div>
     </div>

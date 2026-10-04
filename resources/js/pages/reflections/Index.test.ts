@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { reactive } from 'vue';
+import { i18n, setLocale } from '@/i18n';
 import Index from './Index.vue';
 
 const { forms } = vi.hoisted(() => ({
@@ -9,6 +10,7 @@ const { forms } = vi.hoisted(() => ({
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
     useForm: (data: Record<string, unknown>) => {
         const form = reactive({ ...data, processing: false, post: vi.fn() });
         forms.push(form);
@@ -18,6 +20,7 @@ vi.mock('@inertiajs/vue3', () => ({
 }));
 
 vi.mock('@/routes/reflections', () => ({
+    index: () => ({ url: '/reflections', method: 'get' }),
     store: () => ({ url: '/reflections' }),
 }));
 
@@ -52,5 +55,42 @@ describe('reflections/Index checkbox binding', () => {
         await checkbox.trigger('click');
 
         expect(form.can_do_ids).not.toContain(1);
+    });
+});
+
+describe('reflections/Index text', () => {
+    it('keeps the English text and groups statements by skill', () => {
+        const { wrapper } = mountPage();
+
+        expect(wrapper.get('h1').text()).toBe('Weekly reflection');
+        expect(wrapper.text()).toContain(
+            'Check off what you feel confident doing this week.',
+        );
+        expect(wrapper.findAll('h2').map((h) => h.text())).toEqual([
+            'Reading',
+            'Listening',
+            'Speaking',
+            'Writing',
+        ]);
+        expect(wrapper.get('button[type="submit"]').text()).toBe(
+            'Submit reflection',
+        );
+    });
+
+    it('shows the Dutch headings and leaves the statement text alone', () => {
+        setLocale('nl');
+
+        const { wrapper } = mountPage();
+
+        expect(wrapper.get('h1').text()).toBe(
+            i18n.global.t('nav.weeklyReflection'),
+        );
+        expect(wrapper.findAll('h2')[0].text()).toBe(
+            i18n.global.t('skills.reading'),
+        );
+        expect(wrapper.text()).toContain('I can read a menu.');
+        expect(wrapper.get('button[type="submit"]').text()).toBe(
+            i18n.global.t('reflections.submit'),
+        );
     });
 });
