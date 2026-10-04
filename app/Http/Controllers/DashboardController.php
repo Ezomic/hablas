@@ -7,8 +7,8 @@ namespace App\Http\Controllers;
 use App\Actions\DescribeBlendedLevel;
 use App\Actions\GetUserSkillLevels;
 use App\Actions\IdentifyBlendedLevelCeiling;
-use App\Actions\Languages\EvaluatePortugueseActivationEligibility;
 use App\Actions\Languages\GetCurrentLanguage;
+use App\Actions\Languages\ListActivatableLanguages;
 use App\Actions\Lessons\DescribeNextLesson;
 use App\Actions\Lessons\GetUnseenLessonResults;
 use App\Actions\Placement\DetermineRetakeAvailability;
@@ -21,6 +21,7 @@ use App\Actions\Streaks\ReconcileStreak;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
+use App\Models\Language;
 use App\Models\Unit;
 use App\Models\UserSkillLevel;
 use Illuminate\Http\Request;
@@ -43,14 +44,16 @@ final class DashboardController extends Controller
         GetCurrentLanguage $getCurrentLanguage,
         EvaluateSessionHealth $evaluateSessionHealth,
         SelectNextUnit $selectNextUnit,
-        EvaluatePortugueseActivationEligibility $evaluatePortugueseActivationEligibility,
+        ListActivatableLanguages $listActivatableLanguages,
         DetermineRetakeAvailability $determineRetakeAvailability,
         DescribeNextLesson $describeNextLesson,
         GetUnseenLessonResults $getUnseenLessonResults,
     ): Response {
         $language = $getCurrentLanguage->handle($this->currentUser());
         $streak = $reconcileStreak->handle($this->currentUser());
-        $canActivatePortuguese = $evaluatePortugueseActivationEligibility->handle($this->currentUser());
+        $activatableLanguages = $listActivatableLanguages->handle($this->currentUser())
+            ->map(fn (Language $activatable): array => ['code' => $activatable->code, 'name' => $activatable->localizedName()])
+            ->all();
 
         $streakProp = [
             'currentLength' => $streak->current_length,
@@ -65,7 +68,7 @@ final class DashboardController extends Controller
                 'streak' => $streakProp,
                 'dueReviewCount' => 0,
                 'weakSpotReviewCount' => 0,
-                'canActivatePortuguese' => $canActivatePortuguese,
+                'activatableLanguages' => $activatableLanguages,
             ]);
         }
 
@@ -100,7 +103,7 @@ final class DashboardController extends Controller
                 'lesson' => $nextLesson,
             ],
             'unseenLessonResults' => $getUnseenLessonResults->handle($this->currentUser(), $language),
-            'canActivatePortuguese' => $canActivatePortuguese,
+            'activatableLanguages' => $activatableLanguages,
         ]);
     }
 

@@ -11,6 +11,7 @@ use App\Models\UserSkillLevel;
 use Database\Seeders\LanguageSeeder;
 
 beforeEach(function () {
+    config(['languages.activatable' => ['pt']]);
     $this->seed(LanguageSeeder::class);
     $this->spanish = Language::query()->where('code', 'es')->sole();
     $this->portuguese = Language::query()->where('code', 'pt')->sole();
@@ -28,7 +29,7 @@ it('activates Portuguese for a user with a Spanish blended level of A2 or above'
     }
 
     $this->actingAs($user)
-        ->post(route('language.activate-portuguese'))
+        ->post(route('language.activate', 'pt'))
         ->assertRedirect(route('dashboard'));
 
     expect($user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeTrue()
@@ -47,13 +48,13 @@ it('forbids activation for a user below A2 in Spanish', function () {
     }
 
     $this->actingAs($user)
-        ->post(route('language.activate-portuguese'))
+        ->post(route('language.activate', 'pt'))
         ->assertForbidden();
 
     expect($user->unlockedLanguages()->where('languages.id', $this->portuguese->id)->exists())->toBeFalse();
 });
 
-it('exposes canActivatePortuguese as true on the dashboard once eligible', function () {
+it('lists Portuguese as activatable on the dashboard once eligible', function () {
     $user = User::factory()->create();
     foreach (Skill::cases() as $skill) {
         UserSkillLevel::factory()->create([
@@ -71,10 +72,10 @@ it('exposes canActivatePortuguese as true on the dashboard once eligible', funct
 
     $this->actingAs($user)
         ->get(route('dashboard'))
-        ->assertInertia(fn ($page) => $page->where('canActivatePortuguese', true));
+        ->assertInertia(fn ($page) => $page->where('activatableLanguages', [['code' => 'pt', 'name' => 'Portuguese']]));
 });
 
-it('exposes canActivatePortuguese as false on the dashboard when ineligible', function () {
+it('lists nothing as activatable on the dashboard when ineligible', function () {
     $user = User::factory()->create();
     PlacementTestAttempt::factory()->create([
         'user_id' => $user->id,
@@ -84,5 +85,5 @@ it('exposes canActivatePortuguese as false on the dashboard when ineligible', fu
 
     $this->actingAs($user)
         ->get(route('dashboard'))
-        ->assertInertia(fn ($page) => $page->where('canActivatePortuguese', false));
+        ->assertInertia(fn ($page) => $page->where('activatableLanguages', []));
 });

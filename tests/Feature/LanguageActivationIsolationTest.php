@@ -17,6 +17,7 @@ use Database\Seeders\LanguageSeeder;
  * flag caused.
  */
 it('does not leak Portuguese access from one user to another', function () {
+    config(['languages.activatable' => ['pt']]);
     $this->seed(LanguageSeeder::class);
     $spanish = Language::query()->where('code', 'es')->sole();
     $portuguese = Language::query()->where('code', 'pt')->sole();
@@ -42,7 +43,7 @@ it('does not leak Portuguese access from one user to another', function () {
 
     // User A activates Portuguese.
     $this->actingAs($userA)
-        ->post(route('language.activate-portuguese'))
+        ->post(route('language.activate', 'pt'))
         ->assertRedirect(route('dashboard'));
 
     // User B's eligibility is unaffected by A's activation — still reflects
@@ -50,7 +51,7 @@ it('does not leak Portuguese access from one user to another', function () {
     // active" short-circuit.
     $this->actingAs($userB)
         ->get(route('dashboard'))
-        ->assertInertia(fn ($page) => $page->where('canActivatePortuguese', true));
+        ->assertInertia(fn ($page) => $page->where('activatableLanguages', [['code' => 'pt', 'name' => 'Portuguese']]));
 
     // B's availableLanguages excludes Portuguese.
     $this->actingAs($userB)
