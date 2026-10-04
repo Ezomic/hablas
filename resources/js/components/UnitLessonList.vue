@@ -3,13 +3,13 @@ import { router } from '@inertiajs/vue3';
 import { Check, Lock } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import RemediationActions from '@/components/RemediationActions.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Spinner } from '@/components/ui/spinner';
 import { store as startRun } from '@/routes/lessons/runs';
 import type { UnitLessonOverview, UnitLessonRow } from '@/types/lesson';
 
@@ -41,7 +41,18 @@ const skippedNote = computed(() => {
     const { listening, speaking } = props.overview.skipped;
 
     if (listening && speaking) {
-        return t('unitLessons.skippedBoth', { listening, speaking });
+        return t('unitLessons.skippedBoth', {
+            listening: t(
+                'unitLessons.skippedListeningPart',
+                { count: listening },
+                listening,
+            ),
+            speaking: t(
+                'unitLessons.skippedSpeakingPart',
+                { count: speaking },
+                speaking,
+            ),
+        });
     }
 
     if (listening) {
@@ -198,7 +209,7 @@ function playable(row: UnitLessonRow): boolean {
                     "
                     @click="start(row)"
                 >
-                    <Spinner v-if="starting === row.lessonId" />
+                    <AppSpinner v-if="starting === row.lessonId" />
                     {{ label(row) }}
                 </Button>
                 <Badge v-else-if="row.state === 'coming'" variant="outline">{{

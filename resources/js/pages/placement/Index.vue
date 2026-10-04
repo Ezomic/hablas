@@ -2,12 +2,12 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Spinner } from '@/components/ui/spinner';
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { fetchJson } from '@/lib/http';
 import { skillLabel } from '@/lib/skillLabels';
@@ -165,7 +165,7 @@ function skipTest() {
                     :disabled="!selectedAnswer || isSubmitting"
                     @click="submit(selectedAnswer ?? '')"
                 >
-                    <Spinner v-if="isSubmitting" />
+                    <AppSpinner v-if="isSubmitting" />
                     {{ t('common.next') }}
                 </Button>
                 <!--

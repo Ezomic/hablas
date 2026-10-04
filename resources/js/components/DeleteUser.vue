@@ -2,12 +2,12 @@
 import { Form } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import AppDialogContent from '@/components/AppDialogContent.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
-    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
@@ -42,7 +42,7 @@ const { t } = useI18n();
                         >{{ t('settings.delete.title') }}</Button
                     >
                 </DialogTrigger>
-                <DialogContent>
+                <AppDialogContent>
                     <!--
                         No credential field: the destroy route sits behind the
                         password.confirm middleware, which redirects to the
@@ -83,7 +83,7 @@ const { t } = useI18n();
                             </Button>
                         </DialogFooter>
                     </Form>
-                </DialogContent>
+                </AppDialogContent>
             </Dialog>
         </div>
     </div>

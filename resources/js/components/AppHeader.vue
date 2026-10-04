@@ -4,6 +4,7 @@ import { BookOpen, Folder, LayoutGrid, Menu, Search } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppLogo from '@/components/AppLogo.vue';
+import AppSheetContent from '@/components/AppSheetContent.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import HablasLogoIcon from '@/components/HablasLogoIcon.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,7 +22,6 @@ import {
 } from '@/components/ui/navigation-menu';
 import {
     Sheet,
-    SheetContent,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -93,7 +93,7 @@ const rightNavItems = computed<NavItem[]>(() => [
                                 <Menu class="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" class="w-[300px] p-6">
+                        <AppSheetContent side="left" class="w-[300px] p-6">
                             <SheetTitle class="sr-only">{{
                                 $t('nav.navigationMenu')
                             }}</SheetTitle>
@@ -144,7 +144,7 @@ const rightNavItems = computed<NavItem[]>(() => [
                                     </a>
                                 </div>
                             </div>
-                        </SheetContent>
+                        </AppSheetContent>
                     </Sheet>
                 </div>
 

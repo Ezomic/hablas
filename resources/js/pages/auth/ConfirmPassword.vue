@@ -5,12 +5,12 @@ import {
     index as confirmOptions,
     store as confirmStore,
 } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
+import AppSpinner from '@/components/AppSpinner.vue';
 import InputError from '@/components/InputError.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { useLayoutText } from '@/composables/useLayoutText';
 import { store } from '@/routes/password/confirm';
 import { store as sendConfirmCode } from '@/routes/user/confirm-code';
@@ -99,7 +99,7 @@ const submit = () =>
                     :disabled="confirmForm.processing"
                     data-test="confirm-password-button"
                 >
-                    <Spinner v-if="confirmForm.processing" />
+                    <AppSpinner v-if="confirmForm.processing" />
                     {{ $t('auth.confirm.submit') }}
                 </Button>
             </div>

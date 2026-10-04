@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,6 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Spinner } from '@/components/ui/spinner';
 import UnitLessonList from '@/components/UnitLessonList.vue';
 import type {
     UnitGrammarPoint,
@@ -128,7 +128,7 @@ function complete() {
             </p>
 
             <Button :disabled="form.processing" @click="complete">
-                <Spinner v-if="form.processing" />
+                <AppSpinner v-if="form.processing" />
                 {{
                     props.isCompleted
                         ? t('units.markAgain')

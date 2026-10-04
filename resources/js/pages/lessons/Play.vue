@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Lightbulb, X } from '@lucide/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import AnswerFeedback from '@/components/lesson/AnswerFeedback.vue';
 import ChoiceExercise from '@/components/lesson/ChoiceExercise.vue';
 import LessonSummary from '@/components/lesson/LessonSummary.vue';
@@ -17,7 +18,6 @@ import TypedExercise from '@/components/lesson/TypedExercise.vue';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Spinner } from '@/components/ui/spinner';
 import { useLessonRun } from '@/composables/useLessonRun';
 import {
     expectedAnswer,
@@ -400,7 +400,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 data-testid="finishing"
             >
                 <template v-if="lesson.isOnline.value">
-                    <Spinner />
+                    <AppSpinner />
                     <p>{{ t('lesson.finishing') }}</p>
                 </template>
                 <template v-else>
@@ -700,7 +700,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
                 <template v-else-if="phase === 'checking'">
                     <Button class="h-12 w-full" disabled>
-                        <Spinner />
+                        <AppSpinner />
                         {{ t('lesson.checking') }}
                     </Button>
                 </template>

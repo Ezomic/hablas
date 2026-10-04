@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -15,10 +16,12 @@ type Props = {
 };
 
 defineProps<Props>();
+
+const { t } = useI18n();
 </script>
 
 <template>
-    <Breadcrumb>
+    <Breadcrumb :aria-label="t('nav.breadcrumb')">
         <BreadcrumbList>
             <template v-for="(item, index) in breadcrumbs" :key="index">
                 <BreadcrumbItem>

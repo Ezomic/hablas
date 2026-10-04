@@ -131,10 +131,17 @@ describe('unit lesson list', () => {
             }),
         );
         expect(wrapper.text()).toContain(
-            i18n.global.t('unitLessons.skippedBoth', {
-                listening: 2,
-                speaking: 3,
-            }),
+            'Overgeslagen: 2 luisteroefeningen en 3 spreekoefeningen.',
+        );
+    });
+
+    it('pluralises both halves of the skipped note in Dutch', () => {
+        setLocale('nl');
+
+        const one = mountList([], { listening: 1, speaking: 1 });
+
+        expect(one.text()).toContain(
+            'Overgeslagen: 1 luisteroefening en 1 spreekoefening.',
         );
     });
 

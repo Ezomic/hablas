@@ -15,7 +15,10 @@
         "next": "Volgende",
         "reviewNow": "Nu herhalen",
         "noActiveLanguage": "Nog geen actieve taal.",
-        "days": "{count} dag | {count} dagen"
+        "days": "{count} dag | {count} dagen",
+        "loading": "Laden",
+        "notifications": "Meldingen",
+        "closeNotification": "Melding sluiten"
     },
     "nav": {
         "settings": "Instellingen",
@@ -35,6 +38,9 @@
         "pronunciationDrills": "Uitspraakoefeningen",
         "weeklyReflection": "Wekelijkse reflectie",
         "toggleSidebar": "Zijbalk in- of uitklappen",
+        "sidebar": "Zijbalk",
+        "sidebarDescription": "Toont de zijbalk op mobiel.",
+        "breadcrumb": "Kruimelpad",
         "navigationMenu": "Navigatiemenu",
         "repository": "Repository",
         "documentation": "Documentatie"
@@ -553,7 +559,7 @@
             "see": "Bekijk resultaten"
         },
         "cardsDue": "{count} kaart te herhalen | {count} kaarten te herhalen",
-        "startReview": "Start herhaling",
+        "startReview": "Begin met herhalen",
         "weakSpots": {
             "count": "{count} kaart om opnieuw te bekijken | {count} kaarten om opnieuw te bekijken",
             "body": "Kaarten die je een paar keer achter elkaar fout had, apart gezet tot je ze weer eens goed hebt.",
@@ -676,8 +682,8 @@
                 "weakSpot": "{count} zwak punt herhaald. | {count} zwakke punten herhaald."
             },
             "stillDue": {
-                "card": "Nog {count} kaart te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent. | Nog {count} kaarten te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent.",
-                "weakSpot": "Nog {count} zwak punt te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent. | Nog {count} zwakke punten te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent."
+                "card": "Nog {count} kaart te herhalen. Begin gerust nog een sessie wanneer je er klaar voor bent. | Nog {count} kaarten te herhalen. Begin gerust nog een sessie wanneer je er klaar voor bent.",
+                "weakSpot": "Nog {count} zwak punt te herhalen. Begin gerust nog een sessie wanneer je er klaar voor bent. | Nog {count} zwakke punten te herhalen. Begin gerust nog een sessie wanneer je er klaar voor bent."
             },
             "nothingDue": "Op dit moment is er verder niets te herhalen.",
             "saveFailed": "Die beoordeling kon niet worden opgeslagen, probeer het opnieuw."
@@ -822,12 +828,14 @@
         "wordsMastered": "Beheerste woorden",
         "masteredCount": "{mastered} van {total} beheerst",
         "heldBack": "Werk eerst je herhalingen af en begin dan aan deze eenheid.",
-        "skippedBoth": "Overgeslagen: luisteroefeningen ({listening}) en spreekoefeningen ({speaking}).",
+        "skippedBoth": "Overgeslagen: {listening} en {speaking}.",
+        "skippedListeningPart": "{count} luisteroefening | {count} luisteroefeningen",
+        "skippedSpeakingPart": "{count} spreekoefening | {count} spreekoefeningen",
         "skippedListening": "Overgeslagen: {listening} luisteroefening. | Overgeslagen: {listening} luisteroefeningen.",
         "skippedSpeaking": "Overgeslagen: {speaking} spreekoefening. | Overgeslagen: {speaking} spreekoefeningen.",
         "continue": "Verder",
         "replay": "Opnieuw",
-        "start": "Starten",
+        "start": "Begin",
         "status": {
             "lockedCheck": "Opent na de lessen ervoor",
             "locked": "Rond eerst de les ervoor af",
