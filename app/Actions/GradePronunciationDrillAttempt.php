@@ -32,7 +32,7 @@ final class GradePronunciationDrillAttempt
     public function handle(PronunciationDrillExercise $exercise, string $transcriptGuess): array
     {
         $normalizer = $this->normalizerFor($exercise);
-        $target = $normalizer->foldAccents($exercise->target_word);
+        $target = $normalizer->answerKey($exercise->target_word);
         $isCorrect = $normalizer->uniqueWords($transcriptGuess)->contains($target);
 
         return ['is_correct' => $isCorrect, 'score' => $isCorrect ? 100.0 : 0.0];

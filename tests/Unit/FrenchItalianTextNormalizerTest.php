@@ -21,9 +21,16 @@ it('folds italian vowel accents', function () {
         ->and($normalizer->foldAccents('Città'))->toBe('citta');
 });
 
-it('splits elided words on the apostrophe', function () {
-    expect((new FrenchTextNormalizer)->answerKey("J'ai l'eau"))->toBe('j ai l eau')
-        ->and((new ItalianTextNormalizer)->answerKey('L’italiano'))->toBe('l italiano');
+it('keeps the apostrophe of an elided word and unifies the curly ones', function () {
+    $french = new FrenchTextNormalizer;
+    $italian = new ItalianTextNormalizer;
+
+    expect($french->answerKey("J'ai l'eau"))->toBe("j'ai l'eau")
+        ->and($french->answerKey('J’ai l’eau'))->toBe($french->answerKey("j'ai l'eau"))
+        ->and($italian->answerKey('L’italiano'))->toBe("l'italiano")
+        ->and($italian->answerKey('l italiano'))->not->toBe($italian->answerKey("l'italiano"))
+        ->and($italian->answerKey("'ciao'"))->toBe('ciao')
+        ->and($french->uniqueWords("l'eau l'eau")->values()->all())->toBe(["l'eau"]);
 });
 
 it('sorts elided nouns under the noun and searches oe for the ligature', function () {
@@ -32,4 +39,8 @@ it('sorts elided nouns under the noun and searches oe for the ligature', functio
     expect($french->sortKey("l'eau"))->toBe('eau')
         ->and((new ItalianTextNormalizer)->sortKey("l'amico"))->toBe('amico')
         ->and($french->searchKey('sœur'))->toBe($french->searchKey('soeur'));
+});
+
+it('strips a hyphen in unique words without splitting the word', function () {
+    expect((new ItalianTextNormalizer)->uniqueWords('Capo-reparto, ciao')->values()->all())->toBe(['caporeparto', 'ciao']);
 });
