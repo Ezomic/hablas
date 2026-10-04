@@ -87,3 +87,28 @@ it('lists nothing as activatable on the dashboard when ineligible', function () 
         ->get(route('dashboard'))
         ->assertInertia(fn ($page) => $page->where('activatableLanguages', []));
 });
+
+it('forbids activating a language whose content is not released', function () {
+    $user = User::factory()->create();
+    foreach (Skill::cases() as $skill) {
+        UserSkillLevel::factory()->create([
+            'user_id' => $user->id,
+            'language_id' => $this->spanish->id,
+            'skill' => $skill,
+            'cefr_level' => CefrLevel::A2,
+        ]);
+    }
+    $french = Language::query()->where('code', 'fr')->sole();
+
+    $this->actingAs($user)
+        ->post(route('language.activate', 'fr'))
+        ->assertForbidden();
+
+    expect($user->unlockedLanguages()->where('languages.id', $french->id)->exists())->toBeFalse();
+});
+
+it('returns not found for an unknown language code', function () {
+    $this->actingAs(User::factory()->create())
+        ->post(route('language.activate', 'xx'))
+        ->assertNotFound();
+});

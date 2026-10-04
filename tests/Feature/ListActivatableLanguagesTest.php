@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Actions\Languages\EvaluateLanguageActivationEligibility;
+use App\Actions\Languages\ListActivatableLanguages;
 use App\Actions\Languages\UnlockLanguageForUser;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
@@ -21,7 +21,7 @@ beforeEach(function () {
 });
 
 it('is ineligible when the user has no Spanish skill levels at all', function () {
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $this->portuguese))->toBeFalse();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $this->portuguese->id))->toBeFalse();
 });
 
 it('is ineligible when the Spanish blended level is below A2', function () {
@@ -34,7 +34,7 @@ it('is ineligible when the Spanish blended level is below A2', function () {
         ]);
     }
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $this->portuguese))->toBeFalse();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $this->portuguese->id))->toBeFalse();
 });
 
 it('is eligible when the Spanish blended level is A2 or above', function () {
@@ -47,7 +47,7 @@ it('is eligible when the Spanish blended level is A2 or above', function () {
         ]);
     }
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $this->portuguese))->toBeTrue();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $this->portuguese->id))->toBeTrue();
 });
 
 it('is ineligible once this user already has Portuguese unlocked, even well above A2', function () {
@@ -61,7 +61,7 @@ it('is ineligible once this user already has Portuguese unlocked, even well abov
     }
     (new UnlockLanguageForUser)->handle($this->user, $this->portuguese);
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $this->portuguese))->toBeFalse();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $this->portuguese->id))->toBeFalse();
 });
 
 it('stays eligible for this user even if a different user already unlocked Portuguese', function () {
@@ -77,7 +77,7 @@ it('stays eligible for this user even if a different user already unlocked Portu
         ]);
     }
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $this->portuguese))->toBeTrue();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $this->portuguese->id))->toBeTrue();
 });
 
 it('is ineligible for a language whose content is not released', function () {
@@ -91,11 +91,11 @@ it('is ineligible for a language whose content is not released', function () {
         ]);
     }
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $french))->toBeFalse();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $french->id))->toBeFalse();
 
     config(['languages.activatable' => ['pt', 'fr']]);
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $french))->toBeTrue();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $french->id))->toBeTrue();
 });
 
 it('counts A2 in any language the user already has, not only Spanish', function () {
@@ -110,5 +110,5 @@ it('counts A2 in any language the user already has, not only Spanish', function 
         ]);
     }
 
-    expect((new EvaluateLanguageActivationEligibility)->handle($this->user, $this->portuguese))->toBeTrue();
+    expect((new ListActivatableLanguages)->handle($this->user)->contains('id', $this->portuguese->id))->toBeTrue();
 });

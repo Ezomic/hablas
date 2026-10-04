@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Languages\ActivateLanguage;
-use App\Actions\Languages\EvaluateLanguageActivationEligibility;
+use App\Actions\Languages\ListActivatableLanguages;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Models\Language;
 use Illuminate\Http\RedirectResponse;
@@ -20,9 +20,9 @@ final class LanguageActivationController extends Controller
      * CTA's client-side gating — the CTA is only ever shown when eligible,
      * but the endpoint itself must not assume that.
      */
-    public function store(Request $request, Language $language, EvaluateLanguageActivationEligibility $evaluate, ActivateLanguage $activate): RedirectResponse
+    public function store(Request $request, Language $language, ListActivatableLanguages $activatable, ActivateLanguage $activate): RedirectResponse
     {
-        if (! $evaluate->handle($this->currentUser(), $language)) {
+        if (! $activatable->handle($this->currentUser())->contains('id', $language->id)) {
             abort(403);
         }
 
