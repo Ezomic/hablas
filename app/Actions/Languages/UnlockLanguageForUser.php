@@ -12,7 +12,7 @@ final class UnlockLanguageForUser
     /**
      * The single place that ever writes to the user_languages pivot —
      * both the default Spanish unlock on registration and the
-     * suggest-and-confirm Portuguese activation flow go through here.
+     * language activation flow go through here.
      */
     public function handle(User $user, Language $language): void
     {

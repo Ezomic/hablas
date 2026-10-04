@@ -20,7 +20,7 @@ const { url } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/routes', () => ({ dashboard: url('/dashboard') }));
-vi.mock('@/routes/language', () => ({ activatePortuguese: url('/lang') }));
+vi.mock('@/routes/language', () => ({ activate: url('/lang') }));
 vi.mock('@/routes/lesson-runs', () => ({ show: url('/run') }));
 vi.mock('@/routes/lessons/runs', () => ({ store: url('/start') }));
 vi.mock('@/routes/placement', () => ({ results: url('/placement') }));
@@ -97,5 +97,30 @@ describe('dashboard', () => {
         await wrapper.vm.$nextTick();
 
         expect(wrapper.text()).toContain('Begin met herhalen');
+    });
+
+    it('offers each activatable language and posts to its own route', async () => {
+        const { router } = await import('@inertiajs/vue3');
+        const wrapper = mount(Dashboard, {
+            props: {
+                ...props,
+                activatableLanguages: [{ code: 'pt', name: 'Portuguese' }],
+            },
+        });
+
+        expect(wrapper.text()).toContain('Ready to start Portuguese?');
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text() === 'Start learning Portuguese')
+            ?.trigger('click');
+
+        expect(router.post).toHaveBeenCalledWith('/lang');
+    });
+
+    it('shows no activation card without activatable languages', () => {
+        expect(mount(Dashboard, { props }).text()).not.toContain(
+            'Ready to start',
+        );
     });
 });

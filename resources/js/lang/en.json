@@ -537,11 +537,11 @@
         "viewPlacement": "View placement results",
         "retake": "Re-take {skill}",
         "retakeAvailable": "Available on {date}",
-        "portuguese": {
+        "activate": {
             "label": "New language unlocked",
-            "title": "Ready to start Portuguese?",
-            "body": "You've reached A2 in Spanish. Portuguese shares a lot with Spanish, but we'll flag the differences as you go.",
-            "start": "Start learning Portuguese"
+            "title": "Ready to start {language}?",
+            "body": "You've reached A2 in a language you're learning. Each language keeps its own reviews, so they never mix.",
+            "start": "Start learning {language}"
         },
         "nextUp": "Next up",
         "reinforce": {

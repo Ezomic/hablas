@@ -22,7 +22,7 @@ import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { joinList } from '@/lib/intlLocale';
 import { skillKeys, skillLabel } from '@/lib/skillLabels';
 import { dashboard } from '@/routes';
-import { activatePortuguese } from '@/routes/language';
+import { activate } from '@/routes/language';
 import { show as showRun } from '@/routes/lesson-runs';
 import { store as startRun } from '@/routes/lessons/runs';
 import { results as placementResults } from '@/routes/placement';
@@ -77,7 +77,7 @@ interface Props {
     sessionNeedsRemediation?: boolean;
     nextUnit?: NextUnit | null;
     unseenLessonResults?: UnseenResult[];
-    canActivatePortuguese?: boolean;
+    activatableLanguages?: { code: string; name: string }[];
 }
 
 const props = defineProps<Props>();
@@ -95,8 +95,8 @@ function startLesson(unit: NextUnit) {
     }
 }
 
-function activatePortugueseTrack() {
-    router.post(activatePortuguese().url);
+function activateLanguage(code: string) {
+    router.post(activate(code).url);
 }
 
 useBreadcrumbs(() => [{ title: t('nav.dashboard'), href: dashboard() }]);
@@ -189,21 +189,21 @@ const ceilingSkillNames = computed(() =>
             {{ t('common.noActiveLanguage') }}
         </p>
 
-        <Card v-if="props.canActivatePortuguese">
+        <Card v-for="option in props.activatableLanguages" :key="option.code">
             <CardHeader>
                 <CardDescription>{{
-                    t('dashboard.portuguese.label')
+                    t('dashboard.activate.label')
                 }}</CardDescription>
                 <CardTitle class="text-2xl">{{
-                    t('dashboard.portuguese.title')
+                    t('dashboard.activate.title', { language: option.name })
                 }}</CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    {{ t('dashboard.portuguese.body') }}
+                    {{ t('dashboard.activate.body') }}
                 </p>
-                <Button @click="activatePortugueseTrack">{{
-                    t('dashboard.portuguese.start')
+                <Button @click="activateLanguage(option.code)">{{
+                    t('dashboard.activate.start', { language: option.name })
                 }}</Button>
             </CardContent>
         </Card>

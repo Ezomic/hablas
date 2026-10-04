@@ -537,11 +537,11 @@
         "viewPlacement": "Bekijk plaatsingsresultaten",
         "retake": "{skill} opnieuw doen",
         "retakeAvailable": "Beschikbaar op {date}",
-        "portuguese": {
+        "activate": {
             "label": "Nieuwe taal ontgrendeld",
-            "title": "Klaar om met Portugees te beginnen?",
-            "body": "Je hebt A2 bereikt in het Spaans. Portugees lijkt veel op Spaans, maar we wijzen je onderweg op de verschillen.",
-            "start": "Begin met Portugees leren"
+            "title": "Klaar om met {language} te beginnen?",
+            "body": "Je hebt A2 bereikt in een taal die je leert. Elke taal heeft zijn eigen herhalingen, dus ze lopen nooit door elkaar.",
+            "start": "Begin met {language} leren"
         },
         "nextUp": "Hierna",
         "reinforce": {
