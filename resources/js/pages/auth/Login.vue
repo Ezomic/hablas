@@ -2,6 +2,7 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import InputError from '@/components/InputError.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -10,7 +11,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Spinner } from '@/components/ui/spinner';
 import { useLayoutText } from '@/composables/useLayoutText';
 import { register } from '@/routes';
 import { store as login } from '@/routes/login';
@@ -129,7 +129,7 @@ const useDifferentEmail = () => {
             :disabled="emailForm.processing"
             data-test="request-code-button"
         >
-            <Spinner v-if="emailForm.processing" />
+            <AppSpinner v-if="emailForm.processing" />
             {{ $t('auth.login.requestCode') }}
         </Button>
 
@@ -170,7 +170,7 @@ const useDifferentEmail = () => {
             :disabled="codeForm.processing"
             data-test="login-button"
         >
-            <Spinner v-if="codeForm.processing" />
+            <AppSpinner v-if="codeForm.processing" />
             {{ $t('common.logIn') }}
         </Button>
 

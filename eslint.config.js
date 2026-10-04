@@ -130,9 +130,13 @@ export default defineConfigWithVueTs(
             'resources/js/components/AppDialogContent.vue',
             'resources/js/components/AppHeader.vue',
             'resources/js/components/AppLogo.vue',
+            'resources/js/components/AppSheetContent.vue',
             'resources/js/components/AppSidebar.vue',
+            'resources/js/components/AppSidebarRoot.vue',
             'resources/js/components/AppSidebarHeader.vue',
             'resources/js/components/AppSidebarTrigger.vue',
+            'resources/js/components/AppSpinner.vue',
+            'resources/js/components/AppToaster.vue',
             'resources/js/components/AppearanceTabs.vue',
             'resources/js/components/Breadcrumbs.vue',
             'resources/js/components/DeleteUser.vue',
@@ -200,6 +204,61 @@ export default defineConfigWithVueTs(
                         '%',
                         '×',
                         '↵',
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        files: ['resources/js/**/*.{ts,vue}'],
+        ignores: [
+            'resources/js/components/AppDialogContent.vue',
+            'resources/js/components/AppSheetContent.vue',
+            'resources/js/components/AppSidebarRoot.vue',
+            'resources/js/components/AppSidebarTrigger.vue',
+            'resources/js/components/AppSpinner.vue',
+            'resources/js/components/AppToaster.vue',
+        ],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: '@/components/ui/spinner',
+                            message:
+                                'Use AppSpinner so the label is translated.',
+                        },
+                        {
+                            name: '@/components/ui/sonner',
+                            message:
+                                'Use AppToaster so the labels are translated.',
+                        },
+                        {
+                            name: '@/components/ui/dialog',
+                            importNames: [
+                                'DialogContent',
+                                'DialogScrollContent',
+                            ],
+                            message:
+                                'Use AppDialogContent so the close label is translated.',
+                        },
+                        {
+                            name: '@/components/ui/sheet',
+                            importNames: ['SheetContent'],
+                            message:
+                                'Use AppSheetContent so the close label is translated.',
+                        },
+                        {
+                            name: '@/components/ui/sidebar',
+                            importNames: [
+                                'Sidebar',
+                                'SidebarRail',
+                                'SidebarTrigger',
+                            ],
+                            message:
+                                'Use AppSidebarRoot or AppSidebarTrigger so the labels are translated.',
+                        },
                     ],
                 },
             ],

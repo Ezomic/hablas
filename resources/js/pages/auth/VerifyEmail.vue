@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { useLayoutText } from '@/composables/useLayoutText';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
@@ -36,7 +36,7 @@ defineProps<{
         v-slot="{ processing }"
     >
         <Button :disabled="processing" variant="secondary">
-            <Spinner v-if="processing" />
+            <AppSpinner v-if="processing" />
             {{ $t('auth.verifyEmail.resend') }}
         </Button>
 

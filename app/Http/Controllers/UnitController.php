@@ -150,6 +150,6 @@ final class UnitController extends Controller
             return __('Unit complete. Your review backlog is full, so its cards will be added once you have caught up.');
         }
 
-        return __('Unit complete. :enrolled cards added, :deferred held back until you have cleared more reviews.', ['enrolled' => $enrolled, 'deferred' => $deferred]);
+        return trans_choice('Unit complete. :enrolled cards added, :deferred held back until you have cleared more reviews.', $enrolled, ['enrolled' => $enrolled, 'deferred' => $deferred]);
     }
 }

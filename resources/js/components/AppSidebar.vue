@@ -17,10 +17,10 @@ import {
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppLogo from '@/components/AppLogo.vue';
+import AppSidebarRoot from '@/components/AppSidebarRoot.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
-    Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
@@ -76,7 +76,7 @@ const practiceNavItems = computed<NavItem[]>(() => [
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <AppSidebarRoot collapsible="icon" variant="inset">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -97,6 +97,6 @@ const practiceNavItems = computed<NavItem[]>(() => [
         <SidebarFooter>
             <NavUser />
         </SidebarFooter>
-    </Sidebar>
+    </AppSidebarRoot>
     <slot />
 </template>

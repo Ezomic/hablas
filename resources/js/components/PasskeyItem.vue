@@ -2,11 +2,11 @@
 import { KeyRound, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppDialogContent from '@/components/AppDialogContent.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
-    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogTitle,
@@ -84,7 +84,7 @@ const handleDelete = () => {
                 </Button>
             </DialogTrigger>
 
-            <DialogContent>
+            <AppDialogContent>
                 <DialogTitle>{{
                     t('settings.passkeys.removeTitle')
                 }}</DialogTitle>
@@ -113,7 +113,7 @@ const handleDelete = () => {
                         }}
                     </Button>
                 </DialogFooter>
-            </DialogContent>
+            </AppDialogContent>
         </Dialog>
     </div>
 </template>

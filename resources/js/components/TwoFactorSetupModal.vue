@@ -5,11 +5,12 @@ import { useClipboard } from '@vueuse/core';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AlertError from '@/components/AlertError.vue';
+import AppDialogContent from '@/components/AppDialogContent.vue';
+import AppSpinner from '@/components/AppSpinner.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
-    DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
@@ -19,7 +20,6 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/composables/useAppearance';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import { confirm } from '@/routes/two-factor';
@@ -111,7 +111,7 @@ watch(
 
 <template>
     <Dialog :open="isOpen" @update:open="isOpen = $event">
-        <DialogContent class="sm:max-w-md">
+        <AppDialogContent class="sm:max-w-md">
             <DialogHeader class="flex items-center justify-center">
                 <div
                     class="mb-3 w-auto rounded-full border border-border bg-card p-0.5 shadow-sm"
@@ -164,7 +164,7 @@ watch(
                                     v-if="!qrCodeSvg"
                                     class="absolute inset-0 z-10 flex aspect-square h-auto w-full animate-pulse items-center justify-center bg-background"
                                 >
-                                    <Spinner class="size-6" />
+                                    <AppSpinner class="size-6" />
                                 </div>
                                 <div
                                     v-else
@@ -211,7 +211,7 @@ watch(
                                     v-if="!manualSetupKey"
                                     class="flex h-full w-full items-center justify-center bg-muted p-3"
                                 >
-                                    <Spinner />
+                                    <AppSpinner />
                                 </div>
                                 <template v-else>
                                     <input
@@ -293,6 +293,6 @@ watch(
                     </Form>
                 </template>
             </div>
-        </DialogContent>
+        </AppDialogContent>
     </Dialog>
 </template>

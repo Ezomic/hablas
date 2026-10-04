@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { skillKeys, skillLabel } from '@/lib/skillLabels';
 import { index, store } from '@/routes/reflections';
@@ -93,7 +93,7 @@ function submit() {
             </div>
 
             <Button type="submit" :disabled="form.processing">
-                <Spinner v-if="form.processing" />
+                <AppSpinner v-if="form.processing" />
                 {{ t('reflections.submit') }}
             </Button>
         </form>

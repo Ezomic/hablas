@@ -96,6 +96,6 @@ describe('dashboard', () => {
         setLocale('nl');
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.text()).toContain('Start herhaling');
+        expect(wrapper.text()).toContain('Begin met herhalen');
     });
 });

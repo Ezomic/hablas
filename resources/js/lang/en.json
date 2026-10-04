@@ -15,7 +15,10 @@
         "next": "Next",
         "reviewNow": "Review now",
         "noActiveLanguage": "No active language yet.",
-        "days": "{count} day | {count} days"
+        "days": "{count} day | {count} days",
+        "loading": "Loading",
+        "notifications": "Notifications",
+        "closeNotification": "Close toast"
     },
     "nav": {
         "settings": "Settings",
@@ -35,6 +38,9 @@
         "pronunciationDrills": "Pronunciation drills",
         "weeklyReflection": "Weekly reflection",
         "toggleSidebar": "Toggle sidebar",
+        "sidebar": "Sidebar",
+        "sidebarDescription": "Displays the mobile sidebar.",
+        "breadcrumb": "breadcrumb",
         "navigationMenu": "Navigation menu",
         "repository": "Repository",
         "documentation": "Documentation"
@@ -822,7 +828,9 @@
         "wordsMastered": "Words mastered",
         "masteredCount": "{mastered} of {total} mastered",
         "heldBack": "Clear your reviews first, then start this unit.",
-        "skippedBoth": "Skipped listening in {listening} and speaking in {speaking} exercises.",
+        "skippedBoth": "Skipped {listening} and {speaking} exercises.",
+        "skippedListeningPart": "listening in {count} | listening in {count}",
+        "skippedSpeakingPart": "speaking in {count} | speaking in {count}",
         "skippedListening": "Skipped listening in {listening} exercises. | Skipped listening in {listening} exercises.",
         "skippedSpeaking": "Skipped speaking in {speaking} exercises. | Skipped speaking in {speaking} exercises.",
         "continue": "Continue",

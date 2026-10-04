@@ -321,3 +321,14 @@ it('names the Dutch attribute of every wildcard field', function (array $data, s
     'statements' => [['statement_ids' => [null]], 'statement_ids.*', 'Uitspraak is verplicht.'],
     'interests' => [['interest_tags' => [null]], 'interest_tags.*', 'Interesse is verplicht.'],
 ]);
+
+it('pluralises the partly held back unit message in Dutch and keeps the English text', function (int $enrolled, string $dutch): void {
+    $key = 'Unit complete. :enrolled cards added, :deferred held back until you have cleared more reviews.';
+
+    expect(renderedIn('nl', fn () => trans_choice($key, $enrolled, ['enrolled' => $enrolled, 'deferred' => 3])))->toBe($dutch)
+        ->and(renderedIn('en', fn () => trans_choice($key, $enrolled, ['enrolled' => $enrolled, 'deferred' => 3])))
+        ->toBe("Unit complete. {$enrolled} cards added, 3 held back until you have cleared more reviews.");
+})->with([
+    'one' => [1, 'Eenheid afgerond. 1 kaart toegevoegd, 3 achtergehouden tot je meer herhalingen hebt gedaan.'],
+    'many' => [2, 'Eenheid afgerond. 2 kaarten toegevoegd, 3 achtergehouden tot je meer herhalingen hebt gedaan.'],
+]);

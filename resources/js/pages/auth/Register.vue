@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import AppSpinner from '@/components/AppSpinner.vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { useLayoutText } from '@/composables/useLayoutText';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
@@ -67,7 +67,7 @@ useLayoutText(() => ({
                 :disabled="processing"
                 data-test="register-user-button"
             >
-                <Spinner v-if="processing" />
+                <AppSpinner v-if="processing" />
                 {{ $t('common.createAccount') }}
             </Button>
         </div>
