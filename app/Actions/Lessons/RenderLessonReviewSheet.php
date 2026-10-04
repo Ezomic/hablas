@@ -38,7 +38,7 @@ final class RenderLessonReviewSheet
             "Language: {$content->languageCode()}. Unit: {$unit->slug}. Level: {$unit->cefr_level->value}.",
             '',
             "Task: {$unit->task_description}",
-            ...($forOwner ? [''] : $this->checklist()),
+            ...($forOwner ? [''] : $this->checklist($content->languageCode())),
             '## Words',
             '',
             '| Term | Part of speech | Gloss | Recall cue | Also accepted | Forms | Common gender |',
@@ -72,8 +72,27 @@ final class RenderLessonReviewSheet
     }
 
     /** @return list<string> */
-    private function checklist(): array
+    private function checklist(string $language): array
     {
+        if ($language === 'pt') {
+            return [
+                '',
+                '## Checklist for the reviewer',
+                '',
+                '- Grammar: every Portuguese sentence is correct, and natural in Portugal.',
+                '- Level: A1, present tense, only the unit words, the core words and the glossed words.',
+                '- Accepted answers: nothing right is missing (dropped subject, free word order, tu and o senhor, synonyms, obrigado and obrigada) and nothing wrong is accepted.',
+                '- Distractors: no wrong option or tile is also a correct answer.',
+                '- Gender and article: every noun has the right article, and the common-gender noun accepts both.',
+                '- European, not Brazilian: no Brazilian word, spelling (1990 agreement as written in Portugal) or form; "estar a" plus the infinitive, never the gerund.',
+                '- Pronoun position: the clitic after the verb in a plain sentence (chamo-me), before it after não, nunca, já, também, que and similar words.',
+                '- Portuñol: no Spanish word or form is accepted, and every contrast item has exactly one right answer whose why-note is true.',
+                '- Dictations: no word that can be heard two ways (há, à, a; cem, sem) without a context that settles it.',
+                '- Keyword slots and required words: every right spoken or written answer is covered.',
+                '',
+            ];
+        }
+
         return [
             '',
             '## Checklist for the reviewer',

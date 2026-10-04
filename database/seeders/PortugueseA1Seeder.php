@@ -19,14 +19,19 @@ use Illuminate\Database\Seeder;
 /**
  * Seeds Portuguese A1 content mirroring SpanishA1Seeder's 8 units topic-for-topic,
  * so the app's contrastive mode can point at a matching Spanish unit for every
- * Portuguese one. AI-drafted; needs a human review pass — including a
+ * Portuguese one. AI-drafted; needs a human review pass, including a
  * native/near-native Portuguese speaker's review of the contrast_note claims
  * specifically (false-friend and gender-flip claims are easy to get subtly
- * wrong) — before being treated as authoritative teaching material, per the
+ * wrong), before being treated as authoritative teaching material, per the
  * content-sourcing pipeline in the Feature Brainstorm doc (category 6).
  */
 class PortugueseA1Seeder extends Seeder
 {
+    /** @var array<string, array<string, string>> corrected terms by unit slug, applied in place so a word keeps its id */
+    private const RENAMES = [
+        'checking-into-a-hotel' => ['o recepcionista' => 'o rececionista'],
+    ];
+
     /**
      * Run the database seeds.
      */
@@ -49,6 +54,8 @@ class PortugueseA1Seeder extends Seeder
                 ],
             );
 
+            $this->rename($portuguese, $unit);
+
             foreach ($definition['vocabulary'] as $vocabulary) {
                 VocabularyItem::query()->updateOrCreate(
                     ['language_id' => $portuguese->id, 'unit_id' => $unit->id, 'term' => $vocabulary['term']],
@@ -67,6 +74,17 @@ class PortugueseA1Seeder extends Seeder
                 UnitInterestTag::query()->updateOrCreate(
                     ['unit_id' => $unit->id, 'interest_tag' => $interestTag],
                 );
+            }
+        }
+    }
+
+    private function rename(Language $language, Unit $unit): void
+    {
+        foreach (self::RENAMES[$unit->slug] ?? [] as $old => $new) {
+            $scope = VocabularyItem::query()->where('language_id', $language->id)->where('unit_id', $unit->id);
+
+            if (! (clone $scope)->where('term', $new)->exists()) {
+                $scope->where('term', $old)->update(['term' => $new]);
             }
         }
     }
@@ -95,7 +113,7 @@ class PortugueseA1Seeder extends Seeder
                 'primary_skill' => Skill::Speaking,
                 'secondary_skill' => Skill::Listening,
                 'task_description' => 'Introduce yourself to someone new and greet people appropriately at different times of day.',
-                'contrast_note' => 'Portuguese nasalizes vowels (não, mãe, ...) in a way Spanish never does — listen for the nasal hum on ão/ãe endings, not just the letters.',
+                'contrast_note' => 'Portuguese has nasal vowels (não, mãe, irmão) that Spanish does not have: listen for the nasal hum on the ão and ãe endings, not just the letters.',
                 'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'olá', 'translation_en' => 'hello', 'is_cognate' => false, 'part_of_speech' => 'interjection'],
@@ -103,7 +121,7 @@ class PortugueseA1Seeder extends Seeder
                     ['term' => 'boa tarde', 'translation_en' => 'good afternoon', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'boa noite', 'translation_en' => 'good evening / good night', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'adeus', 'translation_en' => 'goodbye', 'is_cognate' => false, 'part_of_speech' => 'interjection'],
-                    ['term' => 'chamo-me', 'translation_en' => 'my name is', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "The reflexive pronoun comes after the verb here (chamo-me), unlike Spanish's 'me llamo' where it comes first — see the daily-routine unit for more on this word-order difference."],
+                    ['term' => 'chamo-me', 'translation_en' => 'my name is', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "In Portugal the pronoun comes after the verb (chamo-me), where Spanish puts it first (me llamo). 'Me chamo' is the Brazilian order."],
                     ['term' => 'muito prazer', 'translation_en' => 'nice to meet you', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'como estás?', 'translation_en' => 'how are you?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'bem', 'translation_en' => 'well / fine', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
@@ -112,7 +130,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Subject pronouns and ser for identity',
-                        'explanation' => 'Portuguese keeps the same ser/estar split as Spanish almost unchanged: ser for identity and origin (sou, és, é, somos, sois, são) versus estar for location and temporary states. If ser/estar already feels natural from Spanish, it transfers directly here — this is one of the easiest parts of the whole language for a Spanish speaker.',
+                        'explanation' => "Portuguese keeps the ser and estar split of Spanish: ser for identity and origin (sou, és, é, somos, são), estar for location and temporary states. The verbs transfer almost directly from Spanish, but the forms differ (soy is sou, eres is és, son is são). With friends you say tu (és), politely you say o senhor or a senhora (é), and for more than one person vocês (são). Portuguese drops the subject pronoun too: 'Sou a Ana' is more natural than 'Eu sou a Ana'.",
                         'error_tag_category' => null,
                     ],
                 ],
@@ -124,7 +142,7 @@ class PortugueseA1Seeder extends Seeder
                 'primary_skill' => Skill::Listening,
                 'secondary_skill' => Skill::Reading,
                 'task_description' => 'Understand airport announcements, signs, and basic travel vocabulary.',
-                'contrast_note' => 'Grammatical gender mostly matches Spanish word-for-word for shared-root vocabulary (o aeroporto/el aeropuerto, a mala/la maleta) — but don\'t assume it always does; later units flag real exceptions.',
+                'contrast_note' => 'Grammatical gender mostly matches Spanish word for word for shared-root vocabulary (o aeroporto and el aeropuerto, a mala and la maleta), but do not assume it always does: later units flag real exceptions.',
                 'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'o aeroporto', 'translation_en' => 'airport', 'is_cognate' => true, 'part_of_speech' => 'noun'],
@@ -132,7 +150,7 @@ class PortugueseA1Seeder extends Seeder
                     ['term' => 'a mala', 'translation_en' => 'suitcase', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'o passaporte', 'translation_en' => 'passport', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'a porta', 'translation_en' => 'gate / door', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'a saída', 'translation_en' => 'departure / exit', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Same word family as Spanish 'la salida' — note the accent shift to í, and the gender still matches (feminine)."],
+                    ['term' => 'a saída', 'translation_en' => 'exit', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Same word family as Spanish 'la salida', with an accent on the í, and the gender still matches (feminine). On a Portuguese airport board, departures read 'Partidas' and arrivals read 'Chegadas'; 'saída' is the way out."],
                     ['term' => 'a chegada', 'translation_en' => 'arrival', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'o bilhete', 'translation_en' => 'ticket', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'atrasado', 'translation_en' => 'delayed', 'is_cognate' => false, 'part_of_speech' => 'adjective'],
@@ -141,7 +159,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Grammatical gender: o / a',
-                        'explanation' => "Portuguese keeps the same masculine/feminine noun system as Spanish, and for most shared-root words the gender carries straight over: el vuelo → o voo (both masculine), la maleta → a mala (both feminine). The article changes shape (el/la → o/a) but the underlying pattern is the same one already learned for Spanish. Watch for the exceptions flagged later, though — the gender doesn't always match.",
+                        'explanation' => 'Portuguese keeps the same masculine and feminine noun system as Spanish, and for most shared-root words the gender carries straight over: el vuelo is o voo (both masculine), la maleta is a mala (both feminine). The article changes shape (el and la become o and a) but the pattern is the one already learned for Spanish. Watch for the exceptions flagged later, though: the gender does not always match (a cor is feminine, el color is masculine).',
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
@@ -157,10 +175,10 @@ class PortugueseA1Seeder extends Seeder
                 'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'o hotel', 'translation_en' => 'hotel', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'o quarto', 'translation_en' => 'room', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Gender flip from Spanish: 'o quarto' is masculine, but the Spanish equivalent 'la habitación' is feminine — don't carry the Spanish gender over here."],
+                    ['term' => 'o quarto', 'translation_en' => 'room', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "'O quarto' is masculine. Spanish 'la habitación' is feminine, but Spanish 'el cuarto' is masculine too, so link the gender to the word quarto, not to the idea of a room."],
                     ['term' => 'a reserva', 'translation_en' => 'reservation', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'a chave', 'translation_en' => 'key', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'o recepcionista', 'translation_en' => 'receptionist', 'is_cognate' => true, 'part_of_speech' => 'noun'],
+                    ['term' => 'o rececionista', 'translation_en' => 'receptionist', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'disponível', 'translation_en' => 'available', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
                     ['term' => 'a noite', 'translation_en' => 'night', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'a casa de banho', 'translation_en' => 'bathroom', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -170,7 +188,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Estar for location and temporary states',
-                        'explanation' => "Estar (estou, estás, está, estamos, estais, estão) covers location and temporary states here exactly as it does in Spanish — 'O hotel está perto' works the same way as 'El hotel está cerca'. Like ser in the greetings unit, this is one of the parts of Portuguese that transfers almost unchanged from Spanish.",
+                        'explanation' => "Estar (estou, estás, está, estamos, estão) covers location and temporary states here as it does in Spanish: 'O hotel está perto' works like 'El hotel está cerca'. The trap is the other verb: ser describes what something is like ('O quarto é grande'), and Portuguese says 'estar a' plus the infinitive for what is happening now ('Estou a ler', not 'Estou lendo'). Like ser in the greetings unit, this transfers almost unchanged from Spanish.",
                         'error_tag_category' => null,
                     ],
                 ],
@@ -186,10 +204,10 @@ class PortugueseA1Seeder extends Seeder
                 'interest_tags' => [InterestTag::Food, InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'o restaurante', 'translation_en' => 'restaurant', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'a ementa', 'translation_en' => 'menu', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Different word from Spanish 'el menú' — 'ementa' is the native Portuguese term for a restaurant menu, though 'menu' is also understood."],
+                    ['term' => 'a ementa', 'translation_en' => 'menu', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Different word from Spanish 'el menú': 'ementa' is the Portuguese word for the list of dishes, and 'o menu' is also used in Portugal, so both are accepted here."],
                     ['term' => 'a conta', 'translation_en' => 'bill / check', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'queria', 'translation_en' => 'I would like', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
-                    ['term' => 'o copo', 'translation_en' => 'glass', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "False friend risk: looks like Spanish 'la copa', but 'copa' in Portuguese means 'trophy' (or a stemmed glass) — a plain drinking glass is 'o copo'."],
+                    ['term' => 'o copo', 'translation_en' => 'glass', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "False friend risk: it looks like Spanish 'la copa', but 'o copo' is the plain drinking glass in Portuguese. A trophy is 'a taça' in Portugal."],
                     ['term' => 'para comer', 'translation_en' => 'to eat', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'o empregado', 'translation_en' => 'waiter', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'delicioso', 'translation_en' => 'delicious', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
@@ -199,7 +217,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Present tense of -ar verbs',
-                        'explanation' => 'Regular -ar verbs like falar (to speak) and tomar (to take/have) conjugate falo, falas, fala, falamos, falais, falam — the same pattern shape as Spanish hablar (hablo, hablas, habla...), just with Portuguese\'s own vowel sounds.',
+                        'explanation' => 'Regular -ar verbs like falar (to speak) and tomar (to take, to have) conjugate falo, falas, fala, falamos, falam: the same pattern as Spanish hablar (hablo, hablas, habla, hablamos, hablan), with the Portuguese vowel sounds. Everyday Portuguese leaves out the vós form, so "you" in the plural is vocês falam.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -211,18 +229,18 @@ class PortugueseA1Seeder extends Seeder
                 'primary_skill' => Skill::Listening,
                 'secondary_skill' => Skill::Speaking,
                 'task_description' => 'Ask for and understand directions around a city.',
-                'contrast_note' => 'Several direction words are entirely different roots from Spanish (esquerda vs izquierda, perto vs cerca, longe vs lejos) — this unit carries more false-friend/interference risk than most, since the words are unrelated enough that a Portuñol slip (defaulting to the Spanish word) is common.',
+                'contrast_note' => 'Several direction words are entirely different roots from Spanish (esquerda and izquierda, perto and cerca, longe and lejos), so this unit carries more false-friend and interference risk than most: the words are unrelated enough that a Portuñol slip (defaulting to the Spanish word) is common.',
                 'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'a rua', 'translation_en' => 'street', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'a esquina', 'translation_en' => 'corner', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'à direita', 'translation_en' => 'to the right', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
-                    ['term' => 'à esquerda', 'translation_en' => 'to the left', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Completely different root from Spanish 'izquierda' — a classic Portuñol slip is defaulting to the Spanish word here."],
+                    ['term' => 'à esquerda', 'translation_en' => 'to the left', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Completely different root from Spanish 'izquierda': a classic Portuñol slip is defaulting to the Spanish word here."],
                     ['term' => 'sempre em frente', 'translation_en' => 'straight ahead', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'perto', 'translation_en' => 'near', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'longe', 'translation_en' => 'far', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'o mapa', 'translation_en' => 'map', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'onde fica...?', 'translation_en' => 'where is...?', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese commonly asks for a location with 'ficar' (to be located) rather than 'estar', unlike Spanish's '¿dónde está...?' — both are understood, but 'fica' sounds more native."],
+                    ['term' => 'onde fica...?', 'translation_en' => 'where is...?', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese commonly asks for a location with 'ficar' (to be located) rather than 'estar', unlike Spanish '¿dónde está...?'. Both are understood and both are accepted here, but 'fica' sounds more native."],
                     ['term' => 'a praça', 'translation_en' => 'square / plaza', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                 ],
                 'grammar' => [
@@ -245,7 +263,7 @@ class PortugueseA1Seeder extends Seeder
                 'vocabulary' => [
                     ['term' => 'a roupa', 'translation_en' => 'clothing', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'a camisa', 'translation_en' => 'shirt', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'as calças', 'translation_en' => 'pants', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Different word and gender from Spanish 'los pantalones' (masculine) — Portuguese 'calças' is feminine."],
+                    ['term' => 'as calças', 'translation_en' => 'trousers', 'is_cognate' => false, 'part_of_speech' => 'noun', 'contrast_note' => "Different word and gender from Spanish 'los pantalones' (masculine): Portuguese 'calças' is feminine and plural, and 'as calças' is the usual word for trousers in Portugal."],
                     ['term' => 'o preço', 'translation_en' => 'price', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'o tamanho', 'translation_en' => 'size', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'a cor', 'translation_en' => 'color', 'is_cognate' => true, 'part_of_speech' => 'noun', 'contrast_note' => "Gender flip from Spanish: 'a cor' is feminine, but 'el color' is masculine in Spanish."],
@@ -257,7 +275,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Adjective agreement (gender and number)',
-                        'explanation' => "The agreement rule itself transfers directly from Spanish — adjectives still match gender and number ('a camisa cara', 'as camisas caras'). What doesn't always transfer is the gender of the noun being described, as 'a cor' above shows, so agreement mistakes in Portuguese are often really gender mistakes carried over from Spanish.",
+                        'explanation' => "The agreement rule itself transfers directly from Spanish: adjectives still match gender and number ('a camisa cara', 'as camisas caras'). What does not always transfer is the gender of the noun being described, as 'a cor' shows, so agreement mistakes in Portuguese are often really gender mistakes carried over from Spanish.",
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
@@ -281,12 +299,12 @@ class PortugueseA1Seeder extends Seeder
                     ['term' => 'os avós', 'translation_en' => 'grandparents', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'casado', 'translation_en' => 'married', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
                     ['term' => 'solteiro', 'translation_en' => 'single', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
-                    ['term' => 'mais velho', 'translation_en' => 'older', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese uses the comparative phrase 'mais velho' (more old) rather than a single adjective like Spanish 'mayor'."],
+                    ['term' => 'mais velho', 'translation_en' => 'older', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese says 'mais velho' (more old) where Spanish has the single adjective 'mayor'. Do not use 'maior' for older: Portuguese 'maior' means bigger."],
                 ],
                 'grammar' => [
                     [
                         'title' => 'Possessive adjectives with an article (o meu, a tua, o seu)',
-                        'explanation' => "Portuguese possessives normally keep the article: 'o meu irmão', 'a minha irmã' — unlike Spanish, which drops it ('mi hermano', not 'el mi hermano'). Dropping the article out of habit from Spanish is one of the most common Portuñol slips at this level.",
+                        'explanation' => "Portuguese possessives normally keep the article: 'o meu irmão', 'a minha irmã', unlike Spanish, which drops it ('mi hermano', not 'el mi hermano'). The possessive also agrees with the thing owned, not the owner: meu, minha, meus, minhas. The article is the usual form in Portugal, so dropping it out of habit from Spanish is a common Portuñol slip at this level.",
                         'error_tag_category' => ErrorTagCategory::PortunolSlip,
                     ],
                 ],
@@ -298,7 +316,7 @@ class PortugueseA1Seeder extends Seeder
                 'primary_skill' => Skill::Writing,
                 'secondary_skill' => Skill::Speaking,
                 'task_description' => 'Describe your daily routine using reflexive verbs and time expressions.',
-                'contrast_note' => 'Portuguese often drops the reflexive pronoun where Spanish keeps it (acordar vs. despertarse, tomar duche vs. ducharse), and when it is reflexive, the pronoun usually comes after the verb in the affirmative present tense — see the grammar point below.',
+                'contrast_note' => 'Portuguese often drops the reflexive pronoun where Spanish keeps it (acordar and despertarse, tomar duche and ducharse), and when a verb is reflexive the pronoun usually comes after it in the affirmative present, except after words such as não, nunca, já and também: see the grammar point below.',
                 'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'levantar-se', 'translation_en' => 'to get up', 'is_cognate' => false, 'part_of_speech' => 'verb', 'contrast_note' => "Reflexive pronoun placement flips from Spanish: 'levanto-me' (pronoun after the verb) versus Spanish's 'me levanto' (pronoun first)."],
@@ -315,7 +333,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Reflexive verbs and pronoun position',
-                        'explanation' => "In the affirmative present tense, Portuguese usually puts the reflexive pronoun after the verb and hyphenates it — 'levanto-me', 'deito-me' — the mirror image of Spanish's 'me levanto', 'me acuesto'. Portuguese also uses non-reflexive phrasing in several places Spanish uses a reflexive verb (acordar vs. despertarse, tomar duche vs. ducharse), so don't assume every Spanish reflexive verb has a reflexive Portuguese equivalent.",
+                        'explanation' => "In an affirmative sentence, Portuguese usually puts the reflexive pronoun after the verb and joins it with a hyphen: 'levanto-me', 'deito-me', the mirror image of Spanish 'me levanto', 'me acuesto'. After a word such as não, nunca, já, também or que, the pronoun goes before the verb: 'não me levanto', 'também me deito cedo'. Portuguese also uses non-reflexive phrasing in several places where Spanish uses a reflexive verb (acordar and despertarse, tomar duche and ducharse), so do not assume every Spanish reflexive verb has a reflexive Portuguese equivalent.",
                         'error_tag_category' => ErrorTagCategory::PortunolSlip,
                     ],
                 ],
