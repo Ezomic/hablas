@@ -18,7 +18,6 @@ final class AuthoredExercises
     private const PRONOUNS = [
         'es' => ['yo', 'tú', 'él', 'ella', 'usted', 'nosotros', 'nosotras', 'vosotros', 'vosotras', 'ellos', 'ellas', 'ustedes'],
         'pt' => ['eu', 'tu', 'ele', 'ela', 'você', 'nós', 'vós', 'eles', 'elas', 'vocês'],
-        'fr' => ['je', 'j', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles'],
         'it' => ['io', 'tu', 'lui', 'lei', 'noi', 'voi', 'loro'],
     ];
 

@@ -29,7 +29,7 @@ final class FrenchTextNormalizer extends AccentFoldingTextNormalizer
      */
     public function articles(): array
     {
-        return ['le', 'la', 'les', 'un', 'une', 'des', 'du'];
+        return ['l', 'le', 'la', 'les', 'un', 'une', 'des', 'du'];
     }
 
     /**

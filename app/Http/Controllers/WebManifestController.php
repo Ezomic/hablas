@@ -18,7 +18,7 @@ final class WebManifestController extends Controller
             'id' => self::ID,
             'name' => 'Hablas',
             'short_name' => 'Hablas',
-            'description' => 'Spanish/Portuguese learning app',
+            'description' => 'Language learning app',
             'start_url' => self::START_URL,
             'scope' => '/',
             'display' => 'standalone',

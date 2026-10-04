@@ -25,3 +25,11 @@ it('splits elided words on the apostrophe', function () {
     expect((new FrenchTextNormalizer)->answerKey("J'ai l'eau"))->toBe('j ai l eau')
         ->and((new ItalianTextNormalizer)->answerKey('L’italiano'))->toBe('l italiano');
 });
+
+it('sorts elided nouns under the noun and searches oe for the ligature', function () {
+    $french = new FrenchTextNormalizer;
+
+    expect($french->sortKey("l'eau"))->toBe('eau')
+        ->and((new ItalianTextNormalizer)->sortKey("l'amico"))->toBe('amico')
+        ->and($french->searchKey('sœur'))->toBe($french->searchKey('soeur'));
+});

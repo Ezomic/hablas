@@ -17,7 +17,7 @@ use Normalizer;
 abstract class AccentFoldingTextNormalizer implements TextNormalizer
 {
     /** @var array<string, string> */
-    private const SEARCH_ONLY_FOLDS = ['ñ' => 'n', 'ç' => 'c', 'ã' => 'a', 'õ' => 'o'];
+    private const SEARCH_ONLY_FOLDS = ['ñ' => 'n', 'ç' => 'c', 'ã' => 'a', 'õ' => 'o', 'œ' => 'oe'];
 
     /**
      * @return array<string, string>

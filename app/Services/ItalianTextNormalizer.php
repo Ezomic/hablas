@@ -21,7 +21,7 @@ final class ItalianTextNormalizer extends AccentFoldingTextNormalizer
      */
     public function articles(): array
     {
-        return ['il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una'];
+        return ['l', 'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una'];
     }
 
     /**
