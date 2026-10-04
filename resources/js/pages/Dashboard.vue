@@ -18,8 +18,9 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { pluralizeDays } from '@/lib/pluralize';
-import { skillLabels } from '@/lib/skillLabels';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
+import { joinList } from '@/lib/intlLocale';
+import { skillKeys, skillLabel } from '@/lib/skillLabels';
 import { dashboard } from '@/routes';
 import { activatePortuguese } from '@/routes/language';
 import { show as showRun } from '@/routes/lesson-runs';
@@ -98,34 +99,21 @@ function activatePortugueseTrack() {
     router.post(activatePortuguese().url);
 }
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Dashboard',
-                href: dashboard(),
-            },
-        ],
-    },
-});
+useBreadcrumbs(() => [{ title: t('nav.dashboard'), href: dashboard() }]);
 
 const breakdownOpen = ref(false);
 
 const ceilingSkills = computed(() => props.blendedLevelCeiling ?? []);
 
-const ceilingSkillNames = computed(() => {
-    const names = ceilingSkills.value.map((skill) =>
-        (skillLabels[skill] ?? skill).toLowerCase(),
-    );
-
-    return names.length > 1
-        ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
-        : (names[0] ?? '');
-});
+const ceilingSkillNames = computed(() =>
+    joinList(
+        ceilingSkills.value.map((skill) => skillLabel(skill).toLowerCase()),
+    ),
+);
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="t('nav.dashboard')" />
 
     <div class="flex h-full flex-1 flex-col gap-4 p-4">
         <Card v-if="props.language">
@@ -141,15 +129,18 @@ const ceilingSkillNames = computed(() => {
                     class="mb-4 flex flex-col gap-3 text-sm text-muted-foreground"
                 >
                     <p v-if="ceilingSkills.length === 1">
-                        Your overall level is held by {{ ceilingSkillNames }}.
-                        Practice {{ ceilingSkillNames }} to move it, or re-take
-                        the {{ ceilingSkillNames }} placement if that level
-                        looks wrong.
+                        {{
+                            t('dashboard.ceiling.one', {
+                                skill: ceilingSkillNames,
+                            })
+                        }}
                     </p>
                     <p v-else>
-                        Your overall level is held by {{ ceilingSkillNames }}.
-                        Practice them to move it, or re-take a placement if one
-                        of those levels looks wrong.
+                        {{
+                            t('dashboard.ceiling.many', {
+                                skills: ceilingSkillNames,
+                            })
+                        }}
                     </p>
                     <div class="flex flex-wrap gap-3">
                         <RetakeSkillButton
@@ -166,7 +157,7 @@ const ceilingSkillNames = computed(() => {
                     <CollapsibleTrigger
                         class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                     >
-                        Per-skill breakdown
+                        {{ t('dashboard.breakdown') }}
                         <ChevronDown
                             class="size-4 transition-transform"
                             :class="{ 'rotate-180': breakdownOpen }"
@@ -174,11 +165,11 @@ const ceilingSkillNames = computed(() => {
                     </CollapsibleTrigger>
                     <CollapsibleContent class="mt-4 flex flex-col gap-2">
                         <div
-                            v-for="skill in Object.keys(skillLabels)"
+                            v-for="skill in skillKeys"
                             :key="skill"
                             class="flex items-center justify-between border-b pb-2 text-sm last:border-b-0"
                         >
-                            <span>{{ skillLabels[skill] }}</span>
+                            <span>{{ skillLabel(skill) }}</span>
                             <span class="font-medium">{{
                                 props.skillLevels?.[skill] ?? '—'
                             }}</span>
@@ -189,45 +180,49 @@ const ceilingSkillNames = computed(() => {
                     :href="placementResults().url"
                     class="mt-4 inline-block text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
                 >
-                    View placement results
+                    {{ t('dashboard.viewPlacement') }}
                 </Link>
             </CardContent>
         </Card>
 
-        <p v-else class="text-muted-foreground">No active language yet.</p>
+        <p v-else class="text-muted-foreground">
+            {{ t('common.noActiveLanguage') }}
+        </p>
 
         <Card v-if="props.canActivatePortuguese">
             <CardHeader>
-                <CardDescription>New language unlocked</CardDescription>
-                <CardTitle class="text-2xl"
-                    >Ready to start Portuguese?</CardTitle
-                >
+                <CardDescription>{{
+                    t('dashboard.portuguese.label')
+                }}</CardDescription>
+                <CardTitle class="text-2xl">{{
+                    t('dashboard.portuguese.title')
+                }}</CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    You've reached A2 in Spanish. Portuguese shares a lot with
-                    Spanish, but we'll flag the differences as you go.
+                    {{ t('dashboard.portuguese.body') }}
                 </p>
-                <Button @click="activatePortugueseTrack"
-                    >Start learning Portuguese</Button
-                >
+                <Button @click="activatePortugueseTrack">{{
+                    t('dashboard.portuguese.start')
+                }}</Button>
             </CardContent>
         </Card>
 
         <Card v-if="props.sessionNeedsRemediation">
             <CardHeader>
-                <CardDescription>Next up</CardDescription>
-                <CardTitle class="text-2xl"
-                    >Reinforce what's tricky first</CardTitle
-                >
+                <CardDescription>{{ t('dashboard.nextUp') }}</CardDescription>
+                <CardTitle class="text-2xl">{{
+                    t('dashboard.reinforce.title')
+                }}</CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    Your recent reviews have had a lot of misses — revisit those
-                    before starting something new.
+                    {{ t('dashboard.reinforce.body') }}
                 </p>
                 <Button as-child>
-                    <Link :href="reviewIndex().url">Review now</Link>
+                    <Link :href="reviewIndex().url">{{
+                        t('common.reviewNow')
+                    }}</Link>
                 </Button>
             </CardContent>
         </Card>
@@ -236,10 +231,10 @@ const ceilingSkillNames = computed(() => {
             <CardHeader>
                 <CardDescription>{{
                     props.nextUnit.lesson?.resumes
-                        ? 'Continue'
+                        ? t('dashboard.continue')
                         : props.sessionNeedsRemediation
-                          ? 'In progress'
-                          : 'Next up'
+                          ? t('dashboard.inProgress')
+                          : t('dashboard.nextUp')
                 }}</CardDescription>
                 <CardTitle class="text-2xl">{{
                     props.nextUnit.title
@@ -259,11 +254,17 @@ const ceilingSkillNames = computed(() => {
                     </template>
                     <template v-else-if="props.nextUnit.lesson">
                         {{
-                            props.nextUnit.lesson.resumes ? 'Continue' : 'Start'
+                            t(
+                                props.nextUnit.lesson.resumes
+                                    ? 'dashboard.continueLine'
+                                    : 'dashboard.startLine',
+                                {
+                                    number: props.nextUnit.lesson.number,
+                                    count: props.nextUnit.lesson.count,
+                                    title: props.nextUnit.lesson.title,
+                                },
+                            )
                         }}
-                        lesson {{ props.nextUnit.lesson.number }} of
-                        {{ props.nextUnit.lesson.count }}:
-                        {{ props.nextUnit.lesson.title }}
                     </template>
                     <template v-else>{{
                         props.nextUnit.taskDescription
@@ -279,14 +280,20 @@ const ceilingSkillNames = computed(() => {
                             : props.nextUnit.lesson.remediation === 'practice'
                               ? t('lesson.dashboard.practiceButton')
                               : props.nextUnit.lesson.resumes
-                                ? `Continue lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
-                                : `Start lesson ${props.nextUnit.lesson.number} of ${props.nextUnit.lesson.count}`
+                                ? t('dashboard.continueButton', {
+                                      number: props.nextUnit.lesson.number,
+                                      count: props.nextUnit.lesson.count,
+                                  })
+                                : t('dashboard.startButton', {
+                                      number: props.nextUnit.lesson.number,
+                                      count: props.nextUnit.lesson.count,
+                                  })
                     }}
                 </Button>
                 <Button v-else as-child>
-                    <Link :href="showUnit(props.nextUnit.id).url"
-                        >Start unit</Link
-                    >
+                    <Link :href="showUnit(props.nextUnit.id).url">{{
+                        t('dashboard.startUnit')
+                    }}</Link>
                 </Button>
             </CardContent>
         </Card>
@@ -296,29 +303,37 @@ const ceilingSkillNames = computed(() => {
             :key="result.runId"
         >
             <CardHeader>
-                <CardDescription>Results are in</CardDescription>
-                <CardTitle class="text-2xl"
-                    >{{ result.unitTitle }}: {{ result.lessonTitle }}</CardTitle
-                >
+                <CardDescription>{{
+                    t('dashboard.results.label')
+                }}</CardDescription>
+                <CardTitle class="text-2xl">{{
+                    t('dashboard.results.title', {
+                        unit: result.unitTitle,
+                        lesson: result.lessonTitle,
+                    })
+                }}</CardTitle>
             </CardHeader>
             <CardContent>
                 <Button as-child variant="outline">
-                    <Link :href="showRun(result.runId).url">See results</Link>
+                    <Link :href="showRun(result.runId).url">{{
+                        t('dashboard.results.see')
+                    }}</Link>
                 </Button>
             </CardContent>
         </Card>
 
         <Card v-if="props.dueReviewCount">
             <CardHeader>
-                <CardDescription>Review</CardDescription>
+                <CardDescription>{{ t('nav.review') }}</CardDescription>
                 <CardTitle class="text-4xl">
-                    {{ props.dueReviewCount }}
-                    {{ props.dueReviewCount === 1 ? 'card' : 'cards' }} due
+                    {{ t('dashboard.cardsDue', props.dueReviewCount) }}
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <Button as-child>
-                    <Link :href="reviewIndex().url">Start review</Link>
+                    <Link :href="reviewIndex().url">{{
+                        t('dashboard.startReview')
+                    }}</Link>
                 </Button>
             </CardContent>
         </Card>
@@ -331,67 +346,74 @@ const ceilingSkillNames = computed(() => {
 
         <Card v-if="props.weakSpotReviewCount">
             <CardHeader>
-                <CardDescription>Weak spots</CardDescription>
+                <CardDescription>{{ t('nav.weakSpots') }}</CardDescription>
                 <CardTitle class="text-4xl">
-                    {{ props.weakSpotReviewCount }}
-                    {{ props.weakSpotReviewCount === 1 ? 'card' : 'cards' }} to
-                    revisit
+                    {{
+                        t(
+                            'dashboard.weakSpots.count',
+                            props.weakSpotReviewCount,
+                        )
+                    }}
                 </CardTitle>
             </CardHeader>
             <CardContent class="flex flex-col gap-4">
                 <p class="text-sm text-muted-foreground">
-                    Cards you've missed a few times in a row, set aside until
-                    you get them right once more.
+                    {{ t('dashboard.weakSpots.body') }}
                 </p>
                 <Button as-child variant="outline">
-                    <Link :href="weakSpotIndex().url">Review weak spots</Link>
+                    <Link :href="weakSpotIndex().url">{{
+                        t('dashboard.weakSpots.review')
+                    }}</Link>
                 </Button>
             </CardContent>
         </Card>
 
         <Card v-if="props.streak">
             <CardHeader>
-                <CardDescription>Streak</CardDescription>
+                <CardDescription>{{
+                    t('dashboard.streak.title')
+                }}</CardDescription>
                 <CardTitle class="text-4xl">
-                    {{ props.streak.currentLength }}
-                    {{ pluralizeDays(props.streak.currentLength) }}
+                    {{ t('common.days', props.streak.currentLength) }}
                 </CardTitle>
             </CardHeader>
             <CardContent
                 class="flex flex-col gap-1 text-sm text-muted-foreground"
             >
-                <span
-                    >Longest streak: {{ props.streak.longestLength }}
-                    {{ pluralizeDays(props.streak.longestLength) }}</span
-                >
-                <span
-                    >Freeze days remaining:
-                    {{ props.streak.freezeDaysRemaining }}</span
-                >
-                <span
-                    >A missed day uses a freeze day instead of breaking your
-                    streak.</span
-                >
-                <span v-if="props.streak.daysUntilNextFreezeDay !== null"
-                    >Earn one back in
-                    {{ props.streak.daysUntilNextFreezeDay }} more active
-                    {{
-                        pluralizeDays(props.streak.daysUntilNextFreezeDay)
-                    }}.</span
-                >
+                <span>{{
+                    t('dashboard.streak.longest', {
+                        days: t('common.days', props.streak.longestLength),
+                    })
+                }}</span>
+                <span>{{
+                    t('dashboard.streak.freezeDays', {
+                        count: props.streak.freezeDaysRemaining,
+                    })
+                }}</span>
+                <span>{{ t('dashboard.streak.freezeNote') }}</span>
+                <span v-if="props.streak.daysUntilNextFreezeDay !== null">{{
+                    t(
+                        'dashboard.streak.earnBack',
+                        props.streak.daysUntilNextFreezeDay,
+                    )
+                }}</span>
             </CardContent>
         </Card>
 
         <Card v-if="props.language">
             <CardHeader>
-                <CardDescription>Share</CardDescription>
-                <CardTitle class="text-2xl">Share your progress</CardTitle>
+                <CardDescription>{{
+                    t('dashboard.share.label')
+                }}</CardDescription>
+                <CardTitle class="text-2xl">{{
+                    t('progress.share.title')
+                }}</CardTitle>
             </CardHeader>
             <CardContent>
                 <Button as-child variant="outline">
-                    <Link :href="showProgressShare().url"
-                        >Get shareable link</Link
-                    >
+                    <Link :href="showProgressShare().url">{{
+                        t('dashboard.share.link')
+                    }}</Link>
                 </Button>
             </CardContent>
         </Card>

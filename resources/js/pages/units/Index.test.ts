@@ -5,6 +5,7 @@ import Index from './Index.vue';
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
     Link: {
         props: ['href'],
         template:

@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+import { setLocale } from '@/i18n';
 import type { ReviewCard } from '@/types/review';
 import ReviewDeck from './ReviewDeck.vue';
 import SpeakButton from './SpeakButton.vue';
@@ -988,5 +989,29 @@ describe('typed recall', () => {
         expect(input.element.value).toBe('');
         expect(document.activeElement).toBe(input.element);
         expect(wrapper.text()).not.toContain('Correct');
+    });
+});
+
+describe('review deck in Dutch', () => {
+    it('counts what is left in the interface language and marks the learned-language side', () => {
+        setLocale('nl');
+
+        const wrapper = mount(ReviewDeck, {
+            props: {
+                cards: [vocabularyCard(1), vocabularyCard(2)],
+                reviewUrl: (cardId: number) => `/review/${cardId}/reviews`,
+                answerUrl: (cardId: number) => `/review/${cardId}/answers`,
+                countNoun: 'weakSpot',
+                emptyMessage: 'Leeg.',
+                speechLocale: 'es-ES',
+            },
+            attachTo: document.body,
+        });
+
+        mounted.push(wrapper);
+
+        expect(wrapper.text()).toContain('2 zwakke punten over');
+        expect(wrapper.text()).toContain('Toon antwoord');
+        expect(wrapper.find('[lang="es-ES"]').text()).toBe('front 1');
     });
 });

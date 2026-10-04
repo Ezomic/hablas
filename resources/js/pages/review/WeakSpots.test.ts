@@ -6,6 +6,7 @@ import WeakSpots from './WeakSpots.vue';
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
 }));
 
 vi.mock('@/routes/review/weak-spots/reviews', () => ({
@@ -53,7 +54,7 @@ describe('weak spots page', () => {
     it('labels the deck for weak spots', () => {
         const deck = mountPage([card]).findComponent(ReviewDeck);
 
-        expect(deck.props('countNoun')).toBe('weak spot');
+        expect(deck.props('countNoun')).toBe('weakSpot');
         expect(deck.props('emptyMessage')).toContain('No weak spots');
     });
 

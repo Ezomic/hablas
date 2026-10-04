@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Lock } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { BadgeVariants } from '@/components/ui/badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { skillLabels } from '@/lib/skillLabels';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
+import { skillKeys, skillLabel } from '@/lib/skillLabels';
 import type { CompletionFilter } from '@/lib/unitLibrary';
 import { filterUnits, groupByLevel } from '@/lib/unitLibrary';
 import { index as reviewIndex } from '@/routes/review';
@@ -31,30 +33,20 @@ const props = defineProps<{
     units: LibraryUnit[];
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Units', href: index() }],
-    },
-});
+const { t } = useI18n();
 
-const skillOptions: Record<string, string> = {
-    all: 'All skills',
-    ...skillLabels,
-};
+useBreadcrumbs(() => [{ title: t('nav.units'), href: index() }]);
 
-const completionOptions: Record<CompletionFilter, string> = {
-    all: 'All units',
-    completed: 'Completed',
-    not_completed: 'Not completed',
-};
+const skillOptions = computed<Record<string, string>>(() => ({
+    all: t('units.filters.allSkills'),
+    ...Object.fromEntries(skillKeys.map((key) => [key, skillLabel(key)])),
+}));
 
-const availabilityLabels: Record<UnitAvailability, string> = {
-    completed: 'Completed',
-    in_progress: 'In progress',
-    available: 'Available',
-    held_back: 'After review',
-    locked: 'Locked',
-};
+const completionOptions = computed<Record<CompletionFilter, string>>(() => ({
+    all: t('units.filters.allUnits'),
+    completed: t('units.availability.completed'),
+    not_completed: t('units.filters.notCompleted'),
+}));
 
 const availabilityVariants: Record<UnitAvailability, BadgeVariants['variant']> =
     {
@@ -89,15 +81,18 @@ function opens(unit: LibraryUnit): boolean {
 
 function note(unit: LibraryUnit): string | null {
     if (unit.availability === 'in_progress' && unit.lessonCount > 0) {
-        return `Lesson ${Math.min(unit.lessonsCompleted + 1, unit.lessonCount)} of ${unit.lessonCount}`;
+        return t('units.notes.lesson', {
+            current: Math.min(unit.lessonsCompleted + 1, unit.lessonCount),
+            count: unit.lessonCount,
+        });
     }
 
     if (unit.availability === 'locked') {
-        return `Unlocks when your overall level reaches ${unit.cefrLevel}.`;
+        return t('units.notes.locked', { level: unit.cefrLevel });
     }
 
     if (unit.availability === 'held_back') {
-        return 'Opens once your recent reviews are back on track.';
+        return t('units.notes.heldBack');
     }
 
     return null;
@@ -105,29 +100,29 @@ function note(unit: LibraryUnit): string | null {
 </script>
 
 <template>
-    <Head title="Units" />
+    <Head :title="t('nav.units')" />
 
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4">
         <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-semibold">Units</h1>
+            <h1 class="text-2xl font-semibold">{{ t('nav.units') }}</h1>
             <p class="text-muted-foreground">
                 <template v-if="props.language">
-                    Every {{ props.language.name }} unit by level. Completed
-                    units stay open as a reference.
+                    {{ t('units.intro', { language: props.language.name }) }}
                 </template>
-                <template v-else>No active language yet.</template>
+                <template v-else>{{ t('common.noActiveLanguage') }}</template>
             </p>
         </div>
 
         <Card v-if="hasHeldBackUnits">
             <CardHeader>
-                <CardTitle>Reinforce what's tricky first</CardTitle>
+                <CardTitle>{{ t('units.reinforce.title') }}</CardTitle>
                 <CardDescription>
-                    Your recent reviews have had a lot of misses, so new units
-                    wait until you've revisited them.
+                    {{ t('units.reinforce.body') }}
                 </CardDescription>
                 <Button as-child class="mt-2 w-fit">
-                    <Link :href="reviewIndex()">Review now</Link>
+                    <Link :href="reviewIndex()">{{
+                        t('common.reviewNow')
+                    }}</Link>
                 </Button>
             </CardHeader>
         </Card>
@@ -137,7 +132,9 @@ function note(unit: LibraryUnit): string | null {
             class="grid gap-4 sm:grid-cols-2 sm:gap-6"
         >
             <div class="grid gap-2">
-                <Label for="unit-skill-filter">Skill</Label>
+                <Label for="unit-skill-filter">{{
+                    t('units.filters.skill')
+                }}</Label>
                 <Select v-model="skill">
                     <SelectTrigger id="unit-skill-filter" class="w-full">
                         <SelectValue />
@@ -155,7 +152,9 @@ function note(unit: LibraryUnit): string | null {
             </div>
 
             <div class="grid gap-2">
-                <Label for="unit-completion-filter">Progress</Label>
+                <Label for="unit-completion-filter">{{
+                    t('units.filters.progress')
+                }}</Label>
                 <Select v-model="completion">
                     <SelectTrigger id="unit-completion-filter" class="w-full">
                         <SelectValue />
@@ -177,13 +176,13 @@ function note(unit: LibraryUnit): string | null {
             v-if="props.language && !props.units.length"
             class="text-muted-foreground"
         >
-            No {{ props.language.name }} units yet.
+            {{ t('units.none', { language: props.language.name }) }}
         </p>
         <p
             v-else-if="props.units.length && !groups.length"
             class="text-muted-foreground"
         >
-            No units match these filters.
+            {{ t('units.noMatch') }}
         </p>
 
         <section
@@ -214,8 +213,7 @@ function note(unit: LibraryUnit): string | null {
                             <CardHeader class="gap-2 px-4">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <Badge variant="outline">{{
-                                        skillLabels[unit.primarySkill] ??
-                                        unit.primarySkill
+                                        skillLabel(unit.primarySkill)
                                     }}</Badge>
                                     <Badge
                                         :variant="
@@ -231,9 +229,9 @@ function note(unit: LibraryUnit): string | null {
                                             aria-hidden="true"
                                         />
                                         {{
-                                            availabilityLabels[
-                                                unit.availability
-                                            ]
+                                            t(
+                                                `units.availability.${unit.availability}`,
+                                            )
                                         }}
                                     </Badge>
                                 </div>

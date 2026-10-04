@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { useWebPush } from '@/composables/useWebPush';
 import { edit, update } from '@/routes/learning';
 import { update as updateInterests } from '@/routes/learning/interests';
@@ -36,45 +38,30 @@ const props = defineProps<{
     vapidPublicKey: string | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Learning settings', href: edit() }],
-    },
-});
+const { t } = useI18n();
 
-const notificationFrequencyLabels: Record<
-    Settings['notificationFrequency'],
-    string
-> = {
-    daily: 'Daily',
-    weekly: 'Weekly',
-    never: 'Never',
-};
+useBreadcrumbs(() => [
+    { title: t('settings.learning.headTitle'), href: edit() },
+]);
 
-const contextEmphasisLabels: Record<
-    'none' | NonNullable<Settings['contextEmphasis']>,
-    string
-> = {
-    none: 'No preference',
-    travel: 'Travel',
-    everyday_social: 'Everyday & social',
-    professional: 'Professional',
-};
+const notificationFrequencies: Settings['notificationFrequency'][] = [
+    'daily',
+    'weekly',
+    'never',
+];
 
-const reviewModeLabels: Record<Settings['reviewMode'], string> = {
-    recognition: 'Recognise: read, then reveal',
-    production: 'Produce: type the word',
-    mix: 'Mix',
-};
+const contextEmphases: ('none' | NonNullable<Settings['contextEmphasis']>)[] = [
+    'none',
+    'travel',
+    'everyday_social',
+    'professional',
+];
 
-const interestTagLabels: Record<InterestTag, string> = {
-    football: 'Football',
-    cooking: 'Cooking',
-    tech: 'Tech',
-    music: 'Music',
-    travel: 'Travel',
-    food: 'Food',
-};
+const reviewModes: Settings['reviewMode'][] = [
+    'recognition',
+    'production',
+    'mix',
+];
 
 const form = useForm({
     notification_frequency: props.settings.notificationFrequency,
@@ -151,18 +138,20 @@ async function togglePush(checked: boolean) {
 </script>
 
 <template>
-    <Head title="Learning settings" />
+    <Head :title="t('settings.learning.headTitle')" />
 
     <div class="flex flex-col space-y-6">
         <Heading
             variant="small"
-            title="Learning"
-            description="Control reminders, new-item pacing, and content focus"
+            :title="t('settings.nav.learning')"
+            :description="t('settings.learning.description')"
         />
 
         <form class="flex flex-col gap-6" @submit.prevent="submit">
             <div class="grid gap-2">
-                <Label for="notification_frequency">Reminder frequency</Label>
+                <Label for="notification_frequency">{{
+                    t('settings.learning.reminderFrequency')
+                }}</Label>
                 <Select v-model="form.notification_frequency">
                     <SelectTrigger
                         id="notification_frequency"
@@ -172,13 +161,11 @@ async function togglePush(checked: boolean) {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
-                            v-for="(
-                                label, value
-                            ) in notificationFrequencyLabels"
+                            v-for="value in notificationFrequencies"
                             :key="value"
                             :value="value"
                         >
-                            {{ label }}
+                            {{ t(`settings.learning.frequency.${value}`) }}
                         </SelectItem>
                     </SelectContent>
                 </Select>
@@ -186,9 +173,9 @@ async function togglePush(checked: boolean) {
             </div>
 
             <div class="grid gap-2">
-                <Label for="new_item_cap_override"
-                    >Daily new-item cap override</Label
-                >
+                <Label for="new_item_cap_override">{{
+                    t('settings.learning.capLabel')
+                }}</Label>
                 <Input
                     id="new_item_cap_override"
                     v-model="form.new_item_cap_override"
@@ -196,17 +183,18 @@ async function togglePush(checked: boolean) {
                     min="0"
                     max="100"
                     class="max-w-xs"
-                    placeholder="Adaptive (default)"
+                    :placeholder="t('settings.learning.capPlaceholder')"
                 />
                 <p class="text-sm text-muted-foreground">
-                    Leave blank to let the app adjust your daily new-item limit
-                    automatically based on your review backlog.
+                    {{ t('settings.learning.capNote') }}
                 </p>
                 <InputError :message="form.errors.new_item_cap_override" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="context_emphasis">Content focus</Label>
+                <Label for="context_emphasis">{{
+                    t('settings.learning.contentFocus')
+                }}</Label>
                 <Select v-model="form.context_emphasis">
                     <SelectTrigger
                         id="context_emphasis"
@@ -216,11 +204,11 @@ async function togglePush(checked: boolean) {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
-                            v-for="(label, value) in contextEmphasisLabels"
+                            v-for="value in contextEmphases"
                             :key="value"
                             :value="value"
                         >
-                            {{ label }}
+                            {{ t(`settings.learning.focus.${value}`) }}
                         </SelectItem>
                     </SelectContent>
                 </Select>
@@ -228,44 +216,43 @@ async function togglePush(checked: boolean) {
             </div>
 
             <div class="grid gap-2">
-                <Label for="review_mode">Review style</Label>
+                <Label for="review_mode">{{
+                    t('settings.learning.reviewStyle')
+                }}</Label>
                 <Select v-model="form.review_mode">
                     <SelectTrigger id="review_mode" class="w-full max-w-xs">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
-                            v-for="(label, value) in reviewModeLabels"
+                            v-for="value in reviewModes"
                             :key="value"
                             :value="value"
                         >
-                            {{ label }}
+                            {{ t(`settings.learning.mode.${value}`) }}
                         </SelectItem>
                     </SelectContent>
                 </Select>
                 <p class="text-sm text-muted-foreground">
-                    Producing asks you to type each word from its English
-                    meaning. Mix does that only for words you already know well.
-                    Grammar cards are always read, then revealed.
+                    {{ t('settings.learning.modeNote') }}
                 </p>
                 <InputError :message="form.errors.review_mode" />
             </div>
 
             <div class="flex items-center gap-4">
-                <Button :disabled="form.processing" type="submit">Save</Button>
+                <Button :disabled="form.processing" type="submit">{{
+                    t('common.save')
+                }}</Button>
             </div>
         </form>
 
         <div v-if="webPush" class="flex flex-col gap-2">
-            <Label>Push notifications</Label>
+            <Label>{{ t('settings.learning.push.title') }}</Label>
             <p class="text-sm text-muted-foreground">
-                Get a browser notification for your daily digest instead of (or
-                alongside) email.
+                {{ t('settings.learning.push.digest') }}
             </p>
             <p class="text-sm text-muted-foreground">
-                With Daily reminders, you also get at most one push a day,
-                between noon and 10 pm Amsterdam time, when your due reviews
-                climb to 20 or more.
+                {{ t('settings.learning.push.daily') }}
             </p>
             <div class="flex items-center gap-3 pt-2">
                 <Checkbox
@@ -277,17 +264,18 @@ async function togglePush(checked: boolean) {
                             togglePush(checked === true)
                     "
                 />
-                <Label for="push-enabled">Enable push notifications</Label>
+                <Label for="push-enabled">{{
+                    t('settings.learning.push.enable')
+                }}</Label>
             </div>
             <InputError :message="webPush.error.value ?? undefined" />
         </div>
 
         <form class="flex flex-col gap-6" @submit.prevent="submitInterests">
             <div class="grid gap-2">
-                <Label>Interests</Label>
+                <Label>{{ t('settings.learning.interests.title') }}</Label>
                 <p class="text-sm text-muted-foreground">
-                    Units that match your interests are prioritized when picking
-                    what to learn next.
+                    {{ t('settings.learning.interests.note') }}
                 </p>
                 <div class="flex flex-col gap-3 pt-2">
                     <div
@@ -306,7 +294,7 @@ async function togglePush(checked: boolean) {
                             "
                         />
                         <Label :for="`interest-${tag}`">{{
-                            interestTagLabels[tag]
+                            t(`settings.learning.interests.${tag}`)
                         }}</Label>
                     </div>
                 </div>
@@ -314,9 +302,9 @@ async function togglePush(checked: boolean) {
             </div>
 
             <div class="flex items-center gap-4">
-                <Button :disabled="interestsForm.processing" type="submit"
-                    >Save interests</Button
-                >
+                <Button :disabled="interestsForm.processing" type="submit">{{
+                    t('settings.learning.interests.save')
+                }}</Button>
             </div>
         </form>
     </div>

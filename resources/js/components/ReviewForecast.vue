@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
     Card,
     CardContent,
@@ -7,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { pluralize } from '@/lib/pluralize';
+import { dateFormatter, joinList } from '@/lib/intlLocale';
 import type { ReviewForecast } from '@/types/forecast';
 
 const props = defineProps<{
@@ -15,18 +16,21 @@ const props = defineProps<{
     weakSpots: number;
 }>();
 
+const { t } = useI18n();
+
 // The server buckets by UTC day, so each date is labelled in UTC as well;
 // in the viewer's own zone, anyone west of UTC would see every label a day early.
-const dayName = new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-});
-const weekdayInitial = new Intl.DateTimeFormat('en-GB', {
-    weekday: 'narrow',
-    timeZone: 'UTC',
-});
+const dayName = computed(() =>
+    dateFormatter({
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+    }),
+);
+const weekdayInitial = computed(() =>
+    dateFormatter({ weekday: 'narrow', timeZone: 'UTC' }),
+);
 
 const total = computed(() =>
     props.forecast.days.reduce((sum, day) => sum + day.cards, 0),
@@ -43,47 +47,56 @@ const peakIndex = computed(() =>
 const days = computed(() =>
     props.forecast.days.map((day, index) => {
         const date = new Date(`${day.date}T00:00:00Z`);
-        const name = index === 0 ? 'Today' : dayName.format(date);
+        const name =
+            index === 0
+                ? t('review.forecast.today')
+                : dayName.value.format(date);
 
         return {
             ...day,
-            initial: weekdayInitial.format(date),
-            label: `${name}: ${day.cards} ${pluralize('card', day.cards)}`,
+            initial: weekdayInitial.value.format(date),
+            label: t(
+                'review.forecast.dayLabel',
+                { name, count: day.cards },
+                day.cards,
+            ),
             height: busiest.value === 0 ? 0 : (day.cards / busiest.value) * 100,
         };
     }),
 );
 
 const title = computed(() => {
-    const span = `in the next ${props.forecast.days.length} days`;
+    const span = { days: props.forecast.days.length };
 
     return total.value === 0
-        ? `No cards due ${span}`
-        : `${total.value} ${pluralize('card', total.value)} due ${span}`;
+        ? t('review.forecast.none', span)
+        : t(
+              'review.forecast.due',
+              { ...span, count: total.value },
+              total.value,
+          );
 });
 
 const unscheduled = computed(() => {
     const parts: string[] = [];
 
     if (props.weakSpots > 0) {
-        parts.push(
-            `${props.weakSpots} ${pluralize('weak spot', props.weakSpots)} to clear`,
-        );
+        parts.push(t('review.forecast.toClear', props.weakSpots));
     }
 
     if (props.forecast.newWaiting > 0) {
-        parts.push(
-            `${props.forecast.newWaiting} new ${pluralize('card', props.forecast.newWaiting)} waiting`,
-        );
+        parts.push(t('review.forecast.waiting', props.forecast.newWaiting));
     }
 
     if (parts.length === 0) {
         return null;
     }
 
-    const list = parts.join(' and ');
+    const list = joinList(parts);
 
-    return total.value > 0 ? `Plus ${list}.` : `${list}.`;
+    return total.value > 0
+        ? t('review.forecast.plus', { list })
+        : t('review.forecast.list', { list });
 });
 
 const visible = computed(() => total.value > 0 || unscheduled.value !== null);
@@ -122,13 +135,15 @@ function leaveChart(event: PointerEvent) {
 <template>
     <Card v-if="visible">
         <CardHeader>
-            <CardDescription>Coming up</CardDescription>
+            <CardDescription>{{
+                t('review.forecast.comingUp')
+            }}</CardDescription>
             <CardTitle class="text-2xl">{{ title }}</CardTitle>
         </CardHeader>
         <CardContent class="flex flex-col gap-3">
             <div v-if="total > 0" class="flex flex-col gap-2">
                 <ol
-                    aria-label="Cards due each day"
+                    :aria-label="t('review.forecast.chartLabel')"
                     tabindex="0"
                     class="flex h-28 items-end gap-0.5 rounded-sm border-b pt-5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     @keydown="stepThroughDays"

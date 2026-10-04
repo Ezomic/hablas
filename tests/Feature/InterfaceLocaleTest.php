@@ -223,10 +223,25 @@ it('keeps the en and nl frontend catalogs in key parity', function (): void {
     expect(array_keys($nl))->toEqualCanonicalizing(array_keys($en));
 });
 
+it('keeps the same placeholders and plural forms in every nl value as in en', function (): void {
+    $en = LocaleCatalogs::flatten(LocaleCatalogs::frontend('en'));
+    $nl = LocaleCatalogs::flatten(LocaleCatalogs::frontend('nl'));
+
+    foreach ($nl as $key => $value) {
+        expect(LocaleCatalogs::placeholders($value))->toEqual(LocaleCatalogs::placeholders($en[$key]), "nl.{$key} has different placeholders");
+        expect(substr_count($value, '|'))->toBe(substr_count($en[$key], '|'), "nl.{$key} has a different number of plural forms");
+    }
+});
+
 it('keeps every frontend catalog value filled in and translated', function (): void {
     $en = LocaleCatalogs::flatten(LocaleCatalogs::frontend('en'));
     $nl = LocaleCatalogs::flatten(LocaleCatalogs::frontend('nl'));
-    $sameInBoth = ['interfaceLocale.en', 'interfaceLocale.nl', 'nav.dashboard', 'nav.repository'];
+    $sameInBoth = [
+        'interfaceLocale.en', 'interfaceLocale.nl', 'nav.dashboard', 'nav.repository',
+        'dashboard.results.title', 'dashboard.streak.title', 'progress.card.streak',
+        'review.forecast.list', 'settings.passkeys.title', 'settings.learning.mode.mix',
+        'settings.learning.interests.tech',
+    ];
 
     foreach ($nl as $key => $value) {
         expect(trim($value))->not->toBe('', "nl.{$key} is empty");

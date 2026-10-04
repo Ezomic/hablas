@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,8 @@ const props = defineProps<{
     grammarPoints: UnitGrammarPoint[];
     speechLocale: string | null;
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -32,13 +35,14 @@ const props = defineProps<{
             v-if="props.vocabularyItems.length"
             class="flex flex-col gap-3"
         >
-            <h2 class="text-lg font-medium">Vocabulary</h2>
+            <h2 class="text-lg font-medium">{{ t('nav.vocabulary') }}</h2>
 
             <Card v-for="item in props.vocabularyItems" :key="item.id">
                 <CardContent class="flex flex-col gap-1 py-4">
                     <div class="flex items-baseline justify-between gap-4">
                         <span
                             class="flex items-center gap-1 text-lg font-medium"
+                            :lang="props.speechLocale ?? undefined"
                         >
                             {{ item.term }}
                             <SpeakButton
@@ -56,9 +60,9 @@ const props = defineProps<{
                         class="flex items-center gap-2 text-xs text-muted-foreground"
                     >
                         <span>{{ item.partOfSpeech }}</span>
-                        <Badge v-if="item.isCognate" variant="outline"
-                            >cognate</Badge
-                        >
+                        <Badge v-if="item.isCognate" variant="outline">{{
+                            t('units.cognate')
+                        }}</Badge>
                     </div>
                     <p v-if="item.contrastNote" class="text-sm text-amber-600">
                         {{ item.contrastNote }}
@@ -68,7 +72,7 @@ const props = defineProps<{
         </section>
 
         <section v-if="props.grammarPoints.length" class="flex flex-col gap-3">
-            <h2 class="text-lg font-medium">Grammar</h2>
+            <h2 class="text-lg font-medium">{{ t('units.grammar') }}</h2>
 
             <Card v-for="point in props.grammarPoints" :key="point.id">
                 <CardHeader>

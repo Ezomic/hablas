@@ -10,6 +10,7 @@ const { renderProgressCard } = vi.hoisted(() => ({
 
 vi.mock('@inertiajs/vue3', () => ({
     Head: { render: () => null },
+    setLayoutProps: vi.fn(),
     router: { post: vi.fn() },
 }));
 

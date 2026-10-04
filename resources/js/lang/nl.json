@@ -4,11 +4,18 @@
         "cancel": "Annuleren",
         "close": "Sluiten",
         "continue": "Doorgaan",
-        "dismiss": "Negeren",
+        "dismiss": "Sluiten",
         "logIn": "Inloggen",
         "createAccount": "Account aanmaken",
         "emailAddress": "E-mailadres",
-        "somethingWentWrong": "Er ging iets mis."
+        "somethingWentWrong": "Er ging iets mis.",
+        "name": "Naam",
+        "fullName": "Volledige naam",
+        "previous": "Vorige",
+        "next": "Volgende",
+        "reviewNow": "Nu herhalen",
+        "noActiveLanguage": "Nog geen actieve taal.",
+        "days": "{count} dag | {count} dagen"
     },
     "nav": {
         "settings": "Instellingen",
@@ -60,17 +67,122 @@
             "security": "Beveiliging",
             "appearance": "Weergave",
             "learning": "Leren"
+        },
+        "profile": {
+            "headTitle": "Profielinstellingen",
+            "description": "Werk je naam en e-mailadres bij",
+            "unverified": "Je e-mailadres is niet geverifieerd.",
+            "resend": "Klik hier om de verificatiemail opnieuw te versturen.",
+            "linkSent": "Er is een nieuwe verificatielink naar je e-mailadres gestuurd."
+        },
+        "appearance": {
+            "headTitle": "Weergave-instellingen",
+            "description": "Pas de weergave-instellingen van je account aan",
+            "light": "Licht",
+            "dark": "Donker",
+            "system": "Systeem"
+        },
+        "security": {
+            "headTitle": "Beveiligingsinstellingen"
+        },
+        "delete": {
+            "title": "Account verwijderen",
+            "description": "Verwijder je account en alle bijbehorende gegevens",
+            "warning": "Waarschuwing",
+            "caution": "Ga voorzichtig te werk, dit kan niet ongedaan worden gemaakt.",
+            "confirmTitle": "Weet je zeker dat je je account wilt verwijderen?",
+            "confirmBody": "Zodra je account is verwijderd, worden ook al je gegevens permanent verwijderd. We vragen je te bevestigen dat jij het bent voordat dit doorgaat."
+        },
+        "passkeys": {
+            "title": "Passkeys",
+            "description": "Beheer je passkeys om zonder wachtwoord in te loggen",
+            "none": "Nog geen passkeys",
+            "noneHint": "Voeg een passkey toe om zonder wachtwoord in te loggen",
+            "added": "Toegevoegd {when}",
+            "lastUsed": "Laatst gebruikt {when}",
+            "remove": "Verwijderen",
+            "removeTitle": "Passkey verwijderen",
+            "removeBody": "Weet je zeker dat je de passkey \"{name}\" wilt verwijderen? Je kunt hem dan niet meer gebruiken om in te loggen.",
+            "removing": "Verwijderen...",
+            "unsupported": "Passkeys worden in deze browser niet ondersteund.",
+            "add": "Passkey toevoegen",
+            "nameLabel": "Naam van de passkey",
+            "namePlaceholder": "bijv. MacBook Pro, iPhone",
+            "nameHint": "Met een naam herken je deze passkey later makkelijk.",
+            "registering": "Registreren...",
+            "register": "Passkey registreren"
+        },
+        "twoFactor": {
+            "title": "Tweestapsverificatie",
+            "description": "Beheer je instellingen voor tweestapsverificatie",
+            "enableIntro": "Als je tweestapsverificatie inschakelt, vragen we tijdens het inloggen om een beveiligde pincode. Die pincode haal je op uit een app op je telefoon die TOTP ondersteunt.",
+            "continueSetup": "Doorgaan met instellen",
+            "enable": "2FA inschakelen",
+            "enabledIntro": "Tijdens het inloggen vragen we om een beveiligde, willekeurige pincode, die je ophaalt uit de TOTP-app op je telefoon.",
+            "disable": "2FA uitschakelen"
+        },
+        "recovery": {
+            "title": "2FA-herstelcodes",
+            "description": "Met herstelcodes krijg je weer toegang als je je 2FA-apparaat kwijtraakt. Bewaar ze in een veilige wachtwoordmanager.",
+            "hide": "Herstelcodes verbergen",
+            "view": "Herstelcodes bekijken",
+            "regenerate": "Codes opnieuw genereren",
+            "note": "Elke herstelcode kun je één keer gebruiken om toegang te krijgen tot je account en wordt daarna verwijderd. Heb je er meer nodig, klik dan hierboven op {regenerate}."
+        },
+        "learning": {
+            "headTitle": "Leerinstellingen",
+            "description": "Beheer herinneringen, het tempo van nieuwe items en de inhoudelijke focus",
+            "reminderFrequency": "Herinneringsfrequentie",
+            "frequency": {
+                "daily": "Dagelijks",
+                "weekly": "Wekelijks",
+                "never": "Nooit"
+            },
+            "capLabel": "Dagelijks maximum aan nieuwe items (aanpassen)",
+            "capPlaceholder": "Adaptief (standaard)",
+            "capNote": "Laat leeg om de app je dagelijkse limiet voor nieuwe items automatisch te laten aanpassen aan je herhaalachterstand.",
+            "contentFocus": "Inhoudelijke focus",
+            "focus": {
+                "none": "Geen voorkeur",
+                "travel": "Reizen",
+                "everyday_social": "Dagelijks en sociaal",
+                "professional": "Zakelijk"
+            },
+            "reviewStyle": "Herhaalstijl",
+            "mode": {
+                "recognition": "Herkennen: lezen, dan tonen",
+                "production": "Produceren: typ het woord",
+                "mix": "Mix"
+            },
+            "modeNote": "Bij produceren typ je elk woord vanuit de Engelse betekenis. Mix doet dat alleen voor woorden die je al goed kent. Grammaticakaarten worden altijd gelezen en dan onthuld.",
+            "push": {
+                "title": "Pushmeldingen",
+                "digest": "Krijg een browsermelding voor je dagelijkse overzicht in plaats van (of naast) e-mail.",
+                "daily": "Met dagelijkse herinneringen krijg je ook maximaal één push per dag, tussen 12:00 en 22:00 Amsterdamse tijd, wanneer je openstaande herhalingen oplopen tot 20 of meer.",
+                "enable": "Pushmeldingen inschakelen"
+            },
+            "interests": {
+                "title": "Interesses",
+                "note": "Eenheden die bij je interesses passen krijgen voorrang bij het kiezen van wat je hierna leert.",
+                "football": "Voetbal",
+                "cooking": "Koken",
+                "tech": "Tech",
+                "music": "Muziek",
+                "travel": "Reizen",
+                "food": "Eten",
+                "save": "Interesses opslaan"
+            }
         }
     },
     "welcome": {
         "head": {
             "title": "Spaans leren, eerlijk",
-            "description": "Een app om Spaans en Portugees te leren, gebouwd op CEFR-niveaus, begrijpelijke input en gespreid herhalen, met eerlijke tijdsinschattingen in plaats van streakjagen."
+            "description": "Een app om Spaans en Portugees te leren, gebouwd op CEFR-niveaus, begrijpelijke input en gespreid herhalen, met eerlijke tijdsinschattingen zonder streakdruk."
         },
         "hero": {
             "eyebrow": "Nu Spaans · Portugees als je er klaar voor bent",
             "title": "Leer Spaans op de manier waarop het volgens onderzoek echt lukt.",
-            "body": "Hablas is gebouwd op het CEFR-raamwerk, begrijpelijke input en gespreid herhalen: wat taalinstituten echt gebruiken. Geen punten, geen ranglijsten, geen streakschuldgevoel. Gewoon een eerlijk beeld van hoe goed je wordt.",
+            "body": "Hablas is gebouwd op het CEFR-raamwerk, begrijpelijke input en gespreid herhalen: wat taalinstituten echt gebruiken. Geen punten, geen ranglijsten, geen schuldgevoel als je een dag mist. Gewoon een eerlijk beeld van hoe goed je wordt.",
             "goToDashboard": "Ga naar je dashboard",
             "startPlacement": "Begin met een niveautest",
             "haveAccount": "Ik heb al een account",
@@ -315,6 +427,225 @@
             "practiceButton": "Oefen de gemiste items",
             "retakeNote": "{n} item nog niet bewezen. Je herkansing staat open. | {n} items nog niet bewezen. Je herkansing staat open.",
             "practiceNote": "{n} item nog niet bewezen. Je herkansing opent morgen, dus oefen eerst. | {n} items nog niet bewezen. Je herkansing opent morgen, dus oefen eerst."
+        }
+    },
+    "skills": {
+        "reading": "Lezen",
+        "listening": "Luisteren",
+        "speaking": "Spreken",
+        "writing": "Schrijven"
+    },
+    "dashboard": {
+        "ceiling": {
+            "one": "Je totaalniveau wordt tegengehouden door {skill}. Oefen {skill} om het te verhogen, of doe de plaatsingstest voor {skill} opnieuw als dat niveau niet klopt.",
+            "many": "Je totaalniveau wordt tegengehouden door {skills}. Oefen ze om het te verhogen, of doe een plaatsingstest opnieuw als een van die niveaus niet klopt."
+        },
+        "breakdown": "Niveau per vaardigheid",
+        "viewPlacement": "Bekijk plaatsingsresultaten",
+        "retake": "{skill} opnieuw doen",
+        "retakeAvailable": "Beschikbaar op {date}",
+        "portuguese": {
+            "label": "Nieuwe taal ontgrendeld",
+            "title": "Klaar om met Portugees te beginnen?",
+            "body": "Je hebt A2 bereikt in het Spaans. Portugees lijkt veel op Spaans, maar we wijzen je onderweg op de verschillen.",
+            "start": "Begin met Portugees leren"
+        },
+        "nextUp": "Hierna",
+        "reinforce": {
+            "title": "Versterk eerst wat lastig is",
+            "body": "Recente herhalingen bevatten veel fouten. Herhaal die eerst voordat je iets nieuws begint."
+        },
+        "continue": "Verder",
+        "inProgress": "Bezig",
+        "continueLine": "Ga verder met les {number} van {count}: {title}",
+        "startLine": "Begin met les {number} van {count}: {title}",
+        "continueButton": "Ga verder met les {number} van {count}",
+        "startButton": "Begin met les {number} van {count}",
+        "startUnit": "Begin met de eenheid",
+        "results": {
+            "label": "De resultaten zijn binnen",
+            "title": "{unit}: {lesson}",
+            "see": "Bekijk resultaten"
+        },
+        "cardsDue": "{count} kaart te herhalen | {count} kaarten te herhalen",
+        "startReview": "Start herhaling",
+        "weakSpots": {
+            "count": "{count} kaart om opnieuw te bekijken | {count} kaarten om opnieuw te bekijken",
+            "body": "Kaarten die je een paar keer achter elkaar fout had, apart gezet tot je ze weer eens goed hebt.",
+            "review": "Herhaal zwakke punten"
+        },
+        "streak": {
+            "title": "Streak",
+            "longest": "Langste streak: {days}",
+            "freezeDays": "Resterende pauzedagen: {count}",
+            "freezeNote": "Een gemiste dag gebruikt een pauzedag in plaats van je streak te breken.",
+            "earnBack": "Verdien er een terug over nog {count} actieve dag. | Verdien er een terug over nog {count} actieve dagen."
+        },
+        "share": {
+            "label": "Delen",
+            "link": "Deelbare link ophalen"
+        }
+    },
+    "units": {
+        "intro": "Elke eenheid voor {language} per niveau. Voltooide eenheden blijven open als naslag.",
+        "reinforce": {
+            "title": "Versterk eerst wat lastig is",
+            "body": "Recente herhalingen bevatten veel fouten, dus nieuwe eenheden wachten tot je die hebt herhaald."
+        },
+        "filters": {
+            "skill": "Vaardigheid",
+            "progress": "Voortgang",
+            "allSkills": "Alle vaardigheden",
+            "allUnits": "Alle eenheden",
+            "notCompleted": "Niet voltooid"
+        },
+        "availability": {
+            "completed": "Voltooid",
+            "in_progress": "Bezig",
+            "available": "Beschikbaar",
+            "held_back": "Na herhaling",
+            "locked": "Vergrendeld"
+        },
+        "none": "Nog geen eenheden voor {language}.",
+        "noMatch": "Geen eenheden gevonden voor deze filters.",
+        "notes": {
+            "lesson": "Les {current} van {count}",
+            "locked": "Wordt ontgrendeld zodra je totaalniveau {level} bereikt.",
+            "heldBack": "Gaat open zodra je recente herhalingen weer goed gaan."
+        },
+        "watchOut": "Let op",
+        "wordsAndGrammar": "Woorden en grammatica in deze eenheid",
+        "alreadyCompleted": "Je hebt deze eenheid al voltooid. De kaarten zitten in je herhaalstapel.",
+        "markAgain": "Opnieuw als voltooid markeren",
+        "complete": "Eenheid voltooien en toevoegen aan je herhaalstapel",
+        "cognate": "verwant woord",
+        "grammar": "Grammatica"
+    },
+    "vocabulary": {
+        "intro": "Elk woord en elk grammaticapunt uit de eenheden die je hebt voltooid.",
+        "searchPlaceholder": "Zoek woorden of vertalingen",
+        "searchLabel": "Zoek in woordenschat",
+        "sortBy": "Sorteren op",
+        "sort": {
+            "recent": "Recent toegevoegd",
+            "due": "Herhaaldatum",
+            "alphabetical": "A tot Z"
+        },
+        "count": "{count} kaart | {count} kaarten",
+        "state": {
+            "new": "Nieuw",
+            "learning": "Aan het leren",
+            "review": "Herhalen",
+            "relearning": "Opnieuw leren"
+        },
+        "weakSpot": "Zwak punt",
+        "notStudied": "Nog niet geoefend",
+        "empty": "Voltooi een eenheid om je stapel te beginnen.",
+        "noMatch": "Niets komt overeen met die zoekopdracht.",
+        "pages": "Pagina's",
+        "page": "Pagina {current} van {last}"
+    },
+    "review": {
+        "due": {
+            "overdue": "Achterstallig",
+            "today": "Vandaag aan de beurt",
+            "tomorrow": "Morgen aan de beurt",
+            "inDays": "Over {count} dag aan de beurt | Over {count} dagen aan de beurt"
+        },
+        "emptyDue": "Helemaal bij, er zijn geen kaarten om te herhalen.",
+        "emptyWeakSpots": "Geen zwakke punten op dit moment, goed gedaan.",
+        "weakSpotsIntro": "Kaarten die je een paar keer achter elkaar fout had. Beantwoord er een goed om hem terug te zetten in je gewone herhaalronde.",
+        "rating": {
+            "again": "Opnieuw",
+            "hard": "Moeilijk",
+            "good": "Goed",
+            "easy": "Makkelijk"
+        },
+        "errorTags": {
+            "wrong_gender": "Verkeerd geslacht",
+            "ser_estar_confusion": "Ser of estar",
+            "false_friend": "Valse vriend",
+            "wrong_tense": "Verkeerde tijd",
+            "portunol_slip": "Portuñol-foutje",
+            "other": "Iets anders"
+        },
+        "deck": {
+            "offline": "Je bent offline, dus beoordelingen worden bewaard en gesynchroniseerd zodra je weer online bent.",
+            "typeWithArticle": "Typ het woord, met lidwoord",
+            "type": "Typ het woord",
+            "check": "Controleren",
+            "correct": "Juist",
+            "youWrote": "Je schreef “{answer}”.",
+            "unchecked": "Je antwoord kon niet worden gecontroleerd, dus vergelijk het zelf. Je schreef “{answer}”.",
+            "showAnswer": "Toon antwoord",
+            "spaceKey": "spatie",
+            "whatWentWrong": "Wat ging er mis?",
+            "notSure": "Weet ik niet",
+            "left": {
+                "card": "{count} kaart over | {count} kaarten over",
+                "weakSpot": "{count} zwak punt over | {count} zwakke punten over"
+            },
+            "complete": "Sessie voltooid",
+            "reviewed": {
+                "card": "{count} kaart herhaald. | {count} kaarten herhaald.",
+                "weakSpot": "{count} zwak punt herhaald. | {count} zwakke punten herhaald."
+            },
+            "stillDue": {
+                "card": "Nog {count} kaart te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent. | Nog {count} kaarten te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent.",
+                "weakSpot": "Nog {count} zwak punt te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent. | Nog {count} zwakke punten te herhalen. Start gerust nog een sessie wanneer je er klaar voor bent."
+            },
+            "nothingDue": "Op dit moment is er verder niets te herhalen.",
+            "saveFailed": "Die beoordeling kon niet worden opgeslagen, probeer het opnieuw."
+        },
+        "forecast": {
+            "comingUp": "Binnenkort",
+            "today": "Vandaag",
+            "dayLabel": "{name}: {count} kaart | {name}: {count} kaarten",
+            "none": "Geen kaarten te herhalen in de komende {days} dagen",
+            "due": "{count} kaart te herhalen in de komende {days} dagen | {count} kaarten te herhalen in de komende {days} dagen",
+            "toClear": "{count} zwak punt om weg te werken | {count} zwakke punten om weg te werken",
+            "waiting": "{count} nieuwe kaart wacht | {count} nieuwe kaarten wachten",
+            "plus": "Daarnaast {list}.",
+            "list": "{list}.",
+            "chartLabel": "Te herhalen kaarten per dag"
+        }
+    },
+    "progress": {
+        "unitsCompleted": "Voltooide eenheden",
+        "mixedUp": "Vaak door elkaar gehaald",
+        "errorTags": {
+            "wrong_gender": "Verkeerd geslacht",
+            "ser_estar_confusion": "Ser/estar-verwarring",
+            "false_friend": "Valse vriend",
+            "wrong_tense": "Verkeerde tijd",
+            "portunol_slip": "Portuñol-foutje",
+            "other": "Overig"
+        },
+        "card": {
+            "noLevel": "Nog geen niveau",
+            "level": "CEFR-niveau",
+            "streak": "Streak",
+            "units": "Voltooide eenheden"
+        },
+        "public": {
+            "title": "Voortgang van {name}",
+            "sharedFrom": "Gedeeld vanuit Hablas"
+        },
+        "share": {
+            "title": "Deel je voortgang",
+            "description": "Iedereen met deze link kan een alleen-lezen momentopname van je voortgang bekijken, zonder in te loggen.",
+            "needPlacement": "Maak eerst de plaatsingstest af om een deelbare momentopname te maken.",
+            "copied": "Gekopieerd!",
+            "copy": "Kopieer link",
+            "regenerate": "Link vernieuwen",
+            "regenerateNote": "Door te vernieuwen wordt deze link vervangen en werkt de oude niet meer.",
+            "imageTitle": "Deel een afbeelding",
+            "imageNote": "Een afbeelding met je niveau, streak en voltooide eenheden. Je naam staat er niet op.",
+            "download": "Afbeelding downloaden",
+            "shareImage": "Afbeelding delen",
+            "createFailed": "De afbeelding kon niet worden gemaakt.",
+            "shareFailed": "De afbeelding kon niet worden gedeeld.",
+            "imageDescription": "Hablas-voortgang in {language}. CEFR-niveau: {level}. Streak: {streak}. Voltooide eenheden: {completion}."
         }
     }
 }

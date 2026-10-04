@@ -2,7 +2,8 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Search } from '@lucide/vue';
 import { watchDebounced } from '@vueuse/core';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,8 +15,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { dueLabel } from '@/lib/dueLabel';
-import { pluralize } from '@/lib/pluralize';
 import { index } from '@/routes/vocabulary';
 import type {
     SrsCardState,
@@ -32,24 +33,22 @@ const props = defineProps<{
     speechLocale: string | null;
 }>();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [{ title: 'Vocabulary', href: index() }],
-    },
-});
+const { t } = useI18n();
 
-const sortLabels: Record<VocabularySort, string> = {
-    recent: 'Recently added',
-    due: 'Due date',
-    alphabetical: 'A to Z',
+useBreadcrumbs(() => [{ title: t('nav.vocabulary'), href: index() }]);
+
+const sortOptions: VocabularySort[] = ['recent', 'due', 'alphabetical'];
+
+const stateKeys: Record<SrsCardState, string> = {
+    new: 'vocabulary.state.new',
+    learning: 'vocabulary.state.learning',
+    review: 'vocabulary.state.review',
+    relearning: 'vocabulary.state.relearning',
 };
 
-const stateLabels: Record<SrsCardState, string> = {
-    new: 'New',
-    learning: 'Learning',
-    review: 'Review',
-    relearning: 'Relearning',
-};
+const emptyMessage = computed(() =>
+    props.filters.q === '' ? t('vocabulary.empty') : t('vocabulary.noMatch'),
+);
 
 const search = ref(props.filters.q);
 
@@ -81,13 +80,13 @@ function changeSort(value: unknown) {
 </script>
 
 <template>
-    <Head title="Vocabulary" />
+    <Head :title="t('nav.vocabulary')" />
 
     <div class="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4">
         <div>
-            <h1 class="text-2xl font-semibold">Vocabulary</h1>
+            <h1 class="text-2xl font-semibold">{{ t('nav.vocabulary') }}</h1>
             <p class="mt-1 text-sm text-muted-foreground">
-                Every word and grammar point from the units you've completed.
+                {{ t('vocabulary.intro') }}
             </p>
         </div>
 
@@ -100,24 +99,27 @@ function changeSort(value: unknown) {
                     v-model="search"
                     type="search"
                     class="pl-9"
-                    placeholder="Search words or translations"
-                    aria-label="Search vocabulary"
+                    :placeholder="t('vocabulary.searchPlaceholder')"
+                    :aria-label="t('vocabulary.searchLabel')"
                 />
             </div>
             <Select
                 :model-value="props.filters.sort"
                 @update:model-value="changeSort"
             >
-                <SelectTrigger class="w-full sm:w-44" aria-label="Sort by">
+                <SelectTrigger
+                    class="w-full sm:w-44"
+                    :aria-label="t('vocabulary.sortBy')"
+                >
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem
-                        v-for="(label, value) in sortLabels"
+                        v-for="value in sortOptions"
                         :key="value"
                         :value="value"
                     >
-                        {{ label }}
+                        {{ t(`vocabulary.sort.${value}`) }}
                     </SelectItem>
                 </SelectContent>
             </Select>
@@ -125,8 +127,7 @@ function changeSort(value: unknown) {
 
         <template v-if="props.items.length > 0">
             <p class="text-sm text-muted-foreground">
-                {{ props.pagination.total }}
-                {{ pluralize('card', props.pagination.total) }}
+                {{ t('vocabulary.count', props.pagination.total) }}
             </p>
 
             <ul class="divide-y rounded-xl border">
@@ -137,9 +138,15 @@ function changeSort(value: unknown) {
                 >
                     <div class="flex min-w-0 flex-col gap-1">
                         <div class="flex items-center gap-1">
-                            <span class="font-medium break-words">{{
-                                item.term
-                            }}</span>
+                            <span
+                                class="font-medium break-words"
+                                :lang="
+                                    item.kind === 'vocabulary'
+                                        ? (props.speechLocale ?? undefined)
+                                        : undefined
+                                "
+                                >{{ item.term }}</span
+                            >
                             <SpeakButton
                                 v-if="item.kind === 'vocabulary'"
                                 :text="item.term"
@@ -147,9 +154,9 @@ function changeSort(value: unknown) {
                                 :audio-url="item.audioUrl"
                                 :audio-slow-url="item.audioSlowUrl"
                             />
-                            <Badge v-else variant="outline" class="ml-1"
-                                >Grammar</Badge
-                            >
+                            <Badge v-else variant="outline" class="ml-1">{{
+                                t('units.grammar')
+                            }}</Badge>
                         </div>
                         <p
                             class="text-sm text-muted-foreground"
@@ -162,14 +169,14 @@ function changeSort(value: unknown) {
                         class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end"
                     >
                         <Badge variant="secondary">{{
-                            stateLabels[item.state]
+                            t(stateKeys[item.state])
                         }}</Badge>
-                        <Badge v-if="item.isWeakSpot" variant="destructive"
-                            >Weak spot</Badge
-                        >
+                        <Badge v-if="item.isWeakSpot" variant="destructive">{{
+                            t('vocabulary.weakSpot')
+                        }}</Badge>
                         <span class="text-xs text-muted-foreground">{{
                             item.state === 'new'
-                                ? 'Not studied yet'
+                                ? t('vocabulary.notStudied')
                                 : dueLabel(item.dueAt)
                         }}</span>
                     </div>
@@ -181,17 +188,13 @@ function changeSort(value: unknown) {
             v-else
             class="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground"
         >
-            {{
-                props.filters.q === ''
-                    ? 'Complete a unit to start your deck.'
-                    : 'Nothing matches that search.'
-            }}
+            {{ emptyMessage }}
         </p>
 
         <nav
             v-if="props.pagination.lastPage > 1"
             class="flex items-center justify-between gap-2"
-            aria-label="Pages"
+            :aria-label="t('vocabulary.pages')"
         >
             <Button
                 v-if="props.pagination.currentPage > 1"
@@ -207,16 +210,20 @@ function changeSort(value: unknown) {
                             props.pagination.currentPage - 1,
                         )
                     "
-                    >Previous</Link
+                    >{{ t('common.previous') }}</Link
                 >
             </Button>
-            <Button v-else variant="outline" size="sm" disabled
-                >Previous</Button
-            >
+            <Button v-else variant="outline" size="sm" disabled>{{
+                t('common.previous')
+            }}</Button>
 
             <span class="text-sm text-muted-foreground">
-                Page {{ props.pagination.currentPage }} of
-                {{ props.pagination.lastPage }}
+                {{
+                    t('vocabulary.page', {
+                        current: props.pagination.currentPage,
+                        last: props.pagination.lastPage,
+                    })
+                }}
             </span>
 
             <Button
@@ -233,10 +240,12 @@ function changeSort(value: unknown) {
                             props.pagination.currentPage + 1,
                         )
                     "
-                    >Next</Link
+                    >{{ t('common.next') }}</Link
                 >
             </Button>
-            <Button v-else variant="outline" size="sm" disabled>Next</Button>
+            <Button v-else variant="outline" size="sm" disabled>{{
+                t('common.next')
+            }}</Button>
         </nav>
     </div>
 </template>

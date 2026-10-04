@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { retakeDate } from '@/lib/retakeDate';
-import { skillLabels } from '@/lib/skillLabels';
+import { skillLabel } from '@/lib/skillLabels';
 import { store } from '@/routes/placement/skills';
 
 const props = defineProps<{
@@ -12,12 +13,12 @@ const props = defineProps<{
     availableOn: string | null;
 }>();
 
+const { t } = useI18n();
+
 // No fields: the skill is in the URL, and a refusal comes back under "skill".
 const form = useForm<Record<string, string>>({});
 
-const skillName = computed(() =>
-    (skillLabels[props.skill] ?? props.skill).toLowerCase(),
-);
+const skillName = computed(() => skillLabel(props.skill).toLowerCase());
 
 function retake() {
     form.post(store(props.skill).url, { preserveScroll: true });
@@ -32,10 +33,14 @@ function retake() {
             :disabled="props.availableOn !== null || form.processing"
             @click="retake"
         >
-            Re-take {{ skillName }}
+            {{ t('dashboard.retake', { skill: skillName }) }}
         </Button>
         <p v-if="props.availableOn" class="text-xs text-muted-foreground">
-            Available on {{ retakeDate(props.availableOn) }}
+            {{
+                t('dashboard.retakeAvailable', {
+                    date: retakeDate(props.availableOn),
+                })
+            }}
         </p>
         <InputError :message="form.errors.skill" />
     </div>

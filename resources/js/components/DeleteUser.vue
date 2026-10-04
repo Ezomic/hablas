@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
@@ -13,28 +14,32 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+
+const { t } = useI18n();
 </script>
 
 <template>
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Delete account"
-            description="Delete your account and all of its resources"
+            :title="t('settings.delete.title')"
+            :description="t('settings.delete.description')"
         />
         <div
             class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
         >
             <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
-                <p class="font-medium">Warning</p>
+                <p class="font-medium">{{ t('settings.delete.warning') }}</p>
                 <p class="text-sm">
-                    Please proceed with caution, this cannot be undone.
+                    {{ t('settings.delete.caution') }}
                 </p>
             </div>
             <Dialog>
                 <DialogTrigger as-child>
-                    <Button variant="destructive" data-test="delete-user-button"
-                        >Delete account</Button
+                    <Button
+                        variant="destructive"
+                        data-test="delete-user-button"
+                        >{{ t('settings.delete.title') }}</Button
                     >
                 </DialogTrigger>
                 <DialogContent>
@@ -53,21 +58,19 @@ import {
                         v-slot="{ processing }"
                     >
                         <DialogHeader class="space-y-3">
-                            <DialogTitle
-                                >Are you sure you want to delete your
-                                account?</DialogTitle
-                            >
+                            <DialogTitle>{{
+                                t('settings.delete.confirmTitle')
+                            }}</DialogTitle>
                             <DialogDescription>
-                                Once your account is deleted, all of its
-                                resources and data will also be permanently
-                                deleted. We’ll ask you to confirm it’s you
-                                before this goes through.
+                                {{ t('settings.delete.confirmBody') }}
                             </DialogDescription>
                         </DialogHeader>
 
                         <DialogFooter class="gap-2">
                             <DialogClose as-child>
-                                <Button variant="secondary"> Cancel </Button>
+                                <Button variant="secondary">
+                                    {{ t('common.cancel') }}
+                                </Button>
                             </DialogClose>
 
                             <Button
@@ -76,7 +79,7 @@ import {
                                 :disabled="processing"
                                 data-test="confirm-delete-user-button"
                             >
-                                Delete account
+                                {{ t('settings.delete.title') }}
                             </Button>
                         </DialogFooter>
                     </Form>
