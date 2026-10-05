@@ -25,7 +25,7 @@ final class CoreWords
             'ho', 'hai', 'ha', 'abbiamo', 'avete', 'hanno',
             'sto', 'stai', 'sta', 'stiamo', 'state', 'stanno',
             'vado', 'vai', 'va', 'andiamo', 'andate', 'vanno',
-            "c'è", 'ci sono',
+            "c'è", 'ci sono', 'ecco', 'questo', 'questa', 'qualcosa',
             'due', 'tre', 'quattro', 'cinque', 'sette', 'otto', 'nove', 'dieci',
             'undici', 'dodici', 'tredici', 'quattordici', 'quindici', 'sedici', 'diciassette', 'diciotto', 'diciannove', 'venti',
             'che', 'chi', 'dove', 'quando', 'come', 'quanto', 'quanta', 'quanti', 'quante', 'quale', 'perché',

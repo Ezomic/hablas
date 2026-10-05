@@ -273,7 +273,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Possessive adjectives (mio, tuo, suo)',
-                        'explanation' => 'Possessives agree with the thing owned, not with the owner: mio, mia, miei, mie. They normally take the article: \'il mio libro\', \'la mia casa\'. The exception is a singular family member with no other word: \'mio padre\', \'mia sorella\', but \'i miei fratelli\' (plural) and \'la mia famiglia\' (a collective noun). Loro always keeps the article (\'il loro padre\'), and so do the affectionate \'la mia mamma\' and \'il mio papà\'. Suo means his, her or its alike, so \'suo padre\' is his father or her father. For you there are tuo (informal) and Suo (formal, with a capital).',
+                        'explanation' => 'Possessives agree with the thing owned, not with the owner: mio, mia, miei, mie. They normally take the article: \'il mio libro\', \'la mia casa\'. The exception is a singular family member: \'mio padre\', \'mia sorella\' (with maggiore or minore the article is optional: \'mio fratello maggiore\' or \'il mio fratello maggiore\'), but \'i miei fratelli\' (plural) and \'la mia famiglia\' (a collective noun). Loro always keeps the article (\'il loro padre\'), and so do the affectionate \'la mia mamma\' and \'il mio papà\'. Suo means his, her or its alike, so \'suo padre\' is his father or her father. For you there are tuo (informal) and Suo (formal, with a capital).',
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
