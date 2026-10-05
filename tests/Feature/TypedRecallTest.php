@@ -155,17 +155,24 @@ it('asks for typed recall on both review pages when the learner chose it', funct
     'weak spots' => ['review.weak-spots.index', ['is_weak_spot' => true]],
 ]);
 
-it('keeps recognition as the default review style', function (string $routeName, array $cardAttributes) {
+it('starts a learner on mix, choosing the meaning of a word that is still new', function (string $routeName, array $cardAttributes) {
     $user = User::factory()->create();
-    $card = typedRecallCard($user, $this->spanish, 'el vuelo');
+    $card = typedRecallCard($user, $this->spanish, 'el vuelo', SrsCardState::New);
     $card->forceFill($cardAttributes)->save();
+    $card->cardable->forceFill(['part_of_speech' => 'noun'])->save();
+
+    foreach (['el pez', 'el pato', 'el perro'] as $term) {
+        VocabularyItem::factory()->create(['language_id' => $this->spanish->id, 'term' => $term, 'part_of_speech' => 'noun']);
+    }
 
     $this->actingAs($user)
         ->get(route($routeName))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
+            ->where('cards.0.exercise', 'choose_meaning')
             ->where('cards.0.direction', 'recognition')
-            ->where('cards.0.front', 'el vuelo'),
+            ->where('cards.0.front', 'el vuelo')
+            ->has('cards.0.options', 4),
         );
 })->with([
     'review' => ['review.index', []],

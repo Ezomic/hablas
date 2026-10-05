@@ -15,6 +15,8 @@ export interface ReviewCard extends SpeechClipUrls {
     front: string;
     back: string;
     kind: 'vocabulary' | 'grammar';
+    exercise: 'type' | 'choose_meaning' | 'choose_word' | 'flip';
+    options: string[] | null;
     direction: 'recognition' | 'production';
     needsArticle: boolean;
     mask?: (string | null)[] | null;

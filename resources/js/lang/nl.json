@@ -159,11 +159,11 @@
             },
             "reviewStyle": "Herhaalstijl",
             "mode": {
-                "recognition": "Herkennen: lezen, dan tonen",
+                "recognition": "Kiezen: kies het juiste antwoord",
                 "production": "Produceren: typ het woord",
                 "mix": "Mix"
             },
-            "modeNote": "Bij produceren typ je elk woord vanuit de Engelse betekenis. Mix doet dat alleen voor woorden die je al goed kent. Grammaticakaarten worden altijd gelezen en dan onthuld.",
+            "modeNote": "Bij kiezen krijg je vier opties per woord. Bij produceren typ je elk woord vanuit de Engelse betekenis. Mix laat je kiezen zolang een woord nieuw is en laat je het typen zodra je het goed kent. Grammaticakaarten worden altijd gelezen en dan onthuld.",
             "push": {
                 "title": "Pushmeldingen",
                 "digest": "Krijg een browsermelding voor je dagelijkse overzicht in plaats van (of naast) e-mail.",
@@ -675,6 +675,10 @@
             "correct": "Juist",
             "youWrote": "Je schreef “{answer}”.",
             "unchecked": "Je antwoord kon niet worden gecontroleerd, dus vergelijk het zelf. Je schreef “{answer}”.",
+            "chooseWord": "Welk woord is het?",
+            "chooseMeaning": "Wat betekent het?",
+            "youChose": "Je koos “{answer}”.",
+            "dontKnow": "Ik weet het niet",
             "showAnswer": "Toon antwoord",
             "spaceKey": "spatie",
             "whatWentWrong": "Wat ging er mis?",

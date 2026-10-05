@@ -24,10 +24,6 @@ final class WordExercises
 
     private const BATCH_SIZES = [4, 3, 3];
 
-    public function __construct(
-        private readonly ArticleSwapper $articleSwapper = new ArticleSwapper,
-    ) {}
-
     /**
      * Lesson 1 teaches in batches before it tests: each batch is taught, then
      * recognised, then typed with its letters shown, and a mixed block matches
@@ -383,6 +379,22 @@ final class WordExercises
     }
 
     /**
+     * A noun's options share its article: an option that is the same word with
+     * the other article gives the answer away, as it is clearly one of the two.
+     *
+     * @param  list<string>  $terms
+     * @return list<string>
+     */
+    private function sameArticleFirst(string $answer, array $terms): array
+    {
+        $article = strtok($answer, ' ');
+        $matching = array_values(array_filter($terms, fn (string $term): bool => strtok($term, ' ') === $article));
+        $rest = array_values(array_diff($terms, $matching));
+
+        return [...$matching, ...$rest];
+    }
+
+    /**
      * @return array{list<string>, string}
      */
     private function termOptions(BuildContext $context, ItemInfo $info): array
@@ -390,14 +402,6 @@ final class WordExercises
         $answer = $info->item->term;
         $accepted = array_map($context->normalizer->answerKey(...), $info->accepted);
         $candidates = [];
-
-        if ($info->isNoun() && ! $info->data->commonGender) {
-            $swapped = $this->articleSwapper->swap($context->normalizer, $answer);
-
-            if ($swapped !== null) {
-                $candidates[] = $swapped;
-            }
-        }
 
         if (in_array($info->partOfSpeech(), ['adjective', 'verb'], true)) {
             array_push($candidates, ...$info->data->forms);
@@ -412,6 +416,10 @@ final class WordExercises
             } else {
                 $other[] = $candidate->item->term;
             }
+        }
+
+        if ($info->isNoun()) {
+            $same = $this->sameArticleFirst($answer, $same);
         }
 
         $options = [];
