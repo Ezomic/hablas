@@ -709,6 +709,20 @@
         }
     },
     "progress": {
+        "stars": "Nog geen sterren | {count} ster | {count} sterren",
+        "unitPercent": "{percent}% van deze unit gekend",
+        "wordsKnown": "{known} van {total} woorden gekend",
+        "level": "{level}: {known} van {total} woorden ({percent}%)",
+        "continue": "Verder",
+        "start": "Begin",
+        "word": {
+            "new": "Nieuw",
+            "seen": "Gezien",
+            "typing": "Typen",
+            "known": "Gekend",
+            "solid": "Vast"
+        },
+
         "unitsCompleted": "Voltooide eenheden",
         "mixedUp": "Vaak door elkaar gehaald",
         "errorTags": {

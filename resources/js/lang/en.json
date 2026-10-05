@@ -709,6 +709,20 @@
         }
     },
     "progress": {
+        "stars": "No stars yet | {count} star | {count} stars",
+        "unitPercent": "{percent}% of this unit known",
+        "wordsKnown": "{known} of {total} words known",
+        "level": "{level}: {known} of {total} words ({percent}%)",
+        "continue": "Continue",
+        "start": "Start",
+        "word": {
+            "new": "New",
+            "seen": "Seen",
+            "typing": "Typing",
+            "known": "Known",
+            "solid": "Solid"
+        },
+
         "unitsCompleted": "Units completed",
         "mixedUp": "Frequently mixed up",
         "errorTags": {

@@ -10,12 +10,16 @@ use App\Models\Unit;
 use App\Models\UnitItemMastery;
 use App\Models\User;
 use App\Services\LessonProgress;
+use App\Services\UnitStars;
+use App\Services\WordProgress;
 
 final class ListUnitLibrary
 {
     public function __construct(
         private readonly DetermineUnitAvailability $determineUnitAvailability = new DetermineUnitAvailability,
         private readonly LessonProgress $lessonProgress = new LessonProgress,
+        private readonly WordProgress $wordProgress = new WordProgress,
+        private readonly UnitStars $unitStars = new UnitStars,
     ) {}
 
     /**
@@ -44,6 +48,8 @@ final class ListUnitLibrary
             $mastered[$row->unit_id][$row->masterable_type.':'.$row->masterable_id] = true;
         }
 
+        $progress = $this->wordProgress->forUnits($user, $units);
+
         return array_values($units->map(fn (Unit $unit): array => [
             'id' => $unit->id,
             'title' => $unit->title,
@@ -54,6 +60,8 @@ final class ListUnitLibrary
             'lessonCount' => count($states[$unit->id]),
             'lessonsCompleted' => count(array_filter($states[$unit->id], fn (LessonState $state): bool => $state === LessonState::Completed)),
             'masteredCount' => count($mastered[$unit->id] ?? []),
+            'percent' => $progress[$unit->id]['percent'],
+            'stars' => $this->unitStars->handle($user, $unit, $progress[$unit->id]['percent']),
         ])->all());
     }
 }

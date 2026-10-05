@@ -18,6 +18,8 @@ function unit(
         lessonCount: 0,
         lessonsCompleted: 0,
         masteredCount: 0,
+        percent: 0,
+        stars: 0,
     };
 }
 
