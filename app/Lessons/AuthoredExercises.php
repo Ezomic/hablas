@@ -38,7 +38,7 @@ final class AuthoredExercises
 
         foreach ($exercise->targets as $spec) {
             $ref = $spec->isGrammar() ? $this->grammarRef($context, $exercise) : $context->itemForTerm($spec->term ?? '')->ref();
-            $forms[$ref->key()] = $spec->form;
+            $forms[$ref->key()] = $spec->forms();
             $targets[] = new TargetDefinition(
                 $ref,
                 $exercise->stage === LessonStage::Check && $exercise->format->canProbe(),
@@ -75,7 +75,7 @@ final class AuthoredExercises
     }
 
     /**
-     * @param  array<string, string>  $forms
+     * @param  array<string, list<string>>  $forms
      * @return array<string, mixed>
      */
     private function payload(BuildContext $context, AuthoredExercise $exercise, array $forms): array
@@ -112,7 +112,7 @@ final class AuthoredExercises
     }
 
     /**
-     * @param  array<string, string>  $forms
+     * @param  array<string, list<string>>  $forms
      * @return list<array{text: string, spans: array<string, array{int, int}>}>
      */
     private function accepted(BuildContext $context, AuthoredExercise $exercise, array $forms): array

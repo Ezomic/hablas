@@ -13,7 +13,7 @@ use App\Contracts\TextNormalizer;
 final class AnswerSpans
 {
     /**
-     * @param  array<string, string>  $formsByKey  the words of each target, by target key
+     * @param  array<string, list<string>>  $formsByKey  the wordings of each target, by target key, the first found in the answer is used
      * @return array<string, array{int, int}>|null start and length in words; null when a form is missing
      */
     public function find(TextNormalizer $normalizer, string $answer, array $formsByKey): ?array
@@ -21,15 +21,25 @@ final class AnswerSpans
         $words = $this->words($normalizer, $answer);
         $spans = [];
 
-        foreach ($formsByKey as $key => $form) {
-            $formWords = $this->words($normalizer, $form);
-            $start = $this->indexOf($words, $formWords);
+        foreach ($formsByKey as $key => $forms) {
+            $span = null;
 
-            if ($start === null) {
+            foreach ($forms as $form) {
+                $formWords = $this->words($normalizer, $form);
+                $start = $this->indexOf($words, $formWords);
+
+                if ($start !== null) {
+                    $span = [$start, count($formWords)];
+
+                    break;
+                }
+            }
+
+            if ($span === null) {
                 return null;
             }
 
-            $spans[$key] = [$start, count($formWords)];
+            $spans[$key] = $span;
         }
 
         return $spans;

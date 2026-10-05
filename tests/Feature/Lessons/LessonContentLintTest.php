@@ -172,9 +172,9 @@ describe('small helpers', function () {
     it('finds the span of a form, and nothing for a form without words', function () {
         $normalizer = new SpanishTextNormalizer;
 
-        expect((new AnswerSpans)->find($normalizer, 'La llave está aquí', ['a' => 'está aquí']))->toBe(['a' => [2, 2]])
-            ->and((new AnswerSpans)->find($normalizer, 'La llave está aquí', ['a' => '¿?']))->toBeNull()
-            ->and((new AnswerSpans)->find($normalizer, 'La llave está aquí', ['a' => 'baño']))->toBeNull();
+        expect((new AnswerSpans)->find($normalizer, 'La llave está aquí', ['a' => ['está aquí']]))->toBe(['a' => [2, 2]])
+            ->and((new AnswerSpans)->find($normalizer, 'La llave está aquí', ['a' => ['¿?']]))->toBeNull()
+            ->and((new AnswerSpans)->find($normalizer, 'La llave está aquí', ['a' => ['baño']]))->toBeNull();
     });
 
     it('swaps the article of a noun phrase, and nothing else', function () {

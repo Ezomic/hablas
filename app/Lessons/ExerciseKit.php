@@ -13,14 +13,16 @@ use App\Enums\LessonStage as Stage;
  */
 final class ExerciseKit
 {
-    public static function word(string $term, ?string $form = null): TargetSpec
+    /** @param  list<string>  $alternates */
+    public static function word(string $term, ?string $form = null, array $alternates = []): TargetSpec
     {
-        return TargetSpec::word($term, $form);
+        return TargetSpec::word($term, $form, $alternates);
     }
 
-    public static function form(string $form, bool $contrast = false): TargetSpec
+    /** @param  list<string>  $alternates */
+    public static function form(string $form, bool $contrast = false, array $alternates = []): TargetSpec
     {
-        return TargetSpec::grammar($form, $contrast);
+        return TargetSpec::grammar($form, $contrast, $alternates);
     }
 
     /**
