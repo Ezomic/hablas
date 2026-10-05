@@ -75,6 +75,18 @@ const grammarPoints = [
     },
 ];
 
+const progress = {
+    percent: 30,
+    known: 3,
+    total: 10,
+    stars: 1,
+    words: [
+        { id: 1, state: 'known' },
+        { id: 2, state: 'new' },
+    ],
+    level: { code: 'A1', known: 12, total: 80, percent: 15 },
+};
+
 function mountPage(overrides: Record<string, unknown> = {}) {
     forms.length = 0;
 
@@ -85,6 +97,7 @@ function mountPage(overrides: Record<string, unknown> = {}) {
             grammarPoints,
             isCompleted: false,
             speechLocale: 'es-ES',
+            progress,
             ...overrides,
         },
     });
@@ -290,6 +303,7 @@ describe('unit page with lessons', () => {
 
         await wrapper
             .findAll('button')
+            .filter((button) => button.attributes('data-testid') === undefined)
             .find((button) => button.text().includes('Continue'))
             ?.trigger('click');
 
@@ -377,5 +391,66 @@ describe('unit page with lessons', () => {
         expect(
             mountPage({ lessons: overview, availability: 'held_back' }).text(),
         ).toContain('Clear your reviews first');
+    });
+});
+
+describe('unit hero', () => {
+    const lessons = {
+        lessons: [
+            {
+                stage: 'meet',
+                title: 'Meet',
+                position: 1,
+                lessonId: 11,
+                state: 'completed',
+                bestAccuracy: 90,
+            },
+            {
+                stage: 'recall',
+                title: 'Recall',
+                position: 2,
+                lessonId: 12,
+                state: 'available',
+                bestAccuracy: null,
+            },
+        ],
+        mastery: { mastered: 3, total: 10 },
+        skipped: { listening: 0, speaking: 0 },
+        contentPending: false,
+        canTestOut: false,
+        remediation: null,
+    };
+
+    it('shows the share known, the stars and the level', () => {
+        const wrapper = mountPage({ lessons });
+
+        expect(wrapper.find('[data-testid="progress-ring"]').text()).toContain(
+            '30%',
+        );
+        expect(wrapper.text()).toContain('3 of 10 words known');
+        expect(wrapper.find('[data-testid="level-progress"]').text()).toContain(
+            'A1: 12 of 80 words (15%)',
+        );
+    });
+
+    it('continues with the next lesson that is open', async () => {
+        router.post.mockReset();
+        const wrapper = mountPage({ lessons, availability: 'in_progress' });
+
+        await wrapper.find('[data-testid="continue-button"]').trigger('click');
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/units/4/lessons/12/runs',
+            {},
+            expect.anything(),
+        );
+    });
+
+    it('has no continue button for a unit held back', () => {
+        expect(
+            mountPage({ lessons, availability: 'held_back' })
+                .find('[data-testid="continue-button"]')
+                .exists(),
+        ).toBe(false);
     });
 });

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppSpinner from '@/components/AppSpinner.vue';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import UnitHero from '@/components/UnitHero.vue';
 import UnitLessonList from '@/components/UnitLessonList.vue';
 import type {
     UnitGrammarPoint,
@@ -25,9 +26,11 @@ import type {
 import UnitReference from '@/components/UnitReference.vue';
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { skillLabel } from '@/lib/skillLabels';
+import { store as startRun } from '@/routes/lessons/runs';
 import { index as unitsIndex } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 import type { UnitLessonOverview } from '@/types/lesson';
+import type { UnitProgress } from '@/types/unit';
 
 interface Unit {
     id: number;
@@ -45,6 +48,7 @@ const props = defineProps<{
     isCompleted: boolean;
     availability?: string;
     lessons?: UnitLessonOverview | null;
+    progress: UnitProgress;
     speechLocale: string | null;
 }>();
 
@@ -54,6 +58,40 @@ useBreadcrumbs(() => [{ title: t('nav.units'), href: unitsIndex() }]);
 
 const form = useForm({});
 const referenceOpen = ref(false);
+
+const nextLesson = computed(
+    () =>
+        props.lessons?.lessons.find(
+            (row) =>
+                row.lessonId !== null &&
+                ['available', 'in_progress'].includes(row.state),
+        ) ?? null,
+);
+
+const started = computed(
+    () =>
+        props.lessons?.lessons.some((row) =>
+            ['in_progress', 'completed'].includes(row.state),
+        ) ?? false,
+);
+
+const starting = ref(false);
+
+function continueUnit() {
+    if (nextLesson.value?.lessonId == null) {
+        return;
+    }
+
+    starting.value = true;
+    router.post(
+        startRun({
+            unit: props.unit.id,
+            lesson: nextLesson.value.lessonId,
+        }).url,
+        {},
+        { onFinish: () => (starting.value = false) },
+    );
+}
 
 function complete() {
     form.post(completeUnit(props.unit.id).url);
@@ -76,6 +114,17 @@ function complete() {
                 {{ props.unit.taskDescription }}
             </p>
         </div>
+
+        <UnitHero
+            v-if="props.lessons"
+            :progress="props.progress"
+            :can-continue="
+                nextLesson !== null && props.availability !== 'held_back'
+            "
+            :started="started"
+            :busy="starting"
+            @continue="continueUnit"
+        />
 
         <Card v-if="props.unit.contrastNote">
             <CardHeader>

@@ -94,6 +94,8 @@ it('lists the units of the language being studied, with what each card needs', f
                 'lessonCount' => 0,
                 'lessonsCompleted' => 0,
                 'masteredCount' => 0,
+                'percent' => 0,
+                'stars' => 0,
                 'availability' => 'available',
             ]),
         );

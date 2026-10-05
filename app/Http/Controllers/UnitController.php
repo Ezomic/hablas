@@ -8,6 +8,7 @@ use App\Actions\CompleteUnit;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Lessons\GetUnitLessonOverview;
 use App\Actions\Units\DetermineUnitAvailability;
+use App\Actions\Units\GetUnitProgress;
 use App\Actions\Units\ListUnitLibrary;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\UnitAvailability;
@@ -37,7 +38,7 @@ final class UnitController extends Controller
         ]);
     }
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver, GetUnitProgress $getUnitProgress): Response
     {
         $language = $this->currentLanguage($getCurrentLanguage);
         $availability = $this->authorizeUnit($unit, $language, $determineUnitAvailability);
@@ -74,6 +75,7 @@ final class UnitController extends Controller
             'isCompleted' => $availability === UnitAvailability::Completed,
             'availability' => $availability->value,
             'lessons' => $this->hasLessons($overview) ? $overview : null,
+            'progress' => $getUnitProgress->handle($this->currentUser(), $language, $unit),
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }

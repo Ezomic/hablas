@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Lock } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import StarRow from '@/components/StarRow.vue';
 import type { BadgeVariants } from '@/components/ui/badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import {
     Select,
     SelectContent,
@@ -245,6 +247,28 @@ function note(unit: LibraryUnit): string | null {
                                 <CardDescription>{{
                                     unit.taskDescription
                                 }}</CardDescription>
+                                <div
+                                    v-if="opens(unit) && unit.percent > 0"
+                                    class="flex items-center gap-2"
+                                    data-testid="unit-progress"
+                                >
+                                    <Progress
+                                        :model-value="unit.percent"
+                                        class="h-2 flex-1"
+                                        :aria-label="
+                                            t('progress.unitPercent', {
+                                                percent: unit.percent,
+                                            })
+                                        "
+                                    />
+                                    <span class="text-xs text-muted-foreground"
+                                        >{{ unit.percent }}%</span
+                                    >
+                                    <StarRow
+                                        :stars="unit.stars"
+                                        size="size-4"
+                                    />
+                                </div>
                                 <p
                                     v-if="note(unit)"
                                     class="text-sm text-muted-foreground"
