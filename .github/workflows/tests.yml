@@ -87,10 +87,14 @@ jobs:
         run: composer ci:static
 
   tests:
-    name: tests
+    name: tests (${{ matrix.shard }}/${{ strategy.job-total }})
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -132,12 +136,59 @@ jobs:
       - name: Build Assets
         run: npm run build
 
-      - name: Run Tests With Coverage
-        run: composer test:coverage
+      - name: Run Tests Shard
+        run: >-
+          php -d memory_limit=-1 vendor/bin/pest --parallel
+          --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          --coverage-php=coverage/shard-${{ matrix.shard }}.cov
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.shard }}
+          path: coverage/shard-${{ matrix.shard }}.cov
+          retention-days: 1
+
+  coverage:
+    name: coverage
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/composer
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Download Coverage
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage
+          merge-multiple: true
+
+      - name: Check Merged Coverage
+        run: php -d memory_limit=-1 scripts/merge-coverage.php 93 coverage/*.cov
 
   ci:
     name: ci
-    needs: [changes, static, tests]
+    needs: [changes, static, tests, coverage]
     if: always()
     runs-on: ubuntu-latest
     steps:
