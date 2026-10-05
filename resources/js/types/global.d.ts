@@ -23,11 +23,11 @@ declare module '@inertiajs/core' {
             auth: Auth;
             portalApps: PortalApp[];
             portalCategories: PortalCategory[];
-            sidebarOpen: boolean;
             interfaceLocale: InterfaceLocale;
             supportedLocales: InterfaceLocale[];
             currentLanguage: LanguageOption | null;
             availableLanguages: LanguageOption[];
+            dueReviewCount: number;
             [key: string]: unknown;
         };
     }

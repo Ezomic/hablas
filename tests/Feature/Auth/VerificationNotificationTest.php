@@ -30,7 +30,7 @@ it('does not send the verification notification if already verified', function (
 
     $this->actingAs($user)
         ->post(route('verification.send'))
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('continue', absolute: false));
 
     Notification::assertNothingSent();
 });

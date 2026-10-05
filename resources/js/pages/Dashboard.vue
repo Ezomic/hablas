@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import MeMenu from '@/components/MeMenu.vue';
 import RetakeSkillButton from '@/components/RetakeSkillButton.vue';
 import ReviewForecast from '@/components/ReviewForecast.vue';
 import { Button } from '@/components/ui/button';
@@ -417,5 +418,7 @@ const ceilingSkillNames = computed(() =>
                 </Button>
             </CardContent>
         </Card>
+
+        <MeMenu />
     </div>
 </template>

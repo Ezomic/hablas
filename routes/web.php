@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\ContinueController;
 use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\TtsPreviewController;
 use App\Http\Controllers\WebManifestController;
 use App\Http\Middleware\EnsurePlacementTestCompleted;
@@ -39,6 +41,10 @@ Route::get('manifest.webmanifest', WebManifestController::class)
 Route::get('voice-test', TtsPreviewController::class)->middleware('auth')->name('tts-preview');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('continue', ContinueController::class)
+        ->middleware(EnsurePlacementTestCompleted::class)
+        ->name('continue');
+    Route::get('practice', [PracticeController::class, 'index'])->name('practice');
     Route::get('dashboard', [DashboardController::class, 'index'])
         ->middleware(EnsurePlacementTestCompleted::class)
         ->name('dashboard');

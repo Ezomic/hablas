@@ -13,8 +13,8 @@ final class HomeController extends Controller
 {
     public function __invoke(Request $request): Response|RedirectResponse
     {
-        if ($request->query('source') === 'pwa' && $request->user() !== null) {
-            return redirect()->route('dashboard');
+        if ($request->user() !== null) {
+            return redirect()->route('continue');
         }
 
         return Inertia::render('Welcome');

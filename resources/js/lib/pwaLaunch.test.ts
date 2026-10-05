@@ -35,9 +35,21 @@ describe('isPwaLaunch', () => {
 describe('handlePwaLaunch', () => {
     const launch = () => navigation('https://h.test/?source=pwa');
 
-    function stubCaches(entries: Record<string, Response>) {
+    function stubCaches(
+        entries: Record<string, Response>,
+        keys: string[] = [],
+    ) {
         vi.stubGlobal('caches', {
-            open: async () => ({ match: async (key: string) => entries[key] }),
+            open: async () => ({
+                match: async (key: string | Request) =>
+                    entries[
+                        typeof key === 'string'
+                            ? key
+                            : new URL(key.url).pathname
+                    ],
+                keys: async () =>
+                    keys.map((path) => new Request('https://h.test' + path)),
+            }),
         });
     }
 
@@ -69,5 +81,21 @@ describe('handlePwaLaunch', () => {
         stubCaches({});
 
         await expect(handlePwaLaunch(launch())).rejects.toThrow(TypeError);
+    });
+
+    it('falls back to the unit page visited last when offline', async () => {
+        const older = new Response('older');
+        const last = new Response('last');
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('x')));
+        stubCaches(
+            {
+                '/units/2': older,
+                '/units/7': last,
+                '/dashboard': new Response('dashboard'),
+            },
+            ['/dashboard', '/units/2', '/units/7'],
+        );
+
+        expect(await handlePwaLaunch(launch())).toBe(last);
     });
 });

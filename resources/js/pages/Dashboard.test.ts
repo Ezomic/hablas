@@ -8,6 +8,7 @@ vi.mock('@inertiajs/vue3', () => ({
     setLayoutProps: vi.fn(),
     router: { post: vi.fn() },
     useForm: () => ({ errors: {}, processing: false, post: vi.fn() }),
+    usePage: () => ({ props: { auth: { user: null } }, url: '/dashboard' }),
     Link: {
         props: ['href'],
         template:
@@ -20,6 +21,7 @@ const { url } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/routes', () => ({ dashboard: url('/dashboard') }));
+vi.mock('@/components/MeMenu.vue', () => ({ default: { render: () => null } }));
 vi.mock('@/routes/language', () => ({ activate: url('/lang') }));
 vi.mock('@/routes/lesson-runs', () => ({ show: url('/run') }));
 vi.mock('@/routes/lessons/runs', () => ({ store: url('/start') }));
