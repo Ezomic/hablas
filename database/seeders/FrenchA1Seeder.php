@@ -217,7 +217,7 @@ class FrenchA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Aller and à with the article: au, à la, à l\', aux',
-                        'explanation' => '\'To go\' is aller (je vais, tu vas, il/elle va, nous allons, vous allez, ils/elles vont) and \'to\' or \'at\' is à. À merges with le and les: au (à + le), aux (à + les). With la and l\' it does not: à la gare, à l\'hôtel. \'Je vais au restaurant\' is correct, \'Je vais à le restaurant\' is never said.',
+                        'explanation' => '\'To go\' is aller (je vais, tu vas, il/elle va, nous allons, vous allez, ils/elles vont) and \'to\' or \'at\' is à. À merges with le and les: au (à + le), aux (à + les). With la and l\' it does not: à la gare, à l\'hôtel. \'Je vais au restaurant\' is correct, \'Je vais à le restaurant\' is never said. De merges with le and les in the same way: du (de + le), des (de + les), as in près du coin.',
                         'error_tag_category' => null,
                     ],
                 ],
