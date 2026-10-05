@@ -454,6 +454,7 @@ describe('targets and spans', function () {
 
         expect(fn () => builtLessons($make(['distractors' => []], ['El baño está aquí.']), $unit))->toThrow(InvalidLessonContent::class, 'needs 1 distractor tiles');
         expect(fn () => builtLessons($make(['distractors' => ['es']], ['El baño está aquí.', 'Aquí está el baño y la llave.']), $unit))->toThrow(InvalidLessonContent::class, 'cannot rebuild');
+        expect(fn () => builtLessons($make(['distractors' => ['es']], ['El baño del hotel-bar.']), $unit))->not->toThrow(InvalidLessonContent::class);
     });
 
     it('fails the build for a choice whose answer is not among its options', function () {

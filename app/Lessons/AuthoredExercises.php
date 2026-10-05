@@ -283,7 +283,7 @@ final class AuthoredExercises
 
         foreach (is_array($accepted) ? $accepted : [] as $entry) {
             $answer = is_array($entry) && is_string($entry['text'] ?? null) ? $entry['text'] : '';
-            $available = array_map($context->normalizer->exactKey(...), $all);
+            $available = array_merge(...array_map(fn (string $tile): array => $this->answerSpans->words($context->normalizer, $tile), $all));
 
             foreach ($this->answerSpans->words($context->normalizer, $answer) as $word) {
                 $at = array_search($word, $available, true);
