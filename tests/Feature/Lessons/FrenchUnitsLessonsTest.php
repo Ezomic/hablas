@@ -21,7 +21,6 @@ use App\Services\UnitContentRegistry;
 use App\Speech\SpeechCorpus;
 use App\Speech\SpeechText;
 use Database\Content\Lessons\Fr\CoreWords;
-use Database\Content\Lessons\Fr\GreetingsAndIntroductions;
 use Database\Seeders\ContentSeeder;
 use Database\Seeders\FrenchA1Seeder;
 use Database\Seeders\LanguageSeeder;
@@ -33,8 +32,18 @@ function frenchUnits(): array
 {
     $units = [];
 
-    foreach ([new GreetingsAndIntroductions] as $content) {
-        $units[$content->unitSlug()] = $content;
+    foreach (glob(__DIR__.'/../../../database/content/Lessons/Fr/*.php') ?: [] as $file) {
+        $class = 'Database\\Content\\Lessons\\Fr\\'.basename($file, '.php');
+
+        if ($class === CoreWords::class) {
+            continue;
+        }
+
+        $content = new $class;
+
+        if ($content->exercises() !== []) {
+            $units[$content->unitSlug()] = $content;
+        }
     }
 
     return $units;
