@@ -62,13 +62,15 @@ final class PresentLessonRun
 
         $exercises = LessonExercise::query()
             ->whereIn('id', $run->planExerciseIds())
-            ->with(['substitute', 'targets.targetable'])
+            ->with(['substitute.targets.targetable', 'targets.targetable'])
             ->get()
             ->keyBy('id');
 
         $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all()), $hidesAnswers));
         $user = $run->user ?? throw new LogicException("Run {$run->id} has no user.");
         $settings = $this->getUserSettings->handle($user);
+
+        $this->typingSupport->preload($user->id, $this->wordIds($exercises->values()->all()));
 
         $plan = [];
 
@@ -188,15 +190,41 @@ final class PresentLessonRun
         }
 
         $item = $exercise->targets->map(fn ($target) => $target->targetable)->first(fn ($targetable): bool => $targetable instanceof VocabularyItem);
-        $mask = $item instanceof VocabularyItem ? $this->typingSupport->maskFor($user, $item) : null;
 
-        if ($mask === null) {
+        if (! $item instanceof VocabularyItem) {
             return $payload;
         }
 
         unset($payload['hint']);
 
-        return [...$payload, 'mask' => $mask];
+        $mask = $this->typingSupport->maskFor($user->id, $item);
+
+        return $mask === null ? $payload : [...$payload, 'mask' => $mask];
+    }
+
+    /**
+     * @param  array<int, LessonExercise>  $exercises
+     * @return list<int>
+     */
+    private function wordIds(array $exercises): array
+    {
+        $ids = [];
+
+        foreach ($exercises as $exercise) {
+            foreach ([$exercise, $exercise->substitute] as $candidate) {
+                if ($candidate === null || $candidate->format !== LessonExerciseFormat::TypeWord) {
+                    continue;
+                }
+
+                foreach ($candidate->targets as $target) {
+                    if ($target->targetable instanceof VocabularyItem) {
+                        $ids[] = $target->targetable->id;
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**

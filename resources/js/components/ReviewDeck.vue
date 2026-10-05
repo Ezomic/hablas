@@ -329,7 +329,10 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                 class="flex flex-col gap-2"
                 @submit.prevent="checkAnswer"
             >
-                <Label :for="`answer-${queue[0].id}`">
+                <Label
+                    :id="`answer-label-${queue[0].id}`"
+                    :for="`answer-${queue[0].id}`"
+                >
                     {{
                         queue[0].needsArticle
                             ? t('review.deck.typeWithArticle')
@@ -342,6 +345,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                         :key="queue[0].id"
                         v-model="typedAnswer"
                         :mask="queue[0].mask"
+                        :labelledby="`answer-label-${queue[0].id}`"
                         :locale="termLang(queue[0], 'back') ?? null"
                         :disabled="isChecking"
                         @submit="checkAnswer"

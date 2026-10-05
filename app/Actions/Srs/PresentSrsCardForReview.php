@@ -19,6 +19,26 @@ final class PresentSrsCardForReview
     ) {}
 
     /**
+     * Reads what a deck's learner has stored for its words in one query.
+     *
+     * @param  iterable<SrsCard>  $cards
+     */
+    public function preload(iterable $cards): void
+    {
+        $byUser = [];
+
+        foreach ($cards as $card) {
+            if ($card->cardable instanceof VocabularyItem) {
+                $byUser[$card->user_id][] = $card->cardable->id;
+            }
+        }
+
+        foreach ($byUser as $userId => $itemIds) {
+            $this->typingSupport->preload($userId, $itemIds);
+        }
+    }
+
+    /**
      * A production card turns the word around: the translation is shown, and
      * the word is what the learner types and then sees revealed. The word is
      * therefore already in the page props before the learner answers: the deck
@@ -39,7 +59,7 @@ final class PresentSrsCardForReview
             'kind' => $this->kind($cardable),
             'direction' => $produce ? 'production' : 'recognition',
             'needsArticle' => $produce && $this->isNoun($cardable),
-            'mask' => $produce && $cardable instanceof VocabularyItem && $card->user !== null ? $this->typingSupport->maskFor($card->user, $cardable) : null,
+            'mask' => $produce && $cardable instanceof VocabularyItem ? $this->typingSupport->maskFor($card->user_id, $cardable) : null,
             'suggestedErrorTag' => $this->suggestedErrorTag($cardable),
         ];
     }

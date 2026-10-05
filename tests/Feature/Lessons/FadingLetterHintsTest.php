@@ -37,11 +37,11 @@ it('takes a letter away after each unaided right answer, and gives one back for 
     $exercise = LessonExercise::query()->findOrFail(typedWord(app(PresentLessonRun::class)->handle($run))['id']);
     $item = $exercise->targets->map(fn ($target) => $target->targetable)->first(fn ($target): bool => $target instanceof VocabularyItem);
     $support = new TypingSupport;
-    $before = $support->revealed($this->user, $item);
+    $before = $support->revealed($this->user->id, $item);
 
     LessonWorld::answer($this->user, $run, $exercise);
 
-    expect($support->revealed($this->user, $item))->toBe($before - 1);
+    expect($support->revealed($this->user->id, $item))->toBe($before - 1);
 
     $second = LessonExercise::query()->where('key', 'recall.type_word.'.str_replace('meet.type_word.', '', $exercise->key))->first();
 
@@ -49,7 +49,7 @@ it('takes a letter away after each unaided right answer, and gives one back for 
 
     LessonWorld::answer($this->user, $run, $exercise, ['step' => 'again', 'response' => ['text' => 'zzz']]);
 
-    expect($support->revealed($this->user, $item))->toBeLessThanOrEqual($before);
+    expect($support->revealed($this->user->id, $item))->toBeLessThanOrEqual($before);
 });
 
 it('gives no letters in a check', function () {
@@ -59,4 +59,18 @@ it('gives no letters in a check', function () {
     foreach (app(PresentLessonRun::class)->handle($run)['plan'] as $entry) {
         expect($entry['payload'])->not->toHaveKey('mask');
     }
+});
+
+it('drops the old first-letter hint once a word has faded to nothing', function () {
+    $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Meet));
+    $exercise = LessonExercise::query()->findOrFail(typedWord(app(PresentLessonRun::class)->handle($run))['id']);
+    $item = $exercise->targets->map(fn ($target) => $target->targetable)->first(fn ($target): bool => $target instanceof VocabularyItem);
+
+    foreach (range(1, 12) as $ignored) {
+        (new TypingSupport)->record($this->user->id, $item, true);
+    }
+
+    $payload = collect(app(PresentLessonRun::class)->handle($run)['plan'])->firstWhere('id', $exercise->id)['payload'];
+
+    expect($payload)->not->toHaveKey('mask')->and($payload)->not->toHaveKey('hint');
 });

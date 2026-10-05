@@ -7,6 +7,7 @@ const props = defineProps<{
     mask: (string | null)[];
     locale: string | null;
     disabled?: boolean;
+    labelledby?: string;
 }>();
 
 const emit = defineEmits<{
@@ -23,6 +24,7 @@ const blanks = computed(() =>
 const typed = ref<string[]>(blanks.value.map(() => ''));
 const boxes = ref<HTMLInputElement[]>([]);
 const focused = ref(0);
+const composing = ref(false);
 
 const words = computed(() => {
     const groups: { char: string | null; blank: number; key: number }[][] = [
@@ -56,7 +58,10 @@ function assembled(): string {
 }
 
 function publish() {
-    emit('update:modelValue', assembled());
+    emit(
+        'update:modelValue',
+        typed.value.every((char) => char === '') ? '' : assembled(),
+    );
 }
 
 watch(
@@ -93,7 +98,13 @@ function fill(from: number, text: string) {
 }
 
 function onInput(blank: number, event: Event) {
-    const value = (event.target as HTMLInputElement).value;
+    if (composing.value || (event as InputEvent).isComposing) {
+        return;
+    }
+
+    const element = event.target as HTMLInputElement;
+    const value = element.value;
+    const previous = typed.value[blank];
 
     if (value === '') {
         typed.value[blank] = '';
@@ -102,7 +113,29 @@ function onInput(blank: number, event: Event) {
         return;
     }
 
-    fill(blank, value);
+    const entered =
+        previous !== '' && value.length > 1
+            ? value.replace(previous, '')
+            : value;
+
+    typed.value[blank] = '';
+    fill(blank, entered === '' ? previous : entered);
+    element.value = typed.value[blank];
+}
+
+function onCompositionEnd(blank: number, event: Event) {
+    composing.value = false;
+    onInput(blank, event);
+}
+
+function onBeforeInput(blank: number, event: InputEvent) {
+    if (
+        event.inputType === 'deleteContentBackward' &&
+        typed.value[blank] === ''
+    ) {
+        event.preventDefault();
+        focusBox(blank - 1);
+    }
 }
 
 function onKeydown(blank: number, event: KeyboardEvent) {
@@ -145,7 +178,8 @@ defineExpose({ insert });
     <div
         class="flex flex-wrap gap-x-5 gap-y-3"
         role="group"
-        :aria-label="t('lesson.answerLabel')"
+        :aria-label="props.labelledby ? undefined : t('lesson.answerLabel')"
+        :aria-labelledby="props.labelledby"
         data-testid="letter-boxes"
     >
         <div
@@ -178,6 +212,9 @@ defineExpose({ insert });
                     data-testid="letter-box"
                     @focus="focused = slot.blank"
                     @input="onInput(slot.blank, $event)"
+                    @beforeinput="onBeforeInput(slot.blank, $event)"
+                    @compositionstart="composing = true"
+                    @compositionend="onCompositionEnd(slot.blank, $event)"
                     @keydown="onKeydown(slot.blank, $event)"
                     @paste="onPaste(slot.blank, $event)"
                 />

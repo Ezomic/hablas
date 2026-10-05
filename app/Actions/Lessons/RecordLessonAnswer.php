@@ -119,7 +119,7 @@ final class RecordLessonAnswer
         $item = $exercise->targets->map(fn ($target) => $target->targetable)->first(fn ($targetable): bool => $targetable instanceof VocabularyItem);
 
         if ($item instanceof VocabularyItem) {
-            $this->typingSupport->record($user, $item, $correct, $hinted);
+            $this->typingSupport->record($user->id, $item, $correct, $hinted);
         }
     }
 

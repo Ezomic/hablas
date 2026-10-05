@@ -71,4 +71,30 @@ describe('LetterBoxes', () => {
 
         expect(wrapper.emitted('submit')).toHaveLength(1);
     });
+
+    it('gives an empty answer again once every box is cleared', async () => {
+        const wrapper = mount(LetterBoxes, {
+            props: { modelValue: '', mask, locale: 'es' },
+        });
+
+        await boxes(wrapper)[0].setValue('o');
+        await boxes(wrapper)[0].setValue('');
+
+        const values = wrapper.emitted('update:modelValue') ?? [];
+
+        expect(values[values.length - 1]).toEqual(['']);
+    });
+
+    it('replaces the letter of a filled box with the one typed over it', async () => {
+        const wrapper = mount(LetterBoxes, {
+            props: { modelValue: '', mask, locale: 'es' },
+        });
+
+        await boxes(wrapper)[0].setValue('o');
+        await boxes(wrapper)[0].setValue('ob');
+
+        const values = wrapper.emitted('update:modelValue') ?? [];
+
+        expect(values[values.length - 1]).toEqual(['hbl a']);
+    });
 });

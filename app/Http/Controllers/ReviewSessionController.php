@@ -11,6 +11,7 @@ use App\Actions\Srs\GradeTypedRecall;
 use App\Actions\Srs\PresentSrsCardsWithSpeech;
 use App\Actions\Srs\ReviewSrsCard;
 use App\Concerns\InteractsWithCurrentUser;
+use App\Enums\SrsRating;
 use App\Http\Requests\CheckTypedAnswerRequest;
 use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
@@ -44,9 +45,15 @@ final class ReviewSessionController extends Controller
         ]);
     }
 
-    public function store(StoreSrsReviewRequest $request, SrsCard $srsCard, ReviewSrsCard $reviewSrsCard): JsonResponse
+    public function store(StoreSrsReviewRequest $request, SrsCard $srsCard, ReviewSrsCard $reviewSrsCard, GetUserSettings $getUserSettings, TypingSupport $typingSupport): JsonResponse
     {
         abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
+
+        $item = $srsCard->cardable;
+
+        if ($item instanceof VocabularyItem && $request->rating() === SrsRating::Again && $getUserSettings->handle($this->currentUser())->review_mode->asksToType($srsCard->state)) {
+            $typingSupport->record($srsCard->user_id, $item, false);
+        }
 
         $reviewSrsCard->handle($srsCard, $request->rating(), $request->errorTagCategory());
 
@@ -67,7 +74,9 @@ final class ReviewSessionController extends Controller
 
         $correct = $gradeTypedRecall->handle($item, $request->answer());
 
-        $typingSupport->record($this->currentUser(), $item, $correct);
+        if ($correct) {
+            $typingSupport->record($srsCard->user_id, $item, true);
+        }
 
         return response()->json(['correct' => $correct]);
     }

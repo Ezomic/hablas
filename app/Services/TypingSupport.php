@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\VocabularyItem;
 use App\Models\WordTypingSupport;
+use Illuminate\Support\Facades\DB;
+use Normalizer;
 
 /**
  * The fading letters of a typed word. A word starts with most of its letters
@@ -18,6 +19,9 @@ use App\Models\WordTypingSupport;
 final class TypingSupport
 {
     private const MIN_LETTERS = 3;
+
+    /** @var array<string, int> the stored letters given, by learner and word, for what was preloaded */
+    private array $stored = [];
 
     public function initialReveal(int $letters): int
     {
@@ -36,6 +40,7 @@ final class TypingSupport
      */
     public function mask(string $term, int $revealed): array
     {
+        $term = $this->composed($term);
         $chars = mb_str_split($term);
         $letters = array_keys(array_filter($chars, fn (string $char): bool => preg_match('/\p{L}/u', $char) === 1));
         $order = $this->order($term, $letters);
@@ -49,16 +54,44 @@ final class TypingSupport
     }
 
     /** @return list<string|null>|null null when nothing is given, so the learner types the whole word */
-    public function maskFor(User $user, VocabularyItem $item): ?array
+    public function maskFor(int $userId, VocabularyItem $item): ?array
     {
-        $revealed = $this->revealed($user, $item);
+        $revealed = $this->revealed($userId, $item);
 
         return $revealed === 0 ? null : $this->mask($item->term, $revealed);
     }
 
-    public function revealed(User $user, VocabularyItem $item): int
+    /**
+     * Reads what is stored for these words in one query, so presenting a whole
+     * run or deck does not ask once per word.
+     *
+     * @param  list<int>  $itemIds
+     */
+    public function preload(int $userId, array $itemIds): void
     {
-        $stored = WordTypingSupport::query()->where('user_id', $user->id)->where('vocabulary_item_id', $item->id)->value('revealed');
+        $rows = WordTypingSupport::query()->where('user_id', $userId)->whereIn('vocabulary_item_id', $itemIds)->get();
+
+        foreach ($itemIds as $itemId) {
+            $key = $userId.':'.$itemId;
+            $row = $rows->firstWhere('vocabulary_item_id', $itemId);
+
+            if ($row instanceof WordTypingSupport) {
+                $this->stored[$key] = $row->revealed;
+            } else {
+                unset($this->stored[$key]);
+            }
+        }
+    }
+
+    public function revealed(int $userId, VocabularyItem $item): int
+    {
+        $key = $userId.':'.$item->id;
+
+        if (isset($this->stored[$key])) {
+            return $this->stored[$key];
+        }
+
+        $stored = WordTypingSupport::query()->where('user_id', $userId)->where('vocabulary_item_id', $item->id)->value('revealed');
 
         return is_int($stored) ? $stored : $this->initialReveal($this->letters($item->term));
     }
@@ -67,20 +100,26 @@ final class TypingSupport
      * An unaided right answer takes a letter away and a miss gives one back, up
      * to where the word started. An answer that used a hint changes nothing.
      */
-    public function record(User $user, VocabularyItem $item, bool $correct, bool $hinted = false): void
+    public function record(int $userId, VocabularyItem $item, bool $correct, bool $hinted = false): void
     {
         if ($hinted) {
             return;
         }
 
         $initial = $this->initialReveal($this->letters($item->term));
-        $revealed = $this->revealed($user, $item);
-        $next = $correct ? max(0, $revealed - 1) : min($initial, $revealed + 1);
 
-        WordTypingSupport::query()->updateOrCreate(
-            ['user_id' => $user->id, 'vocabulary_item_id' => $item->id],
-            ['revealed' => $next],
-        );
+        DB::transaction(function () use ($userId, $item, $correct, $initial): void {
+            $row = WordTypingSupport::query()->where('user_id', $userId)->where('vocabulary_item_id', $item->id)->lockForUpdate()->first();
+            $revealed = $row === null ? $initial : $row->revealed;
+            $next = $correct ? max(0, $revealed - 1) : min($initial, $revealed + 1);
+
+            WordTypingSupport::query()->updateOrCreate(
+                ['user_id' => $userId, 'vocabulary_item_id' => $item->id],
+                ['revealed' => $next],
+            );
+
+            $this->stored[$userId.':'.$item->id] = $next;
+        });
     }
 
     /**
@@ -105,6 +144,13 @@ final class TypingSupport
 
     private function letters(string $term): int
     {
-        return (int) preg_match_all('/\p{L}/u', $term);
+        return (int) preg_match_all('/\p{L}/u', $this->composed($term));
+    }
+
+    private function composed(string $term): string
+    {
+        $composed = Normalizer::normalize($term, Normalizer::FORM_C);
+
+        return is_string($composed) ? $composed : $term;
     }
 }

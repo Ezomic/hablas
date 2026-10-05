@@ -198,23 +198,30 @@ it('asks for typed recall in mix only for words in the review state', function (
 
 it('lowers the letters given for a word after a right typed answer and raises them after a miss', function () {
     $user = User::factory()->create();
-    $card = typedRecallCard($user, $this->spanish, 'aeropuerto');
+    UserSetting::factory()->for($user)->create(['review_mode' => ReviewMode::Production]);
+    $card = typedRecallCard($user, $this->spanish, 'aeropuerto', SrsCardState::New);
     $item = $card->cardable;
     $support = new TypingSupport;
-    $start = $support->revealed($user, $item);
+    $start = $support->revealed($user->id, $item);
 
     $this->actingAs($user)
         ->postJson(route('review.answers.check', $card), ['answer' => 'aeropuerto'])
         ->assertOk()
         ->assertJson(['correct' => true]);
 
-    expect($support->revealed($user, $item))->toBe($start - 1);
+    expect($support->revealed($user->id, $item))->toBe($start - 1);
 
     $this->actingAs($user)
         ->postJson(route('review.answers.check', $card), ['answer' => 'zzz'])
         ->assertJson(['correct' => false]);
 
-    expect($support->revealed($user, $item))->toBe($start);
+    expect($support->revealed($user->id, $item))->toBe($start - 1);
+
+    $this->actingAs($user)
+        ->postJson(route('review.reviews.store', $card), ['rating' => 'again'])
+        ->assertOk();
+
+    expect($support->revealed($user->id, $item))->toBe($start);
 });
 
 it('presents a typed card with its letter mask, which fades as the word is known', function () {

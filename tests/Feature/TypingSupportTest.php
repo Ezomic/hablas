@@ -40,16 +40,16 @@ it('takes a letter away for each unaided right answer and gives one back for a m
     $user = User::factory()->create();
     $item = VocabularyItem::factory()->create(['term' => 'aeropuerto']);
 
-    expect($support->revealed($user, $item))->toBe(6);
+    expect($support->revealed($user->id, $item))->toBe(6);
 
-    $support->record($user, $item, true);
-    $support->record($user, $item, true);
+    $support->record($user->id, $item, true);
+    $support->record($user->id, $item, true);
 
-    expect($support->revealed($user, $item))->toBe(4);
+    expect($support->revealed($user->id, $item))->toBe(4);
 
-    $support->record($user, $item, false);
+    $support->record($user->id, $item, false);
 
-    expect($support->revealed($user, $item))->toBe(5);
+    expect($support->revealed($user->id, $item))->toBe(5);
 });
 
 it('never gives more than the word started with, nor fewer than none', function () {
@@ -58,17 +58,17 @@ it('never gives more than the word started with, nor fewer than none', function 
     $item = VocabularyItem::factory()->create(['term' => 'maleta']);
 
     foreach (range(1, 5) as $ignored) {
-        $support->record($user, $item, false);
+        $support->record($user->id, $item, false);
     }
 
-    expect($support->revealed($user, $item))->toBe($support->initialReveal(6));
+    expect($support->revealed($user->id, $item))->toBe($support->initialReveal(6));
 
     foreach (range(1, 9) as $ignored) {
-        $support->record($user, $item, true);
+        $support->record($user->id, $item, true);
     }
 
-    expect($support->revealed($user, $item))->toBe(0)
-        ->and($support->maskFor($user, $item))->toBeNull();
+    expect($support->revealed($user->id, $item))->toBe(0)
+        ->and($support->maskFor($user->id, $item))->toBeNull();
 });
 
 it('changes nothing when the learner used a hint', function () {
@@ -76,7 +76,7 @@ it('changes nothing when the learner used a hint', function () {
     $user = User::factory()->create();
     $item = VocabularyItem::factory()->create(['term' => 'aeropuerto']);
 
-    $support->record($user, $item, true, hinted: true);
+    $support->record($user->id, $item, true, hinted: true);
 
     expect(WordTypingSupport::query()->count())->toBe(0);
 });
@@ -87,8 +87,8 @@ it('keeps each learner and each word apart', function () {
     $two = User::factory()->create();
     $item = VocabularyItem::factory()->create(['term' => 'aeropuerto']);
 
-    $support->record($one, $item, true);
+    $support->record($one->id, $item, true);
 
-    expect($support->revealed($one, $item))->toBe(5)
-        ->and($support->revealed($two, $item))->toBe(6);
+    expect($support->revealed($one->id, $item))->toBe(5)
+        ->and($support->revealed($two->id, $item))->toBe(6);
 });
