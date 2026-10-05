@@ -12,6 +12,7 @@ use App\Lessons\LessonDefinition;
 use App\Lessons\PreviewContent;
 use App\Lessons\ReviewGate;
 use App\Lessons\SpokenTexts;
+use App\Lessons\TileSplitter;
 use App\Lessons\UnitContent;
 use App\Models\Lesson;
 use App\Models\LessonExercise;
@@ -166,8 +167,8 @@ foreach (frenchUnits() as $slug => $unitContent) {
                         continue;
                     }
 
-                    $answer = $this->normalizer->exactKey($exercise->payload['accepted'][0]['text']);
-                    $extra = count($exercise->payload['tiles']) - count(explode(' ', $answer));
+                    $answer = $exercise->payload['accepted'][0]['text'];
+                    $extra = count($exercise->payload['tiles']) - count(TileSplitter::split($answer));
 
                     expect($extra)->toBe($lesson->stage === LessonStage::Sentences ? 1 : 2, $exercise->key);
                 }
