@@ -23,7 +23,7 @@ final class CoreWords
             'suis', 'es', 'est', 'sommes', 'êtes', 'sont',
             'ai', 'as', 'a', 'avons', 'avez', 'ont',
             'vais', 'vas', 'va', 'allons', 'allez', 'vont',
-            'il y a',
+            'il y a', "c'est", 'voici',
             'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
             'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt',
             'que', 'quoi', 'qui', 'où', 'quand', 'comment', 'combien', 'quel', 'quelle', 'quels', 'quelles', 'pourquoi',
