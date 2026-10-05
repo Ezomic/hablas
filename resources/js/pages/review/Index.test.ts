@@ -22,6 +22,8 @@ const card: ReviewCard = {
     front: 'hola',
     back: 'hello',
     kind: 'vocabulary',
+    exercise: 'flip',
+    options: null,
     direction: 'recognition',
     needsArticle: false,
     suggestedErrorTag: null,

@@ -42,7 +42,7 @@ it('shows in-memory default settings on first visit without persisting a row', f
         ->assertInertia(fn ($page) => $page
             ->where('settings.notificationFrequency', 'daily')
             ->where('settings.newItemCapOverride', null)
-            ->where('settings.reviewMode', 'recognition'),
+            ->where('settings.reviewMode', 'mix'),
         );
 
     expect(UserSetting::query()->where('user_id', $user->id)->exists())->toBeFalse();
@@ -91,7 +91,7 @@ it('rejects a missing or unknown review style', function (array $payload) {
     'unknown' => [['review_mode' => 'flashcards']],
 ]);
 
-it('keeps learners who saved settings before review styles existed on recognition', function () {
+it('puts learners who saved settings before review styles existed on mix', function () {
     $user = User::factory()->create();
     DB::table('user_settings')->insert([
         'user_id' => $user->id,
@@ -105,7 +105,7 @@ it('keeps learners who saved settings before review styles existed on recognitio
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('settings.notificationFrequency', 'weekly')
-            ->where('settings.reviewMode', 'recognition'),
+            ->where('settings.reviewMode', 'mix'),
         );
 });
 

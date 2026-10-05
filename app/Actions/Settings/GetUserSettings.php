@@ -21,7 +21,7 @@ final class GetUserSettings
     {
         return UserSetting::query()->firstOrNew(
             ['user_id' => $user->id],
-            ['notification_frequency' => NotificationFrequency::Daily, 'new_item_cap_override' => null, 'context_emphasis' => null, 'review_mode' => ReviewMode::Recognition],
+            ['notification_frequency' => NotificationFrequency::Daily, 'new_item_cap_override' => null, 'context_emphasis' => null, 'review_mode' => ReviewMode::Mix],
         );
     }
 }

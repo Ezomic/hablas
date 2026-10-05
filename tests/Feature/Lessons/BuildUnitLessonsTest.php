@@ -220,10 +220,10 @@ describe('lesson 1', function () {
 });
 
 describe('the ramp by part of speech', function () {
-    it('gives a noun the same noun with the wrong article as a distractor', function () {
+    it('keeps the wrong-article twin out of the options of a noun, as it gives the answer away', function () {
         $exercise = collect(originals(builtLessons()['recall']))->first(fn (ExerciseDefinition $exercise): bool => $exercise->key === 'recall.choose_word.el-desayuno');
 
-        expect($exercise->payload['options'])->toContain('la desayuno')
+        expect($exercise->payload['options'])->not->toContain('la desayuno')
             ->and($exercise->payload['answer'])->toBe('el desayuno');
     });
 

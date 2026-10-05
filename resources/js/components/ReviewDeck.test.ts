@@ -23,6 +23,8 @@ function vocabularyCard(id: number): ReviewCard {
         front: `front ${id}`,
         back: `back ${id}`,
         kind: 'vocabulary',
+        exercise: 'flip',
+        options: null,
         direction: 'recognition',
         needsArticle: false,
         suggestedErrorTag: null,
@@ -37,6 +39,8 @@ function grammarCard(id: number): ReviewCard {
         front: `grammar ${id}`,
         back: `explanation ${id}`,
         kind: 'grammar',
+        exercise: 'flip',
+        options: null,
         direction: 'recognition',
         needsArticle: false,
         suggestedErrorTag: 'ser_estar_confusion',
@@ -51,6 +55,8 @@ function productionCard(id: number): ReviewCard {
         front: 'airport',
         back: 'el aeropuerto',
         kind: 'vocabulary',
+        exercise: 'type',
+        options: null,
         direction: 'production',
         needsArticle: true,
         suggestedErrorTag: null,
@@ -265,12 +271,12 @@ describe('keyboard shortcuts', () => {
     });
 
     it('lets a focused rating button take enter instead of the suggested rating', async () => {
-        checksAs(true);
         const wrapper = mountDeck([productionCard(5)]);
 
-        await wrapper.find('input').setValue('el aeropuerto');
-        await wrapper.find('form').trigger('submit');
-        await flushPromises();
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text().startsWith('Show answer'))
+            ?.trigger('click');
 
         const hard = wrapper
             .findAll('button')
@@ -726,12 +732,8 @@ describe('typed recall', () => {
         expect(wrapper.text()).toContain('Correct');
         expect(wrapper.text()).toContain('el aeropuerto');
         expect(wrapper.find('input').exists()).toBe(false);
-        expect(ratingButton(wrapper, 'Good').attributes('data-variant')).toBe(
-            'default',
-        );
-        expect(ratingButton(wrapper, 'Again').attributes('data-variant')).toBe(
-            'outline',
-        );
+        expect(ratingButton(wrapper, 'Continue').exists()).toBe(true);
+        expect(wrapper.text()).not.toContain('Hard');
 
         await press('Enter');
         await nextTick();
@@ -751,9 +753,7 @@ describe('typed recall', () => {
         expect(wrapper.text()).toContain('el aeropuerto');
         expect(wrapper.text()).toContain('You wrote “aeropuerto”');
         expect(wrapper.text()).not.toContain('Correct');
-        expect(ratingButton(wrapper, 'Again').attributes('data-variant')).toBe(
-            'default',
-        );
+        expect(ratingButton(wrapper, 'Continue').exists()).toBe(true);
 
         await press('Enter');
         await nextTick();
@@ -989,6 +989,114 @@ describe('typed recall', () => {
         expect(input.element.value).toBe('');
         expect(document.activeElement).toBe(input.element);
         expect(wrapper.text()).not.toContain('Correct');
+    });
+});
+
+describe('choice exercises', () => {
+    function choiceCard(
+        id: number,
+        exercise: 'choose_meaning' | 'choose_word',
+    ): ReviewCard {
+        const word = exercise === 'choose_word';
+
+        return {
+            id,
+            front: word ? 'suitcase' : 'la maleta',
+            back: word ? 'la maleta' : 'suitcase',
+            kind: 'vocabulary',
+            exercise,
+            options: word
+                ? ['la mesa', 'la maleta', 'la playa', 'la puerta']
+                : ['suitcase', 'table', 'beach', 'door'],
+            direction: word ? 'production' : 'recognition',
+            needsArticle: false,
+            suggestedErrorTag: null,
+            audioUrl: null,
+            audioSlowUrl: null,
+        };
+    }
+
+    function option(wrapper: ReturnType<typeof mountDeck>, text: string) {
+        const found = wrapper
+            .findAll('[role="radio"]')
+            .find((candidate) => candidate.text().includes(text));
+
+        if (!found) {
+            throw new Error(`No option ${text}`);
+        }
+
+        return found;
+    }
+
+    it('shows the options instead of a reveal button', () => {
+        const wrapper = mountDeck([choiceCard(7, 'choose_meaning')]);
+
+        expect(wrapper.findAll('[role="radio"]')).toHaveLength(4);
+        expect(wrapper.text()).toContain('What does it mean?');
+        expect(wrapper.text()).not.toContain('Show answer');
+    });
+
+    it('rates a right pick Good through Continue', async () => {
+        const wrapper = mountDeck([choiceCard(7, 'choose_meaning')]);
+
+        await option(wrapper, 'suitcase').trigger('click');
+
+        expect(wrapper.text()).toContain('Correct');
+        expect(wrapper.text()).not.toContain('Hard');
+
+        await press('Enter');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/7/reviews', {
+            rating: 'good',
+            error_tag_category: null,
+        });
+    });
+
+    it('rates a wrong pick Again and says what was chosen', async () => {
+        const wrapper = mountDeck([choiceCard(7, 'choose_word')]);
+
+        await option(wrapper, 'la mesa').trigger('click');
+
+        expect(wrapper.text()).toContain('You chose “la mesa”');
+        expect(wrapper.text()).toContain('la maleta');
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text().startsWith('Continue'))
+            ?.trigger('click');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/7/reviews', {
+            rating: 'again',
+            error_tag_category: null,
+        });
+    });
+
+    it('counts giving up as a miss', async () => {
+        const wrapper = mountDeck([choiceCard(7, 'choose_meaning')]);
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text().startsWith("I don't know"))
+            ?.trigger('click');
+        await press('Enter');
+        await nextTick();
+
+        expect(submitOrQueue).toHaveBeenCalledWith('/review/7/reviews', {
+            rating: 'again',
+            error_tag_category: null,
+        });
+    });
+
+    it('ignores the rating digits once an option is picked', async () => {
+        const wrapper = mountDeck([choiceCard(7, 'choose_meaning')]);
+
+        await option(wrapper, 'suitcase').trigger('click');
+        await press('4');
+        await nextTick();
+
+        expect(submitOrQueue).not.toHaveBeenCalled();
     });
 });
 

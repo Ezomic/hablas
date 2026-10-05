@@ -159,11 +159,11 @@
             },
             "reviewStyle": "Review style",
             "mode": {
-                "recognition": "Recognise: read, then reveal",
+                "recognition": "Choose: pick the right answer",
                 "production": "Produce: type the word",
                 "mix": "Mix"
             },
-            "modeNote": "Producing asks you to type each word from its English meaning. Mix does that only for words you already know well. Grammar cards are always read, then revealed.",
+            "modeNote": "Choosing gives four options for every word. Producing asks you to type each word from its English meaning. Mix chooses while a word is new and types it once you know it well. Grammar cards are always read, then revealed.",
             "push": {
                 "title": "Push notifications",
                 "digest": "Get a browser notification for your daily digest instead of (or alongside) email.",
@@ -675,6 +675,10 @@
             "correct": "Correct",
             "youWrote": "You wrote “{answer}”.",
             "unchecked": "Couldn't check your answer, so compare it yourself. You wrote “{answer}”.",
+            "chooseWord": "Which word is it?",
+            "chooseMeaning": "What does it mean?",
+            "youChose": "You chose “{answer}”.",
+            "dontKnow": "I don't know",
             "showAnswer": "Show answer",
             "spaceKey": "space",
             "whatWentWrong": "What went wrong?",

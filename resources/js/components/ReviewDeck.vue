@@ -2,6 +2,7 @@
 import type { Directive } from 'vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import ChoiceExercise from '@/components/lesson/ChoiceExercise.vue';
 import LetterBoxes from '@/components/lesson/LetterBoxes.vue';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const typedAnswer = ref('');
 const isChecking = ref(false);
 const verdict = ref<Verdict | null>(null);
 const suggestedRating = ref<Rating | null>(null);
+const picked = ref<string | null>(null);
 
 const ratings: Rating[] = ['again', 'hard', 'good', 'easy'];
 
@@ -76,6 +78,16 @@ const isFinished = computed(
 );
 
 const isProduction = computed(() => queue.value[0]?.direction === 'production');
+
+const isTyped = computed(() => queue.value[0]?.exercise === 'type');
+
+const isChoice = computed(() => queue.value[0]?.options != null);
+
+const isFlip = computed(() => !isTyped.value && !isChoice.value);
+
+const isGraded = computed(
+    () => verdict.value === 'correct' || verdict.value === 'wrong',
+);
 
 // The answer field is rebuilt for every production card, so focusing it as
 // it mounts puts the cursor in place for each new word.
@@ -147,6 +159,7 @@ function advance(rating: Rating) {
     revealed.value = false;
     pendingMiss.value = false;
     typedAnswer.value = '';
+    picked.value = null;
     verdict.value = null;
     suggestedRating.value = null;
 }
@@ -157,9 +170,27 @@ function showAnswer() {
     revealed.value = true;
     isChecking.value = false;
 
+    if (isChoice.value) {
+        verdict.value = 'wrong';
+        suggestedRating.value = 'again';
+
+        return;
+    }
+
     if (isProduction.value) {
         suggestedRating.value = 'again';
     }
+}
+
+function pick(option: string) {
+    if (revealed.value || !isChoice.value) {
+        return;
+    }
+
+    picked.value = option;
+    verdict.value = option === queue.value[0]?.back ? 'correct' : 'wrong';
+    suggestedRating.value = verdictRatings[verdict.value];
+    revealed.value = true;
 }
 
 async function checkAnswer() {
@@ -247,10 +278,7 @@ function handleKeydown(event: KeyboardEvent) {
     }
 
     if (!revealed.value) {
-        if (
-            !isProduction.value &&
-            (event.key === ' ' || event.key === 'Enter')
-        ) {
+        if (isFlip.value && (event.key === ' ' || event.key === 'Enter')) {
             event.preventDefault();
             revealed.value = true;
         }
@@ -267,7 +295,7 @@ function handleKeydown(event: KeyboardEvent) {
 
     const rating = ratings[Number(event.key) - 1];
 
-    if (rating) {
+    if (rating && !isGraded.value) {
         event.preventDefault();
         rate(rating);
     }
@@ -324,8 +352,26 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
             </CardTitle>
         </CardHeader>
         <CardContent class="flex flex-col gap-4">
+            <ChoiceExercise
+                v-if="isChoice"
+                :key="queue[0].id"
+                :model-value="picked"
+                prompt=""
+                :instruction="
+                    t(
+                        queue[0].exercise === 'choose_word'
+                            ? 'review.deck.chooseWord'
+                            : 'review.deck.chooseMeaning',
+                    )
+                "
+                :options="queue[0].options ?? []"
+                :answer="revealed ? queue[0].back : null"
+                :disabled="revealed || isSubmitting"
+                @update:model-value="pick"
+            />
+
             <form
-                v-if="isProduction && !revealed"
+                v-if="isTyped && !revealed"
                 class="flex flex-col gap-2"
                 @submit.prevent="checkAnswer"
             >
@@ -383,23 +429,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     />
                 </p>
                 <p
-                    v-if="verdict === 'correct'"
-                    class="text-sm font-medium text-green-600 dark:text-green-500"
-                >
-                    {{ t('review.deck.correct') }}
-                </p>
-                <p
-                    v-else-if="verdict === 'wrong'"
-                    class="text-sm font-medium text-red-600 dark:text-red-500"
-                >
-                    {{
-                        t('review.deck.youWrote', {
-                            answer: typedAnswer.trim(),
-                        })
-                    }}
-                </p>
-                <p
-                    v-else-if="verdict === 'unchecked'"
+                    v-if="verdict === 'unchecked'"
                     class="text-sm text-muted-foreground"
                 >
                     {{
@@ -410,21 +440,51 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                 </p>
             </div>
             <p
-                v-else-if="revealed"
+                v-else-if="revealed && !isChoice"
                 class="text-lg text-muted-foreground"
                 :lang="termLang(queue[0], 'back')"
             >
                 {{ queue[0].back }}
             </p>
 
+            <p
+                v-if="verdict === 'correct'"
+                class="text-sm font-medium text-green-600 dark:text-green-500"
+                data-testid="verdict"
+            >
+                {{ t('review.deck.correct') }}
+            </p>
+            <p
+                v-else-if="
+                    verdict === 'wrong' && (picked ?? typedAnswer.trim())
+                "
+                class="text-sm font-medium text-red-600 dark:text-red-500"
+                data-testid="verdict"
+            >
+                {{
+                    t(
+                        isChoice
+                            ? 'review.deck.youChose'
+                            : 'review.deck.youWrote',
+                        {
+                            answer: picked ?? typedAnswer.trim(),
+                        },
+                    )
+                }}
+            </p>
+
             <Button
                 v-if="!revealed"
-                :variant="isProduction ? 'ghost' : 'default'"
+                :variant="isFlip ? 'default' : 'ghost'"
                 @click="showAnswer"
             >
-                {{ t('review.deck.showAnswer') }}
+                {{
+                    isChoice
+                        ? t('review.deck.dontKnow')
+                        : t('review.deck.showAnswer')
+                }}
                 <kbd
-                    v-if="!isProduction"
+                    v-if="isFlip"
                     class="ml-1 rounded border px-1 text-xs font-normal opacity-70"
                     >{{ t('review.deck.spaceKey') }}</kbd
                 >
@@ -457,6 +517,19 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     {{ t('review.deck.notSure') }}
                 </Button>
             </div>
+
+            <Button
+                v-else-if="isGraded && suggestedRating"
+                class="h-11"
+                :disabled="isSubmitting"
+                @click="rate(suggestedRating)"
+            >
+                {{ t('common.continue') }}
+                <kbd
+                    class="ml-1 hidden rounded border px-1 text-xs font-normal opacity-70 sm:inline"
+                    >↵</kbd
+                >
+            </Button>
 
             <div v-else class="grid grid-cols-4 gap-2">
                 <Button

@@ -24,6 +24,8 @@ const card: ReviewCard = {
     front: 'Ser vs estar',
     back: 'Ser is for permanent traits.',
     kind: 'grammar',
+    exercise: 'flip',
+    options: null,
     direction: 'recognition',
     needsArticle: false,
     suggestedErrorTag: 'ser_estar_confusion',
