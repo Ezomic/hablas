@@ -32,6 +32,7 @@ import {
     isSpeakFormat,
     isTeachFormat,
     isTypedFormat,
+    maskOf,
     answersInLearnedLanguage,
     languageName,
     passageAnswers,
@@ -599,6 +600,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     :multiline="format === 'write_guided'"
                     :locale="locale"
                     :pattern="text(exercise.payload.hint) || null"
+                    :mask="maskOf(exercise.payload.mask)"
                     :hint="hintText"
                     :disabled="inFeedback"
                     @submit="check"

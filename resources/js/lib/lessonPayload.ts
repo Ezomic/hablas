@@ -206,3 +206,14 @@ export function englishLine(payload: Record<string, unknown>): string {
 
     return english !== '' && english !== text(payload.prompt) ? english : '';
 }
+
+/** The letters of a typed word, null where the learner types one. */
+export function maskOf(value: unknown): (string | null)[] | null {
+    if (!Array.isArray(value) || value.length === 0) {
+        return null;
+    }
+
+    return value.every((entry) => entry === null || typeof entry === 'string')
+        ? (value as (string | null)[])
+        : null;
+}

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Srs\GradeTypedRecall;
+use App\Actions\Srs\PresentSrsCardForReview;
 use App\Enums\ReviewMode;
 use App\Enums\SrsCardState;
 use App\Models\GrammarPoint;
@@ -12,6 +13,7 @@ use App\Models\SrsReview;
 use App\Models\User;
 use App\Models\UserSetting;
 use App\Models\VocabularyItem;
+use App\Services\TypingSupport;
 use Database\Seeders\LanguageSeeder;
 
 beforeEach(function () {
@@ -192,4 +194,35 @@ it('asks for typed recall in mix only for words in the review state', function (
         'el billete' => 'recognition',
         'la salida' => 'recognition',
     ]);
+});
+
+it('lowers the letters given for a word after a right typed answer and raises them after a miss', function () {
+    $user = User::factory()->create();
+    $card = typedRecallCard($user, $this->spanish, 'aeropuerto');
+    $item = $card->cardable;
+    $support = new TypingSupport;
+    $start = $support->revealed($user, $item);
+
+    $this->actingAs($user)
+        ->postJson(route('review.answers.check', $card), ['answer' => 'aeropuerto'])
+        ->assertOk()
+        ->assertJson(['correct' => true]);
+
+    expect($support->revealed($user, $item))->toBe($start - 1);
+
+    $this->actingAs($user)
+        ->postJson(route('review.answers.check', $card), ['answer' => 'zzz'])
+        ->assertJson(['correct' => false]);
+
+    expect($support->revealed($user, $item))->toBe($start);
+});
+
+it('presents a typed card with its letter mask, which fades as the word is known', function () {
+    $user = User::factory()->create();
+    $card = typedRecallCard($user, $this->spanish, 'aeropuerto');
+    $support = new TypingSupport;
+
+    $mask = (new PresentSrsCardForReview)->handle($card->load('cardable', 'user'), ReviewMode::Production)['mask'];
+
+    expect($mask)->toBeArray()->and(count(array_filter($mask, fn (?string $char): bool => $char !== null)))->toBe($support->initialReveal(10));
 });

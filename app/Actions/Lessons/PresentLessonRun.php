@@ -16,8 +16,11 @@ use App\Models\LessonAnswer;
 use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\Unit;
+use App\Models\User;
+use App\Models\VocabularyItem;
 use App\Services\LessonProgress;
 use App\Services\SpeechLocaleResolver;
+use App\Services\TypingSupport;
 use App\Speech\SpeechClipResolver;
 use LogicException;
 
@@ -29,6 +32,7 @@ final class PresentLessonRun
         private readonly SummarizeLessonRun $summarizeLessonRun = new SummarizeLessonRun,
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,
+        private readonly TypingSupport $typingSupport = new TypingSupport,
     ) {}
 
     /**
@@ -58,7 +62,7 @@ final class PresentLessonRun
 
         $exercises = LessonExercise::query()
             ->whereIn('id', $run->planExerciseIds())
-            ->with('substitute')
+            ->with(['substitute', 'targets.targetable'])
             ->get()
             ->keyBy('id');
 
@@ -76,9 +80,9 @@ final class PresentLessonRun
             }
 
             $plan[] = [
-                ...$this->exercise($exercise, $hidesAnswers, $clips),
+                ...$this->exercise($exercise, $hidesAnswers, $clips, $user),
                 'origin' => $entry['origin'],
-                'substitute' => $exercise->substitute === null ? null : $this->exercise($exercise->substitute, $hidesAnswers, $clips),
+                'substitute' => $exercise->substitute === null ? null : $this->exercise($exercise->substitute, $hidesAnswers, $clips, $user),
             ];
         }
 
@@ -152,7 +156,7 @@ final class PresentLessonRun
      * @param  array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>  $clips
      * @return array{id: int, key: string, block: string, format: string, payload: array<string, mixed>}
      */
-    private function exercise(LessonExercise $exercise, bool $hidesAnswers, array $clips): array
+    private function exercise(LessonExercise $exercise, bool $hidesAnswers, array $clips, User $user): array
     {
         if ($exercise->format === LessonExerciseFormat::ListenPassage) {
             return $this->summary($exercise, $hidesAnswers, $this->listenPassage($exercise->payload, $hidesAnswers, $clips));
@@ -164,7 +168,35 @@ final class PresentLessonRun
             default => $this->withoutSpans($exercise->payload),
         };
 
-        return $this->summary($exercise, $hidesAnswers, $this->withClips($exercise->format, $exercise->payload, $payload, $hidesAnswers, $clips));
+        $payload = $this->withClips($exercise->format, $exercise->payload, $payload, $hidesAnswers, $clips);
+
+        return $this->summary($exercise, $hidesAnswers, $hidesAnswers ? $payload : $this->withMask($exercise, $payload, $user));
+    }
+
+    /**
+     * A typed word in a lesson gives some of its letters, fewer each time the
+     * learner types it right, so the support fades with what they know. A
+     * check gives none.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function withMask(LessonExercise $exercise, array $payload, User $user): array
+    {
+        if ($exercise->format !== LessonExerciseFormat::TypeWord) {
+            return $payload;
+        }
+
+        $item = $exercise->targets->map(fn ($target) => $target->targetable)->first(fn ($targetable): bool => $targetable instanceof VocabularyItem);
+        $mask = $item instanceof VocabularyItem ? $this->typingSupport->maskFor($user, $item) : null;
+
+        if ($mask === null) {
+            return $payload;
+        }
+
+        unset($payload['hint']);
+
+        return [...$payload, 'mask' => $mask];
     }
 
     /**

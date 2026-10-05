@@ -2,6 +2,7 @@
 import type { Directive } from 'vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import LetterBoxes from '@/components/lesson/LetterBoxes.vue';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -336,7 +337,17 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
                     }}
                 </Label>
                 <div class="flex gap-2">
+                    <LetterBoxes
+                        v-if="queue[0].mask"
+                        :key="queue[0].id"
+                        v-model="typedAnswer"
+                        :mask="queue[0].mask"
+                        :locale="termLang(queue[0], 'back') ?? null"
+                        :disabled="isChecking"
+                        @submit="checkAnswer"
+                    />
                     <Input
+                        v-else
                         :id="`answer-${queue[0].id}`"
                         v-model="typedAnswer"
                         v-autofocus

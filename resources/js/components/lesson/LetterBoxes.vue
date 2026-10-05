@@ -1,0 +1,187 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const props = defineProps<{
+    modelValue: string;
+    mask: (string | null)[];
+    locale: string | null;
+    disabled?: boolean;
+}>();
+
+const emit = defineEmits<{
+    'update:modelValue': [value: string];
+    submit: [];
+}>();
+
+const { t } = useI18n();
+
+const blanks = computed(() =>
+    props.mask.flatMap((char, index) => (char === null ? [index] : [])),
+);
+
+const typed = ref<string[]>(blanks.value.map(() => ''));
+const boxes = ref<HTMLInputElement[]>([]);
+const focused = ref(0);
+
+const words = computed(() => {
+    const groups: { char: string | null; blank: number; key: number }[][] = [
+        [],
+    ];
+    let blank = 0;
+
+    props.mask.forEach((char, key) => {
+        if (char === ' ') {
+            groups.push([]);
+
+            return;
+        }
+
+        groups[groups.length - 1].push({
+            char,
+            blank: char === null ? blank++ : -1,
+            key,
+        });
+    });
+
+    return groups.filter((group) => group.length > 0);
+});
+
+function assembled(): string {
+    let blank = 0;
+
+    return props.mask
+        .map((char) => (char === null ? (typed.value[blank++] ?? '') : char))
+        .join('');
+}
+
+function publish() {
+    emit('update:modelValue', assembled());
+}
+
+watch(
+    () => props.modelValue,
+    (value) => {
+        if (value === '' && typed.value.some((char) => char !== '')) {
+            typed.value = blanks.value.map(() => '');
+        }
+    },
+);
+
+function focusBox(index: number) {
+    const target = Math.min(Math.max(index, 0), blanks.value.length - 1);
+
+    focused.value = target;
+    boxes.value[target]?.focus();
+    boxes.value[target]?.select();
+}
+
+function fill(from: number, text: string) {
+    const chars = [...text.replace(/\s+/g, '')];
+    let at = from;
+
+    for (const char of chars) {
+        if (at >= blanks.value.length) {
+            break;
+        }
+
+        typed.value[at++] = char;
+    }
+
+    publish();
+    focusBox(Math.min(at, blanks.value.length - 1));
+}
+
+function onInput(blank: number, event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+
+    if (value === '') {
+        typed.value[blank] = '';
+        publish();
+
+        return;
+    }
+
+    fill(blank, value);
+}
+
+function onKeydown(blank: number, event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        emit('submit');
+    } else if (event.key === 'Backspace' && typed.value[blank] === '') {
+        event.preventDefault();
+        focusBox(blank - 1);
+    } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        focusBox(blank - 1);
+    } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        focusBox(blank + 1);
+    }
+}
+
+function onPaste(blank: number, event: ClipboardEvent) {
+    event.preventDefault();
+    fill(blank, event.clipboardData?.getData('text') ?? '');
+}
+
+function insert(character: string) {
+    fill(focused.value, character);
+}
+
+function setBox(element: unknown, blank: number) {
+    if (element instanceof HTMLInputElement) {
+        boxes.value[blank] = element;
+    }
+}
+
+onMounted(() => focusBox(0));
+
+defineExpose({ insert });
+</script>
+
+<template>
+    <div
+        class="flex flex-wrap gap-x-5 gap-y-3"
+        role="group"
+        :aria-label="t('lesson.answerLabel')"
+        data-testid="letter-boxes"
+    >
+        <div
+            v-for="(word, wordIndex) in words"
+            :key="wordIndex"
+            class="flex gap-1"
+        >
+            <template v-for="slot in word" :key="slot.key">
+                <span
+                    v-if="slot.char !== null"
+                    class="flex h-11 min-w-6 items-center justify-center font-mono text-xl text-muted-foreground"
+                    data-testid="given-letter"
+                >
+                    {{ slot.char }}
+                </span>
+                <input
+                    v-else
+                    :ref="(element) => setBox(element, slot.blank)"
+                    :value="typed[slot.blank]"
+                    :lang="props.locale ?? undefined"
+                    :disabled="props.disabled"
+                    :aria-label="t('lesson.letterBox', { n: slot.key + 1 })"
+                    class="h-11 w-9 rounded-md border border-input bg-background text-center font-mono text-xl focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-50"
+                    maxlength="2"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    inputmode="text"
+                    data-testid="letter-box"
+                    @focus="focused = slot.blank"
+                    @input="onInput(slot.blank, $event)"
+                    @keydown="onKeydown(slot.blank, $event)"
+                    @paste="onPaste(slot.blank, $event)"
+                />
+            </template>
+        </div>
+    </div>
+</template>

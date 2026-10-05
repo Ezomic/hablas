@@ -16,6 +16,7 @@ use App\Http\Requests\StoreSrsReviewRequest;
 use App\Models\SrsCard;
 use App\Models\VocabularyItem;
 use App\Services\SpeechLocaleResolver;
+use App\Services\TypingSupport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -56,7 +57,7 @@ final class ReviewSessionController extends Controller
      * Grades a typed answer without recording anything: the learner still
      * picks the rating, which goes through store like any other review.
      */
-    public function check(CheckTypedAnswerRequest $request, SrsCard $srsCard, GradeTypedRecall $gradeTypedRecall): JsonResponse
+    public function check(CheckTypedAnswerRequest $request, SrsCard $srsCard, GradeTypedRecall $gradeTypedRecall, TypingSupport $typingSupport): JsonResponse
     {
         abort_if($srsCard->user_id !== $this->currentUser()->id, 404);
 
@@ -64,6 +65,10 @@ final class ReviewSessionController extends Controller
 
         abort_unless($item instanceof VocabularyItem, 422);
 
-        return response()->json(['correct' => $gradeTypedRecall->handle($item, $request->answer())]);
+        $correct = $gradeTypedRecall->handle($item, $request->answer());
+
+        $typingSupport->record($this->currentUser(), $item, $correct);
+
+        return response()->json(['correct' => $correct]);
     }
 }

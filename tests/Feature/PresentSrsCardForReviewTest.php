@@ -9,6 +9,7 @@ use App\Enums\SrsCardState;
 use App\Models\GrammarPoint;
 use App\Models\SrsCard;
 use App\Models\VocabularyItem;
+use App\Services\TypingSupport;
 
 it('presents a vocabulary card using its term and translation', function () {
     $vocabularyItem = VocabularyItem::factory()->create([
@@ -29,6 +30,7 @@ it('presents a vocabulary card using its term and translation', function () {
         'kind' => 'vocabulary',
         'direction' => 'recognition',
         'needsArticle' => false,
+        'mask' => null,
         'suggestedErrorTag' => null,
     ]);
 });
@@ -53,6 +55,7 @@ it('presents a grammar card using its title and explanation', function () {
         'kind' => 'grammar',
         'direction' => 'recognition',
         'needsArticle' => false,
+        'mask' => null,
         'suggestedErrorTag' => 'ser_estar_confusion',
     ]);
 });
@@ -90,6 +93,7 @@ it('asks for the word from its translation in production mode', function () {
         'kind' => 'vocabulary',
         'direction' => 'production',
         'needsArticle' => true,
+        'mask' => (new TypingSupport)->mask('el gato', (new TypingSupport)->initialReveal(6)),
         'suggestedErrorTag' => null,
     ]);
 });

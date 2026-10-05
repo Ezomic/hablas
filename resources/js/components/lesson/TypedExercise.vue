@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AccentKeys from '@/components/lesson/AccentKeys.vue';
 import GlossLine from '@/components/lesson/GlossLine.vue';
+import LetterBoxes from '@/components/lesson/LetterBoxes.vue';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -14,6 +15,7 @@ const props = defineProps<{
     instruction: string;
     locale: string | null;
     pattern?: string | null;
+    mask?: (string | null)[] | null;
     hint?: string | null;
     english?: string;
     glosses?: [string, string][];
@@ -29,6 +31,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+const letterBoxes = ref<{ insert: (character: string) => void } | null>(null);
 
 const field = ref<{
     $el: HTMLInputElement | HTMLTextAreaElement;
@@ -51,6 +55,12 @@ function input(): HTMLInputElement | HTMLTextAreaElement | null {
 onMounted(() => input()?.focus());
 
 async function insert(character: string) {
+    if (props.mask) {
+        letterBoxes.value?.insert(character);
+
+        return;
+    }
+
     const element = input();
 
     if (element === null) {
@@ -138,7 +148,7 @@ async function insert(character: string) {
             </ul>
         </div>
         <p
-            v-if="props.pattern"
+            v-if="props.pattern && !props.mask"
             class="font-mono text-lg tracking-widest whitespace-pre text-muted-foreground"
             data-testid="pattern"
         >
@@ -164,6 +174,16 @@ async function insert(character: string) {
             autocorrect="off"
             spellcheck="false"
             @update:model-value="emit('update:modelValue', String($event))"
+        />
+        <LetterBoxes
+            v-else-if="props.mask && !gapParts"
+            ref="letterBoxes"
+            :model-value="props.modelValue"
+            :mask="props.mask"
+            :locale="props.locale"
+            :disabled="props.disabled"
+            @update:model-value="emit('update:modelValue', $event)"
+            @submit="emit('submit')"
         />
         <Input
             v-else-if="!gapParts"
