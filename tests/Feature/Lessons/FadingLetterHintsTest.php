@@ -29,7 +29,8 @@ it('gives a typed word in a lesson some of its letters and drops the old hint', 
     expect($payload['mask'])->toBeArray()
         ->and(count($payload['mask']))->toBeGreaterThan(2)
         ->and($payload)->not->toHaveKey('hint')
-        ->and(in_array(null, $payload['mask'], true))->toBeTrue();
+        ->and(in_array(null, $payload['mask'], true))->toBeTrue()
+        ->and(count($payload['hintLetters']))->toBe(count(array_filter($payload['mask'], fn (?string $char): bool => $char === null)));
 });
 
 it('takes a letter away after each unaided right answer, and gives one back for a miss', function () {
