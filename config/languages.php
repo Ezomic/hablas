@@ -3,5 +3,5 @@
 declare(strict_types=1);
 
 return [
-    'activatable' => ['pt'],
+    'activatable' => ['pt', 'fr', 'it'],
 ];

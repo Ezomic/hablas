@@ -49,7 +49,7 @@ it('has word data for exactly the seeded vocabulary of each unit', function () {
     }
 });
 
-it('stays fully behind the review gate until it is reviewed', function () {
+it('is released: the independent reviews and the owner approval are recorded', function () {
     $this->seed(ContentSeeder::class);
 
     foreach (app(UnitContentRegistry::class)->all() as $content) {
@@ -57,7 +57,7 @@ it('stays fully behind the review gate until it is reviewed', function () {
             continue;
         }
 
-        expect(ReviewGate::wordsReleased($content))->toBeFalse($content->unitSlug())
-            ->and(ReviewGate::lessonsReleased($content))->toBeFalse($content->unitSlug());
+        expect(ReviewGate::wordsReleased($content))->toBeTrue($content->unitSlug())
+            ->and(ReviewGate::lessonsReleased($content))->toBeTrue($content->unitSlug());
     }
 });

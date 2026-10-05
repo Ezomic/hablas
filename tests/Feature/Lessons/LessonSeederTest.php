@@ -178,7 +178,7 @@ it('seeds the same lessons on a second pass over the real content, and writes no
     $before = [Lesson::query()->count(), LessonExercise::query()->count()];
     $writes = writesDuring(fn () => $this->seed(LessonSeeder::class));
 
-    expect($before[0])->toBe(24)
+    expect($before[0])->toBe(104)
         ->and($before[1])->toBeGreaterThan(0)
         ->and([Lesson::query()->count(), LessonExercise::query()->count()])->toBe($before)
         ->and($writes)->toBe([]);
@@ -265,7 +265,7 @@ it('only speaks texts the speech corpus holds, so every clip exists once the cor
 
     $corpus = array_flip(app(SpeechCorpus::class)->texts('es'));
     $speakers = [LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair, LessonExerciseFormat::ListenType, LessonExerciseFormat::SpeakRepeat];
-    $spoken = LessonExercise::query()->whereIn('format', $speakers)->get()->map(fn (LessonExercise $exercise): string => (string) $exercise->payload['text']);
+    $spoken = LessonExercise::query()->whereIn('format', $speakers)->whereHas('lesson.unit.language', fn ($query) => $query->where('code', 'es'))->get()->map(fn (LessonExercise $exercise): string => (string) $exercise->payload['text']);
 
     expect($spoken)->not->toBeEmpty();
 

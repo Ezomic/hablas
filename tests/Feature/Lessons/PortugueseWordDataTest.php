@@ -249,7 +249,7 @@ describe('the Portuguese review gate', function () {
         $portuguese = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('id');
 
         expect(Lesson::query()->whereIn('unit_id', $portuguese)->count())->toBe(0)
-            ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(24);
+            ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(104);
     });
 
     it('shows a Portuguese learner every lesson of every Portuguese unit as still coming, with nothing to start', function () {
@@ -267,7 +267,7 @@ describe('the Portuguese review gate', function () {
     });
 
     it('seeds every Spanish exercise to the same row and hash with the Portuguese content present as without it', function () {
-        $rows = fn (): array => LessonExercise::query()->orderBy('id')->get(['key', 'content_hash'])->map(fn (LessonExercise $exercise): string => $exercise->key.'#'.$exercise->content_hash)->all();
+        $rows = fn (): array => LessonExercise::query()->whereHas('lesson.unit.language', fn ($query) => $query->where('code', 'es'))->orderBy('id')->get(['key', 'content_hash'])->map(fn (LessonExercise $exercise): string => $exercise->key.'#'.$exercise->content_hash)->all();
 
         $spanishOnly = array_values(array_filter((new UnitContentRegistry)->all(), fn (UnitContent $content): bool => $content->languageCode() === 'es'));
         app()->instance(UnitContentRegistry::class, new UnitContentRegistry($spanishOnly));

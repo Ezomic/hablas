@@ -227,11 +227,11 @@ describe('the review gate', function () {
         'the independent AI on the lessons' => [[new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'ai', '2026-10-01')]],
     ]);
 
-    it('seeds the words-only lessons of every released unit through ContentSeeder', function () {
+    it('seeds the words-only lessons of the Spanish units and every lesson of the released French and Italian units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(24)
-            ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall']);
+        expect(Lesson::query()->count())->toBe(104)
+            ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 
     it('seeds nothing for a unit that has no review recorded, and it stays unreachable', function () {
