@@ -12,14 +12,22 @@ export function isPwaLaunch(request: Request): boolean {
 
 // The server answers a signed-in launch with a redirect, which a browser will
 // not serve from a cache for a navigation. So the launch is never cached, and
-// offline it falls back to the last cached dashboard (or welcome page).
+// offline it falls back to the unit page visited last (or the dashboard, or
+// the welcome page).
 export async function handlePwaLaunch(request: Request): Promise<Response> {
     try {
         return await fetch(request);
     } catch (error) {
         const cache = await caches.open(PAGE_CACHE_NAME);
+        const unitRequest = [...(await cache.keys())]
+            .reverse()
+            .find((entry) =>
+                /^\/units\/\d+$/.test(new URL(entry.url).pathname),
+            );
         const cached =
-            (await cache.match('/dashboard')) ?? (await cache.match('/'));
+            (unitRequest ? await cache.match(unitRequest) : undefined) ??
+            (await cache.match('/dashboard')) ??
+            (await cache.match('/'));
 
         if (cached) {
             return cached;

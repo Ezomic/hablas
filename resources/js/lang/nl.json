@@ -23,6 +23,9 @@
     "nav": {
         "settings": "Instellingen",
         "logOut": "Uitloggen",
+        "learn": "Leren",
+        "practise": "Oefenen",
+        "me": "Ik",
         "dashboard": "Dashboard",
         "study": "Studeren",
         "practice": "Oefenen",

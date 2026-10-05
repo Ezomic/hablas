@@ -26,7 +26,7 @@ it('authenticates users with an emailed code', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('continue', absolute: false));
 });
 
 it('redirects users with two-factor enabled to the two-factor challenge', function () {

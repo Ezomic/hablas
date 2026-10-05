@@ -25,7 +25,7 @@ it('registers new users', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('continue', absolute: false));
 });
 
 it('unlocks Spanish for a newly registered user', function () {

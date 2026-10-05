@@ -44,3 +44,11 @@ it('sorts elided nouns under the noun and searches oe for the ligature', functio
 it('strips a hyphen in unique words without splitting the word', function () {
     expect((new ItalianTextNormalizer)->uniqueWords('Capo-reparto, ciao')->values()->all())->toBe(['caporeparto', 'ciao']);
 });
+
+it('sorts an italian noun under the noun, not its article', function () {
+    $italian = new ItalianTextNormalizer;
+
+    expect($italian->sortKey('il volo'))->toBe('volo')
+        ->and($italian->sortKey('gli aeroporti'))->toBe('aeroporti')
+        ->and($italian->accentWords())->toContain('è', 'città');
+});

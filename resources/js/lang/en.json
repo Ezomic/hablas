@@ -23,6 +23,9 @@
     "nav": {
         "settings": "Settings",
         "logOut": "Log out",
+        "learn": "Learn",
+        "practise": "Practise",
+        "me": "Me",
         "dashboard": "Dashboard",
         "study": "Study",
         "practice": "Practice",

@@ -105,7 +105,7 @@ it('takes every local way in from an attacker who changed their email to the vic
     $rememberToken = (string) $attacker->fresh()?->remember_token;
     switchBrowser();
 
-    idCallback('victim@example.com')->assertRedirect(route('dashboard', absolute: false));
+    idCallback('victim@example.com')->assertRedirect(route('continue', absolute: false));
 
     $this->assertAuthenticatedAs($attacker);
     expect(User::query()->count())->toBe(1)
@@ -119,7 +119,7 @@ it('takes every local way in from an attacker who changed their email to the vic
 
 it('takes every local way in from an attacker who registered with the victim\'s email', function () {
     $this->post(route('register.store'), ['name' => 'Attacker', 'email' => 'victim@example.com'])
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('continue', absolute: false));
 
     $attacker = User::query()->where('email', 'victim@example.com')->sole();
     $attacker->forceFill([
@@ -133,7 +133,7 @@ it('takes every local way in from an attacker who registered with the victim\'s 
     $rememberToken = (string) $attacker->fresh()?->remember_token;
     switchBrowser();
 
-    idCallback('victim@example.com')->assertRedirect(route('dashboard', absolute: false));
+    idCallback('victim@example.com')->assertRedirect(route('continue', absolute: false));
 
     $this->assertAuthenticatedAs($attacker);
     expectLocalSignInsRevoked($attacker, $rememberToken);
@@ -210,7 +210,7 @@ it('keeps the ID user signed in when the callback runs in a session of the accou
         ->assertOk();
     Auth::forgetGuards();
 
-    idCallback('learner@example.com')->assertRedirect(route('dashboard', absolute: false));
+    idCallback('learner@example.com')->assertRedirect(route('continue', absolute: false));
 
     $session = DB::table('sessions')->where('user_id', $user->id)->sole();
     $payload = json_decode(base64_decode((string) $session->payload), true, flags: JSON_THROW_ON_ERROR);

@@ -29,14 +29,14 @@ it('shows the welcome page to signed-out users who launch the installed app', fu
     $this->get('/?source=pwa')->assertOk();
 });
 
-it('lands signed-in users on the dashboard when they launch the installed app', function (): void {
+it('sends signed-in users into their unit when they launch the installed app', function (): void {
     $this->actingAs(User::factory()->create())
         ->get('/?source=pwa')
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('continue'));
 });
 
-it('still shows signed-in users the welcome page on a plain visit', function (): void {
-    $this->actingAs(User::factory()->create())->get('/')->assertOk();
+it('sends signed-in users into their unit on a plain visit too', function (): void {
+    $this->actingAs(User::factory()->create())->get('/')->assertRedirect(route('continue'));
 });
 
 it('sets no cookies and allows caching the manifest for an hour', function (): void {
@@ -57,9 +57,9 @@ it('points every manifest icon at a file that exists', function (): void {
 it('still redirects a signed-in launch that carries extra query parameters', function (): void {
     $this->actingAs(User::factory()->create())
         ->get('/?source=pwa&utm_campaign=x')
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('continue'));
 });
 
-it('does not redirect signed-in users for another source value', function (): void {
-    $this->actingAs(User::factory()->create())->get('/?source=newsletter')->assertOk();
+it('sends signed-in users on whatever the source value', function (): void {
+    $this->actingAs(User::factory()->create())->get('/?source=newsletter')->assertRedirect(route('continue'));
 });

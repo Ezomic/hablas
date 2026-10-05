@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Settings\SupportedInterfaceLocales;
+use App\Actions\Srs\GetDueSrsCards;
 use App\Models\Language;
 use App\Services\Portal\IdPortalClient;
 use Illuminate\Http\Request;
@@ -53,7 +54,6 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'portalApps' => fn () => $user === null
                 ? []
                 : app(IdPortalClient::class)->appsFor($user)['apps'],
@@ -63,6 +63,9 @@ class HandleInertiaRequests extends Middleware
             'interfaceLocale' => app()->getLocale(),
             'supportedLocales' => (new SupportedInterfaceLocales)->handle(),
             'currentLanguage' => $user ? $this->getCurrentLanguage->handle($user) : null,
+            'dueReviewCount' => fn () => $user === null || ($language = $this->getCurrentLanguage->handle($user)) === null
+                ? 0
+                : app(GetDueSrsCards::class)->count($user, $language),
             'availableLanguages' => $user
                 ? $user->unlockedLanguages()
                     ->get(['languages.id', 'languages.code', 'languages.name'])

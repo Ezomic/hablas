@@ -41,7 +41,7 @@ function rememberCookieAfterIdSignIn(): string
     ]));
     Socialite::shouldReceive('driver')->with('thijssensoftware')->andReturn($provider);
 
-    $cookie = rememberCookieFrom(test()->get(route('sso.callback'))->assertRedirect(route('dashboard', absolute: false)));
+    $cookie = rememberCookieFrom(test()->get(route('sso.callback'))->assertRedirect(route('continue', absolute: false)));
 
     expect($cookie)->not->toBeNull();
 
@@ -182,7 +182,7 @@ it('keeps a browser signed in after a code sign-in with "Remember me" ticked', f
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), ['email' => $user->email, 'code' => EmailCode::issue($user), 'remember' => true]);
-    $cookie = rememberCookieFrom($response->assertRedirect(route('dashboard', absolute: false)));
+    $cookie = rememberCookieFrom($response->assertRedirect(route('continue', absolute: false)));
 
     expect($cookie)->not->toBeNull();
 
@@ -195,7 +195,7 @@ it('does not remember a code sign-in with "Remember me" left unticked', function
 
     $response = $this->post(route('login.store'), ['email' => $user->email, 'code' => EmailCode::issue($user)]);
 
-    expect(rememberCookieFrom($response->assertRedirect(route('dashboard', absolute: false))))->toBeNull();
+    expect(rememberCookieFrom($response->assertRedirect(route('continue', absolute: false))))->toBeNull();
 });
 
 it('keeps a browser signed in after a passkey sign-in with "Remember me" ticked', function () {

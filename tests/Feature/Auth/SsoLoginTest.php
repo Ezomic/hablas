@@ -38,7 +38,7 @@ it('links the first ID sign-in to the existing account with the same email', fun
     $user = User::factory()->create(['email' => 'learner@example.com']);
     Streak::factory()->for($user)->create(['current_length' => 12, 'longest_length' => 30]);
 
-    signInThroughId('learner@example.com')->assertRedirect(route('dashboard', absolute: false));
+    signInThroughId('learner@example.com')->assertRedirect(route('continue', absolute: false));
 
     $this->assertAuthenticatedAs($user);
     expect(User::query()->count())->toBe(1)
@@ -47,7 +47,7 @@ it('links the first ID sign-in to the existing account with the same email', fun
 });
 
 it('provisions an ID user who has no account yet', function () {
-    signInThroughId('new@example.com')->assertRedirect(route('dashboard', absolute: false));
+    signInThroughId('new@example.com')->assertRedirect(route('continue', absolute: false));
 
     $user = User::query()->where('email', 'new@example.com')->sole();
 
@@ -64,7 +64,7 @@ it('starts a user provisioned through ID on Spanish, like one who registered', f
     $this->seed(LanguageSeeder::class);
     $spanish = Language::query()->where('code', 'es')->sole();
 
-    signInThroughId('new@example.com')->assertRedirect(route('dashboard', absolute: false));
+    signInThroughId('new@example.com')->assertRedirect(route('continue', absolute: false));
 
     $user = User::query()->where('email', 'new@example.com')->sole();
 
@@ -78,7 +78,7 @@ it('leaves the languages of an existing account linked by email alone', function
     $user = User::factory()->create(['email' => 'learner@example.com']);
     $this->seed(LanguageSeeder::class);
 
-    signInThroughId('learner@example.com')->assertRedirect(route('dashboard', absolute: false));
+    signInThroughId('learner@example.com')->assertRedirect(route('continue', absolute: false));
 
     expect($user->unlockedLanguages()->count())->toBe(0)
         ->and($user->fresh()?->current_language_id)->toBeNull();
@@ -89,7 +89,7 @@ it('still signs an ID-linked account in with an emailed code', function () {
     $code = EmailCode::issue($user);
 
     $this->post(route('login.store'), ['email' => $user->email, 'code' => $code])
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('continue', absolute: false));
 
     $this->assertAuthenticatedAs($user);
 
