@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Lessons;
 
 use App\Actions\Streaks\RecordStreakActivity;
+use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunStatus;
 use App\Enums\SkipReason;
 use App\Lessons\Grade;
@@ -12,6 +13,8 @@ use App\Models\LessonAnswer;
 use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\User;
+use App\Models\VocabularyItem;
+use App\Services\TypingSupport;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +25,7 @@ final class RecordLessonAnswer
         private readonly GradeLessonAnswer $gradeLessonAnswer = new GradeLessonAnswer,
         private readonly SettleLessonRun $settleLessonRun = new SettleLessonRun,
         private readonly RecordStreakActivity $recordStreakActivity = new RecordStreakActivity,
+        private readonly TypingSupport $typingSupport = new TypingSupport,
     ) {}
 
     /**
@@ -100,10 +104,23 @@ final class RecordLessonAnswer
                 ], $grade->targets));
             }
 
+            if ($grade !== null && ! $run->kind->isCheck() && $exercise->format === LessonExerciseFormat::TypeWord) {
+                $this->recordTypingSupport($user, $exercise, $grade->correct, $answer->hinted);
+            }
+
             $this->recordStreakActivity->handle($user);
 
             return $this->result($run, $answer, false, $grade);
         });
+    }
+
+    private function recordTypingSupport(User $user, LessonExercise $exercise, bool $correct, bool $hinted): void
+    {
+        $item = $exercise->targets->map(fn ($target) => $target->targetable)->first(fn ($targetable): bool => $targetable instanceof VocabularyItem);
+
+        if ($item instanceof VocabularyItem) {
+            $this->typingSupport->record($user->id, $item, $correct, $hinted);
+        }
     }
 
     /**

@@ -31,6 +31,7 @@ final class PresentSrsCardsWithSpeech
             ->map(fn (SrsCard $card): ?string => $card->cardable instanceof VocabularyItem ? $card->cardable->term : null)
             ->filter()
             ->all();
+        $this->presentCard->preload($cards);
         $clips = $this->speechClipResolver->resolveBoth($language->code, array_values($terms));
 
         return array_values($cards->map(function (SrsCard $card) use ($clips, $mode): array {

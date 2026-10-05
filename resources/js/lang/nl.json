@@ -479,6 +479,7 @@
         "saveFailed": "Dit kon niet worden opgeslagen. Probeer het opnieuw.",
         "tryAgain": "Opnieuw proberen",
         "answerLabel": "Jouw antwoord",
+        "letterBox": "Vakje {n}",
         "accentKeys": "Accenttoetsen",
         "language": {
             "es": "Spaans",

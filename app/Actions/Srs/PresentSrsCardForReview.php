@@ -8,11 +8,36 @@ use App\Enums\ReviewMode;
 use App\Models\GrammarPoint;
 use App\Models\SrsCard;
 use App\Models\VocabularyItem;
+use App\Services\TypingSupport;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
 final class PresentSrsCardForReview
 {
+    public function __construct(
+        private readonly TypingSupport $typingSupport = new TypingSupport,
+    ) {}
+
+    /**
+     * Reads what a deck's learner has stored for its words in one query.
+     *
+     * @param  iterable<SrsCard>  $cards
+     */
+    public function preload(iterable $cards): void
+    {
+        $byUser = [];
+
+        foreach ($cards as $card) {
+            if ($card->cardable instanceof VocabularyItem) {
+                $byUser[$card->user_id][] = $card->cardable->id;
+            }
+        }
+
+        foreach ($byUser as $userId => $itemIds) {
+            $this->typingSupport->preload($userId, $itemIds);
+        }
+    }
+
     /**
      * A production card turns the word around: the translation is shown, and
      * the word is what the learner types and then sees revealed. The word is
@@ -20,7 +45,7 @@ final class PresentSrsCardForReview
      * has to reveal it with no round trip when the check cannot be reached. A
      * known and accepted trade-off, as typing from memory is self-discipline.
      *
-     * @return array{id: int, front: string, back: string, kind: string, direction: string, needsArticle: bool, suggestedErrorTag: string|null}
+     * @return array{id: int, front: string, back: string, kind: string, direction: string, needsArticle: bool, mask: list<string|null>|null, suggestedErrorTag: string|null}
      */
     public function handle(SrsCard $card, ReviewMode $mode = ReviewMode::Recognition): array
     {
@@ -34,6 +59,7 @@ final class PresentSrsCardForReview
             'kind' => $this->kind($cardable),
             'direction' => $produce ? 'production' : 'recognition',
             'needsArticle' => $produce && $this->isNoun($cardable),
+            'mask' => $produce && $cardable instanceof VocabularyItem ? $this->typingSupport->maskFor($card->user_id, $cardable) : null,
             'suggestedErrorTag' => $this->suggestedErrorTag($cardable),
         ];
     }
