@@ -30,7 +30,7 @@ final class TalkingAboutYourFamily implements UnitContent
             new WordData('il figlio', cue: 'son'),
             new WordData('i nonni', cue: 'grandparents'),
             new WordData('sposato', cue: 'married (masculine)', forms: ['sposata', 'sposati', 'sposate']),
-            new WordData('single', cue: 'single, not in a relationship (the same for a man and a woman)', accepted: ['celibe', 'nubile']),
+            new WordData('single', cue: 'single, unmarried (the same for a man and a woman)', accepted: ['celibe', 'nubile']),
             new WordData('maggiore', cue: 'older, elder (of the siblings; the same for a man and a woman)', forms: ['maggiori']),
         ];
     }

@@ -105,7 +105,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Subject pronouns and essere for identity',
-                        'explanation' => 'Italian has a verb for \'to be\', essere (sono, sei, è, siamo, siete, sono), used for identity and origin. Like Spanish, Italian drops the subject pronoun because the verb ending shows who is speaking: \'Sono Anna\' is far more natural than \'Io sono Anna\'. Note that sono is both \'I am\' and \'they are\', and that è (he/she/it is) has an accent which makes it different from e (and). Lei (capital L) is the formal \'you\', with the he/she form of the verb: \'Come sta?\'. How you are, your health, takes stare, not essere: \'Sto bene\'.',
+                        'explanation' => 'Italian has a verb for \'to be\', essere (sono, sei, è, siamo, siete, sono), used for identity and origin. Italian usually drops the subject pronoun because the verb ending shows who is speaking: \'Sono Anna\' is the normal way to say it, and \'Io sono Anna\' is correct but stresses the I. Note that sono is both \'I am\' and \'they are\', and that è (he/she/it is) has an accent which makes it different from e (and). Lei (capital L) is the formal \'you\', with the he/she form of the verb: \'Come sta?\'. How you are, your health, takes stare, not essere: \'Sto bene\'.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -123,8 +123,8 @@ class ItalianA1Seeder extends Seeder
                     ['term' => 'il volo', 'translation_en' => 'flight', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'la valigia', 'translation_en' => 'suitcase', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'il passaporto', 'translation_en' => 'passport', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'il cancello', 'translation_en' => 'gate', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'la partenza', 'translation_en' => 'departure', 'is_cognate' => true, 'part_of_speech' => 'noun'],
+                    ['term' => 'l\'uscita', 'translation_en' => 'gate / exit', 'is_cognate' => false, 'part_of_speech' => 'noun'],
+                    ['term' => 'la partenza', 'translation_en' => 'departure', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'l\'arrivo', 'translation_en' => 'arrival', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'il biglietto', 'translation_en' => 'ticket', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'in ritardo', 'translation_en' => 'delayed / late', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
@@ -161,7 +161,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Avere for what you have, and c\'è for there is',
-                        'explanation' => '\'I have a reservation\' is \'Ho una prenotazione\': avere (ho, hai, ha, abbiamo, avete, hanno) is the verb for having. In writing the h is silent and only keeps ho, hai, ha and hanno apart from o (or), ai (to the), a (to) and anno (year). To ask whether something is there, Italian says c\'è (there is) or ci sono (there are): \'C\'è una camera disponibile?\' Be careful with colazione: it is breakfast, while pranzo is lunch and cena is dinner.',
+                        'explanation' => '\'I have a reservation\' is \'Ho una prenotazione\': avere (ho, hai, ha, abbiamo, avete, hanno) is the verb for having. In writing the h is silent and only keeps ho, hai, ha and hanno apart from o (or), ai (to the), a (to) and anno (year); ha (has) and a (to) sound the same. To ask whether something is there, Italian says c\'è (there is) or ci sono (there are): \'C\'è una camera disponibile?\' Be careful with colazione: it is breakfast, while pranzo is lunch and cena is dinner.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -189,7 +189,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Present tense of -are verbs',
-                        'explanation' => 'Most Italian verbs end in -are and follow one pattern in the present: drop -are and add -o, -i, -a, -iamo, -ate, -ano. \'Parlo, parli, parla, parliamo, parlate, parlano.\' The stress is on the stem in parlo, parli, parla and parlano, and it moves to the ending in parliamo and parlate. Like Spanish, Italian drops the subject pronoun, because the ending shows who acts. In a restaurant the polite request is \'Vorrei un caffè\', not \'Voglio un caffè\', which sounds like a demand.',
+                        'explanation' => 'Most Italian verbs end in -are and follow one pattern in the present: drop -are and add -o, -i, -a, -iamo, -ate, -ano. \'Parlo, parli, parla, parliamo, parlate, parlano.\' The stress falls on the syllable before the ending in parlo, parli, parla and parlano, and on the ending in parliamo and parlate. Italian usually drops the subject pronoun, because the ending shows who acts. In a restaurant the polite request is \'Vorrei un caffè\', not \'Voglio un caffè\', which sounds like a demand.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -217,7 +217,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Present tense of -ere and -ire verbs',
-                        'explanation' => 'Verbs in -ere and -ire share most endings: -o, -i, -e, -iamo, -ete (-ere) or -ite (-ire), -ono. \'Prendo, prendi, prende, prendiamo, prendete, prendono.\' \'Parto, parti, parte, partiamo, partite, partono.\' Many -ire verbs add -isc- in the singular and in the third person plural: finisco, finisci, finisce, finiscono, but finiamo, finite. Asking the way: \'Scusi, dov\'è la stazione?\' (Scusi is the formal \'excuse me\').',
+                        'explanation' => 'Verbs in -ere and -ire share most endings: -o, -i, -e, -iamo, -ete (-ere) or -ite (-ire), -ono. \'Prendo, prendi, prende, prendiamo, prendete, prendono.\' \'Parto, parti, parte, partiamo, partite, partono.\' Some -ire verbs, such as finire, capire and preferire, add -isc- in the singular and in the third person plural: finisco, finisci, finisce, finiscono, but finiamo, finite. Others, such as partire, do not. Asking the way: \'Scusi, dov\'è la stazione?\' (Scusi is the formal \'excuse me\').',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -273,7 +273,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Possessive adjectives (mio, tuo, suo)',
-                        'explanation' => 'Possessives agree with the thing owned, not with the owner: mio, mia, miei, mie. Unlike Spanish they normally take the article: \'il mio libro\', \'la mia casa\'. The exception is a singular family member with no other word: \'mio padre\', \'mia sorella\', but \'i miei fratelli\' (plural) and \'la mia famiglia\' (a collective noun). Suo means his, her or its alike, so \'suo padre\' is his father or her father. For you there are tuo (informal) and Suo (formal, with a capital).',
+                        'explanation' => 'Possessives agree with the thing owned, not with the owner: mio, mia, miei, mie. They normally take the article: \'il mio libro\', \'la mia casa\'. The exception is a singular family member with no other word: \'mio padre\', \'mia sorella\', but \'i miei fratelli\' (plural) and \'la mia famiglia\' (a collective noun). Loro always keeps the article (\'il loro padre\'), and so do the affectionate \'la mia mamma\' and \'il mio papà\'. Suo means his, her or its alike, so \'suo padre\' is his father or her father. For you there are tuo (informal) and Suo (formal, with a capital).',
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
@@ -301,7 +301,7 @@ class ItalianA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Reflexive verbs for daily routine',
-                        'explanation' => 'Italian reflexive verbs carry a pronoun that agrees with the subject: mi alzo, ti alzi, si alza, ci alziamo, vi alzate, si alzano. The infinitive ends in -si: alzarsi, svegliarsi. Not every daily routine verb is reflexive: \'fare colazione\' and \'lavorare\' are not. A time of day is introduced by \'alle\': \'Mi alzo alle sette\' (at seven). Colazione is breakfast, pranzo is lunch, cena is dinner.',
+                        'explanation' => 'Italian reflexive verbs carry a pronoun that agrees with the subject: mi alzo, ti alzi, si alza, ci alziamo, vi alzate, si alzano. The infinitive ends in -si: alzarsi, svegliarsi. Not every daily routine verb is reflexive: \'fare colazione\' and \'lavorare\' are not. A time is introduced by \'alle\' for every hour but one: \'Mi alzo alle sette\' (at seven), but \'all\'una\' (at one). Colazione is breakfast, pranzo is lunch, cena is dinner.',
                         'error_tag_category' => null,
                     ],
                 ],

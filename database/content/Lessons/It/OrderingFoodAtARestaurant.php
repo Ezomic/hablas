@@ -28,7 +28,7 @@ final class OrderingFoodAtARestaurant implements UnitContent
             new WordData('vorrei', cue: 'I would like (polite request)'),
             new WordData('da bere', cue: 'something to drink (as in "qualcosa da bere")'),
             new WordData('da mangiare', cue: 'something to eat (as in "qualcosa da mangiare")'),
-            new WordData('il cameriere', cue: 'waiter (a man)', accepted: ['la cameriera']),
+            new WordData('il cameriere', cue: 'waiter (a man)'),
             new WordData('delizioso', cue: 'delicious (masculine)', accepted: ['squisito'], forms: ['deliziosa', 'deliziosi', 'deliziose']),
             new WordData('la mancia', cue: 'tip (money left for the waiter)'),
             new WordData('vegetariano', cue: 'vegetarian (masculine)', forms: ['vegetariana', 'vegetariani', 'vegetariane']),

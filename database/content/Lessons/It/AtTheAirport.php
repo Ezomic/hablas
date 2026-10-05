@@ -26,7 +26,7 @@ final class AtTheAirport implements UnitContent
             new WordData('il volo', cue: 'flight'),
             new WordData('la valigia', cue: 'suitcase'),
             new WordData('il passaporto', cue: 'passport'),
-            new WordData('il cancello', cue: 'gate (at an airport)', accepted: ['l\'uscita']),
+            new WordData('l\'uscita', cue: 'gate (as on an airport board, "uscita B12")', accepted: ['il gate', 'il cancello']),
             new WordData('la partenza', cue: 'departure (on an airport board)'),
             new WordData('l\'arrivo', cue: 'arrival'),
             new WordData('il biglietto', cue: 'ticket (for a flight or train)'),
