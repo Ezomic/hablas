@@ -24,13 +24,13 @@ final class ShoppingForClothes implements UnitContent
         return [
             new WordData('les vêtements', cue: 'clothes', accepted: ['les habits']),
             new WordData('la chemise', cue: 'shirt'),
-            new WordData('le pantalon', cue: 'trousers (one word in French, singular)', accepted: ['les pantalons']),
+            new WordData('le pantalon', cue: 'trousers, pants (one pair; a pair is singular in French)', accepted: ['les pantalons']),
             new WordData('le prix', cue: 'price'),
             new WordData('la taille', cue: 'size (of clothes)'),
             new WordData('la couleur', cue: 'color'),
             new WordData('cher', cue: 'expensive (masculine)', forms: ['chère', 'chers', 'chères']),
             new WordData('bon marché', cue: 'cheap, inexpensive (never changes, whatever the noun)', accepted: ['pas cher']),
-            new WordData('essayer', cue: 'to try on (clothes)', forms: ['j\'essaie']),
+            new WordData('essayer', cue: 'to try on (clothes)', forms: ['j\'essaie', 'j\'essaye']),
             new WordData('la réduction', cue: 'discount', accepted: ['la remise']),
         ];
     }

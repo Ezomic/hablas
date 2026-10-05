@@ -24,13 +24,13 @@ final class AtTheAirport implements UnitContent
         return [
             new WordData('l\'aéroport', cue: 'airport'),
             new WordData('le vol', cue: 'flight'),
-            new WordData('la valise', cue: 'suitcase', accepted: ['le bagage']),
+            new WordData('la valise', cue: 'suitcase'),
             new WordData('le passeport', cue: 'passport'),
             new WordData('la porte', cue: 'gate (at an airport)', accepted: ['la porte d\'embarquement']),
             new WordData('le départ', cue: 'departure (on an airport board)'),
             new WordData('l\'arrivée', cue: 'arrival'),
             new WordData('le billet', cue: 'ticket (for a flight or train)'),
-            new WordData('en retard', cue: 'delayed, late', accepted: ['retardé']),
+            new WordData('en retard', cue: 'delayed, late'),
             new WordData('international', cue: 'international', forms: ['internationale', 'internationaux', 'internationales']),
         ];
     }

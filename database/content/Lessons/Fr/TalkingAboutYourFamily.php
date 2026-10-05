@@ -23,8 +23,8 @@ final class TalkingAboutYourFamily implements UnitContent
     {
         return [
             new WordData('la famille', cue: 'family'),
-            new WordData('le père', cue: 'father', accepted: ['le papa']),
-            new WordData('la mère', cue: 'mother', accepted: ['la maman']),
+            new WordData('le père', cue: 'father'),
+            new WordData('la mère', cue: 'mother'),
             new WordData('le frère', cue: 'brother'),
             new WordData('la sœur', cue: 'sister', accepted: ['la soeur']),
             new WordData('le fils', cue: 'son'),

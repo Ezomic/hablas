@@ -105,7 +105,7 @@ class FrenchA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Subject pronouns and être for identity',
-                        'explanation' => 'French keeps the subject pronoun in every sentence (je, tu, il, elle, nous, vous, ils, elles), unlike Spanish and Portuguese, where it is usually dropped: \'Je suis Anne\', never \'Suis Anne\'. Être (je suis, tu es, il/elle est, nous sommes, vous êtes, ils/elles sont) gives identity and origin. Unlike Spanish there is no second verb for \'to be\': être also does the work of estar, as in \'Je suis bien\'. Vous is both the formal \'you\' and the plural \'you\'; tu is for friends, family and children.',
+                        'explanation' => 'French keeps the subject pronoun in every sentence (je, tu, il, elle, nous, vous, ils, elles), unlike Spanish and Portuguese, where it is usually dropped: \'Je suis Anne\', never \'Suis Anne\'. Être (je suis, tu es, il/elle est, nous sommes, vous êtes, ils/elles sont) gives identity and origin. French has no ser/estar split, but how you are, your health, takes aller, not être: \'Je vais bien\', not \'Je suis bien\' (\'Je suis bien ici\' means I am comfortable here). Vous is both the formal \'you\' and the plural \'you\'; tu is for friends, family and children.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -125,7 +125,7 @@ class FrenchA1Seeder extends Seeder
                     ['term' => 'le passeport', 'translation_en' => 'passport', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'la porte', 'translation_en' => 'gate / door', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'le départ', 'translation_en' => 'departure', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'l\'arrivée', 'translation_en' => 'arrival', 'is_cognate' => false, 'part_of_speech' => 'noun'],
+                    ['term' => 'l\'arrivée', 'translation_en' => 'arrival', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'le billet', 'translation_en' => 'ticket', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'en retard', 'translation_en' => 'delayed / late', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'international', 'translation_en' => 'international', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
@@ -154,14 +154,14 @@ class FrenchA1Seeder extends Seeder
                     ['term' => 'le réceptionniste', 'translation_en' => 'receptionist', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'disponible', 'translation_en' => 'available', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
                     ['term' => 'la nuit', 'translation_en' => 'night', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'la salle de bain', 'translation_en' => 'bathroom', 'is_cognate' => false, 'part_of_speech' => 'noun'],
+                    ['term' => 'la salle de bains', 'translation_en' => 'bathroom', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'compris', 'translation_en' => 'included', 'is_cognate' => false, 'part_of_speech' => 'adjective'],
                     ['term' => 'le petit-déjeuner', 'translation_en' => 'breakfast', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                 ],
                 'grammar' => [
                     [
                         'title' => 'Avoir for what you have, être for what you are',
-                        'explanation' => '\'I have a reservation\' is \'J\'ai une réservation\': avoir (j\'ai, tu as, il/elle a, nous avons, vous avez, ils/elles ont) is the verb for having and for the hotel phrases \'Vous avez une chambre ?\'. Être, not avoir, says who or how someone is. A French speaker also says \'Il y a\' where Spanish says \'hay\': \'Il y a un petit-déjeuner ?\' Do not use être for \'there is\'.',
+                        'explanation' => '\'I have a reservation\' is \'J\'ai une réservation\': avoir (j\'ai, tu as, il/elle a, nous avons, vous avez, ils/elles ont) is the verb for having and for the hotel phrases \'Vous avez une chambre ?\'. Être, not avoir, says who or how someone is. French uses \'il y a\' where Spanish uses \'hay\': \'Il y a un restaurant ?\' Do not use être for \'there is\'.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -176,11 +176,11 @@ class FrenchA1Seeder extends Seeder
                 'interest_tags' => [InterestTag::Food, InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'le restaurant', 'translation_en' => 'restaurant', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'le menu', 'translation_en' => 'menu / set menu', 'is_cognate' => true, 'part_of_speech' => 'noun'],
+                    ['term' => 'le menu', 'translation_en' => 'set menu (the full list of dishes is la carte)', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'l\'addition', 'translation_en' => 'bill / check', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'je voudrais', 'translation_en' => 'I would like', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
-                    ['term' => 'à boire', 'translation_en' => 'to drink', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
-                    ['term' => 'à manger', 'translation_en' => 'to eat', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
+                    ['term' => 'à boire', 'translation_en' => 'something to drink', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
+                    ['term' => 'à manger', 'translation_en' => 'something to eat', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'le serveur', 'translation_en' => 'waiter', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'délicieux', 'translation_en' => 'delicious', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
                     ['term' => 'le pourboire', 'translation_en' => 'tip', 'is_cognate' => false, 'part_of_speech' => 'noun'],
@@ -189,7 +189,7 @@ class FrenchA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Present tense of -er verbs',
-                        'explanation' => 'Most French verbs end in -er and follow one pattern in the present: drop -er and add -e, -es, -e, -ons, -ez, -ent. \'Je mange, tu manges, il mange, nous mangeons, vous mangez, ils mangent.\' The endings -e, -es and -ent are silent, so je mange, tu manges and ils mangent sound the same. Only the subject pronoun tells you who it is, which is why French keeps it, unlike Spanish.',
+                        'explanation' => 'Most French verbs end in -er and follow one pattern in the present: drop -er and add -e, -es, -e, -ons, -ez, -ent. \'Je mange, tu manges, il mange, nous mangeons, vous mangez, ils mangent.\' The endings -e, -es and -ent are silent, so je mange, tu manges and ils mangent sound the same. Because the endings are silent, the subject pronoun matters for knowing who acts, and French keeps it, unlike Spanish.',
                         'error_tag_category' => null,
                     ],
                 ],
@@ -210,7 +210,7 @@ class FrenchA1Seeder extends Seeder
                     ['term' => 'tout droit', 'translation_en' => 'straight ahead', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'près', 'translation_en' => 'near', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'loin', 'translation_en' => 'far', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
-                    ['term' => 'le plan', 'translation_en' => 'map (of a town)', 'is_cognate' => true, 'part_of_speech' => 'noun'],
+                    ['term' => 'le plan', 'translation_en' => 'map (of a town)', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'où est… ?', 'translation_en' => 'where is…?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'la place', 'translation_en' => 'square / plaza', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                 ],
@@ -273,7 +273,7 @@ class FrenchA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Possessive adjectives (mon, ma, mes, ton, son)',
-                        'explanation' => 'Possessives agree with the thing owned, not with the owner: mon père, ma mère, mes parents. Son, sa and ses mean \'his\', \'her\' and \'its\' alike, so \'sa mère\' is his mother or her mother. Before a feminine noun that starts with a vowel the feminine ma, ta, sa becomes mon, ton, son: \'mon amie\' (my female friend), never \'ma amie\'. For you there are ton (informal) and votre (formal).',
+                        'explanation' => 'Possessives agree with the thing owned, not with the owner: mon père, ma mère, mes parents. Son, sa and ses mean \'his\', \'her\' and \'its\' alike, so \'sa mère\' is his mother or her mother. Before a feminine noun that starts with a vowel the feminine ma, ta, sa becomes mon, ton, son: \'mon amie\' (my female friend), never \'ma amie\'; the same goes before a silent h (mon histoire). For you there are ton, ta, tes (informal) and votre, vos (formal).',
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
@@ -301,7 +301,7 @@ class FrenchA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Reflexive verbs for daily routine',
-                        'explanation' => 'French reflexive verbs carry a pronoun that agrees with the subject: je me lève, tu te lèves, il se lève, nous nous levons, vous vous levez, ils se lèvent. The infinitive keeps se: se lever, se coucher. Before a vowel me, te, se become m\', t\', s\': \'je m\'habille\'. \'Prendre le petit-déjeuner\' is not reflexive. Do not use déjeuner for breakfast: déjeuner is lunch.',
+                        'explanation' => 'French reflexive verbs carry a pronoun that agrees with the subject: je me lève, tu te lèves, il se lève, nous nous levons, vous vous levez, ils se lèvent. The infinitive keeps se: se lever, se coucher. Before a vowel me, te, se become m\', t\', s\': \'je m\'appelle\'. \'Prendre le petit-déjeuner\' is not reflexive. Do not use déjeuner for breakfast: déjeuner is lunch.',
                         'error_tag_category' => null,
                     ],
                 ],

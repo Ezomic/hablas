@@ -29,7 +29,7 @@ final class CheckingIntoAHotel implements UnitContent
             new WordData('le réceptionniste', cue: 'receptionist (a man)', accepted: ['la réceptionniste']),
             new WordData('disponible', cue: 'available', forms: ['disponibles']),
             new WordData('la nuit', cue: 'night'),
-            new WordData('la salle de bain', cue: 'bathroom (the room with the bath or shower)', accepted: ['la salle de bains']),
+            new WordData('la salle de bains', cue: 'bathroom (the room with the bath or shower; the toilet is les toilettes)', accepted: ['la salle de bain']),
             new WordData('compris', cue: 'included (masculine)', forms: ['comprise', 'comprises']),
             new WordData('le petit-déjeuner', cue: 'breakfast'),
         ];

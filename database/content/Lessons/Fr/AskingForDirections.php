@@ -29,7 +29,7 @@ final class AskingForDirections implements UnitContent
             new WordData('tout droit', cue: 'straight ahead'),
             new WordData('près', cue: 'near, close', accepted: ['près de']),
             new WordData('loin', cue: 'far', accepted: ['loin de']),
-            new WordData('le plan', cue: 'map of a town', accepted: ['la carte']),
+            new WordData('le plan', cue: 'map of a town (le plan also means plan, a false friend of English plan)'),
             new WordData('où est… ?', cue: 'where is…? (asking for a place)', accepted: ['où se trouve… ?']),
             new WordData('la place', cue: 'square, plaza (in a town)'),
         ];
