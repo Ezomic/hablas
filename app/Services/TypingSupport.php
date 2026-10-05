@@ -53,6 +53,22 @@ final class TypingSupport
         );
     }
 
+    /**
+     * The letters still hidden at this level, in the order they would be given
+     * back, for a hint that gives one more letter.
+     *
+     * @return list<array{index: int, char: string}>
+     */
+    public function hintLetters(string $term, int $revealed): array
+    {
+        $term = $this->composed($term);
+        $chars = mb_str_split($term);
+        $letters = array_keys(array_filter($chars, fn (string $char): bool => preg_match('/\p{L}/u', $char) === 1));
+        $hidden = array_slice($this->order($term, $letters), max(0, $revealed));
+
+        return array_map(fn (int $index): array => ['index' => $index, 'char' => $chars[$index]], $hidden);
+    }
+
     /** @return list<string|null>|null null when nothing is given, so the learner types the whole word */
     public function maskFor(int $userId, VocabularyItem $item): ?array
     {

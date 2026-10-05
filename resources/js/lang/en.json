@@ -464,6 +464,7 @@
         "study": "Study it, then answer from memory: {answer}",
         "unavailable": "This exercise is not available yet.",
         "hint": {
+            "letter": "Give me a letter",
             "show": "Show a hint",
             "startsWith": "Starts with \"{letter}\", {count} letters | Starts with \"{letter}\", {count} letters"
         },

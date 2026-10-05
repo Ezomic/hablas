@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 const props = defineProps<{
     modelValue: string;
     mask: (string | null)[];
+    given?: { index: number; char: string }[];
     locale: string | null;
     disabled?: boolean;
     labelledby?: string;
@@ -17,22 +18,42 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const blanks = computed(() =>
-    props.mask.flatMap((char, index) => (char === null ? [index] : [])),
+const hinted = computed(
+    () =>
+        new Map((props.given ?? []).map((entry) => [entry.index, entry.char])),
 );
 
-const typed = ref<string[]>(blanks.value.map(() => ''));
+const shown = computed(() =>
+    props.mask.map((char, index) => hinted.value.get(index) ?? char),
+);
+
+const blanks = computed(() =>
+    shown.value.flatMap((char, index) => (char === null ? [index] : [])),
+);
+
+const typed = ref<Record<number, string>>({});
 const boxes = ref<HTMLInputElement[]>([]);
 const focused = ref(0);
 const composing = ref(false);
 
+function typedAt(blank: number): string {
+    return typed.value[blanks.value[blank]] ?? '';
+}
+
+function setTyped(blank: number, char: string) {
+    typed.value[blanks.value[blank]] = char;
+}
+
 const words = computed(() => {
-    const groups: { char: string | null; blank: number; key: number }[][] = [
-        [],
-    ];
+    const groups: {
+        char: string | null;
+        blank: number;
+        key: number;
+        hinted: boolean;
+    }[][] = [[]];
     let blank = 0;
 
-    props.mask.forEach((char, key) => {
+    shown.value.forEach((char, key) => {
         if (char === ' ') {
             groups.push([]);
 
@@ -43,6 +64,7 @@ const words = computed(() => {
             char,
             blank: char === null ? blank++ : -1,
             key,
+            hinted: hinted.value.has(key),
         });
     });
 
@@ -50,26 +72,34 @@ const words = computed(() => {
 });
 
 function assembled(): string {
-    let blank = 0;
-
-    return props.mask
-        .map((char) => (char === null ? (typed.value[blank++] ?? '') : char))
+    return shown.value
+        .map((char, index) => char ?? typed.value[index] ?? '')
         .join('');
 }
 
 function publish() {
     emit(
         'update:modelValue',
-        typed.value.every((char) => char === '') ? '' : assembled(),
+        blanks.value.every((index) => (typed.value[index] ?? '') === '')
+            ? ''
+            : assembled(),
     );
 }
 
 watch(
     () => props.modelValue,
     (value) => {
-        if (value === '' && typed.value.some((char) => char !== '')) {
-            typed.value = blanks.value.map(() => '');
+        if (value === '' && Object.values(typed.value).some((char) => char)) {
+            typed.value = {};
         }
+    },
+);
+
+watch(
+    () => props.given?.length ?? 0,
+    () => {
+        publish();
+        focusBox(Math.min(focused.value, blanks.value.length - 1));
     },
 );
 
@@ -90,7 +120,7 @@ function fill(from: number, text: string) {
             break;
         }
 
-        typed.value[at++] = char;
+        setTyped(at++, char);
     }
 
     publish();
@@ -104,10 +134,10 @@ function onInput(blank: number, event: Event) {
 
     const element = event.target as HTMLInputElement;
     const value = element.value;
-    const previous = typed.value[blank];
+    const previous = typedAt(blank);
 
     if (value === '') {
-        typed.value[blank] = '';
+        setTyped(blank, '');
         publish();
 
         return;
@@ -118,9 +148,9 @@ function onInput(blank: number, event: Event) {
             ? value.replace(previous, '')
             : value;
 
-    typed.value[blank] = '';
+    setTyped(blank, '');
     fill(blank, entered === '' ? previous : entered);
-    element.value = typed.value[blank];
+    element.value = typedAt(blank);
 }
 
 function onCompositionEnd(blank: number, event: Event) {
@@ -129,10 +159,7 @@ function onCompositionEnd(blank: number, event: Event) {
 }
 
 function onBeforeInput(blank: number, event: InputEvent) {
-    if (
-        event.inputType === 'deleteContentBackward' &&
-        typed.value[blank] === ''
-    ) {
+    if (event.inputType === 'deleteContentBackward' && typedAt(blank) === '') {
         event.preventDefault();
         focusBox(blank - 1);
     }
@@ -142,7 +169,7 @@ function onKeydown(blank: number, event: KeyboardEvent) {
     if (event.key === 'Enter') {
         event.preventDefault();
         emit('submit');
-    } else if (event.key === 'Backspace' && typed.value[blank] === '') {
+    } else if (event.key === 'Backspace' && typedAt(blank) === '') {
         event.preventDefault();
         focusBox(blank - 1);
     } else if (event.key === 'ArrowLeft') {
@@ -190,7 +217,12 @@ defineExpose({ insert });
             <template v-for="slot in word" :key="slot.key">
                 <span
                     v-if="slot.char !== null"
-                    class="flex h-11 min-w-6 items-center justify-center font-mono text-xl text-muted-foreground"
+                    class="flex h-11 min-w-6 items-center justify-center font-mono text-xl"
+                    :class="
+                        slot.hinted
+                            ? 'text-amber-600 dark:text-amber-300'
+                            : 'text-muted-foreground'
+                    "
                     data-testid="given-letter"
                 >
                     {{ slot.char }}
@@ -198,7 +230,7 @@ defineExpose({ insert });
                 <input
                     v-else
                     :ref="(element) => setBox(element, slot.blank)"
-                    :value="typed[slot.blank]"
+                    :value="typedAt(slot.blank)"
                     :lang="props.locale ?? undefined"
                     :disabled="props.disabled"
                     :aria-label="t('lesson.letterBox', { n: slot.key + 1 })"

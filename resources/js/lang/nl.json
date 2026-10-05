@@ -464,6 +464,7 @@
         "study": "Leer het en antwoord dan uit je hoofd: {answer}",
         "unavailable": "Deze oefening is nog niet beschikbaar.",
         "hint": {
+            "letter": "Geef me een letter",
             "show": "Toon een hint",
             "startsWith": "Begint met \"{letter}\", {count} letter | Begint met \"{letter}\", {count} letters"
         },

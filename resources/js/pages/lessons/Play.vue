@@ -33,6 +33,7 @@ import {
     isTeachFormat,
     isTypedFormat,
     maskOf,
+    hintLettersOf,
     answersInLearnedLanguage,
     languageName,
     passageAnswers,
@@ -111,10 +112,38 @@ const canCheck = computed(() => {
     return typed.value.trim() !== '';
 });
 
+const lettersGiven = ref(0);
+
+const hintLetters = computed(() =>
+    exercise.value !== null && maskOf(exercise.value.payload.mask) !== null
+        ? hintLettersOf(exercise.value.payload.hintLetters)
+        : [],
+);
+
+const givenLetters = computed(() =>
+    hintLetters.value.slice(0, lettersGiven.value),
+);
+
+const givesLetters = computed(() => hintLetters.value.length > 0);
+
+watch(
+    () => [exercise.value?.id, lesson.current.value?.attempt],
+    () => {
+        lettersGiven.value = 0;
+    },
+);
+
+function giveLetter() {
+    lesson.showHint();
+    lettersGiven.value += 1;
+}
+
 const canHint = computed(
     () =>
         !lesson.check &&
-        !lesson.hintShown.value &&
+        (givesLetters.value
+            ? lettersGiven.value < hintLetters.value.length
+            : !lesson.hintShown.value) &&
         exercise.value !== null &&
         !isTeachFormat(format.value) &&
         !isSpeakFormat(format.value) &&
@@ -127,7 +156,10 @@ const canHint = computed(
 );
 
 const hintText = computed(() =>
-    lesson.hintShown.value && exercise.value !== null && !lesson.check
+    lesson.hintShown.value &&
+    !givesLetters.value &&
+    exercise.value !== null &&
+    !lesson.check
         ? hintFor(exercise.value)
         : null,
 );
@@ -601,6 +633,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     :locale="locale"
                     :pattern="text(exercise.payload.hint) || null"
                     :mask="maskOf(exercise.payload.mask)"
+                    :given="givenLetters"
                     :hint="hintText"
                     :disabled="inFeedback"
                     @submit="check"
@@ -625,10 +658,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     variant="ghost"
                     size="sm"
                     class="w-fit"
-                    @click="lesson.showHint"
+                    @click="givesLetters ? giveLetter() : lesson.showHint()"
                 >
                     <Lightbulb />
-                    {{ t('lesson.hint.show') }}
+                    {{
+                        givesLetters
+                            ? t('lesson.hint.letter')
+                            : t('lesson.hint.show')
+                    }}
                 </Button>
 
                 <div

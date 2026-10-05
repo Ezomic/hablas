@@ -97,4 +97,24 @@ describe('LetterBoxes', () => {
 
         expect(values[values.length - 1]).toEqual(['hbl a']);
     });
+
+    it('shows a letter given by a hint as a locked letter and keeps what was typed', async () => {
+        const wrapper = mount(LetterBoxes, {
+            props: { modelValue: '', mask, locale: 'es' },
+        });
+
+        await boxes(wrapper)[2].setValue('b');
+        await wrapper.setProps({ given: [{ index: 1, char: 'o' }] });
+
+        expect(boxes(wrapper)).toHaveLength(2);
+        expect(
+            wrapper
+                .findAll('[data-testid="given-letter"]')
+                .map((letter) => letter.text()),
+        ).toEqual(['h', 'o', 'l', 'a']);
+
+        const values = wrapper.emitted('update:modelValue') ?? [];
+
+        expect(values[values.length - 1]).toEqual(['hol ab']);
+    });
 });

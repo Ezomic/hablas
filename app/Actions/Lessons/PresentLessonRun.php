@@ -199,7 +199,13 @@ final class PresentLessonRun
 
         $mask = $this->typingSupport->maskFor($user->id, $item);
 
-        return $mask === null ? $payload : [...$payload, 'mask' => $mask];
+        if ($mask === null) {
+            return $payload;
+        }
+
+        $revealed = $this->typingSupport->revealed($user->id, $item);
+
+        return [...$payload, 'mask' => $mask, 'hintLetters' => $this->typingSupport->hintLetters($item->term, $revealed)];
     }
 
     /**

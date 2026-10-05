@@ -92,3 +92,14 @@ it('keeps each learner and each word apart', function () {
     expect($support->revealed($one->id, $item))->toBe(5)
         ->and($support->revealed($two->id, $item))->toBe(6);
 });
+
+it('lists the hidden letters in the order they would come back, the next one first', function () {
+    $support = new TypingSupport;
+    $hidden = fn (int $revealed): array => array_keys(array_filter($support->mask('aeropuerto', $revealed), fn (?string $char): bool => $char === null));
+    $letters = $support->hintLetters('aeropuerto', 6);
+
+    expect(collect(array_column($letters, 'index'))->sort()->values()->all())->toBe($hidden(6))
+        ->and(array_values(array_diff($hidden(6), $hidden(7))))->toBe([$letters[0]['index']])
+        ->and($letters[0]['char'])->toBe(mb_str_split('aeropuerto')[$letters[0]['index']])
+        ->and($support->hintLetters('aeropuerto', 10))->toBe([]);
+});

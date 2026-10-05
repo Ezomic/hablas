@@ -16,6 +16,7 @@ const props = defineProps<{
     locale: string | null;
     pattern?: string | null;
     mask?: (string | null)[] | null;
+    given?: { index: number; char: string }[];
     hint?: string | null;
     english?: string;
     glosses?: [string, string][];
@@ -180,6 +181,7 @@ async function insert(character: string) {
             ref="letterBoxes"
             :model-value="props.modelValue"
             :mask="props.mask"
+            :given="props.given"
             :locale="props.locale"
             :disabled="props.disabled"
             @update:model-value="emit('update:modelValue', $event)"

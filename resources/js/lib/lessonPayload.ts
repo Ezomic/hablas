@@ -217,3 +217,20 @@ export function maskOf(value: unknown): (string | null)[] | null {
         ? (value as (string | null)[])
         : null;
 }
+
+/** The letters a hint can still give, in the order they come back. */
+export function hintLettersOf(
+    value: unknown,
+): { index: number; char: string }[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter(
+        (entry): entry is { index: number; char: string } =>
+            typeof entry === 'object' &&
+            entry !== null &&
+            typeof entry.index === 'number' &&
+            typeof entry.char === 'string',
+    );
+}
