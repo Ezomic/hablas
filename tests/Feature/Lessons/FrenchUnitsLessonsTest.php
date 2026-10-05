@@ -41,6 +41,10 @@ function frenchUnits(): array
 
         $content = new $class;
 
+        if (getenv('FR_UNIT') !== false && getenv('FR_UNIT') !== $content->unitSlug()) {
+            continue;
+        }
+
         if ($content->exercises() !== []) {
             $units[$content->unitSlug()] = $content;
         }
