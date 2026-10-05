@@ -346,8 +346,10 @@ foreach (frenchUnits() as $slug => $unitContent) {
 
             foreach ($this->authored as $exercise) {
                 foreach ($exercise->targets as $spec) {
-                    foreach (explode(' ', $this->normalizer->exactKey($spec->form)) as $part) {
-                        $known[$part] = true;
+                    foreach ($spec->forms() as $form) {
+                        foreach (explode(' ', $this->normalizer->exactKey($form)) as $part) {
+                            $known[$part] = true;
+                        }
                     }
                 }
             }
