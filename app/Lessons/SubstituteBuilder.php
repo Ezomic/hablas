@@ -85,7 +85,7 @@ final class SubstituteBuilder
     private function tiles(array $payload): array
     {
         $text = is_string($payload['text'] ?? null) ? $payload['text'] : '';
-        $tiles = preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $tiles = TileSplitter::split($text);
         usort($tiles, fn (string $a, string $b): int => strcmp(md5($text.$a), md5($text.$b)));
 
         return ['prompt' => $payload['english'] ?? '', 'english' => $payload['english'] ?? '', 'tiles' => $tiles, 'accepted' => $payload['accepted'] ?? []];

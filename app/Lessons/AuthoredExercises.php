@@ -263,7 +263,7 @@ final class AuthoredExercises
     {
         $accepted = $payload['accepted'] ?? [];
         $first = is_array($accepted) && is_array($accepted[0] ?? null) && is_string($accepted[0]['text'] ?? null) ? $accepted[0]['text'] : '';
-        $tiles = preg_split('/\s+/u', trim($first), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $tiles = TileSplitter::split($first);
         $wanted = match ($exercise->stage) {
             LessonStage::Sentences => 1,
             LessonStage::Task => 2,
