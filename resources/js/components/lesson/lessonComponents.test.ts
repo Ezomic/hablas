@@ -231,6 +231,33 @@ describe('TypedExercise', () => {
         });
     }
 
+    it('shows a form that is new to the learner above the field, and nothing when it is not', () => {
+        const withForm = mount(TypedExercise, {
+            attachTo: document.body,
+            props: {
+                modelValue: '',
+                prompt: 'Ellos ___ Ana y Luis.',
+                instruction: 'Type the missing word',
+                locale: 'es-ES',
+                gap: true,
+                introduce: 'son',
+            },
+        });
+
+        expect(withForm.get('[data-testid="introduce"]').text()).toContain(
+            'New form, type it to remember it:',
+        );
+        expect(withForm.get('[data-testid="introduce"]').text()).toContain(
+            'son',
+        );
+        withForm.unmount();
+
+        const without = mountTyped();
+
+        expect(without.find('[data-testid="introduce"]').exists()).toBe(false);
+        without.unmount();
+    });
+
     it('sets the language of the field and switches off autocorrect', () => {
         const wrapper = mountTyped();
         const input = wrapper.get('input');

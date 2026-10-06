@@ -78,15 +78,13 @@ describe('AccentComparer', function () {
         'aún is not aun' => ['es', 'aún', 'aun', AccentVerdict::OtherWord],
     ]);
 
-    it('is wrong at every stage when the accent that tells two words apart is dropped', function (string $code, string $expected, string $given) {
+    it('is wrong in the check when the accent that tells two words apart is dropped', function (string $code, string $expected, string $given) {
         $language = $code === 'es' ? LessonWorld::spanish() : Language::factory()->create(['code' => $code]);
 
-        foreach ([LessonStage::Recall, LessonStage::Task, LessonStage::Check] as $stage) {
-            $exercise = typedExercise($language, $stage, [$expected]);
+        $exercise = typedExercise($language, LessonStage::Check, [$expected]);
 
-            expect(gradeText($exercise, $expected)->correct)->toBeTrue()
-                ->and(gradeText($exercise, $given)->correct)->toBeFalse();
-        }
+        expect(gradeText($exercise, $expected)->correct)->toBeTrue()
+            ->and(gradeText($exercise, $given)->correct)->toBeFalse();
     })->with([
         ['pt', 'o país', 'o pais'],
         ['pt', 'dá', 'da'],
@@ -97,21 +95,26 @@ describe('AccentComparer', function () {
         ['es', 'aún', 'aun'],
     ]);
 
-    it('forgives a dropped accent that makes another word in lesson 1 only, with the note', function () {
+    it('forgives a dropped accent that makes another word in every lesson, with the note, and fails it in the check', function () {
         $spanish = LessonWorld::spanish();
-        $meet = typedExercise($spanish, LessonStage::Meet, ['¿cómo estás?']);
 
-        $forgiven = gradeText($meet, '¿cómo estas?');
+        foreach ([LessonStage::Meet, LessonStage::Recall, LessonStage::Sentences, LessonStage::Task] as $stage) {
+            $forgiven = gradeText(typedExercise($spanish, $stage, ['¿cómo estás?']), '¿cómo estas?');
 
-        expect($forgiven->correct)->toBeTrue()
-            ->and($forgiven->note)->toBe('other_word');
-
-        foreach ([LessonStage::Recall, LessonStage::Sentences, LessonStage::Task, LessonStage::Check] as $stage) {
-            expect(gradeText(typedExercise($spanish, $stage, ['¿cómo estás?']), '¿cómo estas?')->correct)->toBeFalse($stage->value);
+            expect($forgiven->correct)->toBeTrue($stage->value)
+                ->and($forgiven->note)->toBe('other_word');
         }
+
+        expect(gradeText(typedExercise($spanish, LessonStage::Check, ['¿cómo estás?']), '¿cómo estas?')->correct)->toBeFalse();
     });
 
-    it('still fails a wrong accent mark, or an accent that is not there, in lesson 1', function (string $code, string $expected, string $given) {
+    it('forgives every dropped accent of a dictation in a lesson, as the audio gives none', function () {
+        $exercise = typedExercise(LessonWorld::spanish(), LessonStage::Sentences, ['Buenas tardes, Pablo. ¿Cómo estás?'], format: Format::ListenType);
+
+        expect(gradeText($exercise, 'buenas tardes pablo como estas')->correct)->toBeTrue();
+    });
+
+    it('still fails a wrong accent mark, or an accent that is not there, in a lesson', function (string $code, string $expected, string $given) {
         $language = $code === 'es' ? LessonWorld::spanish() : Language::factory()->create(['code' => $code]);
 
         expect(gradeText(typedExercise($language, LessonStage::Meet, [$expected]), $given)->correct)->toBeFalse();
@@ -205,19 +208,20 @@ describe('accents by stage', function () {
             ->and($byKey[$habitacion])->toBeFalse();
     });
 
-    it('never forgives esta for está, in any lesson, and fails only the grammar point', function (string $key, string $text) {
-        $exercise = seededExercise($key);
-        $grade = gradeText($exercise, $text);
-        $wrong = collect($grade->targets)->where('correct', false);
+    it('forgives esta for está in a lesson, with the note, and fails only the grammar point in the check', function () {
+        $lesson = gradeText(seededExercise('sentences.translate.desayuno'), 'El desayuno esta incluido');
 
-        expect($grade->correct)->toBeFalse()
-            ->and($grade->note)->toBe('other_word')
+        expect($lesson->correct)->toBeTrue()
+            ->and($lesson->note)->toBe('other_word');
+
+        $check = gradeText(seededExercise('check.a.translate.0'), 'El baño esta en la habitación');
+        $wrong = collect($check->targets)->where('correct', false);
+
+        expect($check->correct)->toBeFalse()
+            ->and($check->note)->toBe('other_word')
             ->and($wrong)->toHaveCount(1)
             ->and($wrong->first()['type'])->toBe((new GrammarPoint)->getMorphClass());
-    })->with([
-        'lesson 3' => ['sentences.translate.desayuno', 'El desayuno esta incluido'],
-        'check' => ['check.a.translate.0', 'El baño esta en la habitación'],
-    ]);
+    });
 
     it('fails only the misspelt word', function () {
         $exercise = seededExercise('sentences.translate.desayuno');

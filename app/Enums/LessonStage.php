@@ -57,7 +57,8 @@ enum LessonStage: string
     /**
      * What a missing accent does to an answer at this stage: forgiven and
      * counted as right in lessons 1 and 2, accepted with a note in 3 and 4,
-     * wrong in the check.
+     * wrong in the check. A dropped accent that makes another word is forgiven
+     * in every lesson, with a note, and wrong in the check.
      */
     public function accentPolicy(): AccentPolicy
     {
@@ -82,9 +83,8 @@ enum LessonStage: string
     public function replayLimit(): ?int
     {
         return match ($this) {
-            self::Meet, self::Recall => null,
-            self::Sentences => 3,
-            self::Task, self::Check => 2,
+            self::Meet, self::Recall, self::Sentences, self::Task => null,
+            self::Check => 2,
         };
     }
 
