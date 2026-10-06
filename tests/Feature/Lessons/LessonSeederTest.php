@@ -247,7 +247,7 @@ it('seeds speaking and listening into lessons 1 and 2 of every Spanish unit', fu
     expect($units)->toHaveCount(8);
 
     foreach ($units as $unit) {
-        foreach (['meet' => ['speak_repeat', 'listen_choose'], 'recall' => ['speak_answer', 'listen_choose']] as $stage => $formats) {
+        foreach (['meet' => ['speak_repeat', 'listen_choose'], 'recall' => ['speak_repeat', 'listen_choose']] as $stage => $formats) {
             $seeded = LessonExercise::query()
                 ->whereHas('lesson', fn ($query) => $query->where('unit_id', $unit->id)->where('stage', $stage))
                 ->whereNull('substitute_for_id')

@@ -24,6 +24,21 @@ beforeEach(function () {
 
     [$this->unit] = LessonWorld::seededHotel();
     $this->user = LessonWorld::learner();
+
+    $spokenAnswer = LessonExercise::factory()->create([
+        'lesson_id' => LessonWorld::lesson($this->unit, LessonStage::Recall)->id,
+        'key' => 'recall.speak_answer.la-llave',
+        'format' => Format::SpeakAnswer,
+        'payload' => ['prompt' => 'key', 'english' => 'key', 'text' => 'la llave', 'slots' => [['la llave']], 'accepted' => [['text' => 'la llave', 'spans' => []]]],
+    ]);
+
+    LessonExercise::factory()->create([
+        'lesson_id' => $spokenAnswer->lesson_id,
+        'key' => 'recall.speak_answer.la-llave.sub',
+        'format' => Format::TypeWord,
+        'payload' => ['prompt' => 'key', 'english' => 'key', 'accepted' => [['text' => 'la llave', 'spans' => []]]],
+        'substitute_for_id' => $spokenAnswer->id,
+    ]);
 });
 
 function clipFor(string $text, SpeechSpeed $speed = SpeechSpeed::Normal): void

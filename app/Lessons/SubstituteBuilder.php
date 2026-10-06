@@ -34,7 +34,7 @@ final class SubstituteBuilder
                 'questions' => $payload['substitute_questions'] ?? throw new InvalidLessonContent('A listening passage needs a second question set for its substitute.'),
             ]],
             LessonExerciseFormat::SpeakRepeat => match (true) {
-                $stage === LessonStage::Meet => [LessonExerciseFormat::TypeWord, $this->only($payload, ['english', 'accepted', 'pattern']) + ['prompt' => $payload['english'] ?? '', 'hint' => $payload['pattern'] ?? null]],
+                $stage === LessonStage::Meet || ($stage === LessonStage::Recall && array_key_exists('pattern', $payload)) => [LessonExerciseFormat::TypeWord, $this->only($payload, ['english', 'accepted', 'pattern']) + ['prompt' => $payload['english'] ?? '', 'hint' => $payload['pattern'] ?? null]],
                 $stage === LessonStage::Recall => [LessonExerciseFormat::BuildSentence, $this->tiles($payload)],
                 default => [LessonExerciseFormat::TranslateSentence, $this->only($payload, ['english', 'accepted']) + ['prompt' => $payload['english'] ?? '']],
             },
