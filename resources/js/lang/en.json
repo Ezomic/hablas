@@ -495,6 +495,7 @@
             "accent": "Watch the accent: {expected}",
             "article": "Check the article: {expected}",
             "otherWord": "That is a different word. Check the accent.",
+            "otherWordKept": "That counts, but the accent makes it a different word: {expected}",
             "portunol": "That is Spanish, not Portuguese."
         },
         "teach": {

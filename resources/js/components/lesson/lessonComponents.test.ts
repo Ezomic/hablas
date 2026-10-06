@@ -385,6 +385,23 @@ describe('AnswerFeedback', () => {
         expect(wrapper.find('button').exists()).toBe(false);
     });
 
+    it('says that a forgiven other word counts, and shows the right spelling', () => {
+        const kept = mount(AnswerFeedback, {
+            props: {
+                feedback: feedback({
+                    correct: true,
+                    note: 'other_word',
+                    expected: '¿cómo estás?',
+                }),
+            },
+        }).text();
+
+        expect(kept).toContain('Right');
+        expect(kept).toContain(
+            'That counts, but the accent makes it a different word: ¿cómo estás?',
+        );
+    });
+
     it('explains an accent note, an article note and another word', () => {
         const text = (note: string) =>
             mount(AnswerFeedback, {

@@ -23,7 +23,10 @@ const notes: Record<string, string> = {
 };
 
 const note = computed(() => {
-    const key = notes[props.feedback.note ?? ''];
+    const key =
+        props.feedback.correct && props.feedback.note === 'other_word'
+            ? 'lesson.note.otherWordKept'
+            : notes[props.feedback.note ?? ''];
 
     return key === undefined
         ? null

@@ -97,6 +97,29 @@ describe('AccentComparer', function () {
         ['es', 'aún', 'aun'],
     ]);
 
+    it('forgives a dropped accent that makes another word in lesson 1 only, with the note', function () {
+        $spanish = LessonWorld::spanish();
+        $meet = typedExercise($spanish, LessonStage::Meet, ['¿cómo estás?']);
+
+        $forgiven = gradeText($meet, '¿cómo estas?');
+
+        expect($forgiven->correct)->toBeTrue()
+            ->and($forgiven->note)->toBe('other_word');
+
+        foreach ([LessonStage::Recall, LessonStage::Sentences, LessonStage::Task, LessonStage::Check] as $stage) {
+            expect(gradeText(typedExercise($spanish, $stage, ['¿cómo estás?']), '¿cómo estas?')->correct)->toBeFalse($stage->value);
+        }
+    });
+
+    it('still fails a wrong accent mark, or an accent that is not there, in lesson 1', function (string $code, string $expected, string $given) {
+        $language = $code === 'es' ? LessonWorld::spanish() : Language::factory()->create(['code' => $code]);
+
+        expect(gradeText(typedExercise($language, LessonStage::Meet, [$expected]), $given)->correct)->toBeFalse();
+    })->with([
+        ['pt', 'avó', 'avô'],
+        ['es', 'hotel', 'hotél'],
+    ]);
+
     it('keeps accents in the exact key and folds them in the answer key', function () {
         $normalizer = new SpanishTextNormalizer;
 
