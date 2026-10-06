@@ -9,6 +9,7 @@ use App\Enums\AccentPolicy;
 use App\Enums\AccentVerdict;
 use App\Enums\ErrorTagCategory;
 use App\Enums\LessonExerciseFormat;
+use App\Enums\LessonStage;
 use App\Lessons\AlignedWord;
 use App\Lessons\Grade;
 use App\Lessons\TargetRef;
@@ -168,7 +169,7 @@ final class GradeLessonAnswer
             $right[$index] = match ($word->verdict) {
                 AccentVerdict::Exact => true,
                 AccentVerdict::Missing => $this->takeMissing($policy, $slipped),
-                AccentVerdict::OtherWord => $this->takeOtherWord($otherWord),
+                AccentVerdict::OtherWord => $this->takeOtherWord($word, $normalizer, $exercise, $otherWord),
                 null => false,
             };
         }
@@ -240,11 +241,19 @@ final class GradeLessonAnswer
         return $policy !== AccentPolicy::Reject;
     }
 
-    private function takeOtherWord(bool &$otherWord): bool
+    /**
+     * Another word is wrong, with the note that says so, except in lesson 1:
+     * there the learner copies a word that is on the screen, and leaving off
+     * only its accent teaches more through the note than a miss does. A wrong
+     * accent mark, or one that is not there, is still wrong.
+     */
+    private function takeOtherWord(AlignedWord $word, TextNormalizer $normalizer, LessonExercise $exercise, bool &$otherWord): bool
     {
         $otherWord = true;
 
-        return false;
+        return $exercise->lesson?->stage === LessonStage::Meet
+            && $word->given !== null
+            && $word->given === $normalizer->foldAccents($word->expected);
     }
 
     /**
