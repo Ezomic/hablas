@@ -63,6 +63,8 @@ final class TalkingAboutYourFamily implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), WordReference. papá and mamá accepted for padre and madre (accents kept). Fixed: accepted más viejo for mayor; grammar example Mis abuelos son mayores replaced by Mis hermanos son mayores (mayores alone with grandparents reads as elderly, not older). Open questions answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -81,16 +83,16 @@ final class TalkingAboutYourFamily implements UnitContent
 
             Kit::typeGap($stage, 'sentences.type_gap.mi-hermano', '___ hermano es mayor.', 'My brother is older.', 'Mi', Kit::form('mi'), 'One brother, so the possessive is singular.'),
             Kit::typeGap($stage, 'sentences.type_gap.mis-abuelos', '___ abuelos están aquí.', 'My grandparents are here.', 'Mis', Kit::form('mis', true), 'Abuelos is plural, so the possessive is plural too.'),
-            Kit::typeGap($stage, 'sentences.type_gap.tu-hermano', 'Pablo es ___ hermano.', 'Pablo is your brother.', 'tu', Kit::form('tu'), 'Tu without an accent means your. One brother, so it stays singular.'),
+            Kit::typeGap($stage, 'sentences.type_gap.tu-hermano', 'Pablo es ___ hermano.', 'Pablo is your brother (informal you).', 'tu', Kit::form('tu'), 'Tu without an accent means your. One brother, so it stays singular.'),
             Kit::typeGap($stage, 'sentences.type_gap.familia', 'La ___ está aquí.', 'The family is here.', 'familia', Kit::word('la familia', 'familia')),
             Kit::typeGap($stage, 'sentences.type_gap.sus-hermanos', 'Marta y ___ hermanos están aquí.', 'Marta and her brothers are here.', 'sus', Kit::form('sus', true), 'Su and sus agree with the thing owned: more than one brother, so the plural.'),
 
             Kit::translate($stage, 'sentences.translate.padre', 'My father is here.', ['Mi padre está aquí.'], [Kit::word('el padre', 'padre'), Kit::form('mi')]),
             Kit::translate($stage, 'sentences.translate.hermanos', 'My brothers are here.', ['Mis hermanos están aquí.'], [Kit::word('el hermano', 'hermanos'), Kit::form('mis', true)]),
-            Kit::translate($stage, 'sentences.translate.madre', 'Your mother is married.', ['Tu madre está casada.'], [Kit::word('la madre', 'madre'), Kit::word('casado', 'casada'), Kit::form('tu')]),
+            Kit::translate($stage, 'sentences.translate.madre', 'Your mother is married (informal you).', ['Tu madre está casada.'], [Kit::word('la madre', 'madre'), Kit::word('casado', 'casada'), Kit::form('tu')]),
             Kit::build($stage, 'sentences.build.hijo-soltero', 'Her son is single.', 'Su hijo es soltero.', ['sus'], [Kit::word('el hijo', 'hijo'), Kit::word('soltero'), Kit::form('su')]),
             Kit::build($stage, 'sentences.build.abuelos', 'My grandparents are here.', 'Mis abuelos están aquí.', ['mi'], [Kit::word('los abuelos', 'abuelos'), Kit::form('mis', true)]),
-            Kit::build($stage, 'sentences.build.hermano-mayor', 'Your brother is older.', 'Tu hermano es mayor.', ['tus'], [Kit::word('el hermano', 'hermano'), Kit::word('mayor'), Kit::form('tu')]),
+            Kit::build($stage, 'sentences.build.hermano-mayor', 'Your brother is older (informal you).', 'Tu hermano es mayor.', ['tus'], [Kit::word('el hermano', 'hermano'), Kit::word('mayor'), Kit::form('tu')]),
 
             Kit::listenChoose($stage, 'sentences.listen_choose.madre', 'Mi madre está aquí.', ['My mother is here.', 'My father is here.', 'My sister is here.', 'My family is here.'], 'My mother is here.', [Kit::word('la madre', 'madre'), Kit::form('mi')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.hermanos', 'Mis hermanos son mayores.', ['My brothers are older.', 'My brother is older.', 'My sons are older.', 'My grandparents are older.'], 'My brothers are older.', [Kit::word('el hermano', 'hermanos'), Kit::word('mayor', 'mayores'), Kit::form('mis', true)]),
@@ -184,12 +186,12 @@ final class TalkingAboutYourFamily implements UnitContent
         $set = 'a';
 
         return [
-            Kit::translate($stage, 'check.a.translate.hermana', 'Your sister is older.', ['Tu hermana es mayor.'], [Kit::word('la hermana', 'hermana'), Kit::word('mayor'), Kit::form('tu')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.hermana', 'Your sister is older (informal you).', ['Tu hermana es mayor.'], [Kit::word('la hermana', 'hermana'), Kit::word('mayor'), Kit::form('tu')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.padre', 'Her father is married.', ['Su padre está casado.'], [Kit::word('el padre', 'padre'), Kit::word('casado'), Kit::form('su')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.hermanos', 'My brothers are single.', ['Mis hermanos son solteros.'], [Kit::word('el hermano', 'hermanos'), Kit::word('soltero', 'solteros'), Kit::form('mis', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.hijo', 'My son is with my grandparents.', ['Mi hijo está con mis abuelos.'], [Kit::word('el hijo', 'hijo'), Kit::word('los abuelos', 'abuelos')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.sus-abuelos', 'Marta y ___ abuelos están aquí.', 'Marta and her grandparents are here.', 'sus', Kit::form('sus', true), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.tu-madre', '¿Dónde está ___ madre?', 'Where is your mother?', 'tu', Kit::form('tu'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.tu-madre', '¿Dónde está ___ madre?', 'Where is your mother (informal you)?', 'tu', Kit::form('tu'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.soltero', 'Mi hermano es soltero.', 'My brother is single.', [Kit::word('el hermano', 'hermano'), Kit::word('soltero'), Kit::form('mi')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.familia', 'Luis está con su familia.', 'Luis is with his family.', [Kit::word('la familia', 'familia')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.madre', 'La madre de Pablo está aquí.', 'Pablo\'s mother is here.', [Kit::word('la madre', 'madre')], 'dictation', $set),
@@ -233,7 +235,7 @@ final class TalkingAboutYourFamily implements UnitContent
             Kit::translate($stage, 'check.b.translate.hermana', 'Her sister is married.', ['Su hermana está casada.'], [Kit::word('la hermana', 'hermana'), Kit::word('casado', 'casada'), Kit::form('su')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.hijos', 'My sons are single.', ['Mis hijos son solteros.'], [Kit::word('el hijo', 'hijos'), Kit::word('soltero', 'solteros'), Kit::form('mis', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.abuelos', 'My grandparents are married.', ['Mis abuelos están casados.'], [Kit::word('los abuelos', 'abuelos'), Kit::word('casado', 'casados'), Kit::form('mis', true)], 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.tus-hijos', '___ hijos están aquí.', 'Your sons are here.', 'Tus', Kit::form('tus', true), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.tus-hijos', '___ hijos están aquí.', 'Your sons are here (informal you).', 'Tus', Kit::form('tus', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.su-madre', 'Ana está con ___ madre.', 'Ana is with her mother.', 'su', Kit::form('su'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.hermana', 'Mi hermana mayor está aquí.', 'My older sister is here.', [Kit::word('la hermana', 'hermana'), Kit::word('mayor')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.familia', 'Ana tiene familia aquí.', 'Ana has family here.', [Kit::word('la familia', 'familia')], 'dictation', $set),

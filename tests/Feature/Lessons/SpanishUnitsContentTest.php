@@ -47,22 +47,22 @@ function spanishUnits(): array
     return $units;
 }
 
-describe('every Spanish unit with authored lessons stays behind the review gate', function () {
+describe('every Spanish unit with authored lessons is released through the review gate', function () {
     beforeEach(function () {
         $this->seed(LanguageSeeder::class);
         $this->seed(SpanishA1Seeder::class);
     });
 
-    it('is written but not released: it needs the independent AI review and the owner approval of the lessons', function () {
+    it('is released: it has the independent AI review and the owner approval of the lessons', function () {
         foreach (spanishUnits() as $slug => $content) {
             expect(ReviewGate::wordsReleased($content))->toBeTrue($slug)
-                ->and(ReviewGate::lessonsReleased($content))->toBeFalse($slug)
+                ->and(ReviewGate::lessonsReleased($content))->toBeTrue($slug)
                 ->and($content->exercises())->not->toBeEmpty($slug)
-                ->and(collect($content->reviews())->every(fn ($review): bool => $review->scope->value === 'words'))->toBeTrue($slug);
+                ->and(collect($content->reviews())->contains(fn ($review): bool => $review->scope->value === 'lessons' && $review->kind->value === 'owner'))->toBeTrue($slug);
         }
     });
 
-    it('seeds no authored lesson through ContentSeeder, so learners keep lessons 1 and 2 and the words check', function () {
+    it('seeds every authored lesson through ContentSeeder', function () {
         $this->seed(ContentSeeder::class);
 
         foreach (spanishUnits() as $slug => $content) {
@@ -71,9 +71,8 @@ describe('every Spanish unit with authored lessons stays behind the review gate'
             $exercises = LessonExercise::query()->whereIn('lesson_id', $lessons->pluck('id'))->get();
             $authoredKeys = collect($content->exercises())->map(fn (AuthoredExercise $exercise): string => $exercise->key);
 
-            expect($lessons->map(fn (Lesson $lesson): string => $lesson->stage->value)->all())->toBe(['meet', 'recall', 'check'], $slug)
-                ->and($exercises->pluck('key')->intersect($authoredKeys)->all())->toBe([], $slug)
-                ->and($exercises->filter(fn (LessonExercise $exercise): bool => $exercise->lesson->stage === LessonStage::Check && $exercise->block !== 'recall')->count())->toBe(0, $slug);
+            expect($lessons->map(fn (Lesson $lesson): string => $lesson->stage->value)->all())->toBe(['meet', 'recall', 'sentences', 'task', 'check'], $slug)
+                ->and($authoredKeys->diff($exercises->pluck('key'))->values()->all())->toBe([], $slug);
         }
     });
 });

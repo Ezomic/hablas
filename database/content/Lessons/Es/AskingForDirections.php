@@ -63,6 +63,8 @@ final class AskingForDirections implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: WordReference forum, SpanishDict, Kwiziq. todo recto is the Spain form and todo derecho is also valid, both accepted. No data fixes. Open question answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -73,7 +75,7 @@ final class AskingForDirections implements UnitContent
 
         return [
             Kit::gap($stage, 'sentences.choose_gap.nosotros-plaza', 'Nosotros ___ en la plaza.', ['comemos', 'comes', 'como'], 'comemos', Kit::form('comemos'), 'Nosotros takes -emos in an -er verb.', 'choose', 'We eat in the square.'),
-            Kit::gap($stage, 'sentences.choose_gap.vivimos-esquina', 'Nosotros ___ cerca de la esquina.', ['vivimos', 'comemos', 'vivís'], 'vivimos', Kit::form('vivimos', true), 'The verb is vivir, an -ir verb, so nosotros ends in -imos and not in -emos like comer.', 'choose', 'We live near the corner.'),
+            Kit::gap($stage, 'sentences.choose_gap.vivimos-esquina', 'Nosotros ___ cerca de la esquina.', ['vivimos', 'vivo', 'vivís'], 'vivimos', Kit::form('vivimos', true), 'The verb is vivir, an -ir verb, so nosotros ends in -imos. Vivo is for yo and vivís is for vosotros.', 'choose', 'We live near the corner.'),
             Kit::gap($stage, 'sentences.choose_gap.ana-vive', 'Ana ___ lejos de la plaza.', ['vive', 'vives', 'vivo'], 'vive', Kit::form('vive'), 'Ana is a she, so the -ir verb ends in -e.', 'choose', 'Ana lives far from the square.'),
             Kit::gap($stage, 'sentences.choose_gap.cerca', 'Ana no vive lejos, vive ___.', ['cerca', 'lejos'], 'cerca', Kit::word('cerca'), 'Cerca means near, the opposite of lejos.', 'choose', null, ['vive' => 'lives']),
             Kit::gap($stage, 'sentences.choose_gap.donde-esquina', '¿Dónde ___ la esquina?', ['está', 'vive', 'tengo'], 'está', Kit::form('está', true), 'Where something is takes estar, which is not an -er or -ir verb.', 'choose', 'Where is the corner?'),
@@ -127,7 +129,7 @@ final class AskingForDirections implements UnitContent
                 Kit::question('Is the square far?', ['Yes, it is far.', 'No, it is not far.', 'The text does not say.'], 'No, it is not far.'),
                 Kit::question('Which way does Pablo say at the corner?', ['To the left', 'To the right', 'Straight ahead'], 'To the right'),
             ], [Kit::word('el mapa'), Kit::word('¿dónde está...?', 'dónde está'), Kit::word('la plaza'), Kit::word('lejos'), Kit::word('todo recto'), Kit::word('la calle'), Kit::word('la esquina'), Kit::word('a la derecha'), Kit::word('a la izquierda'), Kit::word('cerca')], 'read'),
-            Kit::gap($stage, 'task.choose_gap.vosotros', 'Vosotros ___ cerca de la plaza.', ['vivís', 'coméis', 'vives'], 'vivís', Kit::form('vivís', true), 'The verb is vivir, an -ir verb, so vosotros ends in -ís. Comer, an -er verb, would give coméis.', 'read', 'You (all) live near the square.'),
+            Kit::gap($stage, 'task.choose_gap.vosotros', 'Vosotros ___ cerca de la plaza.', ['vivís', 'vivimos', 'vives'], 'vivís', Kit::form('vivís', true), 'The verb is vivir, an -ir verb, so vosotros ends in -ís. Vivimos is for nosotros and vives is for tú.', 'read', 'You (all) live near the square.'),
             Kit::gap($stage, 'task.choose_gap.recto', 'La esquina está todo ___.', ['recto', 'derecha'], 'recto', Kit::word('todo recto', 'recto'), 'Todo recto is a fixed phrase, so recto never changes.', 'read'),
 
             Kit::transform($stage, 'task.transform.nosotros-come', 'Change to nosotros.', 'Él come a las dos.', ['Nosotros comemos a las dos.', 'Comemos a las dos.'], [Kit::form('comemos')], ['come' => 'eats']),
@@ -147,8 +149,8 @@ final class AskingForDirections implements UnitContent
             Kit::build($stage, 'task.build.mapa-derecha', 'The map is on the right.', 'El mapa está a la derecha.', ['es', 'hay'], [Kit::word('el mapa'), Kit::word('a la derecha'), Kit::form('está', true)], 'write'),
             Kit::build($stage, 'task.build.comemos-esquina', 'We eat near the corner.', 'Comemos cerca de la esquina.', ['vivimos', 'comes'], [Kit::word('cerca'), Kit::word('la esquina'), Kit::form('comemos')], 'write'),
             Kit::build($stage, 'task.build.vives-plaza', 'You live far from the square.', 'Vives lejos de la plaza.', ['vivís', 'comes'], [Kit::word('lejos'), Kit::word('la plaza'), Kit::form('vives')], 'write'),
-            Kit::translate($stage, 'task.translate.vives-esquina', 'Do you live near the corner?', ['¿Vives cerca de la esquina?', '¿Vive usted cerca de la esquina?', '¿Vive cerca de la esquina?'], [Kit::word('cerca'), Kit::word('la esquina')]),
-            Kit::translate($stage, 'task.translate.plaza-recto', 'The square is straight ahead, near the corner.', ['La plaza está todo recto, cerca de la esquina.'], [Kit::word('la plaza'), Kit::word('todo recto'), Kit::word('cerca'), Kit::word('la esquina'), Kit::form('está', true)]),
+            Kit::translate($stage, 'task.translate.vives-esquina', 'Do you live near the corner?', ['¿Vives cerca de la esquina?', '¿Tú vives cerca de la esquina?', '¿Vive usted cerca de la esquina?'], [Kit::word('cerca'), Kit::word('la esquina')]),
+            Kit::translate($stage, 'task.translate.plaza-recto', 'The square is straight ahead, near the corner.', ['La plaza está todo recto, cerca de la esquina.', 'La plaza está cerca de la esquina, todo recto.'], [Kit::word('la plaza'), Kit::word('todo recto'), Kit::word('cerca'), Kit::word('la esquina'), Kit::form('está', true)]),
 
             Kit::listenPassage($stage, 'task.listen_passage.plaza', [
                 Kit::line('Luis', 'Hola, Marta. ¿Dónde está la plaza?'),
@@ -172,7 +174,7 @@ final class AskingForDirections implements UnitContent
             Kit::speakAnswer($stage, 'task.speak_answer.plaza-lejos', '¿Vives lejos de la plaza?', 'Do you live far from the square?', [['sí', 'no', 'vivo', 'lejos', 'cerca', 'plaza']], 'No, vivo cerca de la plaza.', [Kit::word('lejos'), Kit::word('cerca'), Kit::word('la plaza'), Kit::form('vivo')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.donde-comes', '¿Dónde comes?', 'Where do you eat?', [['como', 'comemos', 'en'], ['plaza', 'calle', 'esquina', 'aquí', 'allí']], 'Como en la plaza.', [Kit::word('la plaza'), Kit::form('como')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.esquina', '¿Dónde está la esquina?', 'Where is the corner?', [['esquina', 'está'], ['derecha', 'izquierda', 'recto', 'cerca', 'lejos', 'aquí', 'allí']], 'La esquina está a la derecha.', [Kit::word('la esquina'), Kit::word('¿dónde está...?', 'dónde está'), Kit::word('a la derecha')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.mapa', '¿Dónde tienes el mapa?', 'Where do you have the map?', [['tengo', 'mapa'], ['aquí', 'allí']], 'Tengo el mapa aquí.', [Kit::word('el mapa'), Kit::form('tengo', true)], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.mapa', '¿Dónde tienes el mapa?', 'Where do you have the map?', [['tengo', 'mapa', 'está'], ['aquí', 'allí', 'calle', 'plaza', 'esquina']], 'Tengo el mapa aquí.', [Kit::word('el mapa'), Kit::form('tengo', true)], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.recto-derecha', 'Todo recto y a la derecha, cerca de la plaza.', 'Straight ahead and to the right, near the square.', [Kit::word('todo recto'), Kit::word('a la derecha'), Kit::word('cerca'), Kit::word('la plaza')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.vivimos-comemos', 'Vivimos lejos de la esquina y comemos en la plaza.', 'We live far from the corner and eat in the square.', [Kit::word('lejos'), Kit::word('la esquina'), Kit::word('la plaza'), Kit::form('vivimos')], 'speak'),
         ];
@@ -187,8 +189,8 @@ final class AskingForDirections implements UnitContent
         return [
             Kit::translate($stage, 'check.a.translate.calle-lejos', 'The street is far from the square.', ['La calle está lejos de la plaza.'], [Kit::word('la calle'), Kit::word('lejos'), Kit::word('la plaza'), Kit::form('está', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.ana-izquierda', 'Ana lives near the square, on the left.', ['Ana vive cerca de la plaza, a la izquierda.'], [Kit::word('cerca'), Kit::word('la plaza'), Kit::word('a la izquierda'), Kit::form('vive')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.donde-calle', 'Where is the street? It is straight ahead.', ['¿Dónde está la calle? Está todo recto.'], [Kit::word('¿dónde está...?', 'dónde está'), Kit::word('la calle'), Kit::word('todo recto'), Kit::form('está', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.mapa-lejos', 'I have a map, but I live far away.', ['Tengo un mapa, pero vivo lejos.'], [Kit::word('el mapa', 'mapa'), Kit::word('lejos'), Kit::form('tengo', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.donde-calle', 'Where is the street? It is straight ahead.', ['¿Dónde está la calle? Está todo recto.', '¿Dónde está la calle? La calle está todo recto.'], [Kit::word('¿dónde está...?', 'dónde está'), Kit::word('la calle'), Kit::word('todo recto'), Kit::form('está', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.mapa-lejos', 'I have a map, but I live far away.', ['Tengo un mapa, pero vivo lejos.', 'Yo tengo un mapa, pero vivo lejos.'], [Kit::word('el mapa', 'mapa'), Kit::word('lejos'), Kit::form('tengo', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.vosotros', 'Vosotros ___ cerca de la esquina.', 'You (all) live near the corner.', 'vivís', Kit::form('vivís', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.ellos', 'Ellos ___ lejos de la plaza.', 'They live far from the square.', 'viven', Kit::form('viven'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.marta-derecha', 'Marta vive a la derecha de la plaza.', 'Marta lives to the right of the square.', [Kit::word('a la derecha'), Kit::word('la plaza')], 'dictation', $set, [], 'The a in a la derecha is the preposition a, never ha.'),

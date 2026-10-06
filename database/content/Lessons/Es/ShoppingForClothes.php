@@ -63,6 +63,8 @@ final class ShoppingForClothes implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), WordReference. los pantalones with el pantalón accepted; me pruebo is a finite form so it is definitely wrong against the infinitive cue. No data fixes. Open questions answered and removed. The seeder gloss pants (American) is outside this file.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -86,7 +88,7 @@ final class ShoppingForClothes implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.me-pruebo', '___ la camisa.', 'I try on the shirt.', 'Me pruebo', Kit::word('probarse', 'me pruebo')),
             Kit::translate($stage, 'sentences.translate.camisa', 'The shirt is cheap.', ['La camisa es barata.'], [Kit::word('la camisa'), Kit::word('barato', 'barata'), Kit::form('barata')]),
             Kit::translate($stage, 'sentences.translate.pantalones', 'The trousers are expensive.', ['Los pantalones son caros.'], [Kit::word('los pantalones'), Kit::word('caro', 'caros'), Kit::form('caros', true)]),
-            Kit::translate($stage, 'sentences.translate.me-pruebo', 'I try on the trousers.', ['Me pruebo los pantalones.'], [Kit::word('probarse', 'me pruebo'), Kit::word('los pantalones')]),
+            Kit::translate($stage, 'sentences.translate.me-pruebo', 'I try on the trousers.', ['Me pruebo los pantalones.', 'Yo me pruebo los pantalones.'], [Kit::word('probarse', 'me pruebo'), Kit::word('los pantalones')]),
             Kit::build($stage, 'sentences.build.camisa', 'The shirt is not expensive.', 'La camisa no es cara.', ['caro'], [Kit::word('la camisa'), Kit::word('caro', 'cara'), Kit::form('cara')]),
             Kit::build($stage, 'sentences.build.pantalones', 'The trousers are not cheap.', 'Los pantalones no son baratos.', ['barato'], [Kit::word('los pantalones'), Kit::word('barato', 'baratos'), Kit::form('baratos', true)]),
             Kit::build($stage, 'sentences.build.descuento', 'I have a discount.', 'Tengo un descuento.', ['una'], [Kit::word('el descuento', 'descuento')]),
@@ -103,9 +105,9 @@ final class ShoppingForClothes implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.talla', '¿Qué talla tiene usted?', 'What size are you? (formal)', [Kit::word('la talla', 'talla')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.cuanto', '¿Cuánto es la camisa?', 'How much is the shirt?', [Kit::word('la camisa')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.me-pruebo', 'Me pruebo los pantalones.', 'I try on the trousers.', [Kit::word('probarse', 'me pruebo'), Kit::word('los pantalones')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.camisa', '¿Es cara la camisa?', 'Is the shirt expensive?', [['sí', 'no', 'es'], ['cara', 'barata', 'es']], 'Sí, la camisa es cara.', [Kit::word('la camisa'), Kit::word('caro', 'cara'), Kit::form('cara')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.camisa', '¿Es cara la camisa?', 'Is the shirt expensive?', [['sí', 'no', 'es', 'cara', 'barata'], ['cara', 'barata']], 'Sí, la camisa es cara.', [Kit::word('la camisa'), Kit::word('caro', 'cara'), Kit::form('cara')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.descuento', '¿Tienes un descuento?', 'Do you have a discount?', [['sí', 'no', 'tengo'], ['descuento']], 'Sí, tengo un descuento.', [Kit::word('el descuento', 'descuento')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.ropa', '¿Es barata la ropa?', 'Is the clothing cheap?', [['sí', 'no', 'es'], ['barata', 'cara', 'es']], 'Sí, la ropa es barata.', [Kit::word('la ropa'), Kit::word('barato', 'barata'), Kit::form('barata', true)]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.ropa', '¿Es barata la ropa?', 'Is the clothing cheap?', [['sí', 'no', 'es', 'barata', 'cara'], ['barata', 'cara']], 'Sí, la ropa es barata.', [Kit::word('la ropa'), Kit::word('barato', 'barata'), Kit::form('barata', true)]),
         ];
     }
 
@@ -120,15 +122,15 @@ final class ShoppingForClothes implements UnitContent
                 Kit::line('Dependiente', 'La camisa es cara, pero los pantalones son baratos.'),
                 Kit::line('Ana', 'Me pruebo la camisa. ¿Hay descuento en la ropa?'),
                 Kit::line('Dependiente', 'Sí, hay descuento. ¿Qué talla tiene?'),
-                Kit::line('Ana', 'Mi talla es la pequeña. ¿De qué color es la camisa?'),
+                Kit::line('Ana', 'Mi talla es pequeña. ¿De qué color es la camisa?'),
                 Kit::line('Dependiente', 'El color es azul.'),
             ], [
                 Kit::question('Which clothes are expensive?', ['The shirt', 'The trousers', 'All the clothes'], 'The shirt'),
                 Kit::question('Is there a discount?', ['Yes, on the clothes.', 'No, there is not.', 'The text does not say.'], 'Yes, on the clothes.'),
                 Kit::question('What color is the shirt?', ['Green', 'Blue', 'Red'], 'Blue'),
             ], [Kit::word('el precio'), Kit::word('la camisa'), Kit::word('caro'), Kit::word('los pantalones'), Kit::word('barato'), Kit::word('probarse'), Kit::word('el descuento'), Kit::word('la ropa'), Kit::word('la talla'), Kit::word('el color')], 'read', glosses: ['pequeña' => 'small', 'azul' => 'blue']),
-            Kit::gap($stage, 'task.choose_gap.camisa-verde', 'La camisa es ___.', ['verde', 'verdes'], 'verde', Kit::form('verde', true), 'Adjectives that end in -e, like verde, have one form for masculine and feminine, so verde fits la camisa.', 'read', 'The shirt is green.', ['verde' => 'green', 'verdes' => 'green']),
-            Kit::gap($stage, 'task.choose_gap.pantalon-grande', 'El pantalón es ___.', ['grande', 'grandes'], 'grande', Kit::form('grande', true), 'Grande ends in -e, so it does not change for gender: el pantalón grande, la camisa grande.', 'read', 'The trousers are big.', ['grande' => 'big', 'grandes' => 'big']),
+            Kit::gap($stage, 'task.choose_gap.camisa-verde', 'La camisa es ___.', ['verde', 'verdes'], 'verde', Kit::form('verde', true), 'Adjectives that end in -e, like verde, have one form for masculine and feminine, so verde fits la camisa. Verdes would be plural.', 'read', 'The shirt is green.', ['verde' => 'green', 'verdes' => 'green']),
+            Kit::gap($stage, 'task.choose_gap.pantalon-grande', 'Los pantalones son ___.', ['grandes', 'grande'], 'grandes', Kit::form('grandes', true), 'Pantalones is plural, and grande ends in -e, so the plural just adds -s: grandes.', 'read', 'The trousers are big.', ['grande' => 'big', 'grandes' => 'big']),
 
             Kit::transform($stage, 'task.transform.camisas', 'Make it plural.', 'La camisa es cara.', ['Las camisas son caras.'], [Kit::word('la camisa', 'camisas'), Kit::word('caro', 'caras'), Kit::form('caras')]),
             Kit::transform($stage, 'task.transform.pantalon', 'Make it plural.', 'El pantalón es barato.', ['Los pantalones son baratos.'], [Kit::word('los pantalones'), Kit::word('barato', 'baratos'), Kit::form('baratos', true)]),
@@ -145,8 +147,8 @@ final class ShoppingForClothes implements UnitContent
             ], [Kit::word('el color'), Kit::word('los pantalones'), Kit::word('la talla')], ['pequeña' => 'small']),
             Kit::build($stage, 'task.build.ropa', 'The clothes are not expensive.', 'La ropa no es cara.', ['son', 'caro'], [Kit::word('la ropa'), Kit::word('caro', 'cara'), Kit::form('cara', true)]),
             Kit::build($stage, 'task.build.me-pruebo', 'I try on the shirt and the trousers.', 'Me pruebo la camisa y los pantalones.', ['las', 'es'], [Kit::word('probarse', 'me pruebo'), Kit::word('la camisa'), Kit::word('los pantalones')]),
-            Kit::build($stage, 'task.build.precio', 'The price is here, on the shirt.', 'El precio está aquí, en la camisa.', ['es', 'la'], [Kit::word('el precio'), Kit::word('la camisa')]),
-            Kit::translate($stage, 'task.translate.precio-talla', 'The price and the size are here.', ['El precio y la talla están aquí.'], [Kit::word('el precio'), Kit::word('la talla')]),
+            Kit::build($stage, 'task.build.precio', 'The price is here, on the shirt.', 'El precio está aquí, en la camisa.', ['es', 'las'], [Kit::word('el precio'), Kit::word('la camisa')]),
+            Kit::translate($stage, 'task.translate.precio-talla', 'The price and the size are here.', ['El precio y la talla están aquí.', 'Aquí están el precio y la talla.'], [Kit::word('el precio'), Kit::word('la talla')]),
             Kit::translate($stage, 'task.translate.descuento', 'Is there a discount on the clothes?', ['¿Hay descuento en la ropa?', '¿Hay un descuento en la ropa?'], [Kit::word('el descuento', 'descuento'), Kit::word('la ropa')]),
 
             Kit::listenPassage($stage, 'task.listen_passage.tienda', [
@@ -168,10 +170,10 @@ final class ShoppingForClothes implements UnitContent
             Kit::listenType($stage, 'task.listen_type.precio', '¿Cuál es el precio de la ropa?', 'What is the price of the clothes?', [Kit::word('el precio', 'precio'), Kit::word('la ropa')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.color', '¿De qué color son los pantalones?', 'What color are the trousers?', [Kit::word('el color', 'color'), Kit::word('los pantalones')], 'listen'),
 
-            Kit::speakAnswer($stage, 'task.speak_answer.pantalones', 'Los pantalones, ¿son caros o baratos?', 'Are the trousers expensive or cheap?', [['son', 'caros', 'baratos'], ['pantalones', 'caros', 'baratos']], 'Los pantalones son baratos.', [Kit::word('los pantalones'), Kit::word('barato', 'baratos'), Kit::form('baratos', true)], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.descuento', '¿Hay descuento en la ropa?', 'Is there a discount on the clothes?', [['sí', 'no', 'hay'], ['descuento', 'ropa']], 'Sí, hay descuento en la ropa.', [Kit::word('el descuento', 'descuento'), Kit::word('la ropa')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.camisa', '¿La camisa es cara o barata?', 'Is the shirt expensive or cheap?', [['cara', 'barata', 'es'], ['camisa', 'cara', 'barata']], 'La camisa es barata.', [Kit::word('la camisa'), Kit::word('barato', 'barata'), Kit::form('barata')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.precio', '¿Dónde está el precio?', 'Where is the price?', [['está', 'aquí', 'allí', 'en'], ['precio', 'camisa', 'pantalones', 'ropa', 'aquí', 'allí']], 'El precio está aquí.', [Kit::word('el precio', 'precio')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.pantalones', 'Los pantalones, ¿son caros o baratos?', 'Are the trousers expensive or cheap?', [['son', 'pantalones', 'caros', 'baratos'], ['caros', 'baratos']], 'Los pantalones son baratos.', [Kit::word('los pantalones'), Kit::word('barato', 'baratos'), Kit::form('baratos', true)], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.descuento', '¿Hay descuento en la ropa?', 'Is there a discount on the clothes?', [['sí', 'no', 'hay'], ['descuento']], 'Sí, hay descuento en la ropa.', [Kit::word('el descuento', 'descuento'), Kit::word('la ropa')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.camisa', '¿La camisa es cara o barata?', 'Is the shirt expensive or cheap?', [['es', 'camisa', 'cara', 'barata'], ['cara', 'barata']], 'La camisa es barata.', [Kit::word('la camisa'), Kit::word('barato', 'barata'), Kit::form('barata')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.precio', '¿Dónde está el precio?', 'Where is the price?', [['está', 'aquí', 'allí', 'en'], ['aquí', 'allí', 'camisa', 'pantalones', 'ropa']], 'El precio está aquí.', [Kit::word('el precio', 'precio')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.color', 'El color y la talla están aquí.', 'The color and the size are here.', [Kit::word('el color'), Kit::word('la talla')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.me-pruebo', 'Me pruebo la camisa y los pantalones.', 'I try on the shirt and the trousers.', [Kit::word('probarse', 'me pruebo'), Kit::word('la camisa'), Kit::word('los pantalones')], 'speak'),
         ];
@@ -186,7 +188,7 @@ final class ShoppingForClothes implements UnitContent
         return [
             Kit::translate($stage, 'check.a.translate.camisa', 'The shirt is cheap here.', ['La camisa es barata aquí.', 'Aquí la camisa es barata.', 'La camisa aquí es barata.'], [Kit::word('la camisa'), Kit::word('barato', 'barata'), Kit::form('barata')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.ropa', 'The clothes are expensive here.', ['La ropa es cara aquí.', 'Aquí la ropa es cara.', 'La ropa aquí es cara.'], [Kit::word('la ropa'), Kit::word('caro', 'cara'), Kit::form('cara', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.me-pruebo', 'I try on the trousers here.', ['Me pruebo los pantalones aquí.', 'Aquí me pruebo los pantalones.', 'Me pruebo aquí los pantalones.'], [Kit::word('probarse', 'me pruebo'), Kit::word('los pantalones')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.me-pruebo', 'I try on the trousers here.', ['Me pruebo los pantalones aquí.', 'Aquí me pruebo los pantalones.', 'Me pruebo aquí los pantalones.', 'Yo me pruebo los pantalones aquí.', 'Aquí yo me pruebo los pantalones.'], [Kit::word('probarse', 'me pruebo'), Kit::word('los pantalones')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.color', 'What color are the clothes?', ['¿De qué color es la ropa?'], [Kit::word('el color', 'color'), Kit::word('la ropa')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.pantalones', 'Los pantalones son muy ___.', 'The trousers are very expensive.', 'caros', Kit::form('caros', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.camisas', 'Las camisas no son ___.', 'The shirts are not cheap.', 'baratas', Kit::form('baratas'), null, 'sentences', $set),
@@ -215,8 +217,8 @@ final class ShoppingForClothes implements UnitContent
                 Kit::question('Which clothes have a discount?', ['The shirts', 'The trousers', 'All the clothes'], 'The trousers'),
             ], [Kit::word('la ropa'), Kit::word('barato'), Kit::word('los pantalones'), Kit::word('el descuento'), Kit::word('el precio')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.descuento', '¿Hay descuento?', 'Is there a discount?', [['sí', 'no', 'hay'], ['descuento']], 'Sí, hay descuento.', [Kit::word('el descuento', 'descuento')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.ropa', '¿Dónde está la ropa?', 'Where are the clothes?', [['está', 'aquí', 'allí'], ['ropa', 'aquí', 'allí']], 'La ropa está aquí.', [Kit::word('la ropa')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.pantalones', '¿Son caros los pantalones?', 'Are the trousers expensive?', [['sí', 'no', 'son'], ['caros', 'baratos', 'pantalones']], 'No, los pantalones son baratos.', [Kit::word('los pantalones'), Kit::word('barato', 'baratos')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.ropa', '¿Dónde está la ropa?', 'Where are the clothes?', [['está', 'ropa', 'aquí', 'allí'], ['aquí', 'allí']], 'La ropa está aquí.', [Kit::word('la ropa')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.pantalones', '¿Son caros los pantalones?', 'Are the trousers expensive?', [['sí', 'no', 'son', 'caros', 'baratos'], ['caros', 'baratos']], 'No, los pantalones son baratos.', [Kit::word('los pantalones'), Kit::word('barato', 'baratos')], 'speaking', $set),
         ];
     }
 
@@ -230,7 +232,7 @@ final class ShoppingForClothes implements UnitContent
             Kit::translate($stage, 'check.b.translate.pantalones', 'The trousers are very cheap.', ['Los pantalones son muy baratos.'], [Kit::word('los pantalones'), Kit::word('barato', 'baratos'), Kit::form('baratos', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.camisa', 'The shirt is very cheap.', ['La camisa es muy barata.'], [Kit::word('la camisa'), Kit::word('barato', 'barata'), Kit::form('barata')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.precio', 'The price and the size are not here.', ['El precio y la talla no están aquí.'], [Kit::word('el precio'), Kit::word('la talla')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.me-pruebo', 'I try on the shirt here.', ['Me pruebo la camisa aquí.', 'Aquí me pruebo la camisa.', 'Me pruebo aquí la camisa.'], [Kit::word('probarse', 'me pruebo'), Kit::word('la camisa')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.me-pruebo', 'I try on the shirt here.', ['Me pruebo la camisa aquí.', 'Aquí me pruebo la camisa.', 'Me pruebo aquí la camisa.', 'Yo me pruebo la camisa aquí.', 'Aquí yo me pruebo la camisa.'], [Kit::word('probarse', 'me pruebo'), Kit::word('la camisa')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.camisas', 'Aquí las camisas son ___.', 'The shirts here are expensive.', 'caras', Kit::form('caras'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.ropa', 'La ropa no es ___.', 'The clothes are not cheap.', 'barata', Kit::form('barata', true), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.color', '¿De qué color son las camisas?', 'What color are the shirts?', [Kit::word('el color', 'color'), Kit::word('la camisa', 'camisas')], 'dictation', $set),

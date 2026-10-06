@@ -35,7 +35,7 @@ final class OrderingFoodAtARestaurant implements UnitContent
             new WordData('quisiera', cue: 'I would like', accepted: ['me gustaría', 'yo quisiera']),
             new WordData('para beber', cue: 'to drink (as in something to drink)', accepted: ['de beber', 'algo de beber', 'algo para beber']),
             new WordData('para comer', cue: 'to eat (as in something to eat)', accepted: ['de comer', 'algo de comer', 'algo para comer']),
-            new WordData('el camarero', cue: 'waiter (or waitress)', accepted: ['la camarera']),
+            new WordData('el camarero', cue: 'waiter (or waitress)', accepted: ['la camarera'], forms: ['camareros', 'camareras']),
             new WordData('delicioso', cue: 'delicious (masculine)', forms: ['deliciosa']),
             new WordData('la propina', cue: 'tip (money for the waiter)'),
             new WordData('vegetariano', cue: 'vegetarian (masculine)', forms: ['vegetariana']),
@@ -46,7 +46,7 @@ final class OrderingFoodAtARestaurant implements UnitContent
     {
         return [
             ['text' => 'El camarero trabaja aquí.', 'english' => 'The waiter works here.'],
-            ['text' => 'Hablamos español.', 'english' => 'We speak Spanish.'],
+            ['text' => 'Trabajamos en el restaurante.', 'english' => 'We work in the restaurant.'],
         ];
     }
 
@@ -64,6 +64,8 @@ final class OrderingFoodAtARestaurant implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), Wikcionario (menú also means carta, the list of dishes), SpanishDict. Fixed: accepted yo quisiera, algo de beber, algo para beber, algo de comer, algo para comer. el menú kept with la carta accepted, la camarera accepted. Open questions answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -83,7 +85,7 @@ final class OrderingFoodAtARestaurant implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.habla', 'Ana ___ con el camarero.', 'Ana speaks with the waiter.', 'habla', Kit::form('habla'), 'Ana is one person, so the verb ends in -a.'),
             Kit::typeGap($stage, 'sentences.type_gap.pagamos', '___ la cuenta.', 'We pay the bill.', 'Pagamos', Kit::form('pagamos'), 'We pay is pagamos: the ending -amos means we.', glosses: ['pagamos' => 'we pay']),
             Kit::typeGap($stage, 'sentences.type_gap.trabajo', 'Yo ___ en un restaurante.', 'I work in a restaurant.', 'trabajo', Kit::form('trabajo'), 'Yo goes with the ending -o.', glosses: ['trabajo' => 'I work']),
-            Kit::typeGap($stage, 'sentences.type_gap.propina-es', 'La propina ___ para el camarero.', 'The tip is for the waiter.', 'es', Kit::form('es', true), 'What something is or is for takes ser, not an -ar verb.'),
+            Kit::typeGap($stage, 'sentences.type_gap.propina-es', 'La propina ___ para el camarero.', 'The tip is for the waiter.', 'es', Kit::form('es', true), 'Es says what the tip is for. A verb that ends in -a says what someone does.'),
             Kit::typeGap($stage, 'sentences.type_gap.tomo', 'Yo ___ algo para beber.', 'I am having something to drink.', 'tomo', Kit::form('tomo'), 'Yo goes with the ending -o.', glosses: ['tomo' => 'I am having (food or drink)']),
 
             Kit::translate($stage, 'sentences.translate.hablamos', 'We speak with the waiter.', ['Hablamos con el camarero.', 'Nosotros hablamos con el camarero.'], [Kit::word('el camarero'), Kit::form('hablamos')]),
@@ -171,7 +173,7 @@ final class OrderingFoodAtARestaurant implements UnitContent
             Kit::listenType($stage, 'task.listen_type.camareros', 'Los camareros trabajan aquí.', 'The waiters work here.', [Kit::word('el camarero', 'camareros'), Kit::form('trabajan')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.paga', 'Pablo paga la cuenta y la propina.', 'Pablo pays the bill and the tip.', [Kit::word('la cuenta'), Kit::word('la propina'), Kit::form('paga')], 'listen'),
 
-            Kit::speakAnswer($stage, 'task.speak_answer.trabaja', '¿Dónde trabaja el camarero?', 'Where does the waiter work?', [['camarero', 'trabaja'], ['restaurante', 'aquí']], 'El camarero trabaja en el restaurante.', [Kit::word('el camarero'), Kit::word('el restaurante', 'restaurante'), Kit::form('trabaja')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.trabaja', '¿Dónde trabaja el camarero?', 'Where does the waiter work?', [['camarero', 'trabaja', 'en'], ['restaurante', 'aquí']], 'El camarero trabaja en el restaurante.', [Kit::word('el camarero'), Kit::word('el restaurante', 'restaurante'), Kit::form('trabaja')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.propina', '¿Quién paga la propina?', 'Who pays the tip?', [['yo', 'tú', 'usted', 'nosotros', 'nosotras', 'él', 'ella', 'ellos', 'ellas', 'camarero', 'ana', 'pablo', 'marta', 'luis'], ['paga', 'pago', 'pagamos']], 'Pablo paga la propina.', [Kit::word('la propina'), Kit::form('paga')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.delicioso', '¿El menú es delicioso?', 'Is the menu delicious?', [['sí', 'no', 'es'], ['delicioso', 'deliciosa']], 'Sí, el menú es delicioso.', [Kit::word('el menú', 'menú'), Kit::word('delicioso')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.comer', '¿Quisiera algo para comer?', 'Would you like something to eat?', [['sí', 'no', 'quisiera'], ['comer', 'algo']], 'Sí, quisiera algo para comer.', [Kit::word('quisiera'), Kit::word('para comer')], 'speak'),
