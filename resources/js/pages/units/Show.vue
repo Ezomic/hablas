@@ -28,7 +28,7 @@ import UnitReference from '@/components/UnitReference.vue';
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { skillLabel } from '@/lib/skillLabels';
 import { store as startRun } from '@/routes/lessons/runs';
-import { index as unitsIndex } from '@/routes/units';
+import { index as unitsIndex, show as showUnit } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 import type { UnitLessonOverview } from '@/types/lesson';
 import type { DayProgress, UnitProgress } from '@/types/unit';
@@ -56,7 +56,12 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-useBreadcrumbs(() => [{ title: t('nav.units'), href: unitsIndex() }]);
+// The last crumb is drawn as the current page, so Units has to come before the
+// unit's own title or it is not a link back to the list.
+useBreadcrumbs(() => [
+    { title: t('nav.units'), href: unitsIndex() },
+    { title: props.unit.title, href: showUnit(props.unit.id) },
+]);
 
 const form = useForm({});
 const referenceOpen = ref(false);

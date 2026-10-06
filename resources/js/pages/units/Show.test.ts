@@ -8,6 +8,7 @@ const { forms } = vi.hoisted(() => ({
 }));
 
 const router = vi.hoisted(() => ({ post: vi.fn() }));
+const layout = vi.hoisted(() => ({ setLayoutProps: vi.fn() }));
 
 vi.mock('@/routes/lessons/runs', () => ({
     store: (args: { unit: number; lesson: number }) => ({
@@ -19,7 +20,7 @@ vi.mock('@inertiajs/vue3', () => ({
     router,
     Head: { render: () => null },
     Link: { props: ['href'], template: '<a :href="href"><slot /></a>' },
-    setLayoutProps: vi.fn(),
+    setLayoutProps: layout.setLayoutProps,
     useForm: () => {
         const form = reactive({ processing: false, post: vi.fn() });
         forms.push(form);
@@ -34,6 +35,7 @@ vi.mock('@/routes/review', () => ({
 
 vi.mock('@/routes/units', () => ({
     index: () => ({ url: '/units', method: 'get' }),
+    show: (id: number) => ({ url: `/units/${id}`, method: 'get' }),
 }));
 
 vi.mock('@/routes/units/completion', () => ({
@@ -397,6 +399,22 @@ describe('unit page with lessons', () => {
         expect(
             mountPage({ lessons: overview, availability: 'held_back' }).text(),
         ).toContain('Clear your reviews first');
+    });
+});
+
+describe('breadcrumbs', () => {
+    it('makes Units a link back to the list, followed by the unit itself', () => {
+        mountPage();
+
+        expect(layout.setLayoutProps).toHaveBeenCalledWith({
+            breadcrumbs: [
+                { title: 'Units', href: { url: '/units', method: 'get' } },
+                {
+                    title: 'Ordering coffee',
+                    href: { url: '/units/4', method: 'get' },
+                },
+            ],
+        });
     });
 });
 
