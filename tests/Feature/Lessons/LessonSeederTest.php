@@ -178,7 +178,7 @@ it('seeds the same lessons on a second pass over the real content, and writes no
     $before = [Lesson::query()->count(), LessonExercise::query()->count()];
     $writes = writesDuring(fn () => $this->seed(LessonSeeder::class));
 
-    expect($before[0])->toBe(120)
+    expect($before[0])->toBe(150)
         ->and($before[1])->toBeGreaterThan(0)
         ->and([Lesson::query()->count(), LessonExercise::query()->count()])->toBe($before)
         ->and($writes)->toBe([]);
@@ -188,10 +188,10 @@ it('finds no content classes in an empty content folder', function () {
     expect((new UnitContentRegistry(path: sys_get_temp_dir().'/no-such-content-folder'))->all())->toBe([]);
 });
 
-it('finds the eight Spanish and the eight Portuguese content classes in the content folder', function () {
+it('finds the fourteen Spanish and the eight Portuguese content classes in the content folder', function () {
     $contents = (new UnitContentRegistry)->all();
 
-    expect(array_filter($contents, fn ($content): bool => $content->languageCode() === 'es'))->toHaveCount(8)
+    expect(array_filter($contents, fn ($content): bool => $content->languageCode() === 'es'))->toHaveCount(14)
         ->and(array_filter($contents, fn ($content): bool => $content->languageCode() === 'pt'))->toHaveCount(8);
 });
 
@@ -244,7 +244,7 @@ it('seeds speaking and listening into lessons 1 and 2 of every Spanish unit', fu
 
     $units = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->get();
 
-    expect($units)->toHaveCount(8);
+    expect($units)->toHaveCount(14);
 
     foreach ($units as $unit) {
         foreach (['meet' => ['speak_repeat', 'listen_choose'], 'recall' => ['speak_repeat', 'listen_choose']] as $stage => $formats) {

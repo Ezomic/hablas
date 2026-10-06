@@ -20,15 +20,7 @@ use App\Services\SpanishTextNormalizer;
 use App\Services\UnitContentRegistry;
 use App\Speech\SpeechCorpus;
 use App\Speech\SpeechText;
-use Database\Content\Lessons\Es\AskingForDirections;
-use Database\Content\Lessons\Es\AtTheAirport;
-use Database\Content\Lessons\Es\CheckingIntoAHotel;
 use Database\Content\Lessons\Es\CoreWords;
-use Database\Content\Lessons\Es\DescribingYourDailyRoutine;
-use Database\Content\Lessons\Es\GreetingsAndIntroductions;
-use Database\Content\Lessons\Es\OrderingFoodAtARestaurant;
-use Database\Content\Lessons\Es\ShoppingForClothes;
-use Database\Content\Lessons\Es\TalkingAboutYourFamily;
 use Database\Seeders\ContentSeeder;
 use Database\Seeders\LanguageSeeder;
 use Database\Seeders\SpanishA1Seeder;
@@ -40,8 +32,11 @@ function spanishUnits(): array
 {
     $units = [];
 
-    foreach ([new GreetingsAndIntroductions, new AtTheAirport, new CheckingIntoAHotel, new OrderingFoodAtARestaurant, new AskingForDirections, new ShoppingForClothes, new TalkingAboutYourFamily, new DescribingYourDailyRoutine] as $content) {
-        $units[$content->unitSlug()] = $content;
+    // Read while the file is collected, before the app has booted, so the path cannot come from the framework.
+    foreach ((new UnitContentRegistry(path: dirname(__DIR__, 3).'/database/content/Lessons'))->all() as $content) {
+        if ($content->languageCode() === 'es') {
+            $units[$content->unitSlug()] = $content;
+        }
     }
 
     return $units;

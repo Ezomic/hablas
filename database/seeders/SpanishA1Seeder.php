@@ -21,6 +21,18 @@ use Illuminate\Database\Seeder;
  * units first, per the Milestone 1 content-volume decision. AI-drafted; needs a
  * human review pass before being treated as authoritative teaching material,
  * per the content-sourcing pipeline in the Feature Brainstorm doc (category 6).
+ *
+ * @phpstan-type UnitDefinition array{
+ *     slug: string,
+ *     title: string,
+ *     context_tag: ContextTag,
+ *     primary_skill: Skill,
+ *     secondary_skill: Skill,
+ *     task_description: string,
+ *     vocabulary: array<int, array{term: string, translation_en: string, is_cognate: bool, part_of_speech: string}>,
+ *     grammar: array<int, array{title: string, explanation: string, error_tag_category: ErrorTagCategory|null}>,
+ *     interest_tags: array<int, InterestTag>,
+ * }
  */
 class SpanishA1Seeder extends Seeder
 {
@@ -68,19 +80,35 @@ class SpanishA1Seeder extends Seeder
     }
 
     /**
-     * @return array<int, array{
-     *     slug: string,
-     *     title: string,
-     *     context_tag: ContextTag,
-     *     primary_skill: Skill,
-     *     secondary_skill: Skill,
-     *     task_description: string,
-     *     vocabulary: array<int, array{term: string, translation_en: string, is_cognate: bool, part_of_speech: string}>,
-     *     grammar: array<int, array{title: string, explanation: string, error_tag_category: ErrorTagCategory|null}>,
-     *     interest_tags: array<int, InterestTag>,
-     * }>
+     * @return list<UnitDefinition>
      */
     private function units(): array
+    {
+        return [...$this->coreUnits(), ...$this->unitsFromFiles()];
+    }
+
+    /**
+     * The units added after the first eight, one file each, in file name order.
+     *
+     * @return list<UnitDefinition>
+     */
+    private function unitsFromFiles(): array
+    {
+        $units = [];
+
+        foreach (glob(database_path('seeders/data/spanish-a1/*.php')) ?: [] as $path) {
+            /** @var UnitDefinition $unit */
+            $unit = require $path;
+            $units[] = $unit;
+        }
+
+        return $units;
+    }
+
+    /**
+     * @return list<UnitDefinition>
+     */
+    private function coreUnits(): array
     {
         return [
             [
