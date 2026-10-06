@@ -62,7 +62,7 @@ describe('the Spanish word data', function () {
         $slugs = collect($this->contents)->map(fn (UnitContent $content): string => $content->unitSlug())->sort()->values()->all();
 
         expect($slugs)->toBe(Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->orderBy('slug')->pluck('slug')->all())
-            ->and($this->contents)->toHaveCount(14)
+            ->and($this->contents)->toHaveCount(24)
             ->and(collect($this->contents)->every(fn (UnitContent $content): bool => $content->languageCode() === 'es'))->toBeTrue();
     });
 
@@ -190,7 +190,7 @@ describe('the Spanish lesson text', function () {
     it('writes no dash as punctuation in a grammar card', function () {
         $cards = GrammarPoint::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->pluck('explanation');
 
-        expect($cards)->toHaveCount(14);
+        expect($cards)->toHaveCount(24);
 
         foreach ($cards as $explanation) {
             expect($explanation)->not->toMatch('/[—–]| -- /u');
@@ -230,7 +230,7 @@ describe('the review gate', function () {
     it('seeds every lesson of the released Spanish, French and Italian units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(150)
+        expect(Lesson::query()->count())->toBe(200)
             ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 
