@@ -180,13 +180,13 @@ final class WordExercises
         ));
     }
 
-    private function extra(BuildContext $context, ExerciseSink $sink, ItemInfo $info, ExerciseFamily $family, string $block): void
+    private function extra(BuildContext $context, ExerciseSink $sink, ItemInfo $info, ExerciseFamily $family, string $block, string $stage = 'meet'): void
     {
         $slug = $this->slug($info);
 
         if ($family === ExerciseFamily::Listening) {
             [$options, $answer] = $this->meaningOptions($context, $info);
-            $sink->add('meet.listen_choose.'.$slug, $block, LessonExerciseFormat::ListenChoose, [
+            $sink->add($stage.'.listen_choose.'.$slug, $block, LessonExerciseFormat::ListenChoose, [
                 'text' => $info->item->term,
                 'options' => $options,
                 'answer' => $answer,
@@ -195,7 +195,7 @@ final class WordExercises
             return;
         }
 
-        $sink->add('meet.speak_repeat.'.$slug, $block, LessonExerciseFormat::SpeakRepeat, [
+        $sink->add($stage.'.speak_repeat.'.$slug, $block, LessonExerciseFormat::SpeakRepeat, [
             'text' => $info->item->term,
             'english' => $info->cue,
             'pattern' => $this->pattern($context, $info),
@@ -209,13 +209,7 @@ final class WordExercises
         $accepted = $this->accepted($context, $info->accepted, $info);
 
         if ($family === ExerciseFamily::Speaking) {
-            $sink->add('recall.speak_answer.'.$slug, 'main', LessonExerciseFormat::SpeakAnswer, [
-                'prompt' => $info->cue,
-                'english' => $info->cue,
-                'text' => $info->item->term,
-                'slots' => [$info->accepted],
-                'accepted' => $accepted,
-            ], [$this->target($info)]);
+            $this->extra($context, $sink, $info, $family, 'main', 'recall');
 
             return;
         }

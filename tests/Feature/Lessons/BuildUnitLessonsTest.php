@@ -121,6 +121,15 @@ describe('lesson 1', function () {
         expect($perBlock)->toBe(['batch-1' => 4, 'batch-2' => 3, 'batch-3' => 3]);
     });
 
+    it('has the learner repeat a word in the recall lesson, never say it from its meaning alone', function () {
+        $recall = originals(builtLessons()['recall']);
+        $spoken = array_values(array_filter($recall, fn (ExerciseDefinition $exercise): bool => in_array($exercise->format, [Format::SpeakRepeat, Format::SpeakAnswer], true)));
+
+        expect($spoken)->not->toBeEmpty()
+            ->and(array_unique(array_map(fn (ExerciseDefinition $exercise): string => $exercise->format->value, $spoken)))->toBe(['speak_repeat'])
+            ->and($spoken[0]->payload['text'])->toBeString();
+    });
+
     it('asks for a word right after teaching it, and numbers the words of a batch', function () {
         $meet = originals(builtLessons()['meet']);
         $firstBatch = array_values(array_filter($meet, fn (ExerciseDefinition $exercise): bool => $exercise->block === 'batch-1'));
@@ -659,7 +668,7 @@ describe('substitutes', function () {
         expect($sub('meet', 'meet.listen_choose.el-hotel')->format)->toBe(Format::ChooseMeaning)
             ->and($sub('meet', 'meet.speak_repeat.la-habitacion')->format)->toBe(Format::TypeWord)
             ->and($sub('meet', 'meet.speak_repeat.la-habitacion')->payload['hint'])->toContain('l')
-            ->and($sub('recall', 'recall.speak_answer.la-habitacion')->format)->toBe(Format::TypeWord)
+            ->and($sub('recall', 'recall.speak_repeat.la-habitacion')->format)->toBe(Format::TypeWord)
             ->and($sub('sentences', 'sentences.speak_repeat.hay')->format)->toBe(Format::TranslateSentence)
             ->and($sub('sentences', 'sentences.listen_type.reserva')->format)->toBe(Format::TranslateSentence)
             ->and($sub('task', 'task.speak_answer.reserva')->format)->toBe(Format::WriteGuided)
