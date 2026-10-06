@@ -95,6 +95,8 @@ export interface RunSummary {
     answers: SummaryAnswer[];
     cardsEnrolled: number;
     unitCompleted: boolean;
+    newlyKnown: { term: string; translation: string }[];
+    milestones: { type: string; count?: number; level?: string }[];
 }
 
 export interface NextLesson {

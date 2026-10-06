@@ -535,8 +535,57 @@ describe('LessonSummary', () => {
             },
         ],
         cardsEnrolled: 1,
+        newlyKnown: [],
+        milestones: [],
         unitCompleted: false,
     };
+
+    it('lists the words that became known and a card for each milestone', () => {
+        const wrapper = mount(LessonSummary, {
+            props: {
+                summary: {
+                    ...summary,
+                    newlyKnown: [
+                        { term: 'la llave', translation: 'key' },
+                        { term: 'el hotel', translation: 'hotel' },
+                    ],
+                    milestones: [
+                        { type: 'first_word' },
+                        { type: 'words', count: 10 },
+                        { type: 'unit_words' },
+                        { type: 'level_half', level: 'A1' },
+                        { type: 'level_full', level: 'A1' },
+                    ],
+                },
+                isCheck: false,
+                next: null,
+            },
+        });
+
+        expect(wrapper.get('[data-testid="newly-known"]').text()).toContain(
+            'la llave',
+        );
+        expect(wrapper.text()).toContain('2 words you know now');
+
+        const milestones = wrapper.get('[data-testid="milestones"]').text();
+
+        expect(milestones).toContain('Your first word known from memory');
+        expect(milestones).toContain('10 words known');
+        expect(milestones).toContain('Every word of this unit known');
+        expect(milestones).toContain('Halfway through A1');
+        expect(milestones).toContain('All of A1 known');
+    });
+
+    it('shows neither section when nothing became known', () => {
+        const wrapper = mount(LessonSummary, {
+            props: { summary, isCheck: false, next: null },
+        });
+
+        expect(wrapper.find('[data-testid="newly-known"]').exists()).toBe(
+            false,
+        );
+        expect(wrapper.find('[data-testid="milestones"]').exists()).toBe(false);
+    });
 
     it('shows accuracy per type and the items that needed a second go after a lesson', () => {
         const wrapper = mount(LessonSummary, {

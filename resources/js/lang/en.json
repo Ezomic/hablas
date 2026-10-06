@@ -506,6 +506,14 @@
             "grammar": "Grammar"
         },
         "summary": {
+            "newlyKnown": "{n} word you know now | {n} words you know now",
+            "milestone": {
+                "first_word": "Your first word known from memory",
+                "words": "{count} words known",
+                "unit_words": "Every word of this unit known",
+                "level_half": "Halfway through {level}",
+                "level_full": "All of {level} known"
+            },
             "unitComplete": "Unit complete",
             "checkFinished": "Check finished",
             "lessonComplete": "Lesson complete",
