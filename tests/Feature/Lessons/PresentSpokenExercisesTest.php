@@ -248,6 +248,7 @@ describe('a lesson', function () {
 
 describe('the pause state', function () {
     it('lists the pauses that are still running, and not the ones that have ended', function () {
+        $this->freezeTime();
         UserSetting::factory()->for($this->user)->create(['listening_paused_until' => now()->addMinutes(30), 'speaking_paused_until' => now()->subMinute()]);
         $run = (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Meet));
 
