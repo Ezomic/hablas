@@ -12,9 +12,11 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeLocaleSync } from '@/lib/localeSync';
 import { initializeServiceWorker } from '@/lib/registerServiceWorker';
+import { initializeStaleBuildReload } from '@/lib/staleBuildReload';
 
 // Registered before the app boots so an early beforeinstallprompt is not missed...
 initializeInstallPrompt();
+initializeStaleBuildReload();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
