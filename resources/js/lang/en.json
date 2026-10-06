@@ -460,6 +460,8 @@
         "leave": "Leave the lesson",
         "progress": "Lesson progress",
         "finishing": "Finishing up",
+        "finishingSlow": "Taking longer than usual. Your answers are saved.",
+        "finishingRetry": "Tap to continue",
         "offlineSaved": {
             "title": "All answers saved on this device.",
             "note": "Your results will appear when you are back online."

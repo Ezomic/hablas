@@ -460,6 +460,8 @@
         "leave": "De les verlaten",
         "progress": "Voortgang van de les",
         "finishing": "Even afronden",
+        "finishingSlow": "Het duurt langer dan normaal. Je antwoorden zijn opgeslagen.",
+        "finishingRetry": "Tik om door te gaan",
         "offlineSaved": {
             "title": "Alle antwoorden zijn op dit toestel opgeslagen.",
             "note": "Je resultaten verschijnen zodra je weer online bent."

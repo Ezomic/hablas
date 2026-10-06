@@ -457,6 +457,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                 <template v-if="lesson.isOnline.value">
                     <AppSpinner />
                     <p>{{ t('lesson.finishing') }}</p>
+                    <template v-if="lesson.finishStalled.value">
+                        <p class="text-sm text-muted-foreground">
+                            {{ t('lesson.finishingSlow') }}
+                        </p>
+                        <Button
+                            data-testid="finish-retry"
+                            @click="lesson.retryFinish()"
+                        >
+                            {{ t('lesson.finishingRetry') }}
+                        </Button>
+                    </template>
                 </template>
                 <template v-else>
                     <p class="font-medium">
