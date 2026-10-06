@@ -33,7 +33,7 @@
         "review": "Review",
         "weakSpots": "Weak spots",
         "vocabulary": "Vocabulary",
-        "reading": "Reading",
+        "reading": "Stories",
         "listening": "Listening",
         "shadowing": "Shadowing",
         "writing": "Writing",
@@ -841,8 +841,18 @@
         "checkAnswers": "Check answers"
     },
     "reading": {
-        "title": "Reading practice",
-        "empty": "No reading passages available at your level yet."
+        "title": "Stories",
+        "empty": "No stories available at your level yet.",
+        "read": "Read the story, then answer the questions.",
+        "questions": "{n} questions",
+        "best": "Best {score}%",
+        "gloss": "{word} means {meaning}",
+        "tapWord": "Tap a word you do not know.",
+        "listen": "Listen to the story",
+        "questionsHeading": "Questions",
+        "correct": "Correct",
+        "answerWas": "The answer is: {answer}",
+        "back": "All stories"
     },
     "shadowing": {
         "title": "Shadowing practice",

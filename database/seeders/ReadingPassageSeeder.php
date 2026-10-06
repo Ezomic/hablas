@@ -17,13 +17,22 @@ use Illuminate\Database\Seeder;
  * AI-drafted, same caveat as the other Spanish content seeders: worth a
  * native-speaker pass before being treated as authoritative.
  */
+/**
+ * @phpstan-type StoryDefinition array{
+ *     title: string,
+ *     cefr_level: string,
+ *     body: string,
+ *     glosses: array<string, string>,
+ *     questions: array<int, array{prompt: string, options: array<int, string>, correct_answer: string}>
+ * }
+ */
 class ReadingPassageSeeder extends Seeder
 {
     public function run(): void
     {
         $spanish = Language::query()->where('code', 'es')->firstOrFail();
 
-        foreach ($this->passages() as $passage) {
+        foreach ([...$this->passages(), ...$this->stories()] as $passage) {
             ReadingPassage::query()->updateOrCreate(
                 [
                     'language_id' => $spanish->id,
@@ -34,6 +43,7 @@ class ReadingPassageSeeder extends Seeder
                     'cefr_level' => $passage['cefr_level'],
                     'body' => $passage['body'],
                     'questions' => $passage['questions'],
+                    'glosses' => $passage['glosses'] ?? null,
                 ],
             );
         }
@@ -144,5 +154,30 @@ class ReadingPassageSeeder extends Seeder
                 ],
             ],
         ];
+    }
+
+    /**
+     * The A1 stories: a short text with tap-a-word glosses and five
+     * comprehension questions each.
+     *
+     * @return list<array{
+     *     title: string,
+     *     cefr_level: CefrLevel,
+     *     body: string,
+     *     glosses: array<string, string>,
+     *     questions: array<int, array{prompt: string, options: array<int, string>, correct_answer: string}>
+     * }>
+     */
+    private function stories(): array
+    {
+        /** @var list<StoryDefinition> $definitions */
+        $definitions = require __DIR__.'/data/stories-es.php';
+        $stories = [];
+
+        foreach ($definitions as $definition) {
+            $stories[] = [...$definition, 'cefr_level' => CefrLevel::from($definition['cefr_level'])];
+        }
+
+        return $stories;
     }
 }
