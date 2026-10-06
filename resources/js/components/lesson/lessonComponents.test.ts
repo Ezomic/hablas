@@ -412,6 +412,54 @@ describe('AnswerFeedback', () => {
         expect(wrapper.find('button').exists()).toBe(false);
     });
 
+    it('explains a mix-up of two verbs under a wrong answer, and not under a right one', () => {
+        const wrong = mount(AnswerFeedback, {
+            props: {
+                locale: 'es-ES',
+                feedback: feedback({
+                    correct: false,
+                    given: 'hola estoy ana',
+                    expected: 'Hola, soy Ana.',
+                }),
+            },
+        });
+
+        expect(wrong.get('[data-testid="explain"]').text()).toContain(
+            'estoy is from estar',
+        );
+        expect(wrong.get('[data-testid="explain"]').text()).toContain(
+            'you need soy, from ser',
+        );
+
+        const right = mount(AnswerFeedback, {
+            props: {
+                locale: 'es-ES',
+                feedback: feedback({
+                    correct: true,
+                    given: 'hola estoy ana',
+                    expected: 'Hola, soy Ana.',
+                }),
+            },
+        });
+
+        expect(right.find('[data-testid="explain"]').exists()).toBe(false);
+    });
+
+    it('does not explain without a learned language, as for an English answer', () => {
+        const wrapper = mount(AnswerFeedback, {
+            props: {
+                locale: null,
+                feedback: feedback({
+                    correct: false,
+                    given: 'estoy',
+                    expected: 'soy',
+                }),
+            },
+        });
+
+        expect(wrapper.find('[data-testid="explain"]').exists()).toBe(false);
+    });
+
     it('says that a forgiven other word counts, and shows the right spelling', () => {
         const kept = mount(AnswerFeedback, {
             props: {

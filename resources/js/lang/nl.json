@@ -492,6 +492,14 @@
             "fr": "Frans",
             "it": "Italiaans"
         },
+        "explain": {
+            "serForEstar": "{given} komt van estar, dat zegt hoe of waar iets is. Hier heb je {expected} nodig, van ser, dat zegt wie of wat iemand of iets is: een naam, een beroep, waar je vandaan komt.",
+            "estarForSer": "{given} komt van ser, dat zegt wie of wat iemand is. Hier heb je {expected} nodig, van estar, dat zegt hoe iemand is of waar iets is.",
+            "tenerForBe": "Het Spaans zegt niet dat je twintig bent of honger bent: je hebt het, met tener. Gebruik {expected}.",
+            "beForTener": "{given} komt van tener, hebben. Hier zeg je wie of hoe iemand is, dus je hebt {expected} nodig, van {expectedVerb}.",
+            "hayForEstar": "{expected} (er is, er zijn) zegt dat iets bestaat of ergens is. {given} zegt waar iets is dat je al kent.",
+            "estarForHay": "{given} zegt dat iets bestaat (er is). Hier is het ding al bekend, dus zeg je waar het is, of wat het is, met {expected}, van {expectedVerb}."
+        },
         "note": {
             "accent": "Let op het accent: {expected}",
             "article": "Controleer het lidwoord: {expected}",
