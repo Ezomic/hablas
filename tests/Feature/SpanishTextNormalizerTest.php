@@ -63,3 +63,11 @@ it('keeps every word in order for comparing a whole answer', function () {
         ->and($normalizer->answerKey('  ¿Dónde   ESTÁ...? '))->toBe('donde esta')
         ->and($normalizer->answerKey('El Año'))->toBe('el año');
 });
+
+it('falls back to the text as typed when it is not valid UTF-8, instead of failing', function () {
+    $normalizer = new SpanishTextNormalizer;
+    $broken = 'A'.chr(0xC3).'(';
+
+    expect($normalizer->foldAccents($broken))->toBeString()
+        ->and($normalizer->answerKey($broken))->toBeString();
+});

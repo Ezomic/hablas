@@ -298,6 +298,43 @@ describe('keyboard shortcuts', () => {
         });
     });
 
+    it.each([
+        [
+            'a link',
+            () => Object.assign(document.createElement('a'), { href: '/x' }),
+        ],
+        [
+            'a role=button element',
+            () => {
+                const element = document.createElement('div');
+                element.setAttribute('role', 'button');
+                element.tabIndex = 0;
+
+                return element;
+            },
+        ],
+    ])(
+        'does not take the suggested rating when enter is pressed on %s',
+        async (_label, make) => {
+            checksAs(true);
+            const wrapper = mountDeck([productionCard(5)]);
+
+            await wrapper.find('input').setValue('el aeropuerto');
+            await wrapper.find('form').trigger('submit');
+            await flushPromises();
+
+            const element = make();
+            document.body.appendChild(element);
+            element.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+            );
+            await nextTick();
+            element.remove();
+
+            expect(submitOrQueue).not.toHaveBeenCalled();
+        },
+    );
+
     it('does not take the suggested rating again on a repeating enter', async () => {
         checksAs(true);
         const wrapper = mountDeck([productionCard(5), productionCard(6)]);
