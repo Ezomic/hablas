@@ -122,6 +122,9 @@ return [
     |
     */
 
+    // The day the learner wants A1 finished by; the Units screen paces to it.
+    'a1_deadline' => env('HABLAS_A1_DEADLINE', '2026-12-01'),
+
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),

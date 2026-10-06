@@ -608,6 +608,15 @@
         }
     },
     "units": {
+        "pace": {
+            "title": "A1 pace",
+            "done": "A1 is finished.",
+            "late": "The A1 date has passed. {left} lessons are left.",
+            "summary": "{left} lessons left, {days} days to go: about {perDay} lessons a day.",
+            "comfortable": "A relaxed pace, you have room to spare.",
+            "steady": "A steady pace. Do not skip days.",
+            "behind": "This needs more than three lessons a day. Catch up when you can."
+        },
         "intro": "Every {language} unit by level. Completed units stay open as a reference.",
         "reinforce": {
             "title": "Reinforce what's tricky first",

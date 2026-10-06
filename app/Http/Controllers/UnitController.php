@@ -36,6 +36,7 @@ final class UnitController extends Controller
         return Inertia::render('units/Index', [
             'language' => $language === null ? null : ['name' => $language->localizedName()],
             'units' => $language === null ? [] : $listUnitLibrary->handle($this->currentUser(), $language),
+            'a1Deadline' => config('app.a1_deadline'),
         ]);
     }
 
