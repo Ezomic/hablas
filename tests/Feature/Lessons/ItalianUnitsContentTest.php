@@ -16,13 +16,13 @@ beforeEach(function () {
     $this->italian = Language::query()->where('code', 'it')->sole();
 });
 
-it('seeds the same eight units as Spanish and Portuguese, topic for topic', function () {
+it('seeds the same eight units as the first eight Spanish units, topic for topic', function () {
     $this->seed(ContentSeeder::class);
 
     $slugs = Unit::query()->where('language_id', $this->italian->id)->orderBy('sort_order')->pluck('slug')->all();
     $spanishSlugs = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->orderBy('sort_order')->pluck('slug')->all();
 
-    expect($slugs)->toHaveCount(8)->and($slugs)->toBe($spanishSlugs);
+    expect($slugs)->toHaveCount(8)->and($slugs)->toBe(array_slice($spanishSlugs, 0, 8));
 });
 
 it('gives every unit ten words and one grammar point', function () {
