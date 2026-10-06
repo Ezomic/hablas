@@ -8,6 +8,7 @@ use App\Actions\CompleteUnit;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\Lessons\GetUnitLessonOverview;
 use App\Actions\Units\DetermineUnitAvailability;
+use App\Actions\Units\GetDayStrip;
 use App\Actions\Units\GetUnitProgress;
 use App\Actions\Units\ListUnitLibrary;
 use App\Concerns\InteractsWithCurrentUser;
@@ -38,7 +39,7 @@ final class UnitController extends Controller
         ]);
     }
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver, GetUnitProgress $getUnitProgress): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver, GetUnitProgress $getUnitProgress, GetDayStrip $getDayStrip): Response
     {
         $language = $this->currentLanguage($getCurrentLanguage);
         $availability = $this->authorizeUnit($unit, $language, $determineUnitAvailability);
@@ -76,6 +77,7 @@ final class UnitController extends Controller
             'availability' => $availability->value,
             'lessons' => $this->hasLessons($overview) ? $overview : null,
             'progress' => $getUnitProgress->handle($this->currentUser(), $language, $unit),
+            'day' => $getDayStrip->handle($this->currentUser(), $language),
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }

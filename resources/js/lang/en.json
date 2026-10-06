@@ -715,6 +715,11 @@
             "chartLabel": "Cards due each day"
         }
     },
+    "day": {
+        "words": "{words} of {goal} words today",
+        "reached": "Daily goal reached",
+        "due": "{count} review due | {count} reviews due"
+    },
     "progress": {
         "stars": "No stars yet | {count} star | {count} stars",
         "unitPercent": "{percent}% of this unit known",

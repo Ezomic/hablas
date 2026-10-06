@@ -23,3 +23,10 @@ export interface UnitProgress {
     words: { id: number; state: string }[];
     level: { code: string; known: number; total: number; percent: number };
 }
+
+export interface DayProgress {
+    words: number;
+    goal: number;
+    streak: number;
+    due: number;
+}
