@@ -36,6 +36,44 @@ describe('LetterBoxes', () => {
         expect(values[values.length - 1]).toEqual(['hola ab']);
     });
 
+    it('publishes the whole word once the hints have given every letter', async () => {
+        const wrapper = mount(LetterBoxes, {
+            props: {
+                modelValue: '',
+                mask: ['h', null, 'l', null],
+                locale: 'es',
+            },
+        });
+
+        await wrapper.setProps({
+            given: [
+                { index: 1, char: 'o' },
+                { index: 3, char: 'a' },
+            ],
+        });
+
+        const values = wrapper.emitted('update:modelValue') ?? [];
+
+        expect(boxes(wrapper)).toHaveLength(0);
+        expect(values[values.length - 1]).toEqual(['hola']);
+    });
+
+    it('still publishes nothing while a box is empty and nothing was typed', async () => {
+        const wrapper = mount(LetterBoxes, {
+            props: {
+                modelValue: '',
+                mask: ['h', null, 'l', null],
+                locale: 'es',
+            },
+        });
+
+        await wrapper.setProps({ given: [{ index: 1, char: 'o' }] });
+
+        const values = wrapper.emitted('update:modelValue') ?? [];
+
+        expect(values[values.length - 1]).toEqual(['']);
+    });
+
     it('fills the next boxes from a longer entry', async () => {
         const wrapper = mount(LetterBoxes, {
             props: { modelValue: '', mask, locale: 'es' },

@@ -80,7 +80,8 @@ function assembled(): string {
 function publish() {
     emit(
         'update:modelValue',
-        blanks.value.every((index) => (typed.value[index] ?? '') === '')
+        blanks.value.length > 0 &&
+            blanks.value.every((index) => (typed.value[index] ?? '') === '')
             ? ''
             : assembled(),
     );
