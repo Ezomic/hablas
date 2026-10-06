@@ -57,7 +57,7 @@ final class RunWordProgress
         $levelNow = $language === null ? ['known' => 0, 'total' => 0, 'percent' => 0] : $this->wordProgress->forLevel($user, $language, $unit->cefr_level);
 
         return [
-            'newlyKnown' => array_values($items->take(12)->map(fn (VocabularyItem $item): array => ['term' => $item->term, 'translation' => $item->translation_en])->all()),
+            'newlyKnown' => array_values($items->take(12)->map(fn (VocabularyItem $item): array => ['term' => $item->term, 'translation' => $item->meaning()])->all()),
             'milestones' => $this->milestones(
                 $knownNow - $items->count(),
                 $knownNow,

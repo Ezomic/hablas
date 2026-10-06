@@ -10,6 +10,7 @@ use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonState;
+use App\Lessons\LocalizeExercise;
 use App\Lessons\SpokenTexts;
 use App\Models\Lesson;
 use App\Models\LessonAnswer;
@@ -33,6 +34,7 @@ final class PresentLessonRun
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,
         private readonly TypingSupport $typingSupport = new TypingSupport,
+        private readonly LocalizeExercise $localizeExercise = new LocalizeExercise,
     ) {}
 
     /**
@@ -65,6 +67,14 @@ final class PresentLessonRun
             ->with(['substitute.targets.targetable', 'targets.targetable'])
             ->get()
             ->keyBy('id');
+
+        foreach ($exercises as $exercise) {
+            $this->localizeExercise->handle($exercise);
+
+            if ($exercise->substitute !== null) {
+                $this->localizeExercise->handle($exercise->substitute);
+            }
+        }
 
         $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all()), $hidesAnswers));
         $user = $run->user ?? throw new LogicException("Run {$run->id} has no user.");
