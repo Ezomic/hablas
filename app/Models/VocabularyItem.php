@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $unit_id
  * @property string $term
  * @property string $translation_en
+ * @property string|null $translation_nl
  * @property bool $is_cognate
  * @property string $part_of_speech
  * @property string|null $audio_url
@@ -25,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['language_id', 'unit_id', 'term', 'translation_en', 'is_cognate', 'part_of_speech', 'audio_url', 'contrast_note'])]
+#[Fillable(['language_id', 'unit_id', 'term', 'translation_en', 'translation_nl', 'is_cognate', 'part_of_speech', 'audio_url', 'contrast_note'])]
 class VocabularyItem extends Model
 {
     /** @use HasFactory<VocabularyItemFactory> */
@@ -36,6 +37,12 @@ class VocabularyItem extends Model
         return [
             'is_cognate' => 'boolean',
         ];
+    }
+
+    /** The meaning in the interface language, English where there is no translation. */
+    public function meaning(): string
+    {
+        return app()->getLocale() === 'nl' && $this->translation_nl !== null ? $this->translation_nl : $this->translation_en;
     }
 
     /** @return BelongsTo<Language, $this> */

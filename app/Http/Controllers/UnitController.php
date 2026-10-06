@@ -62,7 +62,7 @@ final class UnitController extends Controller
             'vocabularyItems' => $unit->vocabularyItems->map(fn (VocabularyItem $item): array => [
                 'id' => $item->id,
                 'term' => $item->term,
-                'translation' => $item->translation_en,
+                'translation' => $item->meaning(),
                 'partOfSpeech' => $item->part_of_speech,
                 'isCognate' => $item->is_cognate,
                 'contrastNote' => $item->contrast_note,

@@ -122,7 +122,7 @@ final class PresentSrsCardForReview
     private function back(Model $cardable): string
     {
         return match (true) {
-            $cardable instanceof VocabularyItem => $cardable->translation_en,
+            $cardable instanceof VocabularyItem => $cardable->meaning(),
             $cardable instanceof GrammarPoint => $cardable->explanation,
             default => throw new LogicException('Unreachable: unknown cardable type.'),
         };

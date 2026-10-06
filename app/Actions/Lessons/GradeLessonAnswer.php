@@ -11,6 +11,7 @@ use App\Enums\ErrorTagCategory;
 use App\Enums\LessonExerciseFormat;
 use App\Lessons\AlignedWord;
 use App\Lessons\Grade;
+use App\Lessons\LocalizeExercise;
 use App\Lessons\TargetRef;
 use App\Models\GrammarPoint;
 use App\Models\LessonExercise;
@@ -25,6 +26,7 @@ final class GradeLessonAnswer
         private readonly AccentComparer $accentComparer = new AccentComparer,
         private readonly TextNormalizerResolver $textNormalizerResolver = new TextNormalizerResolver,
         private readonly ScoreSpeakingTry $scoreSpeakingTry = new ScoreSpeakingTry,
+        private readonly LocalizeExercise $localizeExercise = new LocalizeExercise,
     ) {}
 
     /**
@@ -35,6 +37,8 @@ final class GradeLessonAnswer
      */
     public function handle(LessonExercise $exercise, array $response): Grade
     {
+        $this->localizeExercise->handle($exercise);
+
         $format = $exercise->format;
 
         return match (true) {

@@ -24,7 +24,7 @@ final class ReviewChoices
      */
     public function handle(VocabularyItem $item, bool $askMeaning, int $seed): ?array
     {
-        $text = fn (VocabularyItem $word): string => $askMeaning ? $word->translation_en : $word->term;
+        $text = fn (VocabularyItem $word): string => $askMeaning ? $word->meaning() : $word->term;
         $answer = $text($item);
 
         $candidates = $this->pool($item->language_id)
@@ -67,6 +67,6 @@ final class ReviewChoices
     {
         return $this->pools[$languageId] ??= VocabularyItem::query()
             ->where('language_id', $languageId)
-            ->get(['id', 'language_id', 'term', 'translation_en', 'part_of_speech']);
+            ->get(['id', 'language_id', 'term', 'translation_en', 'translation_nl', 'part_of_speech']);
     }
 }

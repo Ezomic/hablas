@@ -134,7 +134,7 @@ final class SummarizeLessonRun
 
         $item = VocabularyItem::query()->find($ref['id']);
 
-        return $item === null ? null : ['term' => $item->term, 'translation' => $item->translation_en];
+        return $item === null ? null : ['term' => $item->term, 'translation' => $item->meaning()];
     }
 
     /** @return list<array{prompt: string, given: string, expected: string, correct: bool, learnedLanguage: bool}> */
