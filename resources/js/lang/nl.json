@@ -506,6 +506,14 @@
             "grammar": "Grammatica"
         },
         "summary": {
+            "newlyKnown": "{n} woord ken je nu | {n} woorden ken je nu",
+            "milestone": {
+                "first_word": "Je eerste woord uit je hoofd",
+                "words": "{count} woorden gekend",
+                "unit_words": "Elk woord van deze unit gekend",
+                "level_half": "Halverwege {level}",
+                "level_full": "Heel {level} gekend"
+            },
             "unitComplete": "Eenheid voltooid",
             "checkFinished": "Toets afgerond",
             "lessonComplete": "Les voltooid",

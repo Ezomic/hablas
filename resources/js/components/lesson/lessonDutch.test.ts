@@ -115,6 +115,8 @@ describe('the lesson components in Dutch', () => {
                         },
                     ],
                     cardsEnrolled: 0,
+                    newlyKnown: [],
+                    milestones: [],
                     unitCompleted: false,
                 },
             },

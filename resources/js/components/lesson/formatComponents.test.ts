@@ -494,6 +494,8 @@ describe('LessonSummary remediation', () => {
         items: [],
         answers: [],
         cardsEnrolled: 0,
+        newlyKnown: [],
+        milestones: [],
         unitCompleted: false,
     };
 

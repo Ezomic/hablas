@@ -10,11 +10,13 @@ use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\VocabularyItem;
 use App\Services\RunOutcomes;
+use App\Services\RunWordProgress;
 
 final class SummarizeLessonRun
 {
     public function __construct(
         private readonly RunOutcomes $runOutcomes = new RunOutcomes,
+        private readonly RunWordProgress $runWordProgress = new RunWordProgress,
     ) {}
 
     /**
@@ -29,13 +31,16 @@ final class SummarizeLessonRun
      *     items: list<array{term: string, translation: string|null, mastered: bool}>,
      *     answers: list<array{prompt: string, given: string, expected: string, correct: bool, learnedLanguage: bool}>,
      *     cardsEnrolled: int,
-     *     unitCompleted: bool
+     *     unitCompleted: bool,
+     *     newlyKnown: list<array{term: string, translation: string}>,
+     *     milestones: list<array{type: string, count?: int, level?: string}>
      * }
      */
     public function handle(LessonRun $run): array
     {
         $result = $run->result ?? [];
         $isCheck = $run->kind->isCheck();
+        $words = $this->runWordProgress->handle($run);
 
         return [
             'accuracy' => $this->accuracy($run),
@@ -44,6 +49,8 @@ final class SummarizeLessonRun
             'answers' => $isCheck ? $this->answers($run) : [],
             'cardsEnrolled' => is_int($result['enrolled'] ?? null) ? $result['enrolled'] : 0,
             'unitCompleted' => ($result['unit_completed'] ?? false) === true,
+            'newlyKnown' => $words['newlyKnown'],
+            'milestones' => $words['milestones'],
         ];
     }
 

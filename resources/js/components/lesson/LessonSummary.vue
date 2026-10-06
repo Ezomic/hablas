@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, X } from '@lucide/vue';
+import { Check, Gem, Trophy, X } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import RemediationActions from '@/components/RemediationActions.vue';
@@ -46,6 +46,17 @@ const mastered = computed(() =>
     props.summary.items.filter((item) => item.mastered),
 );
 
+function milestoneText(milestone: {
+    type: string;
+    count?: number;
+    level?: string;
+}): string {
+    return t(`lesson.summary.milestone.${milestone.type}`, {
+        count: milestone.count ?? 0,
+        level: milestone.level ?? '',
+    });
+}
+
 const nextIsOpen = computed(
     () =>
         props.next !== null &&
@@ -71,6 +82,49 @@ const nextIsOpen = computed(
         >
             {{ t('lesson.summary.unitProven') }}
         </p>
+
+        <ul
+            v-if="props.summary.milestones.length"
+            class="flex flex-col gap-2"
+            data-testid="milestones"
+        >
+            <li
+                v-for="milestone in props.summary.milestones"
+                :key="milestone.type"
+                class="flex items-center gap-3 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-medium"
+            >
+                <Trophy class="size-5 shrink-0 text-primary" />
+                {{ milestoneText(milestone) }}
+            </li>
+        </ul>
+
+        <Card v-if="props.summary.newlyKnown.length">
+            <CardHeader>
+                <CardTitle class="text-base">{{
+                    t('lesson.summary.newlyKnown', {
+                        n: props.summary.newlyKnown.length,
+                    })
+                }}</CardTitle>
+            </CardHeader>
+            <CardContent
+                class="flex flex-col gap-1 text-sm"
+                data-testid="newly-known"
+            >
+                <p
+                    v-for="word in props.summary.newlyKnown"
+                    :key="word.term"
+                    class="flex items-center gap-2"
+                >
+                    <Gem class="size-4 shrink-0 fill-primary text-primary" />
+                    <span :lang="props.locale ?? undefined">{{
+                        word.term
+                    }}</span>
+                    <span class="text-muted-foreground">{{
+                        word.translation
+                    }}</span>
+                </p>
+            </CardContent>
+        </Card>
 
         <Card v-if="Object.keys(props.summary.accuracy).length">
             <CardHeader>

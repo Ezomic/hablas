@@ -460,6 +460,8 @@ describe('the player', () => {
                     items: [],
                     answers: [],
                     cardsEnrolled: 0,
+                    newlyKnown: [],
+                    milestones: [],
                     unitCompleted: false,
                 },
                 next: {

@@ -475,6 +475,8 @@ describe('the summary and the remediation in Dutch', () => {
             },
         ],
         cardsEnrolled: 2,
+        newlyKnown: [],
+        milestones: [],
         unitCompleted: false,
     };
 

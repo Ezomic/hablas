@@ -96,6 +96,13 @@ final class WordProgress
         return ['known' => $known, 'total' => count($items), 'percent' => $this->percent($known, count($items))];
     }
 
+    public function knownCount(User $user, Language $language): int
+    {
+        $items = array_values(VocabularyItem::query()->where('language_id', $language->id)->get(['id'])->map(fn (VocabularyItem $item): int => $item->id)->all());
+
+        return count(array_filter($this->states($user, $items), fn (WordState $state): bool => $state->isKnown()));
+    }
+
     private function percent(int $known, int $total): int
     {
         return $total === 0 ? 0 : intdiv($known * 100, $total);
