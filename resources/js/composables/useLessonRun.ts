@@ -72,6 +72,8 @@ interface Unsent {
     body: Record<string, unknown>;
 }
 
+const FINISH_STALL_MS = 6000;
+
 export function useLessonRun(props: PlayProps) {
     const page = usePage();
     const { submitOrQueue, pendingCount, isOnline } = useOfflineSync();
@@ -117,6 +119,7 @@ export function useLessonRun(props: PlayProps) {
     const step = ref(newStep());
     const unsent = ref<Unsent | null>(null);
     const finishing = ref(false);
+    const finishStalled = ref(false);
     const serverDone = ref(false);
     const mastery = ref<AnswerResponse['run']['mastery'] | null>(null);
 
@@ -858,6 +861,35 @@ export function useLessonRun(props: PlayProps) {
         { immediate: true },
     );
 
+    // A request that never answers or a reload that fails must not leave the
+    // finishing screen spinning: it retries once by itself, then offers a button.
+    let stallTimer: ReturnType<typeof setTimeout> | undefined;
+
+    function finish() {
+        void resendUnsent().then(reloadRun, () => undefined);
+    }
+
+    function armStall() {
+        if (stallTimer !== undefined) {
+            return;
+        }
+
+        stallTimer = setTimeout(() => {
+            stallTimer = undefined;
+            finishStalled.value = true;
+
+            if (isOnline.value) {
+                finish();
+            }
+        }, FINISH_STALL_MS);
+    }
+
+    function retryFinish() {
+        finishStalled.value = false;
+        armStall();
+        finish();
+    }
+
     // Once every exercise is settled on the device, the server's own settling
     // and result are fetched as soon as the queued answers have drained.
     watch(
@@ -875,9 +907,10 @@ export function useLessonRun(props: PlayProps) {
             }
 
             finishing.value = true;
+            armStall();
 
             if (isOnline.value && pendingCount.value === 0) {
-                void resendUnsent().then(reloadRun);
+                finish();
             }
         },
         { immediate: true },
@@ -904,6 +937,9 @@ export function useLessonRun(props: PlayProps) {
         isCompleted,
         (done) => {
             if (done) {
+                clearTimeout(stallTimer);
+                stallTimer = undefined;
+                finishStalled.value = false;
                 void forgetJournal(userId, props.run.id).catch(() => undefined);
             }
         },
@@ -934,6 +970,8 @@ export function useLessonRun(props: PlayProps) {
         isOnline,
         pendingCount,
         finishing,
+        finishStalled,
+        retryFinish,
         hintShown: hintShownNow,
         savedFlash,
         errorMessage,

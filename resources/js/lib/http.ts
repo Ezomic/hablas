@@ -3,6 +3,8 @@ import { getCsrfToken } from '@/lib/csrf';
 // A server error, an expired session or CSRF token, a timeout or rate
 // limiting can all succeed on a later attempt. Any other 4xx fails the same
 // way every time.
+const REQUEST_TIMEOUT_MS = 15000;
+
 export function isRetryable(status: number): boolean {
     return status >= 500 || [401, 408, 419, 429].includes(status);
 }
@@ -26,5 +28,6 @@ export function fetchJson(
             'X-XSRF-TOKEN': getCsrfToken(),
         },
         body,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 }

@@ -426,6 +426,49 @@ describe('the player', () => {
         expect(wrapper.find('[data-testid="finishing"]').exists()).toBe(true);
     });
 
+    it('retries once by itself when finishing stalls, then offers a button to continue', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+
+        const settle = async () => {
+            for (let i = 0; i < 20; i++) {
+                await vi.advanceTimersByTimeAsync(10);
+                await flushPromises();
+            }
+        };
+
+        try {
+            const wrapper = mountPlay({
+                plan: [choose(1, 'a', 'x', ['x', 'y'])],
+            });
+
+            await wrapper.findAll('[role="radio"]')[0].trigger('click');
+            await check(wrapper);
+            await wrapper
+                .get('[data-testid="lesson-footer"] button:last-of-type')
+                .trigger('click');
+            await settle();
+
+            expect(wrapper.find('[data-testid="finish-retry"]').exists()).toBe(
+                false,
+            );
+
+            const before = mocks.reload.mock.calls.length;
+            await vi.advanceTimersByTimeAsync(6100);
+            await settle();
+
+            expect(mocks.reload.mock.calls.length).toBeGreaterThan(before);
+
+            const retry = wrapper.get('[data-testid="finish-retry"]');
+            const afterAuto = mocks.reload.mock.calls.length;
+            await retry.trigger('click');
+            await settle();
+
+            expect(mocks.reload.mock.calls.length).toBeGreaterThan(afterAuto);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it('waits while answers are still queued, and says so offline, then reloads once they drain', async () => {
         sync.online.value = false;
         sync.pending.value = 1;
