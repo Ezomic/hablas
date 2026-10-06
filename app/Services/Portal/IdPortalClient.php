@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Portal;
 
 use App\Models\User;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -20,6 +21,14 @@ final class IdPortalClient
 {
     private const TOKEN_CACHE_KEY = 'portal-client-token';
 
+    private const CONNECT_TIMEOUT_SECONDS = 2;
+
+    private const TIMEOUT_SECONDS = 3;
+
+    private const BACKOFF_SECONDS = 60;
+
+    private const STALE_COPY_SECONDS = 604800;
+
     /**
      * @return array{apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string, current: bool}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string, current: bool}>}>}
      */
@@ -31,21 +40,12 @@ final class IdPortalClient
 
         $key = 'portal-apps:v2:'.sha1($user->email);
 
-        $cached = Cache::get($key);
+        $cached = $this->stored($key) ?? $this->refresh($user, $key);
 
-        if (! is_array($cached)) {
-            $cached = $this->fetch($user);
-
-            // A transient failure returns null: don't cache it, so the next
-            // request retries rather than serving an empty result for the TTL.
-            if ($cached === null) {
-                return ['apps' => [], 'categories' => []];
-            }
-
-            Cache::put($key, $cached, Config::integer('services.thijssensoftware.portal_cache_ttl', 300));
+        if ($cached === null) {
+            return ['apps' => [], 'categories' => []];
         }
 
-        /** @var array{applications: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>}>} $cached */
         $currentSlug = Config::string('services.thijssensoftware.slug');
 
         return [
@@ -75,6 +75,71 @@ final class IdPortalClient
     /**
      * @return array{applications: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>}>}|null
      */
+    private function stored(string $key): ?array
+    {
+        $value = Cache::get($key);
+
+        if (! is_array($value)) {
+            return null;
+        }
+
+        /** @var array{applications: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>}>} $value */
+        return $value;
+    }
+
+    /**
+     * The list is fresh for the cache TTL and then kept as a stale copy for a
+     * week. Once the fresh copy has expired a page is served the stale one at
+     * once and the refresh runs after the response, so no page waits on ID. Only
+     * a first visit with no copy at all fetches inline, with short timeouts. A
+     * failure is remembered for a minute so a slow or down ID is not retried by
+     * every request.
+     *
+     * @return array{applications: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>}>}|null
+     */
+    private function refresh(User $user, string $key): ?array
+    {
+        $stale = $this->stored($key.':stale');
+
+        if ($stale !== null) {
+            if (! Cache::has($key.':backoff')) {
+                Cache::put($key.':backoff', true, self::BACKOFF_SECONDS);
+                defer(fn () => $this->load($user, $key));
+            }
+
+            return $stale;
+        }
+
+        if (Cache::has($key.':backoff')) {
+            return null;
+        }
+
+        return $this->load($user, $key);
+    }
+
+    /**
+     * @return array{applications: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>}>}|null
+     */
+    private function load(User $user, string $key): ?array
+    {
+        $fetched = $this->fetch($user);
+
+        if ($fetched === null) {
+            Cache::put($key.':backoff', true, self::BACKOFF_SECONDS);
+
+            return null;
+        }
+
+        Cache::forget($key.':backoff');
+        Cache::put($key, $fetched, Config::integer('services.thijssensoftware.portal_cache_ttl', 300));
+        Cache::put($key.':stale', $fetched, self::STALE_COPY_SECONDS);
+
+        return $fetched;
+    }
+
+    /**
+     * @return array{applications: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>, categories: list<array{category: string, apps: list<array{slug: string, name: string, initials: string, accent: string|null, launch_url: string}>}>}|null
+     */
     private function fetch(User $user): ?array
     {
         try {
@@ -84,7 +149,7 @@ final class IdPortalClient
                 return null;
             }
 
-            $response = Http::withToken($token)
+            $response = $this->http()->withToken($token)
                 ->acceptJson()
                 ->asJson()
                 ->post($this->url('/api/portal/apps'), ['email' => $user->email]);
@@ -113,7 +178,7 @@ final class IdPortalClient
             return $cached;
         }
 
-        $response = Http::acceptJson()->asForm()->post($this->url('/oauth/token'), [
+        $response = $this->http()->acceptJson()->asForm()->post($this->url('/oauth/token'), [
             'grant_type' => 'client_credentials',
             'client_id' => config('services.thijssensoftware.client_id'),
             'client_secret' => config('services.thijssensoftware.client_secret'),
@@ -134,6 +199,11 @@ final class IdPortalClient
         Cache::put(self::TOKEN_CACHE_KEY, $token, max(60, $ttl - 30));
 
         return $token;
+    }
+
+    private function http(): PendingRequest
+    {
+        return Http::connectTimeout(self::CONNECT_TIMEOUT_SECONDS)->timeout(self::TIMEOUT_SECONDS);
     }
 
     private function configured(): bool
