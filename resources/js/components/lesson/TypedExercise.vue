@@ -21,6 +21,7 @@ const props = defineProps<{
     english?: string;
     glosses?: [string, string][];
     chips?: string[];
+    introduce?: string | null;
     gap?: boolean;
     multiline?: boolean;
     disabled?: boolean;
@@ -91,6 +92,16 @@ async function insert(character: string) {
     <section class="flex flex-col gap-4">
         <p v-if="props.instruction" class="text-sm text-muted-foreground">
             {{ props.instruction }}
+        </p>
+        <p
+            v-if="props.introduce"
+            class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100"
+            data-testid="introduce"
+        >
+            {{ t('lesson.introduce') }}
+            <span class="font-semibold" :lang="props.locale ?? undefined">{{
+                props.introduce
+            }}</span>
         </p>
         <h2
             v-if="gapParts"

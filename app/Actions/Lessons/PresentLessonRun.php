@@ -88,6 +88,8 @@ final class PresentLessonRun
             ];
         }
 
+        $plan = $hidesAnswers ? $plan : $this->introducingNewForms($plan);
+
         $completed = $run->status === LessonRunStatus::Completed;
 
         return [
@@ -131,6 +133,70 @@ final class PresentLessonRun
                 'settled' => $answer->skipped ? false : ($hidesAnswers || $answer->settlesExercise()),
             ])->all(),
         ];
+    }
+
+    /**
+     * A typed gap that asks for a word no earlier exercise has shown as a right
+     * answer would ask the learner to produce a form they have never seen, so
+     * its answer is sent as what to type. Production comes after recognition:
+     * once a form has been shown it is asked for like any other. A check never
+     * shows an answer, so it is left as it is.
+     *
+     * @param  list<array<string, mixed>>  $plan
+     * @return list<array<string, mixed>>
+     */
+    private function introducingNewForms(array $plan): array
+    {
+        $seen = [];
+
+        foreach ($plan as $index => $entry) {
+            $payload = is_array($entry['payload'] ?? null) ? $entry['payload'] : [];
+            $format = is_string($entry['format'] ?? null) ? $entry['format'] : '';
+            $shown = $this->shownAnswers($format, $payload);
+
+            if ($format === LessonExerciseFormat::TypeGap->value) {
+                $answer = $shown[0] ?? '';
+
+                if ($answer !== '' && array_diff($this->wordsOf($answer), $seen) !== []) {
+                    $plan[$index]['payload'] = [...$payload, 'introduce' => $answer];
+                }
+            }
+
+            foreach ($shown as $text) {
+                array_push($seen, ...$this->wordsOf($text));
+            }
+        }
+
+        return $plan;
+    }
+
+    /**
+     * The target-language text an exercise shows as right: the answer a choice
+     * gives, the sentence a build or a repeat has, or the first accepted answer
+     * of a typed gap, which the learner is about to be asked for.
+     *
+     * @param  array<mixed>  $payload
+     * @return list<string>
+     */
+    private function shownAnswers(string $format, array $payload): array
+    {
+        $accepted = array_values(array_filter(array_map(fn (mixed $entry): string => is_string($entry) ? $entry : '', is_array($payload['accepted'] ?? null) ? $payload['accepted'] : [])));
+        $text = is_string($payload['text'] ?? null) ? $payload['text'] : '';
+        $answer = is_string($payload['answer'] ?? null) ? $payload['answer'] : '';
+
+        return array_values(array_filter(match ($format) {
+            LessonExerciseFormat::ChooseGap->value, LessonExerciseFormat::ChooseWord->value, LessonExerciseFormat::ChooseMeaning->value => [$answer],
+            LessonExerciseFormat::ListenChoose->value, LessonExerciseFormat::SpeakRepeat->value => [$text, $answer],
+            LessonExerciseFormat::BuildSentence->value, LessonExerciseFormat::TypeGap->value => array_slice($accepted, 0, 1),
+            LessonExerciseFormat::TeachWord->value => [is_string($payload['term'] ?? null) ? $payload['term'] : ''],
+            default => [],
+        }));
+    }
+
+    /** @return list<string> */
+    private function wordsOf(string $text): array
+    {
+        return array_values(array_filter(preg_split('/[^\p{L}]+/u', mb_strtolower($text)) ?: [], fn (string $word): bool => $word !== ''));
     }
 
     /**

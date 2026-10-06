@@ -675,6 +675,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     :multiline="format === 'write_guided'"
                     :locale="locale"
                     :pattern="text(exercise.payload.hint) || null"
+                    :introduce="text(exercise.payload.introduce) || null"
                     :mask="maskOf(exercise.payload.mask)"
                     :given="givenLetters"
                     :hint="hintText"

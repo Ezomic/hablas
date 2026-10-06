@@ -9,7 +9,6 @@ use App\Enums\AccentPolicy;
 use App\Enums\AccentVerdict;
 use App\Enums\ErrorTagCategory;
 use App\Enums\LessonExerciseFormat;
-use App\Enums\LessonStage;
 use App\Lessons\AlignedWord;
 use App\Lessons\Grade;
 use App\Lessons\TargetRef;
@@ -169,7 +168,7 @@ final class GradeLessonAnswer
             $right[$index] = match ($word->verdict) {
                 AccentVerdict::Exact => true,
                 AccentVerdict::Missing => $this->takeMissing($policy, $slipped),
-                AccentVerdict::OtherWord => $this->takeOtherWord($word, $normalizer, $exercise, $otherWord),
+                AccentVerdict::OtherWord => $this->takeOtherWord($word, $normalizer, $policy, $otherWord),
                 null => false,
             };
         }
@@ -242,16 +241,16 @@ final class GradeLessonAnswer
     }
 
     /**
-     * Another word is wrong, with the note that says so, except in lesson 1:
-     * there the learner copies a word that is on the screen, and leaving off
-     * only its accent teaches more through the note than a miss does. A wrong
-     * accent mark, or one that is not there, is still wrong.
+     * Another word is wrong, with the note that says so, except in a lesson:
+     * practice should teach through the note, and a dictation gives no accents
+     * to copy. Only the check holds the learner to it. A wrong accent mark, or
+     * one that is not there, is still wrong everywhere.
      */
-    private function takeOtherWord(AlignedWord $word, TextNormalizer $normalizer, LessonExercise $exercise, bool &$otherWord): bool
+    private function takeOtherWord(AlignedWord $word, TextNormalizer $normalizer, AccentPolicy $policy, bool &$otherWord): bool
     {
         $otherWord = true;
 
-        return $exercise->lesson?->stage === LessonStage::Meet
+        return $policy !== AccentPolicy::Reject
             && $word->given !== null
             && $word->given === $normalizer->foldAccents($word->expected);
     }
