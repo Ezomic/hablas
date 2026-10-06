@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryUnit } from '@/types/unit';
-import { filterUnits, groupByLevel } from './unitLibrary';
+import { filterUnits, groupByLevel, paceToDeadline } from './unitLibrary';
 
 function unit(
     id: number,
@@ -88,5 +88,69 @@ describe('groupByLevel', () => {
 
     it('returns no groups for no units', () => {
         expect(groupByLevel([])).toEqual([]);
+    });
+});
+
+describe('paceToDeadline', () => {
+    const withLessons = (count: number, done: number, level = 'A1') => ({
+        ...unit(1, level, 'reading', 'available'),
+        lessonCount: count,
+        lessonsCompleted: done,
+    });
+    const today = new Date(2026, 9, 6);
+
+    it('divides the lessons left over the days, counting both end days', () => {
+        const pace = paceToDeadline(
+            [withLessons(120, 7)],
+            'A1',
+            '2026-12-01',
+            today,
+        );
+
+        expect(pace).toEqual({
+            left: 113,
+            days: 57,
+            perDay: 2,
+            status: 'comfortable',
+        });
+    });
+
+    it('calls a heavier load steady, then behind', () => {
+        expect(
+            paceToDeadline([withLessons(120, 0)], 'A1', '2026-12-01', today)
+                .status,
+        ).toBe('steady');
+        expect(
+            paceToDeadline([withLessons(200, 0)], 'A1', '2026-12-01', today)
+                .status,
+        ).toBe('behind');
+    });
+
+    it('ignores other levels, and says done when nothing is left', () => {
+        const pace = paceToDeadline(
+            [withLessons(10, 10), withLessons(50, 0, 'A2')],
+            'A1',
+            '2026-12-01',
+            today,
+        );
+
+        expect(pace.status).toBe('done');
+    });
+
+    it('is late once the date has passed', () => {
+        const pace = paceToDeadline(
+            [withLessons(10, 4)],
+            'A1',
+            '2026-10-01',
+            today,
+        );
+
+        expect(pace).toMatchObject({ left: 6, days: 0, status: 'late' });
+    });
+
+    it('puts everything on today on the last day', () => {
+        expect(
+            paceToDeadline([withLessons(10, 4)], 'A1', '2026-10-06', today),
+        ).toMatchObject({ days: 1, perDay: 6 });
     });
 });

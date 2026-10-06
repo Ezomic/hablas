@@ -47,7 +47,7 @@ function mountPage(
     units: LibraryUnit[],
     language: { name: string } | null = { name: 'Spanish' },
 ) {
-    return mount(Index, { props: { language, units } });
+    return mount(Index, { props: { language, units, a1Deadline: null } });
 }
 
 function hrefs(wrapper: ReturnType<typeof mountPage>): string[] {
@@ -160,5 +160,23 @@ describe('unit library page', () => {
         const wrapper = mountPage([unit(1, 'A1', 'in_progress')]);
 
         expect(wrapper.text()).toContain('Unit 1');
+    });
+
+    it('shows the pace to the A1 deadline, and hides it without one', () => {
+        const a1 = { ...unit(1, 'A1', 'available'), lessonCount: 5 };
+        const withDeadline = mount(Index, {
+            props: {
+                language: { name: 'Spanish' },
+                units: [a1],
+                a1Deadline: '2099-01-01',
+            },
+        });
+
+        expect(withDeadline.get('[data-testid="pace"]').text()).toContain(
+            '5 lessons left',
+        );
+        expect(mountPage([a1]).find('[data-testid="pace"]').exists()).toBe(
+            false,
+        );
     });
 });

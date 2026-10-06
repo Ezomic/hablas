@@ -608,6 +608,15 @@
         }
     },
     "units": {
+        "pace": {
+            "title": "A1-tempo",
+            "done": "A1 is af.",
+            "late": "De A1-datum is voorbij. Er zijn nog {left} lessen over.",
+            "summary": "Nog {left} lessen, nog {days} dagen: ongeveer {perDay} lessen per dag.",
+            "comfortable": "Een rustig tempo, je hebt ruimte over.",
+            "steady": "Een gestaag tempo. Sla geen dagen over.",
+            "behind": "Hiervoor zijn meer dan drie lessen per dag nodig. Haal in wanneer je kunt."
+        },
         "intro": "Elke eenheid voor {language} per niveau. Voltooide eenheden blijven open als naslag.",
         "reinforce": {
             "title": "Versterk eerst wat lastig is",

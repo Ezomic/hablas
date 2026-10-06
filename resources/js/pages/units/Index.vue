@@ -25,7 +25,7 @@ import {
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs';
 import { skillKeys, skillLabel } from '@/lib/skillLabels';
 import type { CompletionFilter } from '@/lib/unitLibrary';
-import { filterUnits, groupByLevel } from '@/lib/unitLibrary';
+import { filterUnits, groupByLevel, paceToDeadline } from '@/lib/unitLibrary';
 import { index as reviewIndex } from '@/routes/review';
 import { index, show } from '@/routes/units';
 import type { LibraryUnit, UnitAvailability } from '@/types/unit';
@@ -33,11 +33,18 @@ import type { LibraryUnit, UnitAvailability } from '@/types/unit';
 const props = defineProps<{
     language: { name: string } | null;
     units: LibraryUnit[];
+    a1Deadline: string | null;
 }>();
 
 const { t } = useI18n();
 
 useBreadcrumbs(() => [{ title: t('nav.units'), href: index() }]);
+
+const pace = computed(() =>
+    props.a1Deadline === null || props.units.every((u) => u.cefrLevel !== 'A1')
+        ? null
+        : paceToDeadline(props.units, 'A1', props.a1Deadline, new Date()),
+);
 
 const skillOptions = computed<Record<string, string>>(() => ({
     all: t('units.filters.allSkills'),
@@ -114,6 +121,30 @@ function note(unit: LibraryUnit): string | null {
                 <template v-else>{{ t('common.noActiveLanguage') }}</template>
             </p>
         </div>
+
+        <Card v-if="pace" data-testid="pace">
+            <CardHeader>
+                <CardTitle>{{ t('units.pace.title') }}</CardTitle>
+                <CardDescription>
+                    <template v-if="pace.status === 'done'">
+                        {{ t('units.pace.done') }}
+                    </template>
+                    <template v-else-if="pace.status === 'late'">
+                        {{ t('units.pace.late', { left: pace.left }) }}
+                    </template>
+                    <template v-else>
+                        {{
+                            t('units.pace.summary', {
+                                left: pace.left,
+                                days: pace.days,
+                                perDay: pace.perDay,
+                            })
+                        }}
+                        {{ t(`units.pace.${pace.status}`) }}
+                    </template>
+                </CardDescription>
+            </CardHeader>
+        </Card>
 
         <Card v-if="hasHeldBackUnits">
             <CardHeader>

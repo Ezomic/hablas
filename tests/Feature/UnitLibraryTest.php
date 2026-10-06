@@ -84,6 +84,7 @@ it('lists the units of the language being studied, with what each card needs', f
         ->assertInertia(fn ($page) => $page
             ->component('units/Index')
             ->where('language.name', 'Spanish')
+            ->where('a1Deadline', '2026-12-01')
             ->has('units', 1)
             ->where('units.0', [
                 'id' => $unit->id,
