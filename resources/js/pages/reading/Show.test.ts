@@ -61,7 +61,9 @@ describe('story page', () => {
 
         await wrapper.get('button[type="button"]').trigger('click');
 
-        expect(wrapper.get('[data-testid="gloss"]').text()).toBe('soy means I am');
+        expect(wrapper.get('[data-testid="gloss"]').text()).toBe(
+            'soy means I am',
+        );
     });
 
     it('marks the answers once checked', async () => {
