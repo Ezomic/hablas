@@ -254,7 +254,7 @@ async function grade(card: ReviewCard, answer: string): Promise<Verdict> {
 // A production card is answered in its own field instead, and once checked,
 // enter takes the suggested rating.
 // A held key repeats, which would rate every card in the queue unseen, and
-// enter on a focused button is that button's own click, so it must not also
+// enter on a focused button or link is its own click, so it must not also
 // take the suggested rating.
 function handleKeydown(event: KeyboardEvent) {
     if (
@@ -263,7 +263,7 @@ function handleKeydown(event: KeyboardEvent) {
         event.ctrlKey ||
         event.altKey ||
         isTyping(event) ||
-        (event.key === 'Enter' && event.target instanceof HTMLButtonElement)
+        (event.key === 'Enter' && isActivatable(event.target))
     ) {
         return;
     }
@@ -312,6 +312,16 @@ function termLang(
     const targetSide = card.direction === 'production' ? 'back' : 'front';
 
     return side === targetSide ? (props.speechLocale ?? undefined) : undefined;
+}
+
+// Enter on a focused button, link or role=button element is its own click.
+function isActivatable(target: EventTarget | null): boolean {
+    return (
+        target instanceof HTMLElement &&
+        (target instanceof HTMLButtonElement ||
+            target instanceof HTMLAnchorElement ||
+            target.getAttribute('role') === 'button')
+    );
 }
 
 function isTyping(event: KeyboardEvent): boolean {
