@@ -70,14 +70,31 @@ it('fails closed for a passage with no questions', function () {
     expect((new GradeReadingAttempt)->handle($passage, []))->toBe(0.0);
 });
 
-it('serves a passage without leaking the answer key', function () {
-    readingPassage($this->spanish);
+it('lists the stories with the best score', function () {
+    $story = readingPassage($this->spanish);
+    ReadingAttempt::factory()->create(['user_id' => $this->user->id, 'reading_passage_id' => $story->id, 'score' => 40]);
+    ReadingAttempt::factory()->create(['user_id' => $this->user->id, 'reading_passage_id' => $story->id, 'score' => 80]);
 
     $this->actingAs($this->user)
         ->get(route('reading.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('reading/Index')
+            ->has('stories', 1)
+            ->where('stories.0.id', $story->id)
+            ->where('stories.0.questions', 4)
+            ->where('stories.0.best', 80),
+        );
+});
+
+it('serves a story without leaking the answer key', function () {
+    $story = readingPassage($this->spanish);
+
+    $this->actingAs($this->user)
+        ->get(route('reading.show', $story))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('reading/Show')
             ->has('passage.questions', 4)
             ->has('passage.questions.0.prompt')
             ->has('passage.questions.0.options')
@@ -85,32 +102,35 @@ it('serves a passage without leaking the answer key', function () {
         );
 });
 
-it('only offers passages at or below the reading level', function () {
+it('only offers stories at or below the reading level', function () {
     setReadingLevel($this->user, $this->spanish, CefrLevel::A1, CefrSubLevel::A1_3);
-    readingPassage($this->spanish, CefrLevel::B2);
+    $story = readingPassage($this->spanish, CefrLevel::B2);
 
     $this->actingAs($this->user)
         ->get(route('reading.index'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->where('passage', null));
+        ->assertInertia(fn ($page) => $page->has('stories', 0));
+
+    $this->actingAs($this->user)->get(route('reading.show', $story))->assertNotFound();
 });
 
-it('offers a passage once the reading level reaches it', function () {
+it('offers a story once the reading level reaches it', function () {
     setReadingLevel($this->user, $this->spanish, CefrLevel::B2);
-    $passage = readingPassage($this->spanish, CefrLevel::B2);
+    $story = readingPassage($this->spanish, CefrLevel::B2);
 
     $this->actingAs($this->user)
         ->get(route('reading.index'))
-        ->assertInertia(fn ($page) => $page->where('passage.id', $passage->id));
+        ->assertInertia(fn ($page) => $page->where('stories.0.id', $story->id));
 });
 
 it('never serves the other language deck', function () {
     $portuguese = Language::query()->where('code', 'pt')->sole();
-    readingPassage($portuguese);
+    $story = readingPassage($portuguese);
 
     $this->actingAs($this->user)
         ->get(route('reading.index'))
-        ->assertInertia(fn ($page) => $page->where('passage', null));
+        ->assertInertia(fn ($page) => $page->has('stories', 0));
+
+    $this->actingAs($this->user)->get(route('reading.show', $story))->assertNotFound();
 });
 
 it('records a graded attempt', function () {
@@ -119,7 +139,8 @@ it('records a graded attempt', function () {
     $this->actingAs($this->user)
         ->postJson(route('reading.attempts.store', $passage), ['answers' => ['a', 'c', 'e', 'x']])
         ->assertOk()
-        ->assertJsonPath('score', 75);
+        ->assertJsonPath('score', 75)
+        ->assertJsonPath('correct', ['a', 'c', 'e', 'g']);
 
     $attempt = ReadingAttempt::query()->sole();
 

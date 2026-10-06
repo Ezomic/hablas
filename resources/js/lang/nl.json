@@ -33,7 +33,7 @@
         "review": "Herhalen",
         "weakSpots": "Zwakke punten",
         "vocabulary": "Woordenschat",
-        "reading": "Lezen",
+        "reading": "Verhalen",
         "listening": "Luisteren",
         "shadowing": "Naspreken",
         "writing": "Schrijven",
@@ -841,8 +841,18 @@
         "checkAnswers": "Antwoorden controleren"
     },
     "reading": {
-        "title": "Leesoefening",
-        "empty": "Er zijn nog geen leesteksten op jouw niveau."
+        "title": "Verhalen",
+        "empty": "Er zijn nog geen verhalen op jouw niveau.",
+        "read": "Lees het verhaal en beantwoord daarna de vragen.",
+        "questions": "{n} vragen",
+        "best": "Beste {score}%",
+        "gloss": "{word} betekent {meaning}",
+        "tapWord": "Tik op een woord dat je niet kent.",
+        "listen": "Luister naar het verhaal",
+        "questionsHeading": "Vragen",
+        "correct": "Goed",
+        "answerWas": "Het antwoord is: {answer}",
+        "back": "Alle verhalen"
     },
     "shadowing": {
         "title": "Naspreekoefening",

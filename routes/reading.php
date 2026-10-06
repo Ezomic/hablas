@@ -7,5 +7,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('reading')->name('reading.')->group(function () {
     Route::get('/', [ReadingExerciseController::class, 'index'])->name('index');
+    Route::get('{readingPassage}', [ReadingExerciseController::class, 'show'])->name('show');
     Route::post('{readingPassage}/attempts', [ReadingExerciseController::class, 'store'])->name('attempts.store');
 });

@@ -7,17 +7,17 @@ namespace App\Http\Controllers;
 use App\Actions\GetUserSkillLevels;
 use App\Actions\Languages\GetCurrentLanguage;
 use App\Actions\RecordReadingAttempt;
-use App\Actions\SelectExerciseForUser;
 use App\Concerns\InteractsWithCurrentUser;
 use App\Enums\CefrLevel;
 use App\Enums\Skill;
 use App\Http\Requests\StoreReadingAttemptRequest;
 use App\Models\Language;
+use App\Models\ReadingAttempt;
 use App\Models\ReadingPassage;
 use App\Models\User;
 use App\Models\UserSkillLevel;
+use App\Services\SpeechLocaleResolver;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,34 +26,70 @@ final class ReadingExerciseController extends Controller
     use InteractsWithCurrentUser;
 
     public function index(
-        Request $request,
         GetCurrentLanguage $getCurrentLanguage,
-        SelectExerciseForUser $selectExercise,
         GetUserSkillLevels $getUserSkillLevels,
     ): Response {
-        $language = $getCurrentLanguage->handle($this->currentUser());
+        $user = $this->currentUser();
+        $language = $getCurrentLanguage->handle($user);
 
         if ($language === null) {
-            return Inertia::render('reading/Index', ['passage' => null]);
+            return Inertia::render('reading/Index', ['stories' => []]);
         }
 
-        $passage = $selectExercise->handle(
-            ReadingPassage::query()
-                ->where('language_id', $language->id)
-                ->whereIn('cefr_level', $this->readableLevels($this->currentUser(), $language, $getUserSkillLevels)),
-            $this->currentUser(),
-        );
+        $stories = ReadingPassage::query()
+            ->where('language_id', $language->id)
+            ->whereIn('cefr_level', $this->readableLevels($user, $language, $getUserSkillLevels))
+            ->orderBy('id')
+            ->get();
+
+        $best = [];
+
+        foreach (ReadingAttempt::query()
+            ->where('user_id', $user->id)
+            ->whereIn('reading_passage_id', $stories->modelKeys())
+            ->get() as $attempt) {
+            $best[$attempt->reading_passage_id] = max($best[$attempt->reading_passage_id] ?? 0.0, $attempt->score);
+        }
 
         return Inertia::render('reading/Index', [
-            'passage' => $passage === null ? null : [
-                'id' => $passage->id,
-                'title' => $passage->title,
-                'body' => $passage->body,
-                'cefrLevel' => $passage->cefr_level->value,
+            'stories' => $stories->map(fn (ReadingPassage $story): array => [
+                'id' => $story->id,
+                'title' => $story->title,
+                'cefrLevel' => $story->cefr_level->value,
+                'questions' => count($story->questions),
+                'best' => $best[$story->id] ?? null,
+            ])->values(),
+        ]);
+    }
+
+    public function show(
+        ReadingPassage $readingPassage,
+        GetCurrentLanguage $getCurrentLanguage,
+        GetUserSkillLevels $getUserSkillLevels,
+        SpeechLocaleResolver $speechLocaleResolver,
+    ): Response {
+        $user = $this->currentUser();
+        $language = $getCurrentLanguage->handle($user);
+
+        abort_if(
+            $language === null
+                || $readingPassage->language_id !== $language->id
+                || ! in_array($readingPassage->cefr_level->value, $this->readableLevels($user, $language, $getUserSkillLevels), true),
+            404,
+        );
+
+        return Inertia::render('reading/Show', [
+            'passage' => [
+                'id' => $readingPassage->id,
+                'title' => $readingPassage->title,
+                'body' => $readingPassage->body,
+                'cefrLevel' => $readingPassage->cefr_level->value,
+                'glosses' => (object) ($readingPassage->glosses ?? []),
+                'locale' => $speechLocaleResolver->forLanguage($language),
                 // The answer key stays server side: sending correct_answer to
                 // the client would put the whole comprehension check in the
                 // page source.
-                'questions' => collect($passage->questions)
+                'questions' => collect($readingPassage->questions)
                     ->map(fn (array $question): array => [
                         'prompt' => $question['prompt'],
                         'options' => $question['options'],
@@ -76,6 +112,7 @@ final class ReadingExerciseController extends Controller
 
         return response()->json([
             'score' => $result['attempt']->score,
+            'correct' => collect($readingPassage->questions)->pluck('correct_answer')->values(),
             'milestone' => $result['milestone'],
         ]);
     }
