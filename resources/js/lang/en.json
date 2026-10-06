@@ -492,6 +492,14 @@
             "fr": "French",
             "it": "Italian"
         },
+        "explain": {
+            "serForEstar": "{given} is from estar, which says how or where something is. Here you need {expected}, from ser, which says who or what someone or something is: a name, a job, where you are from.",
+            "estarForSer": "{given} is from ser, which says who or what someone is. Here you need {expected}, from estar, which says how someone is or where something is.",
+            "tenerForBe": "Spanish does not say you are twenty or are hungry: you have it, with tener. Use {expected}.",
+            "beForTener": "{given} is from tener, to have. Here you say who or how someone is, so you need {expected}, from {expectedVerb}.",
+            "hayForEstar": "{expected} (there is, there are) says that something exists or is somewhere. {given} says where something you already know is.",
+            "estarForHay": "{given} says that something exists (there is). Here the thing is already known, so you say where it is, or what it is, with {expected}, from {expectedVerb}."
+        },
         "note": {
             "accent": "Watch the accent: {expected}",
             "article": "Check the article: {expected}",

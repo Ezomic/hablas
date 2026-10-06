@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import type { Feedback } from '@/composables/useLessonRun';
+import { explainMistake } from '@/lib/mistakeExplainer';
 
 const props = defineProps<{
     feedback: Feedback;
@@ -32,6 +33,16 @@ const note = computed(() => {
         ? null
         : t(key, { expected: props.feedback.expected });
 });
+
+const explanation = computed(() =>
+    props.feedback.correct || props.locale == null
+        ? null
+        : explainMistake(
+              props.feedback.given,
+              props.feedback.expected,
+              props.locale,
+          ),
+);
 
 function words(value: string): string[] {
     return value
@@ -135,6 +146,20 @@ const marked = computed(() => {
                         >{{ item.word }}</span
                     >{{ ' ' }}
                 </template>
+            </p>
+            <p
+                v-if="explanation && !props.guided"
+                class="text-sm"
+                data-testid="explain"
+            >
+                {{
+                    t(`lesson.explain.${explanation.id}`, {
+                        given: explanation.given,
+                        expected: explanation.expected,
+                        givenVerb: explanation.givenVerb,
+                        expectedVerb: explanation.expectedVerb,
+                    })
+                }}
             </p>
             <Button
                 v-if="props.feedback.flaggable"
