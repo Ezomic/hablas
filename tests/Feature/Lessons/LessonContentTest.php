@@ -208,10 +208,10 @@ describe('the Spanish lesson text', function () {
 });
 
 describe('the review gate', function () {
-    it('releases the words of every unit on its independent AI review, and no unit lessons yet', function () {
+    it('releases the words and the lessons of every unit on its two reviews', function () {
         foreach ($this->contents as $content) {
             expect(ReviewGate::wordsReleased($content))->toBeTrue()
-                ->and(ReviewGate::lessonsReleased($content))->toBeFalse()
+                ->and(ReviewGate::lessonsReleased($content))->toBeTrue()
                 ->and(collect($content->reviews())->contains(fn ($review): bool => $review->kind === ReviewKind::IndependentAi && $review->scope === ReviewScope::Words))->toBeTrue();
         }
     });
@@ -227,10 +227,10 @@ describe('the review gate', function () {
         'the independent AI on the lessons' => [[new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'ai', '2026-10-01')]],
     ]);
 
-    it('seeds the words-only lessons of the Spanish units and every lesson of the released French and Italian units', function () {
+    it('seeds every lesson of the released Spanish, French and Italian units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(104)
+        expect(Lesson::query()->count())->toBe(120)
             ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 
@@ -251,7 +251,7 @@ describe('the word lessons once reviewed', function () {
 
             expect($lessons->keys()->all())->toBe(['meet', 'recall', 'check'])
                 ->and(formatCounts($lessons['meet']))->toBe(['teach_word' => 10, 'choose_meaning' => 10, 'type_word' => 10, 'match_pairs' => 2])
-                ->and(formatCounts($lessons['recall']))->toBe(['teach_grammar' => 1, 'choose_word' => 10, 'type_word' => 10])
+                ->and(formatCounts($lessons['recall']))->toBe(['choose_word' => 10, 'type_word' => 10])
                 ->and(formatCounts($lessons['check']))->toBe(['type_word' => 20]);
         }
     });

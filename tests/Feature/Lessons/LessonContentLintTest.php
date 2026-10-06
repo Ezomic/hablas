@@ -89,8 +89,9 @@ describe('answer keys', function () {
     it('does not repeat an accepted answer that a variant would duplicate', function () {
         $lessons = lint([authored(Format::TranslateSentence, ['english' => 'x'], accepted: ['Yo tengo una reserva', 'tengo una reserva'], targets: [TargetSpec::word('la reserva', 'reserva')])]);
         $sentences = collect($lessons)->first(fn (LessonDefinition $lesson): bool => $lesson->stage === LessonStage::Sentences);
+        $translate = collect($sentences->exercises)->first(fn ($exercise): bool => $exercise->format === Format::TranslateSentence);
 
-        expect(collect($sentences->exercises[0]->payload['accepted'])->pluck('text')->all())->toBe(['Yo tengo una reserva', 'tengo una reserva']);
+        expect(collect($translate->payload['accepted'])->pluck('text')->all())->toBe(['Yo tengo una reserva', 'tengo una reserva']);
     });
 
     it('rejects a target that names the grammar point when the unit has none, or an item it lacks', function () {

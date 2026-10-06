@@ -249,7 +249,7 @@ describe('the Portuguese review gate', function () {
         $portuguese = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('id');
 
         expect(Lesson::query()->whereIn('unit_id', $portuguese)->count())->toBe(0)
-            ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(104);
+            ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(120);
     });
 
     it('shows a Portuguese learner every lesson of every Portuguese unit as still coming, with nothing to start', function () {
@@ -303,7 +303,7 @@ describe('the Portuguese word lessons once reviewed', function () {
 
             expect($lessons->keys()->all())->toBe(['meet', 'recall', 'check'])
                 ->and(portugueseFormatCounts($lessons['meet']))->toBe(['teach_word' => 10, 'choose_meaning' => 10, 'type_word' => 10, 'match_pairs' => 2])
-                ->and(portugueseFormatCounts($lessons['recall']))->toBe(['teach_grammar' => 1, 'choose_word' => 10, 'type_word' => 10])
+                ->and(portugueseFormatCounts($lessons['recall']))->toBe(['choose_word' => 10, 'type_word' => 10])
                 ->and(portugueseFormatCounts($lessons['check']))->toBe(['type_word' => 20]);
         }
     });

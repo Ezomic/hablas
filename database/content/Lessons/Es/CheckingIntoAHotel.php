@@ -64,6 +64,8 @@ final class CheckingIntoAHotel implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: DLE (recepcionista m. y f.), Wikcionario. Fixed: accepted el aseo for bathroom. el recepcionista and la recepcionista both accepted, spelling confirmed. Open questions answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -87,7 +89,7 @@ final class CheckingIntoAHotel implements UnitContent
             self::typeGap($stage, 'sentences.type_gap.estoy', '___ en la habitación.', 'I am in the room.', 'Estoy', self::form('estoy'), 'I am, about where I am, is estoy.'),
             self::translate($stage, 'sentences.translate.desayuno', 'The breakfast is included.', ['El desayuno está incluido.', 'Está incluido el desayuno.'], [self::word('el desayuno'), self::word('incluido'), self::form('está')]),
             self::translate($stage, 'sentences.translate.habitacion', 'The room is available.', ['La habitación está disponible.'], [self::word('la habitación'), self::word('disponible'), self::form('está')]),
-            self::translate($stage, 'sentences.translate.hotel', 'The hotel is here.', ['El hotel está aquí.'], [self::word('el hotel'), self::form('está')]),
+            self::translate($stage, 'sentences.translate.hotel', 'The hotel is here.', ['El hotel está aquí.', 'Aquí está el hotel.'], [self::word('el hotel'), self::form('está')]),
             self::build($stage, 'sentences.build.bano-aqui', 'The bathroom is here.', 'El baño está aquí.', ['es'], [self::word('el baño'), self::form('está')]),
             self::build($stage, 'sentences.build.hay-habitacion', 'There is a room available.', 'Hay una habitación disponible.', ['está'], [self::word('la habitación', 'habitación'), self::word('disponible'), self::form('Hay', true)]),
             self::build($stage, 'sentences.build.reserva-noches', 'The reservation is for two nights.', 'La reserva es para dos noches.', ['hay'], [self::word('la reserva'), self::word('la noche', 'noches'), self::form('es', true)]),
@@ -163,7 +165,7 @@ final class CheckingIntoAHotel implements UnitContent
             self::build($stage, 'task.build.llave', 'The key is in the room.', 'La llave está en la habitación.', ['es', 'hay'], [self::word('la llave'), self::word('la habitación'), self::form('está')], 'write'),
             self::build($stage, 'task.build.estamos', 'We are in the hotel.', 'Estamos en el hotel.', ['Estoy', 'hay'], [self::word('el hotel'), self::form('estamos')], 'write'),
             self::build($stage, 'task.build.habitaciones', 'There are rooms available for two nights.', 'Hay habitaciones disponibles para dos noches.', ['están', 'es'], [self::word('la habitación', 'habitaciones'), self::word('disponible', 'disponibles'), self::word('la noche', 'noches'), self::form('Hay', true)], 'write'),
-            self::translate($stage, 'task.translate.reserva', 'Do you have a reservation?', ['¿Tiene una reserva?', '¿Tienes una reserva?', '¿Tiene usted una reserva?', '¿Tiene reserva?', '¿Tienes reserva?', '¿Tienen una reserva?'], [self::word('la reserva', 'reserva')], 'write'),
+            self::translate($stage, 'task.translate.reserva', 'Do you have a reservation?', ['¿Tiene una reserva?', '¿Tienes una reserva?', '¿Tiene usted una reserva?', '¿Usted tiene una reserva?', '¿Tiene reserva?', '¿Tienes reserva?', '¿Tienen una reserva?'], [self::word('la reserva', 'reserva')], 'write'),
             self::translate($stage, 'task.translate.noches', 'The reservation is for two nights.', ['La reserva es para dos noches.'], [self::word('la reserva'), self::word('la noche', 'noches'), self::form('es', true)], 'write'),
 
             new AuthoredExercise($stage, Format::ListenPassage, 'task.listen_passage.reception', [

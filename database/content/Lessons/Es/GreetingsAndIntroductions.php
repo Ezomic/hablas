@@ -63,6 +63,8 @@ final class GreetingsAndIntroductions implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), WordReference forum, SpanishDict, hinative. Fixed: cue for hola no longer says informal; accepted yo me llamo, encantado de conocerte (m/f), mucho gusto en conocerte, qué tal, qué tal estás, estoy bien, muchas gracias. mucho gusto is correct but more formal in Spain, encantado/a stays accepted. Open questions answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -77,7 +79,7 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::gap($stage, 'sentences.choose_gap.yo-bien', 'Yo ___ bien.', ['estoy', 'soy', 'es'], 'estoy', Kit::form('estoy', true), 'How you are, a state, takes estar, not ser.', 'choose', 'I am fine.'),
             Kit::gap($stage, 'sentences.choose_gap.ella-marta', 'Ella ___ Marta.', ['es', 'soy', 'somos'], 'es', Kit::form('es'), 'He, she and usted take es.', 'choose'),
             Kit::gap($stage, 'sentences.choose_gap.nosotros', 'Nosotros ___ Pablo y Luis.', ['somos', 'son', 'soy'], 'somos', Kit::form('somos'), 'We takes somos.', 'choose'),
-            Kit::gap($stage, 'sentences.choose_gap.buenas-noches', 'Buenas ___, Marta.', ['noches', 'días', 'tardes'], 'noches', Kit::word('buenas noches', 'noches'), 'Buenas is feminine plural, so it goes with noches or tardes, and good night is buenas noches.', 'choose', 'Good night, Marta.'),
+            Kit::gap($stage, 'sentences.choose_gap.buenas-noches', 'Buenas ___, Marta.', ['noches', 'días', 'gracias'], 'noches', Kit::word('buenas noches', 'noches'), 'Good night is buenas noches. Días is masculine, so it goes with buenos, and gracias is not a time of day.', 'choose', 'Good night, Marta.'),
 
             Kit::typeGap($stage, 'sentences.type_gap.estudiante', 'Yo ___ estudiante.', 'I am a student.', 'soy', Kit::form('soy'), 'Saying who you are takes ser: I am is soy.', glosses: ['estudiante' => 'student']),
             Kit::typeGap($stage, 'sentences.type_gap.como-estas', 'Hola, Ana. ¿Cómo ___?', 'Hi, Ana. How are you?', 'estás', Kit::form('estás', true), 'How you are, a state, takes estar. Eres says who you are.'),
@@ -85,7 +87,7 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.ellos', 'Ellos ___ Ana y Luis.', 'They are Ana and Luis.', 'son', Kit::form('son'), 'More than one person, they, takes son.'),
             Kit::typeGap($stage, 'sentences.type_gap.buenos-dias', 'Buenos ___, Pablo.', 'Good morning, Pablo.', 'días', Kit::word('buenos días', 'días')),
             Kit::translate($stage, 'sentences.translate.hola-soy', 'Hello, I am Ana.', ['Hola, soy Ana.', 'Hola, yo soy Ana.'], [Kit::word('hola'), Kit::form('soy')]),
-            Kit::translate($stage, 'sentences.translate.me-llamo', 'My name is Luis. Nice to meet you.', ['Me llamo Luis. Mucho gusto.', 'Me llamo Luis, mucho gusto.', 'Yo me llamo Luis. Mucho gusto.', 'Me llamo Luis. Mucho gusto en conocerte.'], [Kit::word('me llamo'), Kit::word('mucho gusto')]),
+            Kit::translate($stage, 'sentences.translate.me-llamo', 'My name is Luis. Nice to meet you.', ['Me llamo Luis. Mucho gusto.', 'Me llamo Luis, mucho gusto.', 'Yo me llamo Luis. Mucho gusto.', 'Me llamo Luis. Mucho gusto en conocerte.', 'Me llamo Luis. Encantado.', 'Me llamo Luis, encantado.'], [Kit::word('me llamo'), Kit::word('mucho gusto', null, ['encantado'])]),
             Kit::translate($stage, 'sentences.translate.bien-gracias', 'I am fine, thank you.', ['Estoy bien, gracias.', 'Estoy bien. Gracias.', 'Estoy bien, muchas gracias.', 'Yo estoy bien, gracias.'], [Kit::word('bien'), Kit::word('gracias'), Kit::form('estoy', true)]),
             Kit::build($stage, 'sentences.build.buenas-tardes', 'Good afternoon, I am Ana.', 'Buenas tardes, soy Ana.', ['estoy'], [Kit::word('buenas tardes'), Kit::form('soy')]),
             Kit::build($stage, 'sentences.build.hola-pablo', 'Hello, he is Pablo.', 'Hola, él es Pablo.', ['soy'], [Kit::word('hola'), Kit::form('es')]),
@@ -125,12 +127,12 @@ final class GreetingsAndIntroductions implements UnitContent
                 Kit::question('How is Ana?', ['She is fine.', 'She is not fine.', 'The text does not say.'], 'She is fine.'),
                 Kit::question('Who is Marta?', ['Pablo\'s friend', 'Ana\'s sister', 'A teacher'], 'Pablo\'s friend'),
             ], [Kit::word('buenos días'), Kit::word('me llamo'), Kit::word('¿cómo estás?'), Kit::word('bien'), Kit::word('gracias'), Kit::word('mucho gusto'), Kit::word('hola')], 'read', null, ['amiga' => 'friend (female)', 'estudiante' => 'student']),
-            Kit::gap($stage, 'task.choose_gap.mucho-gusto', 'Mucho ___, Ana.', ['gusto', 'gracias'], 'gusto', Kit::word('mucho gusto', 'gusto'), 'The set phrase for nice to meet you is mucho gusto.', 'read'),
+            Kit::gap($stage, 'task.choose_gap.mucho-gusto', 'Mucho ___, Ana.', ['gusto', 'gracias'], 'gusto', Kit::word('mucho gusto', 'gusto'), 'The set phrase for nice to meet you is mucho gusto. Thank you is gracias or muchas gracias.', 'read', 'Nice to meet you, Ana.'),
             Kit::gap($stage, 'task.choose_gap.bien-gracias', '¿Cómo estás? ___, gracias.', ['Bien', 'Buenos', 'Buenas'], 'Bien', Kit::word('bien'), 'Bien is the usual answer to how are you.', 'read'),
 
-            Kit::transform($stage, 'task.transform.somos', 'Make it plural: we.', 'Soy estudiante.', ['Somos estudiantes.', 'Nosotros somos estudiantes.'], [Kit::form('somos')], ['estudiante' => 'student', 'estudiantes' => 'students']),
-            Kit::transform($stage, 'task.transform.tu', 'Change the subject to tú.', 'Ella es Marta.', ['Tú eres Marta.'], [Kit::form('eres')]),
-            Kit::transform($stage, 'task.transform.estamos', 'Change the subject to we.', 'Estoy bien.', ['Estamos bien.', 'Nosotros estamos bien.'], [Kit::word('bien'), Kit::form('estamos', true)]),
+            Kit::transform($stage, 'task.transform.somos', 'Change the subject to we.', 'Soy estudiante.', ['Somos estudiantes.', 'Nosotros somos estudiantes.', 'Nosotras somos estudiantes.'], [Kit::form('somos')], ['estudiante' => 'student', 'estudiantes' => 'students']),
+            Kit::transform($stage, 'task.transform.tu', 'Change the subject to tú.', 'Ella es Marta.', ['Tú eres Marta.', 'Eres Marta.'], [Kit::form('eres')]),
+            Kit::transform($stage, 'task.transform.estamos', 'Change the subject to we.', 'Estoy bien.', ['Estamos bien.', 'Nosotros estamos bien.', 'Nosotras estamos bien.'], [Kit::word('bien'), Kit::form('estamos', true)]),
             Kit::writeGuided($stage, 'task.write_guided.saludo', 'Say good morning, say your name is Ana and say nice to meet you.', ['buenos días', 'me llamo', 'mucho gusto'], 'Buenos días. Me llamo Ana. Mucho gusto.', [
                 ['forms' => ['días'], 'term' => 'buenos días'],
                 ['forms' => ['llamo', 'soy'], 'term' => 'me llamo'],
@@ -144,7 +146,7 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::build($stage, 'task.build.buenos-dias', 'Good morning, I am Ana. How are you?', 'Buenos días, soy Ana. ¿Cómo estás?', ['estoy', 'eres'], [Kit::word('buenos días'), Kit::form('soy'), Kit::word('¿cómo estás?', 'cómo estás')], 'write'),
             Kit::build($stage, 'task.build.tardes', 'Good afternoon, we are Pablo and Luis.', 'Buenas tardes, somos Pablo y Luis.', ['son', 'soy'], [Kit::word('buenas tardes'), Kit::form('somos')], 'write'),
             Kit::build($stage, 'task.build.estoy-bien', 'I am fine, thank you. Goodbye, Ana.', 'Estoy bien, gracias. Adiós, Ana.', ['soy', 'estás'], [Kit::word('bien'), Kit::word('gracias'), Kit::word('adiós'), Kit::form('estoy', true)], 'write'),
-            Kit::translate($stage, 'task.translate.estudiante', 'Nice to meet you. I am a student.', ['Mucho gusto. Soy estudiante.', 'Mucho gusto, soy estudiante.', 'Mucho gusto. Yo soy estudiante.', 'Mucho gusto. Soy un estudiante.'], [Kit::word('mucho gusto'), Kit::form('soy')], 'write', null, ['estudiante' => 'student']),
+            Kit::translate($stage, 'task.translate.estudiante', 'Nice to meet you. I am a student.', ['Mucho gusto. Soy estudiante.', 'Mucho gusto, soy estudiante.', 'Mucho gusto. Yo soy estudiante.', 'Mucho gusto. Soy un estudiante.', 'Encantado. Soy estudiante.', 'Encantada. Soy estudiante.'], [Kit::word('mucho gusto', null, ['encantado', 'encantada']), Kit::form('soy')], 'write', null, ['estudiante' => 'student']),
             Kit::translate($stage, 'task.translate.hola-como', 'Hello, how are you?', ['Hola, ¿cómo estás?', 'Hola, ¿cómo estás tú?', 'Hola, ¿cómo está usted?'], [Kit::word('hola'), Kit::word('¿cómo estás?', 'cómo')], 'write'),
 
             Kit::listenPassage($stage, 'task.listen_passage.buenas-noches', [
@@ -166,8 +168,8 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::listenType($stage, 'task.listen_type.somos', 'Somos Luis y Marta. Mucho gusto.', 'We are Luis and Marta. Nice to meet you.', [Kit::form('somos'), Kit::word('mucho gusto')]),
 
             Kit::speakAnswer($stage, 'task.speak_answer.tardes', 'Buenas tardes. ¿Cómo estás?', 'Good afternoon. How are you?', [['estoy', 'bien'], ['bien', 'gracias', 'muy']], 'Estoy bien, gracias.', [Kit::word('buenas tardes'), Kit::word('¿cómo estás?'), Kit::word('bien'), Kit::form('estoy', true)], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.quien-eres', 'Buenos días. ¿Quién eres?', 'Good morning. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis', 'llamo']], 'Buenos días, soy Ana.', [Kit::word('buenos días'), Kit::form('soy')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.mucho-gusto', 'Me llamo Pablo. Mucho gusto.', 'My name is Pablo. Nice to meet you.', [['mucho', 'gusto', 'encantado', 'encantada']], 'Mucho gusto, Pablo.', [Kit::word('me llamo'), Kit::word('mucho gusto')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.quien-eres', 'Buenos días. ¿Quién eres?', 'Good morning. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis']], 'Buenos días, soy Ana.', [Kit::word('buenos días'), Kit::form('soy')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.mucho-gusto', 'Me llamo Pablo. Mucho gusto.', 'My name is Pablo. Nice to meet you.', [['gusto', 'encantado', 'encantada']], 'Mucho gusto, Pablo.', [Kit::word('me llamo'), Kit::word('mucho gusto')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.quien-el', '¿Quién es él?', 'Who is he?', [['es', 'él'], ['pablo', 'luis']], 'Él es Pablo.', [Kit::form('es')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.buenas-noches', 'Buenas noches, Luis. Adiós.', 'Good night, Luis. Goodbye.', [Kit::word('buenas noches'), Kit::word('adiós')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.estamos', 'Estamos bien, gracias.', 'We are fine, thank you.', [Kit::word('bien'), Kit::word('gracias'), Kit::form('estamos', true)], 'speak'),
@@ -214,7 +216,7 @@ final class GreetingsAndIntroductions implements UnitContent
                 Kit::question('How is Pablo?', ['Fine', 'Not fine', 'The text does not say.'], 'Fine'),
             ], [Kit::word('buenas noches'), Kit::word('me llamo'), Kit::word('¿cómo estás?'), Kit::word('bien')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.como-estas', '¿Cómo estás?', 'How are you?', [['estoy', 'bien', 'muy'], ['bien', 'gracias']], 'Estoy bien, gracias.', [Kit::word('¿cómo estás?'), Kit::word('bien'), Kit::word('gracias')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.quien-eres', 'Buenas noches. ¿Quién eres?', 'Good night. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis', 'llamo']], 'Soy Marta.', [Kit::word('buenas noches')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.quien-eres', 'Buenas noches. ¿Quién eres?', 'Good night. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis']], 'Soy Marta.', [Kit::word('buenas noches')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.eres-ana', 'Hola, ¿eres Ana?', 'Hello, are you Ana?', [['sí', 'no', 'soy'], ['soy', 'ana', 'luis', 'marta', 'pablo']], 'Sí, soy Ana.', [Kit::word('hola')], 'speaking', $set),
         ];
     }
@@ -228,7 +230,7 @@ final class GreetingsAndIntroductions implements UnitContent
         return [
             Kit::translate($stage, 'check.b.translate.hola-ella', 'Hello, she is Marta.', ['Hola, ella es Marta.'], [Kit::word('hola'), Kit::form('es')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.adios', 'Goodbye, thank you.', ['Adiós, gracias.', 'Adiós, muchas gracias.', 'Gracias, adiós.', 'Muchas gracias, adiós.'], [Kit::word('adiós'), Kit::word('gracias')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.soy-ana', 'I am Ana. Nice to meet you.', ['Soy Ana. Mucho gusto.', 'Soy Ana, mucho gusto.', 'Yo soy Ana. Mucho gusto.'], [Kit::word('mucho gusto'), Kit::form('soy')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.soy-ana', 'I am Ana. Nice to meet you.', ['Soy Ana. Mucho gusto.', 'Soy Ana, mucho gusto.', 'Yo soy Ana. Mucho gusto.', 'Soy Ana. Encantada.', 'Soy Ana, encantada.'], [Kit::word('mucho gusto', null, ['encantada']), Kit::form('soy')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.como', 'Good morning, how are you?', ['Buenos días, ¿cómo estás?', 'Buenos días, ¿cómo está usted?', 'Buenos días, ¿cómo estás tú?'], [Kit::word('buenos días'), Kit::word('¿cómo estás?', 'cómo')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.estoy', 'Yo ___ bien, gracias.', 'I am fine, thank you.', 'estoy', Kit::form('estoy', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.marta', '¿Cómo ___ Marta?', 'How is Marta?', 'está', Kit::form('está', true), null, 'sentences', $set),

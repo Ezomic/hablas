@@ -410,7 +410,7 @@ describe('targets and spans', function () {
             }
         };
 
-        $exercise = collect(builtLessons($content, $unit)['sentences']->exercises)->first();
+        $exercise = collect(builtLessons($content, $unit)['sentences']->exercises)->first(fn (ExerciseDefinition $exercise): bool => $exercise->format === Format::TranslateSentence);
 
         expect(collect($exercise->payload['accepted'])->pluck('text')->all())->toBe(['Yo tengo una reserva.', 'tengo una reserva.'])
             ->and($exercise->payload['accepted'][1]['spans'])->toHaveCount(1);
@@ -755,11 +755,12 @@ describe('stable keys and hashes', function () {
     });
 });
 
-it('puts the grammar card first in lesson 2 and keeps its examples', function () {
-    $recall = builtLessons()['recall'];
-    $first = $recall->exercises[0];
+it('puts the grammar card first in lesson 3, right before its practice, and keeps its examples', function () {
+    $lessons = builtLessons();
+    $first = $lessons['sentences']->exercises[0];
 
-    expect($first->format)->toBe(Format::TeachGrammar)
+    expect(collect($lessons['recall']->exercises)->contains(fn (ExerciseDefinition $exercise): bool => $exercise->format === Format::TeachGrammar))->toBeFalse()
+        ->and($first->format)->toBe(Format::TeachGrammar)
         ->and($first->block)->toBe('grammar')
         ->and($first->payload['examples'])->toHaveCount(2)
         ->and($first->payload['title'])->toBe('Estar for location');

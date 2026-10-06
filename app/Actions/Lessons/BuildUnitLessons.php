@@ -87,7 +87,8 @@ final class BuildUnitLessons
 
         match ($stage) {
             LessonStage::Meet => $this->wordExercises->meet($context, $sink),
-            LessonStage::Recall => $this->recall($context, $sink),
+            LessonStage::Recall => $this->wordExercises->recall($context, $sink),
+            LessonStage::Sentences => $this->teachGrammar($context, $sink, $authored),
             LessonStage::Check => $this->check($context, $sink),
             default => null,
         };
@@ -109,17 +110,24 @@ final class BuildUnitLessons
         return new LessonDefinition($stage, $stage->title(), $stage->position(), $exercises);
     }
 
-    private function recall(BuildContext $context, ExerciseSink $sink): void
+    /**
+     * The rule is taught at the start of the lesson that practises it, so it is
+     * followed at once by its exercises. A unit with no authored sentences has
+     * nothing to practise it with, so it teaches no rule.
+     *
+     * @param  array<string, list<AuthoredExercise>>  $authored  by stage value
+     */
+    private function teachGrammar(BuildContext $context, ExerciseSink $sink, array $authored): void
     {
-        if ($context->grammar !== null) {
-            $sink->add('recall.teach_grammar.'.Str::slug($context->grammar->title), 'grammar', LessonExerciseFormat::TeachGrammar, [
-                'title' => $context->grammar->title,
-                'explanation' => $context->grammar->explanation,
-                'examples' => $context->content->grammarExamples(),
-            ], [new TargetDefinition(TargetRef::for($context->grammar), false, false, null)]);
+        if ($context->grammar === null || ($authored[LessonStage::Sentences->value] ?? []) === []) {
+            return;
         }
 
-        $this->wordExercises->recall($context, $sink);
+        $sink->add('sentences.teach_grammar.'.Str::slug($context->grammar->title), 'grammar', LessonExerciseFormat::TeachGrammar, [
+            'title' => $context->grammar->title,
+            'explanation' => $context->grammar->explanation,
+            'examples' => $context->content->grammarExamples(),
+        ], [new TargetDefinition(TargetRef::for($context->grammar), false, false, null)]);
     }
 
     private function check(BuildContext $context, ExerciseSink $sink): void

@@ -55,7 +55,7 @@ it('retires the authored exercises when the gate closes again, and deletes nothi
     (new SyncUnitLessons)->handle($this->unit, (new BuildUnitLessons)->handle($this->unit, $this->released));
     $total = LessonExercise::query()->count();
 
-    app()->instance(UnitContentRegistry::class, new UnitContentRegistry([new CheckingIntoAHotel]));
+    app()->instance(UnitContentRegistry::class, new UnitContentRegistry([new PreviewContent(new CheckingIntoAHotel)]));
     $this->seed(ContentSeeder::class);
 
     expect(LessonExercise::query()->count())->toBe($total)

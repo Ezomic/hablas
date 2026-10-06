@@ -13,7 +13,6 @@ use App\Lessons\PreviewContent;
 use App\Lessons\ReviewGate;
 use App\Lessons\SpokenTexts;
 use App\Models\Lesson;
-use App\Models\LessonExercise;
 use App\Models\Unit;
 use App\Services\SpanishTextNormalizer;
 use App\Services\UnitContentRegistry;
@@ -92,20 +91,18 @@ function stageSentences(object $test, LessonStage $stage, ?string $set = null): 
 }
 
 describe('the authored hotel content and the review gate', function () {
-    it('is written but not released: it needs the independent AI review and the owner approval of the lessons', function () {
+    it('is released: it has the independent AI review and the owner approval of the lessons', function () {
         expect(ReviewGate::wordsReleased($this->content))->toBeTrue()
-            ->and(ReviewGate::lessonsReleased($this->content))->toBeFalse()
-            ->and($this->content->exercises())->not->toBeEmpty()
-            ->and(collect($this->content->reviews())->every(fn ($review): bool => $review->scope->value === 'words'))->toBeTrue();
+            ->and(ReviewGate::lessonsReleased($this->content))->toBeTrue()
+            ->and($this->content->exercises())->not->toBeEmpty();
     });
 
-    it('seeds no authored lesson through ContentSeeder, so learners keep lessons 1 and 2 and the words check', function () {
+    it('seeds every authored lesson through ContentSeeder', function () {
         $this->seed(ContentSeeder::class);
 
         $stages = Lesson::query()->where('unit_id', $this->unit->id)->orderBy('position')->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->all();
 
-        expect($stages)->toBe(['meet', 'recall', 'check'])
-            ->and(LessonExercise::query()->whereIn('lesson_id', Lesson::query()->where('unit_id', $this->unit->id)->pluck('id'))->where('block', '!=', 'recall')->whereHas('lesson', fn ($query) => $query->where('stage', LessonStage::Check))->count())->toBe(0);
+        expect($stages)->toBe(['meet', 'recall', 'sentences', 'task', 'check']);
     });
 
     it('builds, with the lessons treated as released, all five lessons', function () {

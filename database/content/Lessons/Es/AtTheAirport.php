@@ -44,8 +44,8 @@ final class AtTheAirport implements UnitContent
     public function grammarExamples(): array
     {
         return [
-            ['text' => 'El vuelo es largo.', 'english' => 'The flight is long.'],
-            ['text' => 'La maleta es grande.', 'english' => 'The suitcase is big.'],
+            ['text' => 'El vuelo es internacional.', 'english' => 'The flight is international.'],
+            ['text' => 'La maleta está aquí.', 'english' => 'The suitcase is here.'],
         ];
     }
 
@@ -63,6 +63,8 @@ final class AtTheAirport implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), Aena boards and site. Fixed: accepted la puerta de embarque for the gate cue. la salida covers exit and departure (boards read Salidas), kept. retrasado is the Aena board wording for a delayed flight (offensive only said of people). Open questions answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -122,7 +124,7 @@ final class AtTheAirport implements UnitContent
                 Kit::line('Ana', 'Sí, aquí están. Es un vuelo internacional.'),
                 Kit::line('Agente', 'Muy bien. ¿Tiene una maleta?'),
                 Kit::line('Ana', 'Sí, tengo una maleta.'),
-                Kit::line('Agente', 'La puerta es la cinco. El vuelo está retrasado.'),
+                Kit::line('Agente', 'Su puerta es la cinco. El vuelo está retrasado.'),
                 Kit::line('Ana', 'Gracias.'),
             ], [
                 Kit::question('How many suitcases does Ana have?', ['None', 'One', 'Two'], 'One'),
@@ -235,7 +237,7 @@ final class AtTheAirport implements UnitContent
 
         return [
             Kit::translate($stage, 'check.b.translate.billete', 'The ticket is not here.', ['El billete no está aquí.', 'No está aquí el billete.'], [Kit::word('el billete'), Kit::form('el', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.maletas', 'The suitcases are in the airport.', ['Las maletas están en el aeropuerto.'], [Kit::word('la maleta', 'maletas'), Kit::word('el aeropuerto'), Kit::form('las')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.maletas', 'The suitcases are at the airport.', ['Las maletas están en el aeropuerto.'], [Kit::word('la maleta', 'maletas'), Kit::word('el aeropuerto'), Kit::form('las')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.vuelo', 'The flight is not delayed.', ['El vuelo no está retrasado.', 'No está retrasado el vuelo.'], [Kit::word('el vuelo'), Kit::word('retrasado')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.puerta', 'Gate nine is here and the exit is over there.', ['La puerta nueve está aquí y la salida está allí.'], [Kit::word('la puerta'), Kit::word('la salida')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.pasaporte', '¿Tienes ___ pasaporte?', 'Do you have the passport?', 'el', Kit::form('el', true), null, 'sentences', $set),

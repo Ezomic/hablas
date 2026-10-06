@@ -63,6 +63,8 @@ final class DescribingYourDailyRoutine implements UnitContent
     {
         return [
             new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (dictionary pass)', '2026-10-01', 'Sources: RAE excerpts via search (dle.rae.es blocked direct fetch), WordReference. Fixed: accepted cada día for todos los días. First-person distractors are finite forms, definitely wrong against infinitive cues. Open question answered and removed.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-06', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-06', 'Released on the owner\'s instruction on 2026-10-06, without a line by line review of the lessons.'),
         ];
     }
 
@@ -76,8 +78,8 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::gap($stage, 'sentences.choose_gap.ella-acuesta', 'Ella ___ tarde.', ['se acuesta', 'me acuesto', 'se acuestan'], 'se acuesta', Kit::form('se acuesta'), 'Ella goes with se: the pronoun matches the person.', 'choose'),
             Kit::gap($stage, 'sentences.choose_gap.tu-levantas', 'Tú ___ a las siete.', ['te levantas', 'me levantas', 'se levantas'], 'te levantas', Kit::form('te levantas'), 'Tú goes with te: the pronoun matches the person.', 'choose'),
             Kit::gap($stage, 'sentences.choose_gap.nosotros-despertamos', 'Nosotros ___ temprano.', ['nos despertamos', 'nos despierto', 'me despertamos'], 'nos despertamos', Kit::form('nos despertamos'), 'Nosotros goes with nos: the pronoun matches the person.', 'choose'),
-            Kit::gap($stage, 'sentences.choose_gap.yo-desayuno', 'Yo ___ a las ocho.', ['desayuno', 'me desayuno'], 'desayuno', Kit::form('desayuno', true), 'Desayunar is not reflexive, so the verb takes no pronoun.', 'choose'),
-            Kit::gap($stage, 'sentences.choose_gap.tu-trabajas', 'Tú ___ a las nueve.', ['trabajas', 'te trabajas'], 'trabajas', Kit::form('trabajas', true), 'Trabajar is not reflexive, so the verb takes no pronoun.', 'choose'),
+            Kit::gap($stage, 'sentences.choose_gap.yo-desayuno', 'Yo ___ a las ocho.', ['desayuno', 'desayuna'], 'desayuno', Kit::form('desayuno', true), 'Yo goes with desayuno. Desayuna is for él or ella, and desayunar takes no pronoun.', 'choose'),
+            Kit::gap($stage, 'sentences.choose_gap.tu-trabajas', 'Tú ___ a las nueve.', ['trabajas', 'trabaja'], 'trabajas', Kit::form('trabajas', true), 'Tú goes with trabajas. Trabaja is for él or ella, and trabajar takes no pronoun.', 'choose'),
 
             Kit::typeGap($stage, 'sentences.type_gap.me-levanto', '___ temprano.', 'I get up early.', 'Me levanto', Kit::form('me levanto'), 'Yo goes with me: me levanto.'),
             Kit::typeGap($stage, 'sentences.type_gap.se-levanta', 'Ella ___ temprano.', 'She gets up early.', 'se levanta', Kit::form('se levanta'), 'Ella goes with se: se levanta.'),
@@ -86,7 +88,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.nos-acostamos', 'Nosotros ___ tarde.', 'We go to bed late.', 'nos acostamos', Kit::form('nos acostamos'), 'Nosotros goes with nos: nos acostamos.'),
 
             Kit::translate($stage, 'sentences.translate.normalmente-levanto', 'Normally I get up early.', ['Normalmente me levanto temprano.', 'Me levanto temprano normalmente.', 'Normalmente yo me levanto temprano.', 'Yo normalmente me levanto temprano.', 'Yo me levanto temprano normalmente.'], [Kit::word('normalmente'), Kit::word('levantarse', 'me levanto'), Kit::word('temprano'), Kit::form('me levanto')]),
-            Kit::translate($stage, 'sentences.translate.ella-acuesta', 'She goes to bed late.', ['Ella se acuesta tarde.'], [Kit::word('acostarse', 'se acuesta'), Kit::word('tarde'), Kit::form('se acuesta')]),
+            Kit::translate($stage, 'sentences.translate.ella-acuesta', 'She goes to bed late.', ['Ella se acuesta tarde.', 'Se acuesta tarde.'], [Kit::word('acostarse', 'se acuesta'), Kit::word('tarde'), Kit::form('se acuesta')]),
             Kit::translate($stage, 'sentences.translate.trabajo', 'I work at nine.', ['Trabajo a las nueve.', 'Yo trabajo a las nueve.'], [Kit::word('trabajar', 'trabajo'), Kit::form('trabajo', true)]),
 
             Kit::build($stage, 'sentences.build.me-despierto', 'I wake up at seven.', 'Me despierto a las siete.', ['se'], [Kit::word('despertarse', 'me despierto'), Kit::form('me despierto')]),
@@ -131,7 +133,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::gap($stage, 'task.choose_gap.temprano', 'Me levanto a las cinco, muy ___.', ['temprano', 'tarde'], 'temprano', Kit::word('temprano'), 'Five in the morning is early, so temprano. Late is tarde.', 'read'),
             Kit::gap($stage, 'task.choose_gap.tarde', 'Se acuesta a las doce, muy ___.', ['tarde', 'temprano'], 'tarde', Kit::word('tarde'), 'Midnight is late, so tarde. Early is temprano.', 'read'),
 
-            Kit::transform($stage, 'task.transform.ella', 'Change the subject to she.', 'Me levanto temprano.', ['Ella se levanta temprano.'], [Kit::word('levantarse', 'se levanta'), Kit::word('temprano'), Kit::form('se levanta')]),
+            Kit::transform($stage, 'task.transform.ella', 'Change the subject to she.', 'Me levanto temprano.', ['Ella se levanta temprano.', 'Se levanta temprano.'], [Kit::word('levantarse', 'se levanta'), Kit::word('temprano'), Kit::form('se levanta')]),
             Kit::transform($stage, 'task.transform.nosotros', 'Change the subject to we.', 'Me despierto a las siete.', ['Nos despertamos a las siete.', 'Nosotros nos despertamos a las siete.'], [Kit::word('despertarse', 'nos despertamos'), Kit::form('nos despertamos')]),
             Kit::transform($stage, 'task.transform.tu', 'Change the subject to you (tú).', 'Me acuesto tarde.', ['Te acuestas tarde.', 'Tú te acuestas tarde.'], [Kit::word('acostarse', 'te acuestas'), Kit::word('tarde'), Kit::form('te acuestas')]),
             Kit::writeGuided($stage, 'task.write_guided.rutina', 'Describe your daily routine. Use the words get up, have breakfast and work.', ['me levanto', 'desayuno', 'trabajo'], 'Me levanto temprano, desayuno y trabajo a las nueve.', [
@@ -186,7 +188,7 @@ final class DescribingYourDailyRoutine implements UnitContent
         $set = 'a';
 
         return [
-            Kit::translate($stage, 'check.a.translate.despierta', 'She wakes up early and has breakfast.', ['Ella se despierta temprano y desayuna.'], [Kit::word('despertarse', 'se despierta'), Kit::word('temprano'), Kit::word('desayunar', 'desayuna'), Kit::form('se despierta')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.despierta', 'She wakes up early and has breakfast.', ['Ella se despierta temprano y desayuna.', 'Se despierta temprano y desayuna.'], [Kit::word('despertarse', 'se despierta'), Kit::word('temprano'), Kit::word('desayunar', 'desayuna'), Kit::form('se despierta')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.acostamos', 'We go to bed at eleven.', ['Nos acostamos a las once.', 'Nosotros nos acostamos a las once.'], [Kit::word('acostarse', 'nos acostamos'), Kit::form('nos acostamos')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.trabajo', 'Normally I work at ten.', ['Normalmente trabajo a las diez.', 'Trabajo normalmente a las diez.', 'Normalmente yo trabajo a las diez.', 'Yo normalmente trabajo a las diez.'], [Kit::word('normalmente'), Kit::word('trabajar', 'trabajo'), Kit::form('trabajo', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.levantan', 'They get up late.', ['Se levantan tarde.', 'Ellos se levantan tarde.', 'Ellas se levantan tarde.'], [Kit::word('levantarse', 'se levantan'), Kit::word('tarde'), Kit::form('se levantan')], 'sentences', $set),

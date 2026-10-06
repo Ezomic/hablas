@@ -178,7 +178,7 @@ it('seeds the same lessons on a second pass over the real content, and writes no
     $before = [Lesson::query()->count(), LessonExercise::query()->count()];
     $writes = writesDuring(fn () => $this->seed(LessonSeeder::class));
 
-    expect($before[0])->toBe(104)
+    expect($before[0])->toBe(120)
         ->and($before[1])->toBeGreaterThan(0)
         ->and([Lesson::query()->count(), LessonExercise::query()->count()])->toBe($before)
         ->and($writes)->toBe([]);
