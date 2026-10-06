@@ -4,6 +4,7 @@ import { ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppSpinner from '@/components/AppSpinner.vue';
+import DayStrip from '@/components/DayStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +31,7 @@ import { store as startRun } from '@/routes/lessons/runs';
 import { index as unitsIndex } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 import type { UnitLessonOverview } from '@/types/lesson';
-import type { UnitProgress } from '@/types/unit';
+import type { DayProgress, UnitProgress } from '@/types/unit';
 
 interface Unit {
     id: number;
@@ -49,6 +50,7 @@ const props = defineProps<{
     availability?: string;
     lessons?: UnitLessonOverview | null;
     progress: UnitProgress;
+    day: DayProgress;
     speechLocale: string | null;
 }>();
 
@@ -114,6 +116,8 @@ function complete() {
                 {{ props.unit.taskDescription }}
             </p>
         </div>
+
+        <DayStrip :day="props.day" />
 
         <UnitHero
             v-if="props.lessons"

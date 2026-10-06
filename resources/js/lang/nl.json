@@ -715,6 +715,11 @@
             "chartLabel": "Te herhalen kaarten per dag"
         }
     },
+    "day": {
+        "words": "{words} van {goal} woorden vandaag",
+        "reached": "Dagdoel gehaald",
+        "due": "{count} herhaling | {count} herhalingen"
+    },
     "progress": {
         "stars": "Nog geen sterren | {count} ster | {count} sterren",
         "unitPercent": "{percent}% van deze unit gekend",

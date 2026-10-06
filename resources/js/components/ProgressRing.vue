@@ -6,6 +6,7 @@ const props = withDefaults(
         value: number;
         size?: number;
         label: string;
+        text?: string;
     }>(),
     { size: 88 },
 );
@@ -56,9 +57,10 @@ const offset = computed(
             />
         </svg>
         <span
-            class="absolute inset-0 flex items-center justify-center text-lg font-semibold"
+            class="absolute inset-0 flex items-center justify-center font-semibold"
+            :class="props.size < 72 ? 'text-xs' : 'text-lg'"
         >
-            {{ props.value }}%
+            {{ props.text ?? `${props.value}%` }}
         </span>
     </div>
 </template>

@@ -18,6 +18,7 @@ vi.mock('@/routes/lessons/runs', () => ({
 vi.mock('@inertiajs/vue3', () => ({
     router,
     Head: { render: () => null },
+    Link: { props: ['href'], template: '<a :href="href"><slot /></a>' },
     setLayoutProps: vi.fn(),
     useForm: () => {
         const form = reactive({ processing: false, post: vi.fn() });
@@ -25,6 +26,10 @@ vi.mock('@inertiajs/vue3', () => ({
 
         return form;
     },
+}));
+
+vi.mock('@/routes/review', () => ({
+    index: () => ({ url: '/review', method: 'get' }),
 }));
 
 vi.mock('@/routes/units', () => ({
@@ -98,6 +103,7 @@ function mountPage(overrides: Record<string, unknown> = {}) {
             isCompleted: false,
             speechLocale: 'es-ES',
             progress,
+            day: { words: 4, goal: 10, streak: 3, due: 7 },
             ...overrides,
         },
     });
@@ -394,6 +400,18 @@ describe('unit page with lessons', () => {
     });
 });
 
+describe('day strip', () => {
+    it('sits on the unit page with the words of today, the streak and the reviews due', () => {
+        const wrapper = mountPage();
+
+        expect(wrapper.get('[data-testid="day-goal"]').text()).toBe(
+            '4 of 10 words today',
+        );
+        expect(wrapper.get('[data-testid="day-streak"]').text()).toBe('3');
+        expect(wrapper.get('[data-testid="day-due"]').text()).toBe('7');
+    });
+});
+
 describe('unit hero', () => {
     const lessons = {
         lessons: [
@@ -424,9 +442,11 @@ describe('unit hero', () => {
     it('shows the share known, the stars and the level', () => {
         const wrapper = mountPage({ lessons });
 
-        expect(wrapper.find('[data-testid="progress-ring"]').text()).toContain(
-            '30%',
-        );
+        expect(
+            wrapper
+                .find('[data-testid="unit-hero"] [data-testid="progress-ring"]')
+                .text(),
+        ).toContain('30%');
         expect(wrapper.text()).toContain('3 of 10 words known');
         expect(wrapper.find('[data-testid="level-progress"]').text()).toContain(
             'A1: 12 of 80 words (15%)',
