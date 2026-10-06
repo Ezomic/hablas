@@ -39,6 +39,7 @@ import {
     passageAnswers,
     passageLines,
     passageQuestions,
+    sameLetters,
     strings,
     text,
 } from '@/lib/lessonPayload';
@@ -85,7 +86,28 @@ const attemptKey = computed(
     () => `${exercise.value?.id}-${lesson.current.value?.attempt ?? 1}`,
 );
 
+const copiesWord = computed(() => format.value === 'teach_word');
+
+const copyMatches = computed(
+    () =>
+        exercise.value !== null &&
+        sameLetters(typed.value, text(exercise.value.payload.term)),
+);
+
+const copyMissed = computed(
+    () =>
+        copiesWord.value &&
+        !copyMatches.value &&
+        exercise.value !== null &&
+        typed.value.trim().length >=
+            text(exercise.value.payload.term).trim().length,
+);
+
 const canCheck = computed(() => {
+    if (copiesWord.value) {
+        return copyMatches.value;
+    }
+
     if (isTeachFormat(format.value)) {
         return true;
     }
@@ -468,11 +490,32 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     {{ swapNotice }}
                 </p>
 
-                <TeachCard
-                    v-if="isTeachFormat(format)"
-                    :exercise="exercise"
-                    :locale="locale"
-                />
+                <template v-if="isTeachFormat(format)">
+                    <TeachCard
+                        :exercise="exercise"
+                        :locale="locale"
+                        :matched="copiesWord && copyMatches"
+                    />
+
+                    <template v-if="copiesWord">
+                        <TypedExercise
+                            :key="exercise.id"
+                            v-model="typed"
+                            prompt=""
+                            :instruction="t('lesson.teach.typeIt')"
+                            :locale="locale"
+                            :disabled="inFeedback"
+                            @submit="check"
+                        />
+                        <p
+                            v-if="copyMissed"
+                            class="text-sm text-muted-foreground"
+                            data-testid="copy-miss"
+                        >
+                            {{ t('lesson.teach.copyMiss') }}
+                        </p>
+                    </template>
+                </template>
 
                 <section
                     v-else-if="isListenFormat(format)"

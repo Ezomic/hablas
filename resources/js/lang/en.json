@@ -498,6 +498,9 @@
             "portunol": "That is Spanish, not Portuguese."
         },
         "teach": {
+            "newWordOf": "New word {number} of {of}",
+            "typeIt": "Type it to remember it",
+            "copyMiss": "Not quite, check the spelling",
             "newWord": "New word",
             "cognate": "cognate",
             "grammar": "Grammar"

@@ -234,3 +234,18 @@ export function hintLettersOf(
             typeof entry.char === 'string',
     );
 }
+
+function letters(value: string): string {
+    return value
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+// Copying a word forgives accents and case, because the point is to see and
+// type it once; the checks that follow ask for it exactly.
+export function sameLetters(typed: string, word: string): boolean {
+    return letters(typed) === letters(word);
+}

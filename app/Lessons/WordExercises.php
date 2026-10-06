@@ -25,8 +25,8 @@ final class WordExercises
     private const BATCH_SIZES = [4, 3, 3];
 
     /**
-     * Lesson 1 teaches in batches before it tests: each batch is taught, then
-     * recognised, then typed with its letters shown, and a mixed block matches
+     * Lesson 1 teaches in batches: each word is taught and recognised at once,
+     * then the batch is typed with its letters shown, and a mixed block matches
      * all the words at the end.
      */
     public function meet(BuildContext $context, ExerciseSink $sink): void
@@ -37,17 +37,17 @@ final class WordExercises
         foreach ($this->batches($context->items) as $number => $batch) {
             $block = 'batch-'.($number + 1);
 
-            foreach ($batch as $info) {
+            foreach ($batch as $index => $info) {
                 $sink->add('meet.teach_word.'.$this->slug($info), $block, LessonExerciseFormat::TeachWord, [
                     'term' => $info->item->term,
                     'translation' => $info->item->translation_en,
                     'part_of_speech' => $info->partOfSpeech(),
                     'is_cognate' => $info->item->is_cognate,
                     'contrast_note' => $info->data->note ?? $info->item->contrast_note,
+                    'number' => $index + 1,
+                    'of' => count($batch),
                 ], [$this->target($info)]);
-            }
 
-            foreach ($batch as $info) {
                 [$options, $answer] = $this->meaningOptions($context, $info);
                 $sink->add('meet.choose_meaning.'.$this->slug($info), $block, LessonExerciseFormat::ChooseMeaning, [
                     'prompt' => $info->item->term,
