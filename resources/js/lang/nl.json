@@ -498,6 +498,9 @@
             "portunol": "Dat is Spaans, geen Portugees."
         },
         "teach": {
+            "newWordOf": "Nieuw woord {number} van {of}",
+            "typeIt": "Typ het om het te onthouden",
+            "copyMiss": "Net niet, controleer de spelling",
             "newWord": "Nieuw woord",
             "cognate": "verwant woord",
             "grammar": "Grammatica"

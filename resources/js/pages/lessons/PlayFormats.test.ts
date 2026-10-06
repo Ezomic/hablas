@@ -724,3 +724,64 @@ describe('listen_passage', () => {
         expect(wrapper.find('[data-testid="feedback"]').exists()).toBe(false);
     });
 });
+
+describe('teach_word', () => {
+    const word = exercise(1, 'teach_word', {
+        term: 'el recepcionista',
+        translation: 'receptionist',
+        part_of_speech: 'noun',
+        is_cognate: true,
+        number: 2,
+        of: 4,
+    });
+
+    it('asks for the word to be typed before it can be continued', async () => {
+        const wrapper = mountPlay({ plan: [word] });
+
+        expect(wrapper.text()).toContain('New word 2 of 4');
+        expect(checkButton(wrapper).attributes('disabled')).toBeDefined();
+        expect(
+            wrapper.get('[data-testid="teach-gem"]').attributes('data-lit'),
+        ).toBe('false');
+
+        await wrapper.get('input').setValue('el recepcio');
+        expect(checkButton(wrapper).attributes('disabled')).toBeDefined();
+        expect(wrapper.find('[data-testid="copy-miss"]').exists()).toBe(false);
+
+        await wrapper.get('input').setValue('el recepcionisto');
+        expect(wrapper.find('[data-testid="copy-miss"]').exists()).toBe(true);
+        expect(checkButton(wrapper).attributes('disabled')).toBeDefined();
+    });
+
+    it('accepts the word without its accents or capitals, lights the gem and submits', async () => {
+        const accent = exercise(1, 'teach_word', {
+            term: 'la habitación',
+            translation: 'room',
+            number: 1,
+            of: 3,
+        });
+        const wrapper = mountPlay({ plan: [accent] });
+
+        await wrapper.get('input').setValue('La Habitacion');
+
+        expect(
+            wrapper.get('[data-testid="teach-gem"]').attributes('data-lit'),
+        ).toBe('true');
+        expect(checkButton(wrapper).attributes('disabled')).toBeUndefined();
+
+        await check(wrapper);
+
+        expect(mocks.submitOrQueue).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays the word as the card arrives', () => {
+        const wrapper = mountPlay({
+            plan: [
+                { ...word, payload: { ...word.payload, audioUrl: '/n.mp3' } },
+            ],
+        });
+
+        expect(wrapper.exists()).toBe(true);
+        expect(FakeAudio.instances.length).toBeGreaterThan(0);
+    });
+});

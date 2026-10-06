@@ -121,6 +121,17 @@ describe('lesson 1', function () {
         expect($perBlock)->toBe(['batch-1' => 4, 'batch-2' => 3, 'batch-3' => 3]);
     });
 
+    it('asks for a word right after teaching it, and numbers the words of a batch', function () {
+        $meet = originals(builtLessons()['meet']);
+        $firstBatch = array_values(array_filter($meet, fn (ExerciseDefinition $exercise): bool => $exercise->block === 'batch-1'));
+
+        $leading = array_map(fn (ExerciseDefinition $exercise): string => $exercise->format->value, array_slice($firstBatch, 0, 8));
+        $numbers = array_map(fn (ExerciseDefinition $exercise): array => [$exercise->payload['number'], $exercise->payload['of']], array_values(array_filter($firstBatch, fn (ExerciseDefinition $exercise): bool => $exercise->format === Format::TeachWord)));
+
+        expect($leading)->toBe(['teach_word', 'choose_meaning', 'teach_word', 'choose_meaning', 'teach_word', 'choose_meaning', 'teach_word', 'choose_meaning'])
+            ->and($numbers)->toBe([[1, 4], [2, 4], [3, 4], [4, 4]]);
+    });
+
     it('puts a teach card and a first recognition exercise before anything else on an item', function () {
         $meet = originals(builtLessons()['meet']);
         $seen = [];

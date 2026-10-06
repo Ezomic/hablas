@@ -42,6 +42,8 @@ function play(requested: SpeechSpeed): void {
         { speed: requested },
     );
 }
+
+defineExpose({ play: () => play('normal') });
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { Gem } from '@lucide/vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +10,10 @@ import type { ExerciseBase } from '@/types/lesson';
 const props = defineProps<{
     exercise: ExerciseBase;
     locale: string | null;
+    matched?: boolean;
 }>();
+
+const speaker = ref<{ play: () => void } | null>(null);
 
 const { t } = useI18n();
 
@@ -21,6 +25,17 @@ interface Example {
 }
 
 const isGrammar = computed(() => props.exercise.format === 'teach_grammar');
+
+const number = computed(() => Number(props.exercise.payload.number) || 0);
+const of = computed(() => Number(props.exercise.payload.of) || 0);
+
+// A word is heard as it arrives, so the sound comes before the spelling.
+// A browser that refuses sound before a tap simply stays quiet.
+onMounted(() => {
+    if (!isGrammar.value) {
+        speaker.value?.play();
+    }
+});
 
 const examples = computed<Example[]>(() => {
     const raw = props.exercise.payload.examples;
@@ -44,14 +59,32 @@ const examples = computed<Example[]>(() => {
         class="flex flex-col items-center gap-4 rounded-xl border bg-card p-6 text-center"
         data-testid="teach-word"
     >
-        <p class="text-sm text-muted-foreground">
-            {{ t('lesson.teach.newWord') }}
+        <p
+            class="flex items-center gap-2 text-sm text-muted-foreground"
+            data-testid="teach-heading"
+        >
+            <Gem
+                class="size-4 transition-colors"
+                :class="
+                    props.matched
+                        ? 'fill-primary text-primary'
+                        : 'text-muted-foreground'
+                "
+                data-testid="teach-gem"
+                :data-lit="props.matched ? 'true' : 'false'"
+            />
+            {{
+                number > 0 && of > 0
+                    ? t('lesson.teach.newWordOf', { number, of })
+                    : t('lesson.teach.newWord')
+            }}
         </p>
         <p class="flex items-center gap-1 text-3xl font-semibold">
             <span :lang="props.locale ?? undefined">{{
                 text(props.exercise.payload.term)
             }}</span>
             <SpeakButton
+                ref="speaker"
                 :text="text(props.exercise.payload.term)"
                 :locale="props.locale"
                 :audio-url="clipUrl(props.exercise.payload.audioUrl)"
