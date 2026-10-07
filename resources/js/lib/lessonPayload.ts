@@ -240,12 +240,17 @@ function letters(value: string): string {
         .normalize('NFD')
         .replace(/\p{M}/gu, '')
         .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, '')
         .replace(/\s+/g, ' ')
         .trim();
 }
 
-// Copying a word forgives accents and case, because the point is to see and
+// Copying a word forgives accents, case and punctuation, because the point is to see and
 // type it once; the checks that follow ask for it exactly.
+export function lettersOf(value: string): string {
+    return letters(value);
+}
+
 export function sameLetters(typed: string, word: string): boolean {
     return letters(typed) === letters(word);
 }
