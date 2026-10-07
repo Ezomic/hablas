@@ -438,7 +438,7 @@ final class PresentLessonRun
     /**
      * What a listening or speaking exercise may send, by name: anything else,
      * today's keys or tomorrow's, never ships. A dictation sends no text and a
-     * spoken answer no model answer, because the verdict shows them afterwards.
+     * spoken answer no model answer in a check, because the verdict shows them afterwards; a lesson sends it for the hint after a missed try.
      * A word heard and chosen keeps its text and answer in a lesson, where its
      * answer is among the options; a check keeps neither, and a question that
      * is only heard keeps no text at all.
@@ -454,7 +454,7 @@ final class PresentLessonRun
             LessonExerciseFormat::ListenChoose, LessonExerciseFormat::ListenPair => $hidesAnswers ? ['options'] : ['text', 'options', 'answer'],
             LessonExerciseFormat::ListenType => [],
             LessonExerciseFormat::SpeakRepeat => $hidesAnswers ? ['english'] : ['text', 'english'],
-            default => $heardQuestion && $hidesAnswers ? [] : ['prompt', 'english'],
+            default => $heardQuestion && $hidesAnswers ? [] : ($hidesAnswers ? ['prompt', 'english'] : ['prompt', 'english', 'model']),
         };
 
         return array_intersect_key($payload, array_flip($keys));
