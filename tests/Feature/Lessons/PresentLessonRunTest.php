@@ -229,3 +229,8 @@ it('marks every answer of a check as settled and gives it no verdict', function 
     expect($answer['settled'])->toBeTrue()
         ->and($answer['correct'])->toBeNull();
 });
+
+it('offers slower audio in every lesson but not in the check', function () {
+    expect(collect(LessonStage::cases())->filter(fn (LessonStage $stage): bool => $stage->offersSlowerAudio())->map(fn (LessonStage $stage): string => $stage->value)->values()->all())
+        ->toBe(['meet', 'recall', 'sentences', 'task']);
+});

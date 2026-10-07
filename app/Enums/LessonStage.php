@@ -90,7 +90,7 @@ enum LessonStage: string
 
     public function offersSlowerAudio(): bool
     {
-        return in_array($this, [self::Meet, self::Recall, self::Sentences], true);
+        return in_array($this, [self::Meet, self::Recall, self::Sentences, self::Task], true);
     }
 
     public function isEvidenceStage(): bool
