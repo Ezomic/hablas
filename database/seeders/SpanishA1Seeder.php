@@ -130,6 +130,7 @@ class SpanishA1Seeder extends Seeder
                     ['term' => '¿cómo estás?', 'translation_en' => 'how are you?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'bien', 'translation_en' => 'well / fine', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'gracias', 'translation_en' => 'thank you', 'is_cognate' => false, 'part_of_speech' => 'interjection'],
+                    ['term' => '¿quién?', 'translation_en' => 'who?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                 ],
                 'grammar' => [
                     [
@@ -158,6 +159,8 @@ class SpanishA1Seeder extends Seeder
                     ['term' => 'el billete', 'translation_en' => 'ticket', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'retrasado', 'translation_en' => 'delayed', 'is_cognate' => false, 'part_of_speech' => 'adjective'],
                     ['term' => 'internacional', 'translation_en' => 'international', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
+                    ['term' => '¿dónde?', 'translation_en' => 'where?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
+                    ['term' => '¿cuál?', 'translation_en' => 'which? / what? (which one)', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                 ],
                 'grammar' => [
                     [
@@ -186,6 +189,7 @@ class SpanishA1Seeder extends Seeder
                     ['term' => 'el baño', 'translation_en' => 'bathroom', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'incluido', 'translation_en' => 'included', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
                     ['term' => 'el desayuno', 'translation_en' => 'breakfast', 'is_cognate' => false, 'part_of_speech' => 'noun'],
+                    ['term' => '¿cuántas?', 'translation_en' => 'how many? (feminine plural)', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                 ],
                 'grammar' => [
                     [
@@ -270,6 +274,8 @@ class SpanishA1Seeder extends Seeder
                     ['term' => 'barato', 'translation_en' => 'cheap', 'is_cognate' => false, 'part_of_speech' => 'adjective'],
                     ['term' => 'probarse', 'translation_en' => 'to try on', 'is_cognate' => false, 'part_of_speech' => 'verb'],
                     ['term' => 'el descuento', 'translation_en' => 'discount', 'is_cognate' => true, 'part_of_speech' => 'noun'],
+                    ['term' => '¿qué?', 'translation_en' => 'what?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
+                    ['term' => '¿cuánto?', 'translation_en' => 'how much?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                 ],
                 'grammar' => [
                     [
@@ -326,6 +332,7 @@ class SpanishA1Seeder extends Seeder
                     ['term' => 'tarde', 'translation_en' => 'late', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'todos los días', 'translation_en' => 'every day', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'normalmente', 'translation_en' => 'normally', 'is_cognate' => true, 'part_of_speech' => 'adverb'],
+                    ['term' => '¿cuándo?', 'translation_en' => 'when?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                 ],
                 'grammar' => [
                     [

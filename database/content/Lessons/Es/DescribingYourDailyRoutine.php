@@ -38,6 +38,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             new WordData('tarde', cue: 'late (not early)'),
             new WordData('todos los días', cue: 'every day', accepted: ['cada día']),
             new WordData('normalmente', cue: 'normally'),
+            new WordData('¿cuándo?', cue: 'when? (asking about a time)'),
         ];
     }
 
@@ -91,7 +92,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::translate($stage, 'sentences.translate.ella-acuesta', 'She goes to bed late.', ['Ella se acuesta tarde.', 'Se acuesta tarde.'], [Kit::word('acostarse', 'se acuesta'), Kit::word('tarde'), Kit::form('se acuesta')]),
             Kit::translate($stage, 'sentences.translate.trabajo', 'I work at nine.', ['Trabajo a las nueve.', 'Yo trabajo a las nueve.'], [Kit::word('trabajar', 'trabajo'), Kit::form('trabajo', true)]),
 
-            Kit::build($stage, 'sentences.build.me-despierto', 'I wake up at seven.', 'Me despierto a las siete.', ['se'], [Kit::word('despertarse', 'me despierto'), Kit::form('me despierto')]),
+            Kit::build($stage, 'sentences.build.me-despierto', 'When do you wake up? At seven.', '¿Cuándo te despiertas? A las siete.', ['se'], [Kit::word('¿cuándo?', 'cuándo'), Kit::word('despertarse', 'te despiertas'), Kit::form('te despiertas')]),
             Kit::build($stage, 'sentences.build.se-ducha', 'She showers every day.', 'Ella se ducha todos los días.', ['me'], [Kit::word('ducharse', 'se ducha'), Kit::word('todos los días'), Kit::form('se ducha')]),
             Kit::build($stage, 'sentences.build.nos-levantamos', 'We get up early.', 'Nos levantamos temprano.', ['se'], [Kit::word('levantarse', 'nos levantamos'), Kit::word('temprano'), Kit::form('nos levantamos')]),
 
@@ -106,7 +107,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.normalmente-levanto', 'Normalmente me levanto temprano todos los días.', 'I normally get up early every day.', [Kit::word('normalmente'), Kit::word('levantarse', 'me levanto'), Kit::word('temprano'), Kit::word('todos los días'), Kit::form('me levanto')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.se-ducha', 'Ella se ducha todos los días.', 'She showers every day.', [Kit::word('ducharse', 'se ducha'), Kit::word('todos los días'), Kit::form('se ducha')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.trabajo', 'Trabajo con Ana a las nueve.', 'I work with Ana at nine.', [Kit::word('trabajar', 'trabajo')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.me-acuesto', 'Me acuesto tarde.', 'I go to bed late.', [Kit::word('acostarse', 'me acuesto'), Kit::word('tarde'), Kit::form('me acuesto')]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.me-acuesto', '¿Cuándo te acuestas? Me acuesto tarde.', 'When do you go to bed? I go to bed late.', [Kit::word('¿cuándo?', 'cuándo'), Kit::word('acostarse', 'me acuesto'), Kit::word('tarde'), Kit::form('me acuesto')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.levantas', '¿Te levantas temprano?', 'Do you get up early?', [['levanto', 'temprano', 'tarde', 'cinco', 'seis', 'siete', 'ocho', 'nueve']], 'Sí, me levanto temprano.', [Kit::word('levantarse', 'me levanto'), Kit::word('temprano'), Kit::form('me levanto')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.desayunas', '¿Desayunas todos los días?', 'Do you have breakfast every day?', [['desayuno', 'días', 'todos', 'cada']], 'Sí, desayuno todos los días.', [Kit::word('desayunar', 'desayuno'), Kit::word('todos los días')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.acuestas', '¿Te acuestas tarde?', 'Do you go to bed late?', [['acuesto', 'tarde', 'temprano']], 'Sí, me acuesto tarde.', [Kit::word('acostarse', 'me acuesto'), Kit::word('tarde'), Kit::form('me acuesto')]),
@@ -172,8 +173,8 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::listenType($stage, 'task.listen_type.ella-despierta', 'Ella se despierta tarde todos los días.', 'She wakes up late every day.', [Kit::word('despertarse', 'se despierta'), Kit::word('tarde'), Kit::word('todos los días'), Kit::form('se despierta')]),
             Kit::listenType($stage, 'task.listen_type.nos-acostamos', 'Nos acostamos temprano y nos levantamos temprano.', 'We go to bed early and we get up early.', [Kit::word('acostarse', 'nos acostamos'), Kit::word('levantarse', 'nos levantamos'), Kit::word('temprano'), Kit::form('nos levantamos')]),
 
-            Kit::speakAnswer($stage, 'task.speak_answer.levantas', '¿Cuándo te levantas?', 'When do you get up?', [['levanto', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'temprano', 'tarde', 'normalmente']], 'Me levanto a las siete.', [Kit::word('levantarse', 'me levanto'), Kit::form('me levanto')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.acuestas', '¿Cuándo te acuestas?', 'When do you go to bed?', [['acuesto', 'ocho', 'nueve', 'diez', 'once', 'doce', 'una', 'temprano', 'tarde', 'normalmente']], 'Me acuesto a las once.', [Kit::word('acostarse', 'me acuesto'), Kit::form('me acuesto')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.levantas', '¿Cuándo te levantas?', 'When do you get up?', [['levanto', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'temprano', 'tarde', 'normalmente']], 'Me levanto a las siete.', [Kit::word('¿cuándo?', 'cuándo'), Kit::word('levantarse', 'me levanto'), Kit::form('me levanto')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.acuestas', '¿Cuándo te acuestas?', 'When do you go to bed?', [['acuesto', 'ocho', 'nueve', 'diez', 'once', 'doce', 'una', 'temprano', 'tarde', 'normalmente']], 'Me acuesto a las once.', [Kit::word('¿cuándo?', 'cuándo'), Kit::word('acostarse', 'me acuesto'), Kit::form('me acuesto')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.desayunas', '¿Desayunas temprano o tarde?', 'Do you have breakfast early or late?', [['desayuno', 'temprano', 'tarde']], 'Desayuno temprano.', [Kit::word('desayunar', 'desayuno'), Kit::word('temprano'), Kit::word('tarde')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.trabajas', '¿Trabajas todos los días?', 'Do you work every day?', [['trabajo', 'trabajar', 'todos', 'cada']], 'Sí, trabajo todos los días.', [Kit::word('trabajar', 'trabajo'), Kit::word('todos los días')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.nos-despertamos', 'Nos despertamos temprano todos los días.', 'We wake up early every day.', [Kit::word('despertarse', 'nos despertamos'), Kit::word('temprano'), Kit::word('todos los días'), Kit::form('nos despertamos')], 'speak'),
@@ -190,7 +191,7 @@ final class DescribingYourDailyRoutine implements UnitContent
         return [
             Kit::translate($stage, 'check.a.translate.despierta', 'She wakes up early and has breakfast.', ['Ella se despierta temprano y desayuna.', 'Se despierta temprano y desayuna.'], [Kit::word('despertarse', 'se despierta'), Kit::word('temprano'), Kit::word('desayunar', 'desayuna'), Kit::form('se despierta')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.acostamos', 'We go to bed at eleven.', ['Nos acostamos a las once.', 'Nosotros nos acostamos a las once.'], [Kit::word('acostarse', 'nos acostamos'), Kit::form('nos acostamos')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.trabajo', 'Normally I work at ten.', ['Normalmente trabajo a las diez.', 'Trabajo normalmente a las diez.', 'Normalmente yo trabajo a las diez.', 'Yo normalmente trabajo a las diez.'], [Kit::word('normalmente'), Kit::word('trabajar', 'trabajo'), Kit::form('trabajo', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.trabajo', 'When do you work? Normally I work at ten.', ['¿Cuándo trabajas? Normalmente trabajo a las diez.', '¿Cuándo trabajas? Trabajo normalmente a las diez.', '¿Cuándo trabajas? Normalmente yo trabajo a las diez.', '¿Cuándo trabajas? Yo normalmente trabajo a las diez.'], [Kit::word('¿cuándo?', 'cuándo'), Kit::word('normalmente'), Kit::word('trabajar', 'trabajo'), Kit::form('trabajo', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.levantan', 'They get up late.', ['Se levantan tarde.', 'Ellos se levantan tarde.', 'Ellas se levantan tarde.'], [Kit::word('levantarse', 'se levantan'), Kit::word('tarde'), Kit::form('se levantan')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.desayunas', 'Tú ___ a las ocho.', 'You have breakfast at eight.', 'desayunas', Kit::form('desayunas', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.acuesto', 'Yo ___ temprano.', 'I go to bed early.', 'me acuesto', Kit::form('me acuesto'), null, 'sentences', $set),
@@ -211,15 +212,15 @@ final class DescribingYourDailyRoutine implements UnitContent
                 Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
             ], [Kit::word('levantarse', 'me levanto'), Kit::word('ducharse', 'me ducho'), Kit::word('trabajar', 'trabajo'), Kit::word('temprano')], 'passages', $set),
             Kit::readPassage($stage, 'check.a.read_passage.rutina', 'Read the conversation.', [
-                Kit::line('Ana', '¿Te acuestas tarde, Luis?'),
-                Kit::line('Luis', 'No, me acuesto a las diez. ¿Y tú?'),
+                Kit::line('Ana', '¿Cuándo te acuestas, Luis?'),
+                Kit::line('Luis', 'Me acuesto a las diez. ¿Y tú?'),
                 Kit::line('Ana', 'Yo me acuesto a las doce. Es muy tarde.'),
             ], [
                 Kit::question('What time does Luis go to bed?', ['At nine', 'At ten', 'At eleven'], 'At ten'),
                 Kit::question('Who goes to bed later?', ['Luis', 'Ana', 'The text does not say.'], 'Ana'),
-            ], [Kit::word('acostarse', 'me acuesto'), Kit::word('tarde')], 'passages', $set),
+            ], [Kit::word('¿cuándo?', 'cuándo'), Kit::word('acostarse', 'me acuesto'), Kit::word('tarde')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.levantas', '¿Te levantas temprano o tarde?', 'Do you get up early or late?', [['levanto', 'temprano', 'tarde']], 'Me levanto temprano.', [Kit::word('levantarse', 'me levanto'), Kit::word('temprano')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.desayunas', '¿Cuándo desayunas?', 'When do you have breakfast?', [['desayuno', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'temprano', 'tarde', 'normalmente']], 'Desayuno a las ocho.', [Kit::word('desayunar', 'desayuno')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.desayunas', '¿Cuándo desayunas?', 'When do you have breakfast?', [['desayuno', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'temprano', 'tarde', 'normalmente']], 'Desayuno a las ocho.', [Kit::word('¿cuándo?', 'cuándo'), Kit::word('desayunar', 'desayuno')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.acuestas', '¿Te acuestas temprano?', 'Do you go to bed early?', [['acuesto', 'temprano', 'tarde']], 'No, me acuesto tarde.', [Kit::word('acostarse', 'me acuesto'), Kit::word('temprano')], 'speaking', $set),
         ];
     }
@@ -234,7 +235,7 @@ final class DescribingYourDailyRoutine implements UnitContent
             Kit::translate($stage, 'check.b.translate.levantamos', 'We normally get up early.', ['Normalmente nos levantamos temprano.', 'Nos levantamos temprano normalmente.', 'Normalmente nosotros nos levantamos temprano.', 'Nosotros normalmente nos levantamos temprano.'], [Kit::word('normalmente'), Kit::word('levantarse', 'nos levantamos'), Kit::word('temprano'), Kit::form('nos levantamos')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.trabaja', 'She works late.', ['Ella trabaja tarde.', 'Trabaja tarde.'], [Kit::word('trabajar', 'trabaja'), Kit::word('tarde'), Kit::form('trabaja', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.despierto', 'I wake up and I shower.', ['Me despierto y me ducho.', 'Yo me despierto y me ducho.'], [Kit::word('despertarse', 'me despierto'), Kit::word('ducharse', 'me ducho'), Kit::form('me ducho')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.desayuna', 'She has breakfast early.', ['Ella desayuna temprano.', 'Desayuna temprano.'], [Kit::word('desayunar', 'desayuna'), Kit::word('temprano')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.desayuna', 'When does she have breakfast? She has breakfast early.', ['¿Cuándo desayuna ella? Ella desayuna temprano.', '¿Cuándo desayuna? Desayuna temprano.', '¿Cuándo desayuna ella? Desayuna temprano.', '¿Cuándo desayuna? Ella desayuna temprano.'], [Kit::word('¿cuándo?', 'cuándo'), Kit::word('desayunar', 'desayuna'), Kit::word('temprano')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.desayuna', 'Él ___ a las ocho.', 'He has breakfast at eight.', 'desayuna', Kit::form('desayuna', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.acuestan', 'Ellos ___ temprano.', 'They go to bed early.', 'se acuestan', Kit::form('se acuestan'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.levanto', 'Me levanto tarde todos los días.', 'I get up late every day.', [Kit::word('levantarse', 'me levanto'), Kit::word('tarde'), Kit::word('todos los días')], 'dictation', $set),

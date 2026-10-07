@@ -24,6 +24,7 @@ return [
         ['term' => '¿quieres venir?', 'translation_en' => 'do you want to come?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
         ['term' => 'lo siento', 'translation_en' => 'I am sorry', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
         ['term' => 'claro', 'translation_en' => 'of course', 'is_cognate' => false, 'part_of_speech' => 'interjection'],
+        ['term' => '¿por qué?', 'translation_en' => 'why?', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
     ],
     'grammar' => [
         [

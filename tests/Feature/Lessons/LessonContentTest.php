@@ -66,13 +66,13 @@ describe('the Spanish word data', function () {
             ->and(collect($this->contents)->every(fn (UnitContent $content): bool => $content->languageCode() === 'es'))->toBeTrue();
     });
 
-    it('describes every vocabulary item of its unit, ten of them, and no other word', function () {
+    it('describes every vocabulary item of its unit, at least ten of them, and no other word', function () {
         foreach ($this->contents as $content) {
             $terms = ($this->unitOf)($content)->vocabularyItems()->orderBy('id')->pluck('term')->all();
             $described = array_map(fn ($word): string => $word->term, $content->words());
 
             expect($described)->toBe($terms)
-                ->and($terms)->toHaveCount(10);
+                ->and(count($terms))->toBeGreaterThanOrEqual(10);
         }
     });
 
@@ -81,7 +81,7 @@ describe('the Spanish word data', function () {
             $cues = array_map(fn ($word): string => mb_strtolower((string) $word->cue), $content->words());
 
             expect($cues)->not->toContain('')
-                ->and(array_unique($cues))->toHaveCount(10);
+                ->and(array_unique($cues))->toHaveCount(count($content->words()));
         }
     });
 
@@ -249,10 +249,12 @@ describe('the word lessons once reviewed', function () {
         foreach ($this->contents as $content) {
             $lessons = collect(($this->build)($content))->keyBy(fn (LessonDefinition $lesson): string => $lesson->stage->value);
 
+            $words = count($content->words());
+
             expect($lessons->keys()->all())->toBe(['meet', 'recall', 'check'])
-                ->and(formatCounts($lessons['meet']))->toBe(['teach_word' => 10, 'choose_meaning' => 10, 'type_word' => 10, 'match_pairs' => 2])
-                ->and(formatCounts($lessons['recall']))->toBe(['choose_word' => 10, 'type_word' => 10])
-                ->and(formatCounts($lessons['check']))->toBe(['type_word' => 20]);
+                ->and(formatCounts($lessons['meet']))->toBe(['teach_word' => $words, 'choose_meaning' => $words, 'type_word' => $words, 'match_pairs' => (int) ceil($words / 5) - ($words % 5 === 1 ? 1 : 0)])
+                ->and(formatCounts($lessons['recall']))->toBe(['choose_word' => $words, 'type_word' => $words])
+                ->and(formatCounts($lessons['check']))->toBe(['type_word' => $words * 2]);
         }
     });
 
@@ -271,7 +273,7 @@ describe('the word lessons once reviewed', function () {
                 }
             }
 
-            expect($byItem)->toHaveCount(10);
+            expect($byItem)->toHaveCount(count($content->words()));
 
             foreach ($byItem as $families) {
                 expect(array_sum(array_map('count', $families)))->toBeGreaterThanOrEqual(3)
@@ -332,9 +334,9 @@ describe('the word lessons once reviewed', function () {
             $check = LessonWorld::play($user, (new StartLessonRun)->handle($user, LessonWorld::lesson($unit, LessonStage::Check), LessonRunKind::Check));
 
             expect($check->result['missing'])->toBe([])
-                ->and($check->result['mastered'])->toHaveCount(10)
+                ->and($check->result['mastered'])->toHaveCount(count($content->words()))
                 ->and($check->result['unit_completed'])->toBeFalse()
-                ->and(UnitItemMastery::query()->where('user_id', $user->id)->where('unit_id', $unit->id)->where('scope', MasteryScope::Words)->count())->toBe(10);
+                ->and(UnitItemMastery::query()->where('user_id', $user->id)->where('unit_id', $unit->id)->where('scope', MasteryScope::Words)->count())->toBe(count($content->words()));
         }
 
         expect(SrsCard::query()->where('user_id', $user->id)->count())->toBe(10);
@@ -345,7 +347,7 @@ describe('the word lessons once reviewed', function () {
         $unit = ($this->unitOf)($content);
         (new SyncUnitLessons)->handle($unit, ($this->build)($content));
 
-        expect(VocabularyItem::query()->where('unit_id', $unit->id)->count())->toBe(10)
+        expect(VocabularyItem::query()->where('unit_id', $unit->id)->count())->toBe(count($content->words()))
             ->and(Lesson::query()->where('unit_id', $unit->id)->orderBy('position')->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->all())->toBe(['meet', 'recall', 'check']);
     });
 });

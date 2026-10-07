@@ -184,7 +184,7 @@ foreach (spanishUnits() as $slug => $unitContent) {
                     }
                 }
 
-                expect($counts)->toHaveCount(10);
+                expect($counts)->toHaveCount(count($this->content->words()));
 
                 foreach ($counts as $key => $count) {
                     expect($count)->toBeGreaterThanOrEqual(2, "{$stage->value} {$key}");
@@ -242,7 +242,7 @@ foreach (spanishUnits() as $slug => $unitContent) {
                 }
             }
 
-            expect($families)->toHaveCount(10);
+            expect($families)->toHaveCount(count($this->content->words()));
 
             foreach ($families as $key => $kinds) {
                 expect(array_keys($kinds))->toContain('choice', 'writing', 'listening', 'speaking')
@@ -273,7 +273,7 @@ foreach (spanishUnits() as $slug => $unitContent) {
                     }
                 }
 
-                expect($words)->toHaveCount(10)
+                expect($words)->toHaveCount(count($this->content->words()))
                     ->and(min($words))->toBeGreaterThanOrEqual(2)
                     ->and($grammar)->toHaveCount(6)
                     ->and(count(array_filter($grammar, fn ($target): bool => $target->isContrast)))->toBeGreaterThanOrEqual(2)
