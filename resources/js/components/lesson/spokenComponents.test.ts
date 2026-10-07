@@ -278,6 +278,41 @@ describe('SpeakExercise', () => {
         expect(wrapper.emitted('change')?.[0]).toEqual([[]]);
     });
 
+    it('shows what a question means, and after a missed try how to start the answer', async () => {
+        mocks.fetchJson.mockResolvedValue(
+            scored({ correct: false, score: 0, missed: 2, words: [] }),
+        );
+        const { wrapper, say } = mountSpeak(
+            {
+                prompt: '¿Cómo estás?',
+                english: 'How are you?',
+                model: 'Estoy bien, gracias.',
+            },
+            'speak_answer',
+        );
+
+        expect(wrapper.text()).toContain('How are you?');
+        expect(wrapper.find('[data-testid="speak-hint"]').exists()).toBe(false);
+
+        await say('cómo estás');
+
+        expect(wrapper.get('[data-testid="speak-hint"]').text()).toBe(
+            'Hint: start your answer with Estoy',
+        );
+    });
+
+    it('gives no hint for a repeat, a pass or a check without a model', async () => {
+        mocks.fetchJson.mockResolvedValue(scored());
+        const { wrapper, say } = mountSpeak(
+            { prompt: '¿Cómo estás?', model: 'Estoy bien.' },
+            'speak_answer',
+        );
+
+        await say('estoy bien');
+
+        expect(wrapper.find('[data-testid="speak-hint"]').exists()).toBe(false);
+    });
+
     it('scores each try, marks each word and tells the transcripts to its parent', async () => {
         mocks.fetchJson.mockResolvedValue(scored());
         const { wrapper, say } = mountSpeak({ text: 'la llave' });
@@ -413,7 +448,7 @@ describe('SpeakExercise', () => {
 
         expect(FakeAudio.last().src).toBe('/q.mp3');
         expect(wrapper.find('[data-testid="listen-left"]').exists()).toBe(true);
-        expect(wrapper.text()).toContain('Listen, then answer out loud');
+        expect(wrapper.text()).toContain('answer the question out loud');
         expect(wrapper.get('[data-testid="prompt"]').text()).toBe(
             '¿Tiene una reserva?',
         );

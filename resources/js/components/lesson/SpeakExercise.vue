@@ -40,6 +40,13 @@ const prompt = computed(() => text(props.payload.prompt));
 const audioUrl = computed(() => clipUrl(props.payload.audioUrl));
 const audioSlowUrl = computed(() => clipUrl(props.payload.audioSlowUrl));
 const last = computed(() => speaking.tries.value.at(-1) ?? null);
+const hint = computed(() => {
+    const first = text(props.payload.model).split(/\s+/)[0] ?? '';
+
+    return !isRepeat.value && last.value?.result?.correct === false && first
+        ? first.replace(/[,.!?¡¿]+$/u, '')
+        : null;
+});
 const used = computed(() => speaking.tries.value.length);
 
 watch(speaking.transcripts, (transcripts) => emit('change', transcripts), {
@@ -112,9 +119,14 @@ const verdictStyle: Record<WordVerdict, string> = {
             </h2>
         </template>
 
-        <h2 v-else class="text-2xl font-semibold" data-testid="prompt">
-            {{ prompt }}
-        </h2>
+        <template v-else>
+            <h2 class="text-2xl font-semibold" data-testid="prompt">
+                {{ prompt }}
+            </h2>
+            <p v-if="text(props.payload.english)" class="text-muted-foreground">
+                {{ text(props.payload.english) }}
+            </p>
+        </template>
 
         <div class="flex flex-col items-center gap-2">
             <Button
@@ -198,6 +210,13 @@ const verdictStyle: Record<WordVerdict, string> = {
                                   last.result.missed,
                               )
                     }}
+                </p>
+                <p
+                    v-if="hint"
+                    class="text-sm font-medium"
+                    data-testid="speak-hint"
+                >
+                    {{ t('lesson.speak.hint', { word: hint }) }}
                 </p>
                 <p
                     class="text-sm text-muted-foreground"

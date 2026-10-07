@@ -152,8 +152,10 @@ describe('the allow-list', function () {
             foreach ($spoken as $exercise) {
                 $payload = presentedEntry($run, $exercise)['payload'];
 
-                expect(array_diff(array_keys($payload), $allowed))->toBe([])
-                    ->and(json_encode($payload, JSON_THROW_ON_ERROR))->not->toContain('SECRET');
+                $sendsModel = ! $check && $exercise->format === Format::SpeakAnswer;
+
+                expect(array_diff(array_keys($payload), [...$allowed, ...($sendsModel ? ['model'] : [])]))->toBe([])
+                    ->and(str_replace($sendsModel ? 'SECRETMODEL' : '', '', json_encode($payload, JSON_THROW_ON_ERROR)))->not->toContain('SECRET');
 
                 if ($check) {
                     expect($payload)->not->toHaveKeys(['text', 'answer']);
