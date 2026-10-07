@@ -9,6 +9,7 @@ use App\Enums\Skill;
 use App\Lessons\TargetRef;
 use App\Models\LessonExercise;
 use App\Models\Unit;
+use App\Models\UnitSkillMastery;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,7 @@ final class UnitSkillProgress
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
     ) {}
 
-    /** @return list<array{skill: string, done: int, total: int, percent: int}> */
+    /** @return list<array{skill: string, done: int, total: int, percent: int, mastered: bool}> */
     public function handle(User $user, Unit $unit): array
     {
         $rows = [];
@@ -37,10 +38,34 @@ final class UnitSkillProgress
             $total = count($trained);
             $done = $total - count($missing);
 
-            $rows[] = ['skill' => $skill->value, 'done' => $done, 'total' => $total, 'percent' => $total === 0 ? 100 : (int) floor($done / $total * 100)];
+            $rows[] = ['skill' => $skill->value, 'done' => $done, 'total' => $total, 'percent' => $total === 0 ? 100 : (int) floor($done / $total * 100), 'mastered' => $this->isMastered($user, $unit, $skill)];
         }
 
         return $rows;
+    }
+
+    public function isMastered(User $user, Unit $unit, Skill $skill): bool
+    {
+        return UnitSkillMastery::query()->where('user_id', $user->id)->where('unit_id', $unit->id)->where('skill', $skill)->exists();
+    }
+
+    /**
+     * How far the learner is in the unit as a whole: each skill the unit
+     * trains counts half for its training and half for being mastered.
+     *
+     * @param  list<array{skill: string, done: int, total: int, percent: int, mastered: bool}>  $rows
+     */
+    public function overall(array $rows): int
+    {
+        $trained = array_values(array_filter($rows, fn (array $row): bool => $row['total'] > 0));
+
+        if ($trained === []) {
+            return 0;
+        }
+
+        $sum = array_sum(array_map(fn (array $row): float => $row['percent'] / 2 + ($row['mastered'] ? 50 : 0), $trained));
+
+        return (int) floor($sum / count($trained));
     }
 
     /**

@@ -84,7 +84,8 @@ final class UnitController extends Controller
             'day' => $getDayStrip->handle($this->currentUser(), $language),
             'struggles' => $unitStruggles->describe($this->currentUser(), $unit),
             'training' => [
-                'skills' => $unitSkillProgress->handle($this->currentUser(), $unit),
+                'skills' => $skills = $unitSkillProgress->handle($this->currentUser(), $unit),
+                'percent' => $unitSkillProgress->overall($skills),
                 'lessonId' => Lesson::query()->where('unit_id', $unit->id)->where('stage', LessonStage::Check)->playable()->first()?->id,
             ],
             'speechLocale' => $speechLocaleResolver->forLanguage($language),

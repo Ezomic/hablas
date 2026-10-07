@@ -24,7 +24,7 @@ final class StartLessonRunRequest extends FormRequest
     {
         return [
             'skill' => ['nullable', Rule::in(array_map(fn (Skill $skill): string => $skill->value, [Skill::Reading, Skill::Listening, Skill::Speaking, Skill::Writing]))],
-            'kind' => ['nullable', Rule::in([LessonRunKind::Lesson->value, LessonRunKind::TestOut->value, LessonRunKind::Practice->value, LessonRunKind::Retake->value])],
+            'kind' => ['nullable', Rule::in([LessonRunKind::Lesson->value, LessonRunKind::TestOut->value, LessonRunKind::Practice->value, LessonRunKind::Retake->value, LessonRunKind::SkillTest->value])],
         ];
     }
 

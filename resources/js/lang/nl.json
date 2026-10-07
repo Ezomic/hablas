@@ -614,7 +614,9 @@
             "title": "Train deze unit",
             "practise": "Oefen",
             "complete": "Alles gedaan",
-            "note": "Oefen elke vaardigheid tot die compleet is en doe dan de unitcheck wanneer je er klaar voor bent."
+            "test": "Doe de toets",
+            "mastered": "Beheerst",
+            "note": "Oefen elke vaardigheid tot die compleet is en doe dan de eindtoets. De toets heeft geen hints of feedback en staat geen fouten toe."
         },
         "struggles": {
             "title": "Moeilijkheden",
@@ -768,7 +770,8 @@
         "stars": "Nog geen sterren | {count} ster | {count} sterren",
         "unitPercent": "{percent}% van deze unit gekend",
         "wordsKnown": "{known} van {total} woorden gekend",
-        "level": "{level}: {known} van {total} woorden ({percent}%)",
+        "unitDone": "{percent}% van deze unit klaar",
+        "skillsMastered": "{mastered} van {total} vaardigheden beheerst",
         "continue": "Verder",
         "start": "Begin",
         "word": {
@@ -911,6 +914,11 @@
         "submit": "Reflectie versturen"
     },
     "unitLessons": {
+        "unlock": {
+            "title": "Ontgrendelt de unittoets",
+            "lessons": "Lessen met 100% in één keer goed: {mastered} van {total}",
+            "skills": "Vaardigheden beheerst via de eindtoets: {mastered} van {total}"
+        },
         "mastered": "Beheerst",
         "wordsMastered": "Beheerste woorden",
         "masteredCount": "{mastered} van {total} beheerst",
@@ -924,6 +932,8 @@
         "replay": "Opnieuw",
         "start": "Begin",
         "status": {
+            "mastered": "Beheerst, elke oefening in één keer goed",
+            "needsMastery": "Opent zodra elke les en vaardigheid beheerst is",
             "lockedCheck": "Opent na de lessen ervoor",
             "locked": "Rond eerst de les ervoor af",
             "opensTomorrow": "Opent morgen",

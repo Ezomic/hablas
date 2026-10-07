@@ -8,6 +8,8 @@ import type { UnitProgress } from '@/types/unit';
 
 const props = defineProps<{
     progress: UnitProgress;
+    percent: number;
+    skills: { total: number; mastered: number };
     canContinue: boolean;
     started: boolean;
     busy: boolean;
@@ -25,12 +27,8 @@ const { t } = useI18n();
     >
         <div class="flex items-center gap-4">
             <ProgressRing
-                :value="props.progress.percent"
-                :label="
-                    t('progress.unitPercent', {
-                        percent: props.progress.percent,
-                    })
-                "
+                :value="props.percent"
+                :label="t('progress.unitDone', { percent: props.percent })"
             />
             <div class="flex min-w-0 flex-col gap-1">
                 <StarRow :stars="props.progress.stars" size="size-6" />
@@ -44,14 +42,12 @@ const { t } = useI18n();
                 </p>
                 <p
                     class="text-xs text-muted-foreground"
-                    data-testid="level-progress"
+                    data-testid="skills-mastered"
                 >
                     {{
-                        t('progress.level', {
-                            level: props.progress.level.code,
-                            known: props.progress.level.known,
-                            total: props.progress.level.total,
-                            percent: props.progress.level.percent,
+                        t('progress.skillsMastered', {
+                            mastered: props.skills.mastered,
+                            total: props.skills.total,
                         })
                     }}
                 </p>

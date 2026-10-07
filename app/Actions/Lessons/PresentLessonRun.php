@@ -114,7 +114,7 @@ final class PresentLessonRun
                 'result' => $completed ? $run->result : null,
                 'summary' => $completed ? $this->summarizeLessonRun->handle($run) : null,
                 'next' => $completed ? $this->next($run, $unit) : null,
-                'remediation' => $completed && $run->kind !== LessonRunKind::Lesson ? $this->lessonProgress->remediation($user, $unit) : null,
+                'remediation' => $completed && $run->kind->provesUnit() || $completed && $run->kind === LessonRunKind::Practice ? $this->lessonProgress->remediation($user, $unit) : null,
                 'summarySeen' => $run->summary_seen_at !== null,
             ],
             'lesson' => ['id' => $lesson->id, 'unitId' => $unit->id, 'stage' => $stage->value, 'title' => $stage->label(), 'position' => $lesson->position],

@@ -23,6 +23,7 @@ use App\Models\Lesson;
 use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\Unit;
+use App\Models\UnitSkillMastery;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Models\VocabularyItem;
@@ -221,6 +222,16 @@ final class LessonWorld
             $run = (new StartLessonRun)->handle($user, $lesson);
             self::play($user, $run);
             $run->fresh()?->forceFill(['completed_at' => now()->subDays(2)])->save();
+        }
+
+        self::masterEverySkill($user, $unit);
+    }
+
+    /** What the final tests of the skills leave behind, so the unit check is unlocked. */
+    public static function masterEverySkill(User $user, Unit $unit): void
+    {
+        foreach ([Skill::Reading, Skill::Listening, Skill::Speaking, Skill::Writing] as $skill) {
+            UnitSkillMastery::query()->updateOrCreate(['user_id' => $user->id, 'unit_id' => $unit->id, 'skill' => $skill], ['mastered_at' => now()]);
         }
     }
 }

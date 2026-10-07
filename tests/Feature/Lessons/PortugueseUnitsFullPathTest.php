@@ -58,6 +58,7 @@ foreach (['greetings-and-introductions', 'at-the-airport', 'checking-into-a-hote
                 $run->forceFill(['completed_at' => now()->subDays(2)])->save();
             }
 
+            LessonWorld::masterEverySkill($this->user, $this->unit);
             $check = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, ($this->check)(), LessonRunKind::Check));
 
             expect($check->result['missing'])->toBe([])

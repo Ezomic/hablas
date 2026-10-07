@@ -24,6 +24,7 @@ function row(
         lessonId: 1,
         state,
         bestAccuracy,
+        mastered: false,
     };
 }
 
@@ -39,6 +40,13 @@ function mountList(
             overview: {
                 lessons,
                 mastery: { mastered: 3, total: 10 },
+                unlock: {
+                    lessonsMastered: 3,
+                    lessonsTotal: 4,
+                    skillsMastered: 1,
+                    skillsTotal: 4,
+                    met: false,
+                },
                 skipped,
                 contentPending: true,
                 canTestOut: false,
@@ -76,13 +84,12 @@ describe('unit lesson list', () => {
         expect(text('extra')).toContain('Opens tomorrow');
         expect(text('later')).toContain('Coming soon');
         expect(text('later')).toContain('Soon');
-        expect(wrapper.get('[data-testid="mastery"]').text()).toBe(
-            '3 of 10 mastered',
+        expect(wrapper.get('[data-testid="unlock-lessons"]').text()).toBe(
+            'Lessons at 100% first time: 3 of 4',
         );
-        expect(wrapper.text()).toContain('Mastered');
-        expect(
-            wrapper.get('[role="progressbar"]').attributes('aria-label'),
-        ).toBe('Words mastered');
+        expect(wrapper.get('[data-testid="unlock-skills"]').text()).toBe(
+            'Skills mastered by their final test: 1 of 4',
+        );
     });
 
     it('says which exercises were skipped', () => {
@@ -124,10 +131,10 @@ describe('unit lesson list', () => {
         expect(wrapper.get('[data-testid="lesson-later"]').text()).toContain(
             i18n.global.t('unitLessons.soon'),
         );
-        expect(wrapper.get('[data-testid="mastery"]').text()).toBe(
-            i18n.global.t('unitLessons.masteredCount', {
+        expect(wrapper.get('[data-testid="unlock-lessons"]').text()).toBe(
+            i18n.global.t('unitLessons.unlock.lessons', {
                 mastered: 3,
-                total: 10,
+                total: 4,
             }),
         );
         expect(wrapper.text()).toContain(

@@ -26,6 +26,7 @@ final class CompleteLessonRun
         private readonly ReassessSkillLevel $reassessSkillLevel = new ReassessSkillLevel,
         private readonly EvaluateUnitMastery $evaluateUnitMastery = new EvaluateUnitMastery,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
+        private readonly EvaluateSkillTest $evaluateSkillTest = new EvaluateSkillTest,
     ) {}
 
     /**
@@ -76,9 +77,11 @@ final class CompleteLessonRun
             }
         }
 
-        $mastery = $run->kind->isCheck()
-            ? $this->evaluateUnitMastery->handle($run)
-            : ['mastered' => [], 'missing' => [], 'enrolled' => 0, 'unit_completed' => false];
+        $mastery = match (true) {
+            $run->kind === LessonRunKind::SkillTest => $this->evaluateSkillTest->handle($run),
+            $run->kind->provesUnit() => $this->evaluateUnitMastery->handle($run),
+            default => ['mastered' => [], 'missing' => [], 'enrolled' => 0, 'unit_completed' => false],
+        };
 
         $result = [...$mastery, 'first_try_accuracy' => $accuracy, 'milestone' => $milestone];
 

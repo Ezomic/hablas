@@ -23,7 +23,7 @@ it('gives a unit with playable lessons its lesson overview', function () {
         ->assertInertia(fn ($page) => $page
             ->component('units/Show')
             ->where('lessons.contentPending', true)
-            ->where('lessons.lessons.0', ['stage' => 'meet', 'title' => 'Meet the words', 'position' => 1, 'lessonId' => LessonWorld::lesson($this->unit, LessonStage::Meet)->id, 'state' => 'available', 'bestAccuracy' => null])
+            ->where('lessons.lessons.0', ['stage' => 'meet', 'title' => 'Meet the words', 'position' => 1, 'lessonId' => LessonWorld::lesson($this->unit, LessonStage::Meet)->id, 'state' => 'available', 'bestAccuracy' => null, 'mastered' => false])
             ->where('lessons.lessons.1.state', 'locked')
             ->where('lessons.lessons.2.state', 'coming')
             ->where('lessons.lessons.3.state', 'coming')

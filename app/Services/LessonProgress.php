@@ -168,7 +168,7 @@ final class LessonProgress
 
         foreach ($runs as $lessonRuns) {
             foreach ($lessonRuns as $run) {
-                if ($run->status === LessonRunStatus::Completed && $run->kind->isCheck() && $run->completed_at !== null && ($latest === null || $run->completed_at->greaterThan($latest))) {
+                if ($run->status === LessonRunStatus::Completed && $run->kind->provesUnit() && $run->completed_at !== null && ($latest === null || $run->completed_at->greaterThan($latest))) {
                     $latest = $run->completed_at;
                 }
             }
@@ -182,7 +182,7 @@ final class LessonProgress
      */
     private function checkPassed(User $user, Unit $unit, array $runs): bool
     {
-        $anyCheck = collect($runs)->flatten()->contains(fn (LessonRun $run): bool => $run->status === LessonRunStatus::Completed && $run->kind->isCheck());
+        $anyCheck = collect($runs)->flatten()->contains(fn (LessonRun $run): bool => $run->status === LessonRunStatus::Completed && $run->kind->provesUnit());
 
         return $anyCheck && $this->unitMasteryReader->missing($user, $unit) === [];
     }

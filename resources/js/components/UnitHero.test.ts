@@ -14,10 +14,24 @@ const progress = {
 describe('UnitHero', () => {
     it('says Start before the unit is started and Continue after', () => {
         const fresh = mount(UnitHero, {
-            props: { progress, canContinue: true, started: false, busy: false },
+            props: {
+                progress,
+                percent: 40,
+                skills: { total: 4, mastered: 1 },
+                canContinue: true,
+                started: false,
+                busy: false,
+            },
         });
         const going = mount(UnitHero, {
-            props: { progress, canContinue: true, started: true, busy: false },
+            props: {
+                progress,
+                percent: 40,
+                skills: { total: 4, mastered: 1 },
+                canContinue: true,
+                started: true,
+                busy: false,
+            },
         });
 
         expect(fresh.find('[data-testid="continue-button"]').text()).toBe(
@@ -30,14 +44,21 @@ describe('UnitHero', () => {
 
     it('fills the ring and earns the stars', () => {
         const wrapper = mount(UnitHero, {
-            props: { progress, canContinue: false, started: true, busy: false },
+            props: {
+                progress,
+                percent: 40,
+                skills: { total: 4, mastered: 1 },
+                canContinue: false,
+                started: true,
+                busy: false,
+            },
         });
 
         expect(
             wrapper
                 .find('[data-testid="progress-ring"]')
                 .attributes('aria-label'),
-        ).toBe('100% of this unit known');
+        ).toBe('40% of this unit done');
         expect(
             wrapper.find('[data-testid="star-row"]').attributes('aria-label'),
         ).toBe('3 stars');
@@ -48,7 +69,14 @@ describe('UnitHero', () => {
 
     it('shows a gem for every word with its state', () => {
         const wrapper = mount(UnitHero, {
-            props: { progress, canContinue: false, started: true, busy: false },
+            props: {
+                progress,
+                percent: 40,
+                skills: { total: 4, mastered: 1 },
+                canContinue: false,
+                started: true,
+                busy: false,
+            },
         });
 
         expect(

@@ -19,6 +19,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserUnitProgress;
 use App\Services\LessonProgress;
+use App\Services\UnitCheckRequirements;
 use App\Services\UnitMasteryReader;
 use App\Services\UnitSkillProgress;
 use App\Services\UnitStruggles;
@@ -35,6 +36,7 @@ final class StartLessonRun
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
         private readonly UnitStruggles $unitStruggles = new UnitStruggles,
         private readonly UnitSkillProgress $unitSkillProgress = new UnitSkillProgress,
+        private readonly UnitCheckRequirements $unitCheckRequirements = new UnitCheckRequirements,
     ) {}
 
     /**
@@ -133,10 +135,11 @@ final class StartLessonRun
 
         match ($kind) {
             LessonRunKind::Lesson => $this->assertNotLocked($state),
-            LessonRunKind::Check => $this->assertCheckIsOpen($state),
+            LessonRunKind::Check => $this->assertCheckIsOpen($state, $user, $unit),
             LessonRunKind::TestOut => $this->assertNotStarted($user, $unit, $state),
             LessonRunKind::Retake => $this->assertRemediation($user, $unit, $kind),
             LessonRunKind::Practice => $this->assertSomethingToPractise($user, $unit, $skill),
+            LessonRunKind::SkillTest => $this->assertSkillIsTrained($user, $unit, $skill),
         };
     }
 
@@ -147,14 +150,14 @@ final class StartLessonRun
         }
     }
 
-    private function assertCheckIsOpen(LessonState $state): void
+    private function assertCheckIsOpen(LessonState $state, User $user, Unit $unit): void
     {
         match ($state) {
             LessonState::Locked => throw $this->refuse(__('Finish the lessons before the check.')),
             LessonState::OpensTomorrow => throw $this->refuse(__('The check opens tomorrow.')),
             LessonState::Completed => throw $this->refuse(__('You have passed this unit check.')),
             LessonState::Remediation => throw $this->refuse(__('Practise the missed items and retake them, instead of taking the whole check again.')),
-            default => null,
+            default => $this->assertUnitIsMastered($user, $unit),
         };
     }
 
@@ -168,6 +171,28 @@ final class StartLessonRun
 
         if ($started || $state === LessonState::Completed) {
             throw $this->refuse(__('Taking the check now is for a unit you have not started.'));
+        }
+    }
+
+    private function assertUnitIsMastered(User $user, Unit $unit): void
+    {
+        if (! $this->unitCheckRequirements->handle($user, $unit)['met']) {
+            throw $this->refuse(__('Master every lesson and every skill before the unit check.'));
+        }
+    }
+
+    private function assertSkillIsTrained(User $user, Unit $unit, ?Skill $skill): void
+    {
+        if ($skill === null) {
+            throw $this->refuse(__('Choose a skill to test.'));
+        }
+
+        if ($this->unitSkillProgress->missing($user, $unit, $skill) !== []) {
+            throw $this->refuse(__('Train this skill to 100% before its final test.'));
+        }
+
+        if ($this->unitSkillProgress->isMastered($user, $unit, $skill)) {
+            throw $this->refuse(__('This skill is already mastered.'));
         }
     }
 

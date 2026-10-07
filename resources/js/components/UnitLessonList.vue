@@ -24,14 +24,15 @@ const { t } = useI18n();
 const starting = ref<number | null>(null);
 const error = ref<string | null>(null);
 
-const masteryPercent = computed(() =>
-    props.overview.mastery.total === 0
+const unlockPercent = computed(() => {
+    const { lessonsMastered, lessonsTotal, skillsMastered, skillsTotal } =
+        props.overview.unlock;
+    const total = lessonsTotal + skillsTotal;
+
+    return total === 0
         ? 0
-        : Math.round(
-              (props.overview.mastery.mastered / props.overview.mastery.total) *
-                  100,
-          ),
-);
+        : Math.round(((lessonsMastered + skillsMastered) / total) * 100);
+});
 
 const checkLesson = computed(
     () => props.overview.lessons.find((row) => row.stage === 'check') ?? null,
@@ -112,13 +113,19 @@ function status(row: UnitLessonRow): string {
         case 'in_progress':
             return t('unitLessons.status.inProgress');
         case 'completed':
+            if (row.mastered) {
+                return t('unitLessons.status.mastered');
+            }
+
             return row.bestAccuracy === null
                 ? t('unitLessons.status.done')
                 : t('unitLessons.status.doneBest', {
                       percent: Math.round(row.bestAccuracy * 100),
                   });
         default:
-            return t('unitLessons.status.ready');
+            return row.stage === 'check' && !props.overview.unlock.met
+                ? t('unitLessons.status.needsMastery')
+                : t('unitLessons.status.ready');
     }
 }
 
@@ -126,7 +133,12 @@ function playable(row: UnitLessonRow): boolean {
     return (
         row.lessonId !== null &&
         ['available', 'in_progress', 'completed'].includes(row.state) &&
-        !(row.stage === 'check' && row.state === 'completed')
+        !(row.stage === 'check' && row.state === 'completed') &&
+        !(
+            row.stage === 'check' &&
+            row.state === 'available' &&
+            !props.overview.unlock.met
+        )
     );
 }
 </script>
@@ -143,22 +155,32 @@ function playable(row: UnitLessonRow): boolean {
             </AlertDescription>
         </Alert>
 
-        <Card>
+        <Card data-testid="unlock">
             <CardHeader class="gap-2">
                 <CardTitle class="text-base">{{
-                    t('unitLessons.mastered')
+                    t('unitLessons.unlock.title')
                 }}</CardTitle>
-                <p class="text-sm text-muted-foreground" data-testid="mastery">
-                    {{
-                        t('unitLessons.masteredCount', {
-                            mastered: props.overview.mastery.mastered,
-                            total: props.overview.mastery.total,
-                        })
-                    }}
-                </p>
+                <ul class="flex flex-col gap-1 text-sm text-muted-foreground">
+                    <li data-testid="unlock-lessons">
+                        {{
+                            t('unitLessons.unlock.lessons', {
+                                mastered: props.overview.unlock.lessonsMastered,
+                                total: props.overview.unlock.lessonsTotal,
+                            })
+                        }}
+                    </li>
+                    <li data-testid="unlock-skills">
+                        {{
+                            t('unitLessons.unlock.skills', {
+                                mastered: props.overview.unlock.skillsMastered,
+                                total: props.overview.unlock.skillsTotal,
+                            })
+                        }}
+                    </li>
+                </ul>
                 <Progress
-                    :model-value="masteryPercent"
-                    :aria-label="t('unitLessons.wordsMastered')"
+                    :model-value="unlockPercent"
+                    :aria-label="t('unitLessons.unlock.title')"
                 />
                 <p v-if="skippedNote" class="text-xs text-muted-foreground">
                     {{ skippedNote }}

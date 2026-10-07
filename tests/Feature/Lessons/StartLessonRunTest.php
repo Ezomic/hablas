@@ -172,6 +172,10 @@ describe('unlocking', function () {
 
         $this->travel(1)->days();
 
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Check)))->toBe('Master every lesson and every skill before the unit check.');
+
+        LessonWorld::masterEverySkill($this->user, $this->unit);
+
         expect((new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Check)->kind)->toBe(LessonRunKind::Check);
     });
 
