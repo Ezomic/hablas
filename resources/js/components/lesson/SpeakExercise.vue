@@ -18,6 +18,7 @@ const props = defineProps<{
     scoreUrl: string;
     replayLimit: number | null;
     disabled?: boolean;
+    showModel?: boolean;
     factory?: RecognizerFactory;
 }>();
 
@@ -40,11 +41,20 @@ const prompt = computed(() => text(props.payload.prompt));
 const audioUrl = computed(() => clipUrl(props.payload.audioUrl));
 const audioSlowUrl = computed(() => clipUrl(props.payload.audioSlowUrl));
 const last = computed(() => speaking.tries.value.at(-1) ?? null);
+const model = computed(() => (isRepeat.value ? '' : text(props.payload.model)));
 const hint = computed(() => {
-    const first = text(props.payload.model).split(/\s+/)[0] ?? '';
+    if (model.value === '') {
+        return null;
+    }
 
-    return !isRepeat.value && last.value?.result?.correct === false && first
-        ? first.replace(/[,.!?¡¿]+$/u, '')
+    if (props.showModel) {
+        return t('lesson.speak.hintFull', { model: model.value });
+    }
+
+    const first = model.value.split(/\s+/)[0].replace(/[,.!?¡¿]+$/u, '');
+
+    return last.value?.result?.correct === false
+        ? t('lesson.speak.hint', { word: first })
         : null;
 });
 const used = computed(() => speaking.tries.value.length);
@@ -176,6 +186,10 @@ const verdictStyle: Record<WordVerdict, string> = {
             </p>
         </div>
 
+        <p v-if="hint" class="text-sm font-medium" data-testid="speak-hint">
+            {{ hint }}
+        </p>
+
         <div v-if="last" class="flex flex-col gap-2" data-testid="speak-result">
             <p class="text-sm">
                 {{ t('lesson.speak.youSaid') }}
@@ -210,13 +224,6 @@ const verdictStyle: Record<WordVerdict, string> = {
                                   last.result.missed,
                               )
                     }}
-                </p>
-                <p
-                    v-if="hint"
-                    class="text-sm font-medium"
-                    data-testid="speak-hint"
-                >
-                    {{ t('lesson.speak.hint', { word: hint }) }}
                 </p>
                 <p
                     class="text-sm text-muted-foreground"
