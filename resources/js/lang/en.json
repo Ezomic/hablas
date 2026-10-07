@@ -393,7 +393,6 @@
             "tap": "Tap and speak",
             "noTriesLeft": "No tries left, press Check",
             "tryCount": "Try {used} of {max}",
-            "hint": "Hint: start your answer with {word}",
             "hintFull": "Say something like: {model}",
             "notHeard": "We couldn't hear that clearly. Try again.",
             "youSaid": "You said:",

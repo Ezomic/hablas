@@ -393,7 +393,6 @@
             "tap": "Tik en spreek",
             "noTriesLeft": "Geen pogingen meer, druk op Controleren",
             "tryCount": "Poging {used} van {max}",
-            "hint": "Tip: begin je antwoord met {word}",
             "hintFull": "Zeg bijvoorbeeld: {model}",
             "notHeard": "We konden je niet goed verstaan. Probeer het opnieuw.",
             "youSaid": "Je zei:",

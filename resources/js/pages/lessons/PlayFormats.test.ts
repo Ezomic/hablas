@@ -360,10 +360,17 @@ describe('write_guided', () => {
         );
         const wrapper = mountPlay({ plan: [guided] });
 
-        expect(wrapper.text()).toContain('Use these words');
+        expect(wrapper.text()).not.toContain('Use these words');
         expect(wrapper.text()).toContain(
             'Write it in the language you are learning',
         );
+
+        await wrapper
+            .findAll('button')
+            .find((button) => button.text() === 'Show a hint')!
+            .trigger('click');
+
+        expect(wrapper.text()).toContain('Use these words');
 
         await wrapper.get('textarea').setValue('hola');
         wrapper
