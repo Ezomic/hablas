@@ -107,7 +107,7 @@ function mountPage(overrides: Record<string, unknown> = {}) {
             progress,
             day: { words: 4, goal: 10, streak: 3, due: 7 },
             struggles: { count: 0, items: [], lessonId: null },
-            training: { skills: [], lessonId: null },
+            training: { skills: [], percent: 0, lessonId: null },
             ...overrides,
         },
     });
@@ -123,16 +123,42 @@ describe('unit page', () => {
         expect(text).toContain('Speaking');
     });
 
-    it('shows each trained skill with its progress and practises one on the check lesson', async () => {
+    it('shows each trained skill with its progress, practises one, tests a complete one and marks a mastered one', async () => {
         router.post.mockClear();
         const wrapper = mountPage({
             lessons: overview,
             training: {
                 skills: [
-                    { skill: 'reading', done: 4, total: 10, percent: 40 },
-                    { skill: 'listening', done: 10, total: 10, percent: 100 },
-                    { skill: 'speaking', done: 0, total: 0, percent: 100 },
+                    {
+                        skill: 'reading',
+                        done: 4,
+                        total: 10,
+                        percent: 40,
+                        mastered: false,
+                    },
+                    {
+                        skill: 'listening',
+                        done: 10,
+                        total: 10,
+                        percent: 100,
+                        mastered: false,
+                    },
+                    {
+                        skill: 'writing',
+                        done: 10,
+                        total: 10,
+                        percent: 100,
+                        mastered: true,
+                    },
+                    {
+                        skill: 'speaking',
+                        done: 0,
+                        total: 0,
+                        percent: 100,
+                        mastered: false,
+                    },
                 ],
+                percent: 55,
                 lessonId: 77,
             },
         });
@@ -141,13 +167,18 @@ describe('unit page', () => {
             wrapper.get('[data-testid="training-reading"]').text(),
         ).toContain('4/10');
         expect(
-            wrapper
-                .get('[data-testid="training-listening"]')
-                .find('[data-testid="practise-skill"]')
-                .exists(),
-        ).toBe(false);
+            wrapper.get('[data-testid="training-writing"]').text(),
+        ).toContain('Mastered');
         expect(wrapper.find('[data-testid="training-speaking"]').exists()).toBe(
             false,
+        );
+        expect(
+            wrapper
+                .get('[data-testid="unit-hero"] [data-testid="progress-ring"]')
+                .text(),
+        ).toContain('55%');
+        expect(wrapper.get('[data-testid="skills-mastered"]').text()).toBe(
+            '1 of 3 skills mastered',
         );
 
         await wrapper
@@ -156,9 +187,36 @@ describe('unit page', () => {
             )
             .trigger('click');
 
-        expect(router.post).toHaveBeenCalledWith(
+        expect(router.post).toHaveBeenLastCalledWith(
             '/units/4/lessons/77/runs',
             { kind: 'practice', skill: 'reading' },
+            expect.anything(),
+        );
+
+        const again = mountPage({
+            lessons: overview,
+            training: {
+                skills: [
+                    {
+                        skill: 'listening',
+                        done: 10,
+                        total: 10,
+                        percent: 100,
+                        mastered: false,
+                    },
+                ],
+                percent: 50,
+                lessonId: 77,
+            },
+        });
+
+        await again
+            .get('[data-testid="training-listening"] [data-testid="take-test"]')
+            .trigger('click');
+
+        expect(router.post).toHaveBeenLastCalledWith(
+            '/units/4/lessons/77/runs',
+            { kind: 'skill_test', skill: 'listening' },
             expect.anything(),
         );
     });
@@ -287,6 +345,7 @@ const overview = {
             lessonId: 11,
             state: 'completed',
             bestAccuracy: 0.9,
+            mastered: false,
         },
         {
             stage: 'recall',
@@ -295,6 +354,7 @@ const overview = {
             lessonId: 12,
             state: 'in_progress',
             bestAccuracy: null,
+            mastered: false,
         },
         {
             stage: 'sentences',
@@ -303,6 +363,7 @@ const overview = {
             lessonId: null,
             state: 'coming',
             bestAccuracy: null,
+            mastered: false,
         },
         {
             stage: 'task',
@@ -311,6 +372,7 @@ const overview = {
             lessonId: null,
             state: 'coming',
             bestAccuracy: null,
+            mastered: false,
         },
         {
             stage: 'check',
@@ -319,9 +381,17 @@ const overview = {
             lessonId: 15,
             state: 'locked',
             bestAccuracy: null,
+            mastered: false,
         },
     ],
     mastery: { mastered: 4, total: 10 },
+    unlock: {
+        lessonsMastered: 1,
+        lessonsTotal: 4,
+        skillsMastered: 0,
+        skillsTotal: 4,
+        met: false,
+    },
     skipped: { listening: 2, speaking: 1 },
     contentPending: true,
     canTestOut: false,
@@ -337,7 +407,7 @@ describe('unit page with lessons', () => {
         expect(text).toContain('Continue');
         expect(text).toContain('Coming soon');
         expect(text).toContain('Opens after the lessons before it');
-        expect(text).toContain('4 of 10 mastered');
+        expect(text).toContain('Lessons at 100% first time: 1 of 4');
         expect(text).toContain(
             'Skipped listening in 2 and speaking in 1 exercises.',
         );
@@ -524,6 +594,7 @@ describe('unit hero', () => {
                 lessonId: 11,
                 state: 'completed',
                 bestAccuracy: 90,
+                mastered: false,
             },
             {
                 stage: 'recall',
@@ -532,17 +603,28 @@ describe('unit hero', () => {
                 lessonId: 12,
                 state: 'available',
                 bestAccuracy: null,
+                mastered: false,
             },
         ],
         mastery: { mastered: 3, total: 10 },
+        unlock: {
+            lessonsMastered: 1,
+            lessonsTotal: 4,
+            skillsMastered: 0,
+            skillsTotal: 4,
+            met: false,
+        },
         skipped: { listening: 0, speaking: 0 },
         contentPending: false,
         canTestOut: false,
         remediation: null,
     };
 
-    it('shows the share known, the stars and the level', () => {
-        const wrapper = mountPage({ lessons });
+    it('shows the unit progress, the words known and the skills, not the level', () => {
+        const wrapper = mountPage({
+            lessons,
+            training: { skills: [], percent: 30, lessonId: null },
+        });
 
         expect(
             wrapper
@@ -550,8 +632,8 @@ describe('unit hero', () => {
                 .text(),
         ).toContain('30%');
         expect(wrapper.text()).toContain('3 of 10 words known');
-        expect(wrapper.find('[data-testid="level-progress"]').text()).toContain(
-            'A1: 12 of 80 words (15%)',
+        expect(wrapper.find('[data-testid="level-progress"]').exists()).toBe(
+            false,
         );
     });
 

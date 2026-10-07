@@ -107,6 +107,26 @@ function continueUnit() {
     );
 }
 
+const trainedSkills = computed(() =>
+    props.training.skills.filter((row) => row.total > 0),
+);
+
+function takeTest(skill: string) {
+    if (props.training.lessonId === null) {
+        return;
+    }
+
+    starting.value = true;
+    router.post(
+        startRun({
+            unit: props.unit.id,
+            lesson: props.training.lessonId,
+        }).url,
+        { kind: 'skill_test', skill },
+        { onFinish: () => (starting.value = false) },
+    );
+}
+
 function practiseSkill(skill: string) {
     if (props.training.lessonId === null) {
         return;
@@ -166,6 +186,11 @@ function complete() {
         <UnitHero
             v-if="props.lessons"
             :progress="props.progress"
+            :percent="props.training.percent"
+            :skills="{
+                total: trainedSkills.length,
+                mastered: trainedSkills.filter((row) => row.mastered).length,
+            }"
             :can-continue="
                 nextLesson !== null && props.availability !== 'held_back'
             "
@@ -208,8 +233,23 @@ function complete() {
                                 />
                             </div>
                         </div>
+                        <Badge v-if="row.mastered" variant="secondary">
+                            <Check class="size-4 text-green-600" />
+                            {{ t('units.training.mastered') }}
+                        </Badge>
                         <Button
-                            v-if="row.percent < 100"
+                            v-else-if="row.percent >= 100"
+                            size="sm"
+                            :disabled="
+                                starting || props.training.lessonId === null
+                            "
+                            data-testid="take-test"
+                            @click="takeTest(row.skill)"
+                        >
+                            {{ t('units.training.test') }}
+                        </Button>
+                        <Button
+                            v-else
                             size="sm"
                             variant="outline"
                             :disabled="
@@ -220,11 +260,6 @@ function complete() {
                         >
                             {{ t('units.training.practise') }}
                         </Button>
-                        <Check
-                            v-else
-                            class="size-5 text-green-600"
-                            :aria-label="t('units.training.complete')"
-                        />
                     </li>
                 </ul>
                 <p class="text-sm text-muted-foreground">

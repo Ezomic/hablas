@@ -182,11 +182,19 @@ export interface UnitLessonRow {
     lessonId: number | null;
     state: LessonState;
     bestAccuracy: number | null;
+    mastered: boolean;
 }
 
 export interface UnitLessonOverview {
     lessons: UnitLessonRow[];
     mastery: { mastered: number; total: number };
+    unlock: {
+        lessonsMastered: number;
+        lessonsTotal: number;
+        skillsMastered: number;
+        skillsTotal: number;
+        met: boolean;
+    };
     skipped: { listening: number; speaking: number };
     contentPending: boolean;
     canTestOut: boolean;

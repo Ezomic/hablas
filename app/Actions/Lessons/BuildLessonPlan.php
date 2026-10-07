@@ -58,6 +58,7 @@ final class BuildLessonPlan
             LessonRunKind::Check, LessonRunKind::TestOut => $this->checkPlan($user, $lesson, $this->nextProbeSet($user, $lesson)),
             LessonRunKind::Retake => $this->retakePlan($user, $lesson, $unit),
             LessonRunKind::Practice => [$this->practicePlan($user, $unit, $randomizer, $skill), null],
+            LessonRunKind::SkillTest => [$this->skillTestPlan($unit, $randomizer, $skill ?? throw new LogicException('A skill test needs a skill.')), null],
         };
 
         return ['plan' => $plan, 'seed' => $seed, 'probe_set' => $probeSet];
@@ -280,6 +281,64 @@ final class BuildLessonPlan
         }
 
         return [$plan, $set];
+    }
+
+    /**
+     * One exercise of the skill for every item the unit trains in it, none
+     * twice, so the test covers each item at least once.
+     *
+     * @return list<array{id: int, origin: string}>
+     */
+    private function skillTestPlan(Unit $unit, Randomizer $randomizer, Skill $skill): array
+    {
+        $exercises = LessonExercise::query()
+            ->whereNull('retired_at')
+            ->whereNull('substitute_for_id')
+            ->whereNull('probe_set')
+            ->whereHas('lesson', fn ($query) => $query->where('unit_id', $unit->id)->whereIn('stage', [LessonStage::Meet, LessonStage::Recall, LessonStage::Sentences, LessonStage::Task]))
+            ->with('targets')
+            ->orderBy('id')
+            ->get()
+            ->filter(fn (LessonExercise $exercise): bool => ! $exercise->format->isTeach() && $exercise->format->skill() === $skill)
+            ->values();
+
+        $byId = [];
+
+        foreach ($exercises as $exercise) {
+            $byId[$exercise->id] = $exercise;
+        }
+
+        $order = $this->shuffle($randomizer, array_keys($byId));
+        $plan = [];
+        $covered = [];
+
+        foreach ($this->unitMasteryReader->items($unit) as $ref) {
+            if (isset($covered[$ref->key()])) {
+                continue;
+            }
+
+            foreach ($order as $id) {
+                $exercise = $byId[$id];
+
+                if (! $exercise->targets->contains(fn ($target): bool => TargetRef::keyFor($target->targetable_type, $target->targetable_id) === $ref->key())) {
+                    continue;
+                }
+
+                $plan[] = ['id' => $id, 'origin' => 'lesson'];
+
+                foreach ($exercise->targets as $target) {
+                    $covered[TargetRef::keyFor($target->targetable_type, $target->targetable_id)] = true;
+                }
+
+                break;
+            }
+        }
+
+        if ($plan === []) {
+            throw new LogicException('There is nothing to test.');
+        }
+
+        return $plan;
     }
 
     /**

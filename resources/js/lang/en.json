@@ -614,7 +614,9 @@
             "title": "Train this unit",
             "practise": "Practise",
             "complete": "All done",
-            "note": "Practise each skill until it is complete, then take the unit check when you are ready."
+            "test": "Take the test",
+            "mastered": "Mastered",
+            "note": "Practise each skill until it is complete, then take its final test. The test has no hints or feedback and allows no mistakes."
         },
         "struggles": {
             "title": "Struggles",
@@ -768,7 +770,8 @@
         "stars": "No stars yet | {count} star | {count} stars",
         "unitPercent": "{percent}% of this unit known",
         "wordsKnown": "{known} of {total} words known",
-        "level": "{level}: {known} of {total} words ({percent}%)",
+        "unitDone": "{percent}% of this unit done",
+        "skillsMastered": "{mastered} of {total} skills mastered",
         "continue": "Continue",
         "start": "Start",
         "word": {
@@ -911,6 +914,11 @@
         "submit": "Submit reflection"
     },
     "unitLessons": {
+        "unlock": {
+            "title": "Unlocks the unit check",
+            "lessons": "Lessons at 100% first time: {mastered} of {total}",
+            "skills": "Skills mastered by their final test: {mastered} of {total}"
+        },
         "mastered": "Mastered",
         "wordsMastered": "Words mastered",
         "masteredCount": "{mastered} of {total} mastered",
@@ -924,6 +932,8 @@
         "replay": "Replay",
         "start": "Start",
         "status": {
+            "mastered": "Mastered, every exercise right first time",
+            "needsMastery": "Opens once every lesson and skill is mastered",
             "lockedCheck": "Opens after the lessons before it",
             "locked": "Finish the lesson before it first",
             "opensTomorrow": "Opens tomorrow",

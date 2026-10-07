@@ -15,6 +15,7 @@ use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\LessonProgress;
+use App\Services\UnitCheckRequirements;
 use App\Services\UnitMasteryReader;
 
 final class GetUnitLessonOverview
@@ -22,6 +23,7 @@ final class GetUnitLessonOverview
     public function __construct(
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
+        private readonly UnitCheckRequirements $unitCheckRequirements = new UnitCheckRequirements,
     ) {}
 
     /**
@@ -31,12 +33,13 @@ final class GetUnitLessonOverview
      * sentence and grammar lessons are still on their way.
      *
      * @return array{
-     *     lessons: list<array{stage: string, title: string, position: int, lessonId: int|null, state: string, bestAccuracy: float|null}>,
+     *     lessons: list<array{stage: string, title: string, position: int, lessonId: int|null, state: string, bestAccuracy: float|null, mastered: bool}>,
      *     mastery: array{mastered: int, total: int},
      *     skipped: array{listening: int, speaking: int},
      *     contentPending: bool,
      *     canTestOut: bool,
-     *     remediation: array{lessonId: int, missing: int, retake: string}|null
+     *     remediation: array{lessonId: int, missing: int, retake: string}|null,
+     *     unlock: array{lessonsMastered: int, lessonsTotal: int, skillsMastered: int, skillsTotal: int, met: bool}
      * }
      */
     public function handle(User $user, Unit $unit): array
@@ -56,6 +59,7 @@ final class GetUnitLessonOverview
                 'lessonId' => $lesson?->id,
                 'state' => $lesson === null ? LessonState::Coming->value : ($states[$lesson->id] ?? LessonState::Coming)->value,
                 'bestAccuracy' => $lesson === null ? null : $this->bestAccuracy($user, $lesson),
+                'mastered' => $lesson !== null && $stage !== LessonStage::Check && $this->unitCheckRequirements->isMastered($user, $lesson->id),
             ];
         }
 
@@ -68,6 +72,7 @@ final class GetUnitLessonOverview
             'contentPending' => $lessons->isNotEmpty() && $this->unitMasteryReader->scope($unit) === MasteryScope::Words,
             'canTestOut' => $this->canTestOut($user, $unit, $lessons->get(LessonStage::Check->value), $states),
             'remediation' => $this->lessonProgress->remediation($user, $unit),
+            'unlock' => $this->unitCheckRequirements->handle($user, $unit),
         ];
     }
 
@@ -96,7 +101,7 @@ final class GetUnitLessonOverview
             ->where('user_id', $user->id)
             ->where('lesson_id', $lesson->id)
             ->where('status', LessonRunStatus::Completed)
-            ->where('kind', '!=', LessonRunKind::Practice)
+            ->whereNotIn('kind', [LessonRunKind::Practice, LessonRunKind::SkillTest])
             ->max('first_try_accuracy');
 
         return is_numeric($best) ? (float) $best : null;

@@ -39,6 +39,13 @@ export interface UnitStruggles {
 }
 
 export interface UnitTraining {
-    skills: { skill: string; done: number; total: number; percent: number }[];
+    skills: {
+        skill: string;
+        done: number;
+        total: number;
+        percent: number;
+        mastered: boolean;
+    }[];
+    percent: number;
     lessonId: number | null;
 }
