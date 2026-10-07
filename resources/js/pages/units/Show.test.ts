@@ -135,6 +135,7 @@ describe('unit page', () => {
                         total: 10,
                         percent: 40,
                         mastered: false,
+                        missed: 0,
                     },
                     {
                         skill: 'listening',
@@ -142,6 +143,7 @@ describe('unit page', () => {
                         total: 10,
                         percent: 100,
                         mastered: false,
+                        missed: 0,
                     },
                     {
                         skill: 'writing',
@@ -156,6 +158,7 @@ describe('unit page', () => {
                         total: 0,
                         percent: 100,
                         mastered: false,
+                        missed: 0,
                     },
                 ],
                 percent: 55,
@@ -203,6 +206,7 @@ describe('unit page', () => {
                         total: 10,
                         percent: 100,
                         mastered: false,
+                        missed: 0,
                     },
                 ],
                 percent: 50,
@@ -346,6 +350,7 @@ const overview = {
             state: 'completed',
             bestAccuracy: 0.9,
             mastered: false,
+            missed: 0,
         },
         {
             stage: 'recall',
@@ -355,6 +360,7 @@ const overview = {
             state: 'in_progress',
             bestAccuracy: null,
             mastered: false,
+            missed: 0,
         },
         {
             stage: 'sentences',
@@ -364,6 +370,7 @@ const overview = {
             state: 'coming',
             bestAccuracy: null,
             mastered: false,
+            missed: 0,
         },
         {
             stage: 'task',
@@ -373,6 +380,7 @@ const overview = {
             state: 'coming',
             bestAccuracy: null,
             mastered: false,
+            missed: 0,
         },
         {
             stage: 'check',
@@ -382,6 +390,7 @@ const overview = {
             state: 'locked',
             bestAccuracy: null,
             mastered: false,
+            missed: 0,
         },
     ],
     mastery: { mastered: 4, total: 10 },
@@ -403,7 +412,7 @@ describe('unit page with lessons', () => {
         const text = mountPage({ lessons: overview }).text();
 
         expect(text).toContain('Meet the words');
-        expect(text).toContain('Done, best 90% first time');
+        expect(text).toContain('Done, 90% right first time');
         expect(text).toContain('Continue');
         expect(text).toContain('Coming soon');
         expect(text).toContain('Opens after the lessons before it');
@@ -595,6 +604,7 @@ describe('unit hero', () => {
                 state: 'completed',
                 bestAccuracy: 90,
                 mastered: false,
+                missed: 0,
             },
             {
                 stage: 'recall',
@@ -604,6 +614,7 @@ describe('unit hero', () => {
                 state: 'available',
                 bestAccuracy: null,
                 mastered: false,
+                missed: 0,
             },
         ],
         mastery: { mastered: 3, total: 10 },

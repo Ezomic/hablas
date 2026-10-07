@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\LessonRunKind;
-use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
 use App\Models\Lesson;
-use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Models\User;
 
@@ -21,16 +18,17 @@ final class UnitCheckRequirements
 {
     public function __construct(
         private readonly UnitSkillProgress $unitSkillProgress = new UnitSkillProgress,
+        private readonly LessonMastery $lessonMastery = new LessonMastery,
     ) {}
 
     /** @return array{lessonsMastered: int, lessonsTotal: int, skillsMastered: int, skillsTotal: int, met: bool} */
     public function handle(User $user, Unit $unit): array
     {
-        $lessons = Lesson::query()->where('unit_id', $unit->id)->where('stage', '!=', LessonStage::Check)->playable()->get()->map(fn (Lesson $lesson): int => $lesson->id)->all();
+        $lessons = Lesson::query()->where('unit_id', $unit->id)->where('stage', '!=', LessonStage::Check)->playable()->get();
         $mastered = 0;
 
-        foreach ($lessons as $id) {
-            if ($this->isMastered($user, $id)) {
+        foreach ($lessons as $lesson) {
+            if ($this->lessonMastery->isMastered($user, $lesson)) {
                 $mastered++;
             }
         }
@@ -45,16 +43,5 @@ final class UnitCheckRequirements
             'skillsTotal' => count($skills),
             'met' => $mastered === count($lessons) && $skillsMastered === count($skills),
         ];
-    }
-
-    public function isMastered(User $user, int $lessonId): bool
-    {
-        return LessonRun::query()
-            ->where('user_id', $user->id)
-            ->where('lesson_id', $lessonId)
-            ->where('status', LessonRunStatus::Completed)
-            ->where('kind', LessonRunKind::Lesson)
-            ->where('first_try_accuracy', '>=', 1)
-            ->exists();
     }
 }

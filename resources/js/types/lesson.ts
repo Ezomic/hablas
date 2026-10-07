@@ -183,6 +183,7 @@ export interface UnitLessonRow {
     state: LessonState;
     bestAccuracy: number | null;
     mastered: boolean;
+    missed: number;
 }
 
 export interface UnitLessonOverview {

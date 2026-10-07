@@ -17,6 +17,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserUnitProgress;
 use App\Services\FirstTryRule;
+use App\Services\LessonMastery;
 use App\Services\LessonProgress;
 use App\Services\UnitMasteryReader;
 use App\Services\UnitSkillProgress;
@@ -38,6 +39,7 @@ final class BuildLessonPlan
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
         private readonly UnitStruggles $unitStruggles = new UnitStruggles,
         private readonly UnitSkillProgress $unitSkillProgress = new UnitSkillProgress,
+        private readonly LessonMastery $lessonMastery = new LessonMastery,
         private readonly FirstTryRule $firstTryRule = new FirstTryRule,
     ) {}
 
@@ -77,6 +79,10 @@ final class BuildLessonPlan
 
         foreach ($groups as $ids) {
             array_push($main, ...$this->shuffle($randomizer, $ids));
+        }
+
+        if ($this->lessonMastery->hasCompletedRun($user, $lesson) && ($missed = $this->lessonMastery->missing($user, $lesson)) !== []) {
+            return $this->entries($this->shuffle($randomizer, $missed), 'lesson');
         }
 
         $plan = [];

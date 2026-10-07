@@ -25,6 +25,7 @@ function row(
         state,
         bestAccuracy,
         mastered: false,
+        missed: 0,
     };
 }
 
@@ -72,7 +73,7 @@ describe('unit lesson list', () => {
         const text = (stage: string) =>
             wrapper.get(`[data-testid="lesson-${stage}"]`).text();
 
-        expect(text('words')).toContain('Done, best 82% first time');
+        expect(text('words')).toContain('Done, 82% right first time');
         expect(text('words')).toContain('Replay');
         expect(text('words-2')).toContain('Done');
         expect(text('sentences')).toContain('In progress');
@@ -161,5 +162,19 @@ describe('unit lesson list', () => {
         });
 
         expect(wrapper.text()).toContain('1 luisteroefening.');
+    });
+
+    it('offers to redo only the missed exercises of a lesson that is not mastered', () => {
+        const wrapper = mountList([
+            { ...row('words', 'completed', 0.9), missed: 2 },
+            { ...row('sentences', 'completed', 1), mastered: true },
+        ]);
+
+        expect(wrapper.get('[data-testid="lesson-words"]').text()).toContain(
+            'Redo the 2 missed',
+        );
+        expect(
+            wrapper.get('[data-testid="lesson-sentences"]').text(),
+        ).toContain('Replay');
     });
 });
