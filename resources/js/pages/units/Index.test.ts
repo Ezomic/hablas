@@ -40,6 +40,7 @@ function unit(
         masteredCount: 0,
         percent: 0,
         stars: 0,
+        struggles: 0,
     };
 }
 
@@ -177,6 +178,20 @@ describe('unit library page', () => {
         );
         expect(mountPage([a1]).find('[data-testid="pace"]').exists()).toBe(
             false,
+        );
+    });
+
+    it('badges a unit with struggles and none without', () => {
+        const wrapper = mountPage([
+            { ...unit(1, 'A1', 'available'), struggles: 3 },
+            unit(2, 'A1', 'available'),
+        ]);
+
+        expect(wrapper.findAll('[data-testid="struggles-badge"]')).toHaveLength(
+            1,
+        );
+        expect(wrapper.get('[data-testid="struggles-badge"]').text()).toBe(
+            '3 struggles',
         );
     });
 });

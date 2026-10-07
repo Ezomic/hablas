@@ -20,6 +20,7 @@ function unit(
         masteredCount: 0,
         percent: 0,
         stars: 0,
+        struggles: 0,
     };
 }
 

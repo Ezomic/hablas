@@ -19,6 +19,7 @@ use App\Models\Lesson;
 use App\Models\Unit;
 use App\Models\VocabularyItem;
 use App\Services\SpeechLocaleResolver;
+use App\Services\UnitStruggles;
 use App\Speech\SpeechClipResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +41,7 @@ final class UnitController extends Controller
         ]);
     }
 
-    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver, GetUnitProgress $getUnitProgress, GetDayStrip $getDayStrip): Response
+    public function show(Request $request, Unit $unit, GetCurrentLanguage $getCurrentLanguage, DetermineUnitAvailability $determineUnitAvailability, SpeechLocaleResolver $speechLocaleResolver, GetUnitLessonOverview $getUnitLessonOverview, SpeechClipResolver $speechClipResolver, GetUnitProgress $getUnitProgress, GetDayStrip $getDayStrip, UnitStruggles $unitStruggles): Response
     {
         $language = $this->currentLanguage($getCurrentLanguage);
         $availability = $this->authorizeUnit($unit, $language, $determineUnitAvailability);
@@ -79,6 +80,7 @@ final class UnitController extends Controller
             'lessons' => $this->hasLessons($overview) ? $overview : null,
             'progress' => $getUnitProgress->handle($this->currentUser(), $language, $unit),
             'day' => $getDayStrip->handle($this->currentUser(), $language),
+            'struggles' => $unitStruggles->describe($this->currentUser(), $unit),
             'speechLocale' => $speechLocaleResolver->forLanguage($language),
         ]);
     }

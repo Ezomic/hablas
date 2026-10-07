@@ -610,6 +610,13 @@
         }
     },
     "units": {
+        "struggles": {
+            "title": "Moeilijkheden",
+            "count": "{count} moeilijkheid | {count} moeilijkheden",
+            "badge": "{count} moeilijkheid | {count} moeilijkheden",
+            "practise": "Oefen moeilijkheden",
+            "none": "Geen moeilijkheden op dit moment, goed bezig."
+        },
         "pace": {
             "title": "A1-tempo",
             "done": "A1 is af.",

@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Models\UserUnitProgress;
 use App\Services\LessonProgress;
 use App\Services\UnitMasteryReader;
+use App\Services\UnitStruggles;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -30,6 +31,7 @@ final class StartLessonRun
         private readonly BuildLessonPlan $buildLessonPlan = new BuildLessonPlan,
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
+        private readonly UnitStruggles $unitStruggles = new UnitStruggles,
     ) {}
 
     /**
@@ -130,7 +132,8 @@ final class StartLessonRun
             LessonRunKind::Lesson => $this->assertNotLocked($state),
             LessonRunKind::Check => $this->assertCheckIsOpen($state),
             LessonRunKind::TestOut => $this->assertNotStarted($user, $unit, $state),
-            LessonRunKind::Retake, LessonRunKind::Practice => $this->assertRemediation($user, $unit, $kind),
+            LessonRunKind::Retake => $this->assertRemediation($user, $unit, $kind),
+            LessonRunKind::Practice => $this->assertSomethingToPractise($user, $unit),
         };
     }
 
@@ -162,6 +165,16 @@ final class StartLessonRun
 
         if ($started || $state === LessonState::Completed) {
             throw $this->refuse(__('Taking the check now is for a unit you have not started.'));
+        }
+    }
+
+    private function assertSomethingToPractise(User $user, Unit $unit): void
+    {
+        $struggling = $this->unitStruggles->handle($user, $unit) !== [];
+        $missing = $this->lessonProgress->lastCheck($user, $unit) !== null && $this->unitMasteryReader->missing($user, $unit) !== [];
+
+        if (! $struggling && ! $missing) {
+            throw $this->refuse(__('Nothing is left to practise.'));
         }
     }
 
