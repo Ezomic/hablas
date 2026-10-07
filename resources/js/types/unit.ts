@@ -13,6 +13,7 @@ export interface LibraryUnit {
     masteredCount: number;
     percent: number;
     stars: number;
+    struggles: number;
 }
 
 export interface UnitProgress {
@@ -29,4 +30,10 @@ export interface DayProgress {
     goal: number;
     streak: number;
     due: number;
+}
+
+export interface UnitStruggles {
+    count: number;
+    items: { label: string; meaning: string | null }[];
+    lessonId: number | null;
 }

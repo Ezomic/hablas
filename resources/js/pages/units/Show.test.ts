@@ -106,6 +106,7 @@ function mountPage(overrides: Record<string, unknown> = {}) {
             speechLocale: 'es-ES',
             progress,
             day: { words: 4, goal: 10, streak: 3, due: 7 },
+            struggles: { count: 0, items: [], lessonId: null },
             ...overrides,
         },
     });
@@ -119,6 +120,48 @@ describe('unit page', () => {
         expect(text).toContain('Order a drink and pay for it.');
         expect(text).toContain('A1');
         expect(text).toContain('Speaking');
+    });
+
+    it('shows the struggles and starts a practice run on the check lesson', async () => {
+        router.post.mockClear();
+        const wrapper = mountPage({
+            lessons: overview,
+            struggles: {
+                count: 2,
+                items: [
+                    { label: 'la llave', meaning: 'key' },
+                    { label: 'el baño', meaning: 'bathroom' },
+                ],
+                lessonId: 77,
+            },
+        });
+
+        const card = wrapper.get('[data-testid="struggles"]');
+
+        expect(card.text()).toContain('2 struggles');
+        expect(card.text()).toContain('la llave');
+        expect(card.text()).toContain('bathroom');
+
+        await wrapper
+            .get('[data-testid="practise-struggles"]')
+            .trigger('click');
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/units/4/lessons/77/runs',
+            { kind: 'practice' },
+            expect.anything(),
+        );
+    });
+
+    it('says there are no struggles at zero, with nothing to press', () => {
+        const wrapper = mountPage({ lessons: overview });
+
+        expect(wrapper.get('[data-testid="struggles"]').text()).toContain(
+            'No struggles right now',
+        );
+        expect(
+            wrapper.find('[data-testid="practise-struggles"]').exists(),
+        ).toBe(false);
     });
 
     it('renders every vocabulary item with its translation', () => {

@@ -267,6 +267,20 @@ function note(unit: LibraryUnit): string | null {
                                             )
                                         }}
                                     </Badge>
+                                    <Badge
+                                        v-if="unit.struggles > 0"
+                                        variant="outline"
+                                        class="border-amber-500 text-amber-700 dark:text-amber-300"
+                                        data-testid="struggles-badge"
+                                    >
+                                        {{
+                                            t(
+                                                'units.struggles.badge',
+                                                { count: unit.struggles },
+                                                unit.struggles,
+                                            )
+                                        }}
+                                    </Badge>
                                 </div>
                                 <CardTitle
                                     class="text-base"

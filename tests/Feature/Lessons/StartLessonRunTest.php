@@ -338,8 +338,8 @@ describe('remediation', function () {
         return LessonWorld::play($test->user, $run, fn (LessonExercise $exercise): bool => in_array($exercise->key, $wrongKeys, true));
     }
 
-    it('refuses practice and retake before any check, and when nothing is missing', function () {
-        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Practice)))->toBe('Take the unit check first.')
+    it('refuses practice with nothing to practise, and a retake before any check', function () {
+        expect(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Practice)))->toBe('Nothing is left to practise.')
             ->and(refusal(fn () => (new StartLessonRun)->handle($this->user, $this->check, LessonRunKind::Retake)))->toBe('Take the unit check first.');
     });
 

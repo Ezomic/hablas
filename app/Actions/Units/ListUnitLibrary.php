@@ -11,6 +11,7 @@ use App\Models\UnitItemMastery;
 use App\Models\User;
 use App\Services\LessonProgress;
 use App\Services\UnitStars;
+use App\Services\UnitStruggles;
 use App\Services\WordProgress;
 
 final class ListUnitLibrary
@@ -20,10 +21,11 @@ final class ListUnitLibrary
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly WordProgress $wordProgress = new WordProgress,
         private readonly UnitStars $unitStars = new UnitStars,
+        private readonly UnitStruggles $unitStruggles = new UnitStruggles,
     ) {}
 
     /**
-     * @return list<array{id: int, title: string, taskDescription: string, cefrLevel: string, primarySkill: string, availability: string, lessonCount: int, lessonsCompleted: int, masteredCount: int}>
+     * @return list<array{id: int, title: string, taskDescription: string, cefrLevel: string, primarySkill: string, availability: string, lessonCount: int, lessonsCompleted: int, masteredCount: int, struggles: int}>
      */
     public function handle(User $user, Language $language): array
     {
@@ -62,6 +64,7 @@ final class ListUnitLibrary
             'masteredCount' => count($mastered[$unit->id] ?? []),
             'percent' => $progress[$unit->id]['percent'],
             'stars' => $this->unitStars->handle($user, $unit, $progress[$unit->id]['percent']),
+            'struggles' => count($this->unitStruggles->handle($user, $unit)),
         ])->all());
     }
 }
