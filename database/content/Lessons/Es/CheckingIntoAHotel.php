@@ -39,6 +39,7 @@ final class CheckingIntoAHotel implements UnitContent
             new WordData('el baño', cue: 'bathroom', accepted: ['el cuarto de baño', 'el aseo']),
             new WordData('incluido', cue: 'included (masculine)', forms: ['incluida']),
             new WordData('el desayuno', cue: 'breakfast'),
+            new WordData('¿cuántas?', cue: 'how many? (before a feminine plural, as in how many nights)'),
         ];
     }
 
@@ -99,10 +100,10 @@ final class CheckingIntoAHotel implements UnitContent
             self::listenChoose($stage, 'sentences.listen_choose.hotel', 'El hotel está aquí.', ['The hotel is near.', 'The breakfast is here.', 'The hotel is here.', 'The bathroom is here.'], 'The hotel is here.', [self::word('el hotel'), self::form('está')]),
             self::listenType($stage, 'sentences.listen_type.llave', 'La llave está en la habitación.', 'The key is in the room.', [self::word('la llave'), self::word('la habitación'), self::form('está')]),
             self::listenType($stage, 'sentences.listen_type.desayuno', 'El desayuno está incluido.', 'Breakfast is included.', [self::word('el desayuno'), self::word('incluido'), self::form('está')]),
-            self::listenType($stage, 'sentences.listen_type.reserva', 'Tengo una reserva.', 'I have a reservation.', [self::word('la reserva', 'reserva')]),
+            self::listenType($stage, 'sentences.listen_type.reserva', '¿Para cuántas noches es la reserva?', 'For how many nights is the reservation?', [self::word('¿cuántas?', 'cuántas'), self::word('la reserva'), self::word('la noche', 'noches'), self::form('es', true)]),
             self::listenType($stage, 'sentences.listen_type.recepcionista', 'Soy el recepcionista.', 'I am the receptionist.', [self::word('el recepcionista', 'recepcionista'), self::form('Soy', true)], 'listen', null, ['Soy la recepcionista.']),
 
-            self::speakRepeat($stage, 'sentences.speak_repeat.hay', '¿Hay una habitación disponible para dos noches?', 'Is there a room available for two nights?', [self::word('disponible'), self::word('la noche', 'noches'), self::form('Hay', true)]),
+            self::speakRepeat($stage, 'sentences.speak_repeat.hay', '¿Para cuántas noches? Hay una habitación disponible.', 'For how many nights? There is a room available.', [self::word('¿cuántas?', 'cuántas'), self::word('disponible'), self::word('la noche', 'noches'), self::form('Hay', true)]),
             self::speakRepeat($stage, 'sentences.speak_repeat.llave', 'La llave está en la habitación.', 'The key is in the room.', [self::word('la llave'), self::word('la habitación'), self::form('está')]),
             self::speakRepeat($stage, 'sentences.speak_repeat.recepcionista', 'Soy el recepcionista.', 'I am the receptionist.', [self::word('el recepcionista', 'recepcionista'), self::form('Soy', true)], 'speak', ['Soy la recepcionista.']),
             self::speakRepeat($stage, 'sentences.speak_repeat.reserva', 'La reserva es para dos noches.', 'The reservation is for two nights.', [self::word('la reserva'), self::word('la noche', 'noches'), self::form('es', true)]),
@@ -121,7 +122,7 @@ final class CheckingIntoAHotel implements UnitContent
             new AuthoredExercise($stage, Format::ReadPassage, 'task.read_passage.reception', [
                 'prompt' => 'Read the conversation at the reception desk.',
                 'dialogue' => [
-                    ['speaker' => 'Recepcionista', 'text' => 'Buenas tardes, soy el recepcionista. ¿Tiene una reserva?'],
+                    ['speaker' => 'Recepcionista', 'text' => 'Buenas tardes, soy el recepcionista. ¿Tiene una reserva? ¿Para cuántas noches?'],
                     ['speaker' => 'Ana', 'text' => 'Sí, tengo una reserva para dos noches.'],
                     ['speaker' => 'Recepcionista', 'text' => 'Muy bien. La habitación está disponible. Aquí está la llave.'],
                     ['speaker' => 'Ana', 'text' => '¿Y el desayuno?'],
@@ -133,7 +134,7 @@ final class CheckingIntoAHotel implements UnitContent
                     self::question('Is the room available?', ['No, it is not available.', 'Yes, it is available.', 'The text does not say.'], 'Yes, it is available.'),
                     self::question('Is breakfast included?', ['Yes, it is included.', 'No, it is not included.', 'The text does not say.'], 'Yes, it is included.'),
                 ],
-            ], targets: [self::word('la reserva'), self::word('la noche'), self::word('el recepcionista'), self::word('la habitación'), self::word('disponible'), self::word('la llave'), self::word('el desayuno'), self::word('incluido')], block: 'read'),
+            ], targets: [self::word('la reserva'), self::word('la noche'), self::word('el recepcionista'), self::word('la habitación'), self::word('disponible'), self::word('la llave'), self::word('el desayuno'), self::word('incluido'), self::word('¿cuántas?', 'cuántas')], block: 'read'),
             self::gap($stage, 'task.choose_gap.habitaciones', 'Las habitaciones están ___.', ['disponibles', 'disponible'], 'disponibles', self::word('disponible', 'disponibles'), 'The adjective agrees with the noun: more than one room, so disponibles.', 'read'),
             self::gap($stage, 'task.choose_gap.desayuno', 'El desayuno está ___.', ['incluida', 'incluido'], 'incluido', self::word('incluido'), 'Desayuno is masculine, so the adjective is incluido.', 'read'),
 
@@ -192,7 +193,7 @@ final class CheckingIntoAHotel implements UnitContent
             self::listenType($stage, 'task.listen_type.noches', 'La habitación está disponible para dos noches.', 'The room is available for two nights.', [self::word('la habitación'), self::word('disponible'), self::word('la noche', 'noches'), self::form('está')], 'listen'),
             self::listenType($stage, 'task.listen_type.llave', '¿Dónde está la llave?', 'Where is the key?', [self::word('la llave'), self::form('está')], 'listen'),
 
-            self::speakAnswer($stage, 'task.speak_answer.noches', '¿Para cuántas noches?', 'For how many nights?', [['una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete']], 'Para dos noches.', [self::word('la noche', 'noches')], 'speak'),
+            self::speakAnswer($stage, 'task.speak_answer.noches', '¿Para cuántas noches?', 'For how many nights?', [['una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete']], 'Para dos noches.', [self::word('¿cuántas?', 'cuántas'), self::word('la noche', 'noches')], 'speak'),
             self::speakAnswer($stage, 'task.speak_answer.desayuno', '¿Está incluido el desayuno?', 'Is breakfast included?', [['sí', 'no', 'está'], ['incluido']], 'Sí, está incluido.', [self::word('el desayuno'), self::word('incluido'), self::form('está')], 'speak'),
             self::speakAnswer($stage, 'task.speak_answer.llave', '¿Dónde está la llave?', 'Where is the key?', [['llave', 'está'], ['aquí', 'allí', 'habitación']], 'La llave está aquí.', [self::word('la llave'), self::form('está')], 'speak'),
             self::speakAnswer($stage, 'task.speak_answer.bano', '¿Hay un baño en la habitación?', 'Is there a bathroom in the room?', [['sí', 'no', 'hay', 'está'], ['baño', 'aseo']], 'Sí, hay un baño en la habitación.', [self::word('el baño'), self::word('la habitación'), self::form('Hay', true)], 'speak'),
@@ -214,7 +215,7 @@ final class CheckingIntoAHotel implements UnitContent
             self::translate($stage, 'check.a.translate.desayuno', 'Breakfast is included in the reservation.', ['El desayuno está incluido en la reserva.'], [self::word('el desayuno'), self::word('incluido'), self::word('la reserva')], 'sentences', $set),
             self::typeGap($stage, 'check.a.type_gap.habitaciones', 'Las habitaciones ___ en el hotel.', 'The rooms are in the hotel.', 'están', self::form('están'), null, 'sentences', $set),
             self::typeGap($stage, 'check.a.type_gap.recepcionista', 'Él ___ el recepcionista.', 'He is the receptionist.', 'es', self::form('es', true), null, 'sentences', $set),
-            self::listenType($stage, 'check.a.listen_type.reserva', 'Tengo una reserva para dos noches.', 'I have a reservation for two nights.', [self::word('la reserva', 'reserva'), self::word('la noche', 'noches')], 'dictation', $set),
+            self::listenType($stage, 'check.a.listen_type.reserva', '¿Cuántas noches? Tengo una reserva para dos noches.', 'How many nights? I have a reservation for two nights.', [self::word('¿cuántas?', 'cuántas'), self::word('la reserva', 'reserva'), self::word('la noche', 'noches')], 'dictation', $set),
             self::listenType($stage, 'check.a.listen_type.estamos', 'Estamos en la habitación.', 'We are in the room.', [self::word('la habitación'), self::form('estamos')], 'dictation', $set),
             self::listenType($stage, 'check.a.listen_type.llave', 'La llave está aquí.', 'The key is here.', [self::word('la llave'), self::form('está')], 'dictation', $set),
             new AuthoredExercise($stage, Format::ListenPassage, 'check.a.listen_passage.reception', [
@@ -248,7 +249,7 @@ final class CheckingIntoAHotel implements UnitContent
                 ],
             ], targets: [self::word('la reserva'), self::word('la noche'), self::word('el desayuno')], probeSet: $set, block: 'passages'),
             self::speakAnswer($stage, 'check.a.speak_answer.reserva', '¿Tiene usted una reserva?', 'Do you have a reservation?', [['tengo', 'tiene', 'tenemos'], ['reserva']], 'Sí, tengo una reserva.', [self::word('la reserva')], 'speaking', $set),
-            self::speakAnswer($stage, 'check.a.speak_answer.noches', '¿Cuántas noches?', 'How many nights?', [['una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete']], 'Dos noches.', [self::word('la noche', 'noches')], 'speaking', $set),
+            self::speakAnswer($stage, 'check.a.speak_answer.noches', '¿Cuántas noches?', 'How many nights?', [['una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete']], 'Dos noches.', [self::word('¿cuántas?', 'cuántas'), self::word('la noche', 'noches')], 'speaking', $set),
             self::speakAnswer($stage, 'check.a.speak_answer.desayuno', '¿Hay desayuno?', 'Is there breakfast?', [['sí', 'no', 'hay'], ['desayuno', 'incluido']], 'Sí, hay desayuno.', [self::word('el desayuno')], 'speaking', $set),
         ];
     }
@@ -262,12 +263,12 @@ final class CheckingIntoAHotel implements UnitContent
         return [
             self::translate($stage, 'check.b.translate.hotel', 'Where is the hotel?', ['¿Dónde está el hotel?'], [self::word('el hotel'), self::form('está')], 'sentences', $set),
             self::translate($stage, 'check.b.translate.desayuno', 'The breakfast is not included.', ['El desayuno no está incluido.', 'No está incluido el desayuno.'], [self::word('el desayuno'), self::word('incluido')], 'sentences', $set),
-            self::translate($stage, 'check.b.translate.recepcionista', 'The receptionist has the key.', ['El recepcionista tiene la llave.', 'La recepcionista tiene la llave.'], [self::word('el recepcionista', 'recepcionista'), self::word('la llave')], 'sentences', $set),
+            self::translate($stage, 'check.b.translate.recepcionista', 'How many keys does the room have?', ['¿Cuántas llaves tiene la habitación?', '¿Cuántas llaves hay en la habitación?'], [self::word('¿cuántas?', 'cuántas'), self::word('la habitación'), self::word('la llave', 'llaves')], 'sentences', $set),
             self::translate($stage, 'check.b.translate.hay', 'There are no rooms available.', ['No hay habitaciones disponibles.'], [self::word('la habitación', 'habitaciones'), self::word('disponible', 'disponibles'), self::form('hay', true)], 'sentences', $set),
             self::typeGap($stage, 'check.b.type_gap.recepcionista', 'El recepcionista ___ aquí.', 'The receptionist is here.', 'está', self::form('está'), null, 'sentences', $set),
             self::typeGap($stage, 'check.b.type_gap.ella', 'Ella ___ la recepcionista.', 'She is the receptionist.', 'es', self::form('es', true), null, 'sentences', $set),
-            self::listenType($stage, 'check.b.listen_type.llaves', 'Las llaves están en el hotel.', 'The keys are in the hotel.', [self::word('la llave', 'llaves'), self::word('el hotel'), self::form('están')], 'dictation', $set),
-            self::listenType($stage, 'check.b.listen_type.reserva', 'La reserva es para una noche.', 'The reservation is for one night.', [self::word('la reserva'), self::word('la noche', 'noche')], 'dictation', $set),
+            self::listenType($stage, 'check.b.listen_type.llaves', 'Las llaves están con el recepcionista.', 'The keys are with the receptionist.', [self::word('la llave', 'llaves'), self::word('el recepcionista', 'recepcionista'), self::form('están')], 'dictation', $set),
+            self::listenType($stage, 'check.b.listen_type.reserva', '¿Cuántas noches es la reserva? Una noche.', 'How many nights is the reservation? One night.', [self::word('¿cuántas?', 'cuántas'), self::word('la reserva'), self::word('la noche', 'noche')], 'dictation', $set),
             self::listenType($stage, 'check.b.listen_type.bano', 'Estoy en el baño.', 'I am in the bathroom.', [self::word('el baño'), self::form('estoy')], 'dictation', $set),
         ];
     }

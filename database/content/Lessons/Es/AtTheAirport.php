@@ -38,6 +38,8 @@ final class AtTheAirport implements UnitContent
             new WordData('el billete', cue: 'ticket (for a flight or train)'),
             new WordData('retrasado', cue: 'delayed (masculine)', forms: ['retrasada']),
             new WordData('internacional', cue: 'international'),
+            new WordData('¿dónde?', cue: 'where? (asking about a place)'),
+            new WordData('¿cuál?', cue: 'which? (asking which one)'),
         ];
     }
 
@@ -93,7 +95,7 @@ final class AtTheAirport implements UnitContent
 
             Kit::build($stage, 'sentences.build.aeropuerto', 'We are at the airport.', 'Estamos en el aeropuerto.', ['la'], [Kit::word('el aeropuerto'), Kit::form('el')]),
             Kit::build($stage, 'sentences.build.billete', 'The ticket is here.', 'El billete está aquí.', ['la'], [Kit::word('el billete'), Kit::form('el', true)]),
-            Kit::build($stage, 'sentences.build.puerta', 'Gate five is over there.', 'La puerta cinco está allí.', ['el'], [Kit::word('la puerta'), Kit::form('la')]),
+            Kit::build($stage, 'sentences.build.puerta', 'Which is your gate? Gate five.', '¿Cuál es su puerta? La puerta cinco.', ['el'], [Kit::word('¿cuál?', 'cuál'), Kit::word('la puerta'), Kit::form('la')]),
 
             Kit::listenChoose($stage, 'sentences.listen_choose.maleta', 'La maleta está aquí.', ['The suitcase is here.', 'The passport is here.', 'The ticket is here.', 'The gate is here.'], 'The suitcase is here.', [Kit::word('la maleta'), Kit::form('la')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.vuelo', 'El vuelo está retrasado.', ['The flight is delayed.', 'The flight is international.', 'The arrival is delayed.', 'The departure is delayed.'], 'The flight is delayed.', [Kit::word('el vuelo'), Kit::word('retrasado'), Kit::form('el')]),
@@ -104,10 +106,10 @@ final class AtTheAirport implements UnitContent
             Kit::listenType($stage, 'sentences.listen_type.maletas', 'Las maletas están aquí.', 'The suitcases are here.', [Kit::word('la maleta', 'maletas'), Kit::form('las')]),
 
             Kit::speakRepeat($stage, 'sentences.speak_repeat.vuelo', 'El vuelo está retrasado.', 'The flight is delayed.', [Kit::word('el vuelo'), Kit::word('retrasado'), Kit::form('el')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.puerta', '¿Dónde está la puerta?', 'Where is the gate?', [Kit::word('la puerta'), Kit::form('la')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.pasaporte', 'El pasaporte y el billete están aquí.', 'The passport and the ticket are here.', [Kit::word('el pasaporte'), Kit::word('el billete'), Kit::form('el', true)]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.puerta', '¿Dónde está la puerta?', 'Where is the gate?', [Kit::word('¿dónde?', 'dónde'), Kit::word('la puerta'), Kit::form('la')]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.pasaporte', '¿Cuál es su pasaporte? Mi pasaporte está aquí.', 'Which is your passport? My passport is here.', [Kit::word('¿cuál?', 'cuál'), Kit::word('el pasaporte', 'pasaporte')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.maleta', 'Mi maleta y mi pasaporte están aquí.', 'My suitcase and my passport are here.', [Kit::word('la maleta', 'maleta'), Kit::word('el pasaporte', 'pasaporte')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.salida', '¿Dónde está la salida?', 'Where is the exit?', [['salida', 'está'], ['aquí', 'allí']], 'La salida está allí.', [Kit::word('la salida'), Kit::form('la')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.salida', '¿Dónde está la salida?', 'Where is the exit?', [['salida', 'está'], ['aquí', 'allí']], 'La salida está allí.', [Kit::word('¿dónde?', 'dónde'), Kit::word('la salida'), Kit::form('la')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.vuelo', '¿Es un vuelo internacional?', 'Is it an international flight?', [['sí', 'no', 'es'], ['internacional', 'vuelo']], 'Sí, es un vuelo internacional.', [Kit::word('el vuelo', 'vuelo'), Kit::word('internacional'), Kit::form('un')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.llegada', '¿La llegada está retrasada?', 'Is the arrival delayed?', [['sí', 'no', 'está'], ['retrasada', 'llegada']], 'Sí, la llegada está retrasada.', [Kit::word('la llegada'), Kit::word('retrasado', 'retrasada'), Kit::form('la')]),
         ];
@@ -123,14 +125,14 @@ final class AtTheAirport implements UnitContent
                 Kit::line('Agente', 'Buenos días. ¿Tiene su pasaporte y su billete?'),
                 Kit::line('Ana', 'Sí, aquí están. Es un vuelo internacional.'),
                 Kit::line('Agente', 'Muy bien. ¿Tiene una maleta?'),
-                Kit::line('Ana', 'Sí, tengo una maleta.'),
+                Kit::line('Ana', 'Sí, tengo una maleta. ¿Cuál es mi puerta?'),
                 Kit::line('Agente', 'Su puerta es la cinco. El vuelo está retrasado.'),
                 Kit::line('Ana', 'Gracias.'),
             ], [
                 Kit::question('How many suitcases does Ana have?', ['None', 'One', 'Two'], 'One'),
                 Kit::question('Which gate is it?', ['Gate three', 'Gate five', 'Gate ten'], 'Gate five'),
                 Kit::question('What is the problem with the flight?', ['It is delayed.', 'It is full.', 'Ana has no ticket.'], 'It is delayed.'),
-            ], [Kit::word('el pasaporte'), Kit::word('el billete'), Kit::word('el vuelo'), Kit::word('internacional'), Kit::word('la maleta'), Kit::word('la puerta'), Kit::word('retrasado')]),
+            ], [Kit::word('el pasaporte'), Kit::word('el billete'), Kit::word('el vuelo'), Kit::word('internacional'), Kit::word('la maleta'), Kit::word('la puerta'), Kit::word('retrasado'), Kit::word('¿cuál?', 'cuál')]),
             Kit::gap($stage, 'task.choose_gap.vuelos', 'Los vuelos están ___.', ['retrasados', 'retrasado'], 'retrasados', Kit::word('retrasado', 'retrasados'), 'The adjective agrees with the noun: more than one flight, so retrasados.', 'read'),
             Kit::gap($stage, 'task.choose_gap.llegadas', 'Las llegadas son ___.', ['internacionales', 'internacional'], 'internacionales', Kit::word('internacional', 'internacionales'), 'Internacional has no separate feminine form, but it takes -es in the plural.', 'read'),
 
@@ -142,17 +144,17 @@ final class AtTheAirport implements UnitContent
                 ['forms' => ['pasaporte', 'pasaportes'], 'term' => 'el pasaporte'],
                 ['forms' => ['puerta'], 'term' => 'la puerta'],
                 ['forms' => ['dónde'], 'term' => null],
-            ], [Kit::word('el billete'), Kit::word('el pasaporte'), Kit::word('la puerta')]),
+            ], [Kit::word('¿dónde?', 'dónde'), Kit::word('el billete'), Kit::word('el pasaporte'), Kit::word('la puerta')]),
             Kit::writeGuided($stage, 'task.write_guided.vuelo', 'Say that the flight is delayed and ask where your suitcase is.', ['vuelo', 'retrasado', 'dónde', 'maleta'], 'El vuelo está retrasado. ¿Dónde está mi maleta?', [
                 ['forms' => ['vuelo', 'vuelos'], 'term' => 'el vuelo'],
                 ['forms' => ['retrasado', 'retrasada'], 'term' => 'retrasado'],
                 ['forms' => ['dónde'], 'term' => null],
                 ['forms' => ['maleta', 'maletas'], 'term' => 'la maleta'],
-            ], [Kit::word('el vuelo'), Kit::word('retrasado'), Kit::word('la maleta')]),
+            ], [Kit::word('¿dónde?', 'dónde'), Kit::word('el vuelo'), Kit::word('retrasado'), Kit::word('la maleta')]),
             Kit::build($stage, 'task.build.vuelo', 'The flight is international.', 'El vuelo es internacional.', ['la', 'está'], [Kit::word('el vuelo'), Kit::word('internacional'), Kit::form('el')]),
             Kit::build($stage, 'task.build.maleta', 'The suitcase and the passport are here.', 'La maleta y el pasaporte están aquí.', ['las', 'está'], [Kit::word('la maleta'), Kit::word('el pasaporte'), Kit::form('el', true)]),
             Kit::build($stage, 'task.build.billete', 'I have a ticket for the international flight.', 'Tengo un billete para el vuelo internacional.', ['una', 'la'], [Kit::word('el billete', 'billete'), Kit::word('el vuelo'), Kit::word('internacional'), Kit::form('un')]),
-            Kit::translate($stage, 'task.translate.pasaporte', 'Where is the passport?', ['¿Dónde está el pasaporte?'], [Kit::word('el pasaporte'), Kit::form('el', true)]),
+            Kit::translate($stage, 'task.translate.pasaporte', 'Where is the passport?', ['¿Dónde está el pasaporte?'], [Kit::word('¿dónde?', 'dónde'), Kit::word('el pasaporte'), Kit::form('el', true)]),
             Kit::translate($stage, 'task.translate.billete', 'The ticket is in the suitcase.', ['El billete está en la maleta.'], [Kit::word('el billete'), Kit::word('la maleta'), Kit::form('el', true)]),
 
             Kit::listenPassage($stage, 'task.listen_passage.llegada', [
@@ -176,7 +178,7 @@ final class AtTheAirport implements UnitContent
 
             Kit::speakAnswer($stage, 'task.speak_answer.pasaporte', '¿Tiene usted su pasaporte?', 'Do you have your passport?', [['sí', 'no', 'tengo', 'está'], ['pasaporte', 'aquí']], 'Sí, aquí está mi pasaporte.', [Kit::word('el pasaporte', 'pasaporte')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.aeropuerto', '¿Estás en el aeropuerto?', 'Are you at the airport?', [['sí', 'no', 'estoy'], ['aeropuerto', 'aquí']], 'Sí, estoy en el aeropuerto.', [Kit::word('el aeropuerto'), Kit::form('el')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.puerta', '¿Cuál es su puerta?', 'Which is your gate?', [['es', 'puerta', 'la'], ['uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez']], 'Es la puerta cinco.', [Kit::word('la puerta'), Kit::form('la')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.puerta', '¿Cuál es su puerta?', 'Which is your gate?', [['es', 'puerta', 'la'], ['uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez']], 'Es la puerta cinco.', [Kit::word('¿cuál?', 'cuál'), Kit::word('la puerta'), Kit::form('la')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.vuelo', '¿Está retrasado el vuelo?', 'Is the flight delayed?', [['sí', 'no', 'está'], ['retrasado', 'vuelo']], 'Sí, el vuelo está retrasado.', [Kit::word('el vuelo'), Kit::word('retrasado'), Kit::form('el')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.billete', 'El billete es para un vuelo internacional.', 'The ticket is for an international flight.', [Kit::word('el billete'), Kit::word('el vuelo', 'vuelo'), Kit::word('internacional'), Kit::form('el', true)], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.maleta', 'Mi maleta y mi billete están aquí.', 'My suitcase and my ticket are here.', [Kit::word('la maleta', 'maleta'), Kit::word('el billete', 'billete')], 'speak'),
@@ -190,7 +192,7 @@ final class AtTheAirport implements UnitContent
         $set = 'a';
 
         return [
-            Kit::translate($stage, 'check.a.translate.aeropuerto', 'Where is the international airport?', ['¿Dónde está el aeropuerto internacional?'], [Kit::word('el aeropuerto'), Kit::word('internacional'), Kit::form('el')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.aeropuerto', 'Where is the international airport?', ['¿Dónde está el aeropuerto internacional?'], [Kit::word('¿dónde?', 'dónde'), Kit::word('el aeropuerto'), Kit::word('internacional'), Kit::form('el')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.pasaporte', 'My passport and my ticket are here.', ['Mi pasaporte y mi billete están aquí.', 'Aquí están mi pasaporte y mi billete.'], [Kit::word('el pasaporte', 'pasaporte'), Kit::word('el billete', 'billete')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.salida', 'The departure and the arrival are not delayed.', ['La salida y la llegada no están retrasadas.'], [Kit::word('la salida'), Kit::word('la llegada'), Kit::word('retrasado', 'retrasadas'), Kit::form('la')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.puerta', 'The gate is over there and the suitcase is here.', ['La puerta está allí y la maleta está aquí.'], [Kit::word('la puerta'), Kit::word('la maleta')], 'sentences', $set),
@@ -198,11 +200,11 @@ final class AtTheAirport implements UnitContent
             Kit::typeGap($stage, 'check.a.type_gap.pasaporte', 'Aquí está ___ pasaporte.', 'Here is the passport.', 'el', Kit::form('el', true), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.maletas', 'Las maletas están allí.', 'The suitcases are over there.', [Kit::word('la maleta', 'maletas'), Kit::form('las')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.maleta', 'Tengo una maleta y un pasaporte.', 'I have a suitcase and a passport.', [Kit::word('la maleta', 'maleta'), Kit::word('el pasaporte', 'pasaporte'), Kit::form('una')], 'dictation', $set),
-            Kit::listenType($stage, 'check.a.listen_type.vuelo', 'El vuelo nueve es internacional.', 'Flight nine is international.', [Kit::word('el vuelo'), Kit::word('internacional')], 'dictation', $set),
+            Kit::listenType($stage, 'check.a.listen_type.vuelo', '¿Cuál es su vuelo? Mi vuelo es internacional.', 'Which is your flight? My flight is international.', [Kit::word('¿cuál?', 'cuál'), Kit::word('el vuelo', 'vuelo'), Kit::word('internacional')], 'dictation', $set),
             Kit::listenPassage($stage, 'check.a.listen_passage.vuelo', [
-                Kit::line('Pablo', 'Buenas tardes. Tengo un billete para el vuelo siete.'),
-                Kit::line('Empleado', 'Muy bien. Su puerta es la nueve.'),
-                Kit::line('Pablo', '¿Está retrasado mi vuelo?'),
+                Kit::line('Pablo', 'Buenas tardes. Tengo un billete para el vuelo siete. ¿Cuál es mi puerta, por favor?'),
+                Kit::line('Empleado', 'Su puerta es la nueve.'),
+                Kit::line('Pablo', 'Gracias. ¿Está retrasado mi vuelo?'),
                 Kit::line('Empleado', 'No, no está retrasado.'),
                 Kit::line('Pablo', 'Muchas gracias.'),
             ], [
@@ -213,7 +215,7 @@ final class AtTheAirport implements UnitContent
                 Kit::question('What does Pablo have?', ['A passport', 'A ticket', 'A suitcase'], 'A ticket'),
                 Kit::question('Who asks if the flight is delayed?', ['Pablo', 'The employee', 'Nobody'], 'Pablo'),
                 Kit::question('How does the conversation end?', ['Pablo says thank you.', 'Pablo asks about the gate.', 'The employee says goodbye.'], 'Pablo says thank you.'),
-            ], [Kit::word('el billete'), Kit::word('el vuelo'), Kit::word('la puerta'), Kit::word('retrasado')], 'passages', $set),
+            ], [Kit::word('el billete'), Kit::word('el vuelo'), Kit::word('la puerta'), Kit::word('retrasado'), Kit::word('¿cuál?', 'cuál')], 'passages', $set),
             Kit::readPassage($stage, 'check.a.read_passage.maleta', 'Read the conversation.', [
                 Kit::line('Marta', 'Luis, ¿tienes tu maleta?'),
                 Kit::line('Luis', 'Sí, tengo la maleta y el pasaporte.'),
@@ -224,7 +226,7 @@ final class AtTheAirport implements UnitContent
                 Kit::question('Where is the exit?', ['Over there', 'Here', 'The text does not say.'], 'Over there'),
             ], [Kit::word('la maleta'), Kit::word('el pasaporte'), Kit::word('la salida')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.billete', '¿Tiene usted su billete?', 'Do you have your ticket?', [['sí', 'no', 'tengo', 'está'], ['billete', 'aquí']], 'Sí, aquí está mi billete.', [Kit::word('el billete', 'billete')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.puerta', '¿Dónde está la puerta cinco?', 'Where is gate five?', [['puerta', 'está'], ['aquí', 'allí']], 'La puerta cinco está allí.', [Kit::word('la puerta')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.puerta', '¿Dónde está la puerta cinco?', 'Where is gate five?', [['puerta', 'está'], ['aquí', 'allí']], 'La puerta cinco está allí.', [Kit::word('¿dónde?', 'dónde'), Kit::word('la puerta')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.aeropuerto', '¿Es internacional el aeropuerto?', 'Is the airport international?', [['sí', 'no', 'es'], ['internacional', 'aeropuerto']], 'Sí, es un aeropuerto internacional.', [Kit::word('el aeropuerto', 'aeropuerto'), Kit::word('internacional')], 'speaking', $set),
         ];
     }
@@ -238,13 +240,13 @@ final class AtTheAirport implements UnitContent
         return [
             Kit::translate($stage, 'check.b.translate.billete', 'The ticket is not here.', ['El billete no está aquí.', 'No está aquí el billete.'], [Kit::word('el billete'), Kit::form('el', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.maletas', 'The suitcases are at the airport.', ['Las maletas están en el aeropuerto.'], [Kit::word('la maleta', 'maletas'), Kit::word('el aeropuerto'), Kit::form('las')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.vuelo', 'The flight is not delayed.', ['El vuelo no está retrasado.', 'No está retrasado el vuelo.'], [Kit::word('el vuelo'), Kit::word('retrasado')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.puerta', 'Gate nine is here and the exit is over there.', ['La puerta nueve está aquí y la salida está allí.'], [Kit::word('la puerta'), Kit::word('la salida')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.vuelo', 'Which is your flight? My flight is not delayed.', ['¿Cuál es su vuelo? Mi vuelo no está retrasado.', '¿Cuál es su vuelo? No está retrasado mi vuelo.'], [Kit::word('¿cuál?', 'cuál'), Kit::word('el vuelo', 'vuelo'), Kit::word('retrasado')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.puerta', 'Where is gate nine? It is here and the exit is over there.', ['¿Dónde está la puerta nueve? Está aquí y la salida está allí.', '¿Dónde está la puerta nueve? La puerta nueve está aquí y la salida está allí.'], [Kit::word('¿dónde?', 'dónde'), Kit::word('la puerta'), Kit::word('la salida')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.pasaporte', '¿Tienes ___ pasaporte?', 'Do you have the passport?', 'el', Kit::form('el', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.vuelos', '___ vuelos son internacionales.', 'The flights are international.', 'Los', Kit::form('los'), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.b.listen_type.pasaporte', 'Mi pasaporte está en la maleta.', 'My passport is in the suitcase.', [Kit::word('el pasaporte', 'pasaporte'), Kit::word('la maleta'), Kit::form('la')], 'dictation', $set),
+            Kit::listenType($stage, 'check.b.listen_type.pasaporte', '¿Dónde está mi pasaporte? Está en la maleta.', 'Where is my passport? It is in the suitcase.', [Kit::word('¿dónde?', 'dónde'), Kit::word('el pasaporte', 'pasaporte'), Kit::word('la maleta'), Kit::form('la')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.llegada', 'La llegada no está retrasada.', 'The arrival is not delayed.', [Kit::word('la llegada'), Kit::word('retrasado', 'retrasada'), Kit::form('la')], 'dictation', $set),
-            Kit::listenType($stage, 'check.b.listen_type.vuelo', 'Mi vuelo es internacional.', 'My flight is international.', [Kit::word('el vuelo', 'vuelo'), Kit::word('internacional')], 'dictation', $set),
+            Kit::listenType($stage, 'check.b.listen_type.vuelo', '¿Cuál es tu vuelo? Mi vuelo es internacional.', 'Which is your flight? My flight is international.', [Kit::word('¿cuál?', 'cuál'), Kit::word('el vuelo', 'vuelo'), Kit::word('internacional')], 'dictation', $set),
         ];
     }
 }

@@ -40,6 +40,7 @@ final class MakingPlans implements UnitContent
             new WordData('¿quieres venir?', cue: 'do you want to come? (informal you)', forms: ['quieres', 'venir']),
             new WordData('lo siento', cue: 'I am sorry'),
             new WordData('claro', cue: 'of course', accepted: ['claro que sí', 'por supuesto']),
+            new WordData('¿por qué?', cue: 'why? (asking for a reason)'),
         ];
     }
 
@@ -103,10 +104,10 @@ final class MakingPlans implements UnitContent
             Kit::listenType($stage, 'sentences.listen_type.claro-voy', 'Claro, voy a venir.', 'Of course, I am going to come.', [Kit::word('claro'), Kit::form('voy a')], homophoneNote: self::A_NOTE),
             Kit::listenType($stage, 'sentences.listen_type.plan-cenar', 'El plan es cenar en el café.', 'The plan is to have dinner at the café.', [Kit::word('el plan', 'plan'), Kit::word('el café', 'café'), Kit::word('la cena', 'cenar')]),
             Kit::listenType($stage, 'sentences.listen_type.fiesta', 'Ana tiene una fiesta. ¿Quieres venir?', 'Ana has a party. Do you want to come?', [Kit::word('la fiesta', 'fiesta'), Kit::word('¿quieres venir?', 'quieres venir')]),
-            Kit::listenType($stage, 'sentences.listen_type.puedes-cenar', 'Ana, ¿puedes cenar con Luis?', 'Ana, can you have dinner with Luis?', [Kit::form('puedes'), Kit::word('la cena', 'cenar')]),
+            Kit::listenType($stage, 'sentences.listen_type.puedes-cenar', 'Ana, ¿por qué no puedes cenar?', 'Ana, why can you not have dinner?', [Kit::word('¿por qué?', 'por qué'), Kit::form('puedes'), Kit::word('la cena', 'cenar')]),
 
             Kit::speakRepeat($stage, 'sentences.speak_repeat.quieres-cine', '¿Quieres venir al cine?', 'Do you want to come to the cinema?', [Kit::word('¿quieres venir?', 'quieres venir'), Kit::word('el cine', 'cine')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.lo-siento', 'Lo siento, no puedo.', 'I am sorry, I cannot.', [Kit::word('lo siento'), Kit::form('puedo')]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.por-que', '¿Por qué no puedes venir?', 'Why can you not come? (informal you)', [Kit::word('¿por qué?', 'por qué'), Kit::form('puedes')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.vamos-invitar', 'Vamos a invitar a Pablo.', 'We are going to invite Pablo.', [Kit::word('invitar'), Kit::form('vamos a')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.donde-quedamos', '¿Dónde quedamos? ¿En el café?', 'Where shall we meet? At the café?', [Kit::word('quedar', 'quedamos'), Kit::word('el café', 'café')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.cine', '¿Quieres venir al cine?', 'Do you want to come to the cinema?', [['claro', 'sí', 'no', 'siento'], ['voy', 'puedo']], 'Claro, voy a venir.', [Kit::word('claro'), Kit::word('el cine', 'cine'), Kit::form('voy')]),
@@ -168,13 +169,13 @@ final class MakingPlans implements UnitContent
                 Kit::question('Does Luis have a plan?', ['No', 'Yes', 'The conversation does not say.'], 'No'),
                 Kit::question('How many people speak?', ['Two', 'Three', 'One'], 'Two'),
                 Kit::question('How does the conversation end?', ['Luis says goodbye', 'Marta says sorry', 'Luis says no'], 'Luis says goodbye'),
-            ], [Kit::word('el plan', 'plan'), Kit::word('¿quieres venir?', 'quieres venir'), Kit::word('claro'), Kit::word('quedar', 'quedamos'), Kit::word('el cine', 'cine')], 'listen'),
+            ], [Kit::word('el plan', 'plan'), Kit::word('¿quieres venir?', 'quieres venir'), Kit::word('claro'), Kit::word('quedar', 'quedamos'), Kit::word('el cine', 'cine'), Kit::word('¿por qué?', 'por qué')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.lo-siento-cena', 'Lo siento, Ana. No puedo venir a la cena.', 'I am sorry, Ana. I cannot come to the dinner.', [Kit::word('lo siento'), Kit::word('la cena', 'cena'), Kit::form('puedo')], 'listen', homophoneNote: self::A_NOTE),
             Kit::listenType($stage, 'task.listen_type.va-invitar', 'Marta va a invitar a Luis a la fiesta.', 'Marta is going to invite Luis to the party.', [Kit::word('invitar'), Kit::word('la fiesta', 'fiesta'), Kit::form('va a')], 'listen', homophoneNote: self::A_NOTE),
             Kit::listenType($stage, 'task.listen_type.claro-quedamos', 'Claro, ¿quedamos en el cine o en el café?', 'Of course, shall we meet at the cinema or at the café?', [Kit::word('claro'), Kit::word('quedar', 'quedamos'), Kit::word('el cine', 'cine'), Kit::word('el café', 'café')], 'listen'),
 
             Kit::speakAnswer($stage, 'task.speak_answer.fiesta', '¿Quieres venir a la fiesta?', 'Do you want to come to the party?', [['claro', 'sí', 'no', 'siento'], ['voy', 'puedo']], 'Lo siento, no puedo venir.', [Kit::word('¿quieres venir?', 'quieres venir'), Kit::word('la fiesta', 'fiesta'), Kit::word('lo siento')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.invitar', '¿Vas a invitar a Ana?', 'Are you going to invite Ana?', [['sí', 'no', 'claro'], ['voy']], 'Sí, voy a invitar a Ana.', [Kit::word('invitar'), Kit::form('voy')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.invitar', '¿Por qué vas a invitar a Ana?', 'Why are you going to invite Ana?', [['hay', 'tiene', 'tengo', 'es'], ['fiesta', 'plan', 'cena', 'cine', 'café']], 'Hay una fiesta.', [Kit::word('¿por qué?', 'por qué'), Kit::word('invitar'), Kit::form('voy')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.plan', '¿Tienes un plan?', 'Do you have a plan?', [['sí', 'no'], ['tengo', 'voy', 'vamos']], 'Sí, tengo un plan.', [Kit::word('el plan', 'plan')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.quedamos', '¿Dónde quedamos, en el cine o en el café?', 'Where shall we meet, at the cinema or at the café?', [['quedamos', 'en'], ['cine', 'café']], 'Quedamos en el café.', [Kit::word('quedar', 'quedamos'), Kit::word('el cine', 'cine'), Kit::word('el café', 'café')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.lo-siento-cena', 'Lo siento, no puedo venir a la cena.', 'I am sorry, I cannot come to the dinner.', [Kit::word('lo siento'), Kit::word('la cena', 'cena'), Kit::form('puedo')], 'speak'),
@@ -192,7 +193,7 @@ final class MakingPlans implements UnitContent
             Kit::translate($stage, 'check.a.translate.quieres-cafe', 'Do you want to come to the café with Ana? (informal you)', ['¿Quieres venir al café con Ana?'], [Kit::word('¿quieres venir?', 'quieres venir'), Kit::word('el café', 'café')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.vamos-cena', 'We are going to invite Marta to the dinner.', ['Vamos a invitar a Marta a la cena.', 'Nosotros vamos a invitar a Marta a la cena.'], [Kit::word('invitar'), Kit::word('la cena', 'cena'), Kit::form('vamos a')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.lo-siento', 'I am sorry, I cannot come to the party.', ['Lo siento, no puedo venir a la fiesta.'], [Kit::word('lo siento'), Kit::word('la fiesta', 'fiesta'), Kit::form('puedo')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.puedes-cine', 'Can you come to the cinema? (informal you)', ['¿Puedes venir al cine?', '¿Tú puedes venir al cine?'], [Kit::word('el cine', 'cine'), Kit::form('puedes', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.puedes-cine', 'Why can you not come to the cinema? (informal you)', ['¿Por qué no puedes venir al cine?', '¿Por qué tú no puedes venir al cine?'], [Kit::word('¿por qué?', 'por qué'), Kit::word('el cine', 'cine'), Kit::form('puedes', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.va-cenar', 'Ana ___ a cenar en el café.', 'Ana is going to have dinner at the café.', 'va', Kit::form('va', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.puede-cena', 'Marta no ___ venir a la cena.', 'Marta cannot come to the dinner.', 'puede', Kit::form('puede', true), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.claro-voy', 'Claro, voy a cenar con Pablo.', 'Of course, I am going to have dinner with Pablo.', [Kit::word('claro'), Kit::word('la cena', 'cenar'), Kit::form('voy a')], 'dictation', $set, homophoneNote: self::A_NOTE),
@@ -234,7 +235,7 @@ final class MakingPlans implements UnitContent
 
         return [
             Kit::translate($stage, 'check.b.translate.vamos-invitar', 'We are going to invite Ana to the party.', ['Vamos a invitar a Ana a la fiesta.', 'Nosotros vamos a invitar a Ana a la fiesta.'], [Kit::word('invitar'), Kit::word('la fiesta', 'fiesta'), Kit::form('vamos a')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.puedes-fiesta', 'Can you come to the party at the café? (informal you)', ['¿Puedes venir a la fiesta en el café?', '¿Tú puedes venir a la fiesta en el café?'], [Kit::word('la fiesta', 'fiesta'), Kit::word('el café', 'café'), Kit::form('puedes', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.puedes-fiesta', 'Why can you not come to the party? (informal you)', ['¿Por qué no puedes venir a la fiesta?', '¿Por qué tú no puedes venir a la fiesta?'], [Kit::word('¿por qué?', 'por qué'), Kit::word('la fiesta', 'fiesta'), Kit::form('puedes', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.voy-cenar', 'I am sorry, I am going to have dinner with Luis.', ['Lo siento, voy a cenar con Luis.', 'Lo siento, yo voy a cenar con Luis.'], [Kit::word('lo siento'), Kit::word('la cena', 'cenar'), Kit::form('voy a')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.plan-cine', 'Is the plan to meet at the cinema? Of course.', ['¿El plan es quedar en el cine? Claro.', '¿Es el plan quedar en el cine? Claro.'], [Kit::word('el plan', 'plan'), Kit::word('quedar'), Kit::word('el cine', 'cine'), Kit::word('claro')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.va-invitar', 'Marta ___ a invitar a Pablo.', 'Marta is going to invite Pablo.', 'va', Kit::form('va', true), null, 'sentences', $set),

@@ -62,7 +62,7 @@ foreach (['greetings-and-introductions', 'at-the-airport', 'ordering-food-at-a-r
 
             expect($check->result['missing'])->toBe([])
                 ->and($check->result['unit_completed'])->toBeTrue()
-                ->and(UnitItemMastery::query()->where('user_id', $this->user->id)->where('scope', MasteryScope::Full)->count())->toBe(11)
+                ->and(UnitItemMastery::query()->where('user_id', $this->user->id)->where('scope', MasteryScope::Full)->count())->toBe(count($this->content->words()) + 1)
                 ->and(UserUnitProgress::query()->where('user_id', $this->user->id)->where('unit_id', $this->unit->id)->value('status'))->toBe(UnitProgressStatus::Completed);
         });
 
