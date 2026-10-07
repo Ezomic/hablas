@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ChevronDown } from '@lucide/vue';
+import { Check, ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppSpinner from '@/components/AppSpinner.vue';
@@ -31,7 +31,12 @@ import { store as startRun } from '@/routes/lessons/runs';
 import { index as unitsIndex, show as showUnit } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 import type { UnitLessonOverview } from '@/types/lesson';
-import type { DayProgress, UnitProgress, UnitStruggles } from '@/types/unit';
+import type {
+    DayProgress,
+    UnitProgress,
+    UnitStruggles,
+    UnitTraining,
+} from '@/types/unit';
 
 interface Unit {
     id: number;
@@ -52,6 +57,7 @@ const props = defineProps<{
     progress: UnitProgress;
     day: DayProgress;
     struggles: UnitStruggles;
+    training: UnitTraining;
     speechLocale: string | null;
 }>();
 
@@ -97,6 +103,22 @@ function continueUnit() {
             lesson: nextLesson.value.lessonId,
         }).url,
         {},
+        { onFinish: () => (starting.value = false) },
+    );
+}
+
+function practiseSkill(skill: string) {
+    if (props.training.lessonId === null) {
+        return;
+    }
+
+    starting.value = true;
+    router.post(
+        startRun({
+            unit: props.unit.id,
+            lesson: props.training.lessonId,
+        }).url,
+        { kind: 'practice', skill },
         { onFinish: () => (starting.value = false) },
     );
 }
@@ -152,55 +174,109 @@ function complete() {
             @continue="continueUnit"
         />
 
-        <Card v-if="props.lessons" data-testid="struggles">
+        <Card v-if="props.lessons" data-testid="training">
             <CardHeader>
                 <CardDescription>{{
-                    t('units.struggles.title')
+                    t('units.training.title')
                 }}</CardDescription>
             </CardHeader>
-            <CardContent class="flex flex-col gap-3">
-                <template v-if="props.struggles.count > 0">
-                    <p class="font-medium">
-                        {{
-                            t(
-                                'units.struggles.count',
-                                { count: props.struggles.count },
-                                props.struggles.count,
-                            )
-                        }}
-                    </p>
-                    <ul
-                        class="flex flex-wrap gap-2"
-                        data-testid="struggle-words"
+            <CardContent class="flex flex-col gap-4">
+                <ul class="flex flex-col gap-3">
+                    <li
+                        v-for="row in props.training.skills.filter(
+                            (item) => item.total > 0,
+                        )"
+                        :key="row.skill"
+                        class="flex items-center gap-3"
+                        :data-testid="`training-${row.skill}`"
                     >
-                        <li
-                            v-for="item in props.struggles.items"
-                            :key="item.label"
+                        <div class="flex min-w-0 flex-1 flex-col gap-1">
+                            <div class="flex justify-between text-sm">
+                                <span class="font-medium">{{
+                                    skillLabel(row.skill)
+                                }}</span>
+                                <span class="text-muted-foreground">
+                                    {{ row.done }}/{{ row.total }}
+                                </span>
+                            </div>
+                            <div
+                                class="h-2 overflow-hidden rounded-full bg-muted"
+                            >
+                                <div
+                                    class="h-full rounded-full bg-primary"
+                                    :style="{ width: `${row.percent}%` }"
+                                />
+                            </div>
+                        </div>
+                        <Button
+                            v-if="row.percent < 100"
+                            size="sm"
+                            variant="outline"
+                            :disabled="
+                                starting || props.training.lessonId === null
+                            "
+                            data-testid="practise-skill"
+                            @click="practiseSkill(row.skill)"
                         >
-                            <Badge variant="outline">
-                                {{ item.label
-                                }}<span
-                                    v-if="item.meaning"
-                                    class="ml-1 text-muted-foreground"
-                                    >{{ item.meaning }}</span
-                                >
-                            </Badge>
-                        </li>
-                    </ul>
-                    <Button
-                        class="w-fit"
-                        :disabled="
-                            starting || props.struggles.lessonId === null
-                        "
-                        data-testid="practise-struggles"
-                        @click="practiseStruggles"
-                    >
-                        {{ t('units.struggles.practise') }}
-                    </Button>
-                </template>
-                <p v-else class="text-sm text-muted-foreground">
-                    {{ t('units.struggles.none') }}
+                            {{ t('units.training.practise') }}
+                        </Button>
+                        <Check
+                            v-else
+                            class="size-5 text-green-600"
+                            :aria-label="t('units.training.complete')"
+                        />
+                    </li>
+                </ul>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('units.training.note') }}
                 </p>
+                <p class="border-t pt-4 text-sm font-medium">
+                    {{ t('units.struggles.title') }}
+                </p>
+                <div class="flex flex-col gap-3" data-testid="struggles">
+                    <template v-if="props.struggles.count > 0">
+                        <p class="font-medium">
+                            {{
+                                t(
+                                    'units.struggles.count',
+                                    { count: props.struggles.count },
+                                    props.struggles.count,
+                                )
+                            }}
+                        </p>
+                        <ul
+                            class="flex flex-wrap gap-2"
+                            data-testid="struggle-words"
+                        >
+                            <li
+                                v-for="item in props.struggles.items"
+                                :key="item.label"
+                            >
+                                <Badge variant="outline">
+                                    {{ item.label
+                                    }}<span
+                                        v-if="item.meaning"
+                                        class="ml-1 text-muted-foreground"
+                                        >{{ item.meaning }}</span
+                                    >
+                                </Badge>
+                            </li>
+                        </ul>
+                        <Button
+                            class="w-fit"
+                            :disabled="
+                                starting || props.struggles.lessonId === null
+                            "
+                            data-testid="practise-struggles"
+                            @click="practiseStruggles"
+                        >
+                            {{ t('units.struggles.practise') }}
+                        </Button>
+                    </template>
+                    <p v-else class="text-sm text-muted-foreground">
+                        {{ t('units.struggles.none') }}
+                    </p>
+                </div>
             </CardContent>
         </Card>
 

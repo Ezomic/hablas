@@ -610,6 +610,12 @@
         }
     },
     "units": {
+        "training": {
+            "title": "Train deze unit",
+            "practise": "Oefen",
+            "complete": "Alles gedaan",
+            "note": "Oefen elke vaardigheid tot die compleet is en doe dan de unitcheck wanneer je er klaar voor bent."
+        },
         "struggles": {
             "title": "Moeilijkheden",
             "count": "{count} moeilijkheid | {count} moeilijkheden",
