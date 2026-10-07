@@ -107,6 +107,7 @@ function mountPage(overrides: Record<string, unknown> = {}) {
             progress,
             day: { words: 4, goal: 10, streak: 3, due: 7 },
             struggles: { count: 0, items: [], lessonId: null },
+            training: { skills: [], lessonId: null },
             ...overrides,
         },
     });
@@ -120,6 +121,46 @@ describe('unit page', () => {
         expect(text).toContain('Order a drink and pay for it.');
         expect(text).toContain('A1');
         expect(text).toContain('Speaking');
+    });
+
+    it('shows each trained skill with its progress and practises one on the check lesson', async () => {
+        router.post.mockClear();
+        const wrapper = mountPage({
+            lessons: overview,
+            training: {
+                skills: [
+                    { skill: 'reading', done: 4, total: 10, percent: 40 },
+                    { skill: 'listening', done: 10, total: 10, percent: 100 },
+                    { skill: 'speaking', done: 0, total: 0, percent: 100 },
+                ],
+                lessonId: 77,
+            },
+        });
+
+        expect(
+            wrapper.get('[data-testid="training-reading"]').text(),
+        ).toContain('4/10');
+        expect(
+            wrapper
+                .get('[data-testid="training-listening"]')
+                .find('[data-testid="practise-skill"]')
+                .exists(),
+        ).toBe(false);
+        expect(wrapper.find('[data-testid="training-speaking"]').exists()).toBe(
+            false,
+        );
+
+        await wrapper
+            .get(
+                '[data-testid="training-reading"] [data-testid="practise-skill"]',
+            )
+            .trigger('click');
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/units/4/lessons/77/runs',
+            { kind: 'practice', skill: 'reading' },
+            expect.anything(),
+        );
     });
 
     it('shows the struggles and starts a practice run on the check lesson', async () => {

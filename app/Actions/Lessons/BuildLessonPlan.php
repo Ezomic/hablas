@@ -7,6 +7,7 @@ namespace App\Actions\Lessons;
 use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonStage;
+use App\Enums\Skill;
 use App\Enums\UnitProgressStatus;
 use App\Lessons\TargetRef;
 use App\Models\Lesson;
@@ -18,6 +19,7 @@ use App\Models\UserUnitProgress;
 use App\Services\FirstTryRule;
 use App\Services\LessonProgress;
 use App\Services\UnitMasteryReader;
+use App\Services\UnitSkillProgress;
 use App\Services\UnitStruggles;
 use LogicException;
 use Random\Engine\Mt19937;
@@ -29,10 +31,13 @@ final class BuildLessonPlan
 
     private const PRACTICE_PER_ITEM = 3;
 
+    private const PRACTICE_PER_ITEM_IN_SKILL = 2;
+
     public function __construct(
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
         private readonly UnitStruggles $unitStruggles = new UnitStruggles,
+        private readonly UnitSkillProgress $unitSkillProgress = new UnitSkillProgress,
         private readonly FirstTryRule $firstTryRule = new FirstTryRule,
     ) {}
 
@@ -42,7 +47,7 @@ final class BuildLessonPlan
      *
      * @return array{plan: list<array{id: int, origin: string}>, seed: int, probe_set: string|null}
      */
-    public function handle(User $user, Lesson $lesson, LessonRunKind $kind, ?int $seed = null): array
+    public function handle(User $user, Lesson $lesson, LessonRunKind $kind, ?int $seed = null, ?Skill $skill = null): array
     {
         $seed ??= random_int(1, 2147483647);
         $randomizer = new Randomizer(new Mt19937($seed));
@@ -52,7 +57,7 @@ final class BuildLessonPlan
             LessonRunKind::Lesson => [$this->lessonPlan($user, $lesson, $unit, $randomizer), null],
             LessonRunKind::Check, LessonRunKind::TestOut => $this->checkPlan($user, $lesson, $this->nextProbeSet($user, $lesson)),
             LessonRunKind::Retake => $this->retakePlan($user, $lesson, $unit),
-            LessonRunKind::Practice => [$this->practicePlan($user, $unit, $randomizer), null],
+            LessonRunKind::Practice => [$this->practicePlan($user, $unit, $randomizer, $skill), null],
         };
 
         return ['plan' => $plan, 'seed' => $seed, 'probe_set' => $probeSet];
@@ -283,24 +288,25 @@ final class BuildLessonPlan
      *
      * @return list<array{id: int, origin: string}>
      */
-    private function practicePlan(User $user, Unit $unit, Randomizer $randomizer): array
+    private function practicePlan(User $user, Unit $unit, Randomizer $randomizer, ?Skill $skill = null): array
     {
         $exercises = LessonExercise::query()
             ->whereNull('retired_at')
             ->whereNull('substitute_for_id')
             ->whereNull('probe_set')
-            ->whereHas('lesson', fn ($query) => $query->where('unit_id', $unit->id)->whereIn('stage', [LessonStage::Recall, LessonStage::Sentences, LessonStage::Task]))
+            ->whereHas('lesson', fn ($query) => $query->where('unit_id', $unit->id)->whereIn('stage', $skill === null ? [LessonStage::Recall, LessonStage::Sentences, LessonStage::Task] : [LessonStage::Meet, LessonStage::Recall, LessonStage::Sentences, LessonStage::Task]))
             ->with('targets')
             ->orderBy('id')
             ->get()
-            ->filter(fn (LessonExercise $exercise): bool => ! $exercise->format->isTeach());
+            ->filter(fn (LessonExercise $exercise): bool => ! $exercise->format->isTeach() && ($skill === null || $exercise->format->skill() === $skill));
 
         $plan = [];
         $chosen = [];
 
-        $struggles = $this->unitStruggles->handle($user, $unit);
+        $struggles = $skill === null ? $this->unitStruggles->handle($user, $unit) : $this->unitSkillProgress->missing($user, $unit, $skill);
+        $perItem = $skill === null ? self::PRACTICE_PER_ITEM : self::PRACTICE_PER_ITEM_IN_SKILL;
 
-        foreach ($struggles !== [] ? $struggles : $this->unitMasteryReader->missing($user, $unit) as $ref) {
+        foreach ($struggles !== [] || $skill !== null ? $struggles : $this->unitMasteryReader->missing($user, $unit) as $ref) {
             $candidates = [];
 
             foreach ($exercises as $exercise) {
@@ -309,7 +315,7 @@ final class BuildLessonPlan
                 }
             }
 
-            foreach (array_slice($this->shuffle($randomizer, $candidates), 0, self::PRACTICE_PER_ITEM) as $id) {
+            foreach (array_slice($this->shuffle($randomizer, $candidates), 0, $perItem) as $id) {
                 if (! isset($chosen[$id])) {
                     $chosen[$id] = true;
                     $plan[] = ['id' => $id, 'origin' => 'practice'];

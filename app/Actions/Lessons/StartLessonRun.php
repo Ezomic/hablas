@@ -10,6 +10,7 @@ use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
 use App\Enums\LessonStage;
 use App\Enums\LessonState;
+use App\Enums\Skill;
 use App\Enums\UnitAvailability;
 use App\Enums\UnitProgressStatus;
 use App\Models\Lesson;
@@ -19,6 +20,7 @@ use App\Models\User;
 use App\Models\UserUnitProgress;
 use App\Services\LessonProgress;
 use App\Services\UnitMasteryReader;
+use App\Services\UnitSkillProgress;
 use App\Services\UnitStruggles;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -32,6 +34,7 @@ final class StartLessonRun
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
         private readonly UnitStruggles $unitStruggles = new UnitStruggles,
+        private readonly UnitSkillProgress $unitSkillProgress = new UnitSkillProgress,
     ) {}
 
     /**
@@ -40,7 +43,7 @@ final class StartLessonRun
      * run. Asking for another kind of run while one is open is refused, so a
      * retake is never answered with a practice run. The unique index decides it, not a lock, because SQLite has none.
      */
-    public function handle(User $user, Lesson $lesson, LessonRunKind $kind = LessonRunKind::Lesson): LessonRun
+    public function handle(User $user, Lesson $lesson, LessonRunKind $kind = LessonRunKind::Lesson, ?Skill $skill = null): LessonRun
     {
         $unit = Unit::query()->findOrFail($lesson->unit_id);
         $language = $this->getCurrentLanguage->handle($user);
@@ -65,9 +68,9 @@ final class StartLessonRun
             throw $this->refuse(__('Clear your reviews first, then start this unit.'));
         }
 
-        $this->assertKindIsOpen($user, $unit, $lesson, $kind);
+        $this->assertKindIsOpen($user, $unit, $lesson, $kind, $skill);
 
-        $built = $this->buildLessonPlan->handle($user, $lesson, $kind);
+        $built = $this->buildLessonPlan->handle($user, $lesson, $kind, skill: $skill);
 
         if ($built['plan'] === []) {
             throw $this->refuse(__('This lesson has no exercises yet.'));
@@ -118,7 +121,7 @@ final class StartLessonRun
             ->first();
     }
 
-    private function assertKindIsOpen(User $user, Unit $unit, Lesson $lesson, LessonRunKind $kind): void
+    private function assertKindIsOpen(User $user, Unit $unit, Lesson $lesson, LessonRunKind $kind, ?Skill $skill = null): void
     {
         $isCheckLesson = $lesson->stage === LessonStage::Check;
 
@@ -133,7 +136,7 @@ final class StartLessonRun
             LessonRunKind::Check => $this->assertCheckIsOpen($state),
             LessonRunKind::TestOut => $this->assertNotStarted($user, $unit, $state),
             LessonRunKind::Retake => $this->assertRemediation($user, $unit, $kind),
-            LessonRunKind::Practice => $this->assertSomethingToPractise($user, $unit),
+            LessonRunKind::Practice => $this->assertSomethingToPractise($user, $unit, $skill),
         };
     }
 
@@ -168,8 +171,16 @@ final class StartLessonRun
         }
     }
 
-    private function assertSomethingToPractise(User $user, Unit $unit): void
+    private function assertSomethingToPractise(User $user, Unit $unit, ?Skill $skill): void
     {
+        if ($skill !== null) {
+            if ($this->unitSkillProgress->missing($user, $unit, $skill) === []) {
+                throw $this->refuse(__('Nothing is left to practise.'));
+            }
+
+            return;
+        }
+
         $struggling = $this->unitStruggles->handle($user, $unit) !== [];
         $missing = $this->lessonProgress->lastCheck($user, $unit) !== null && $this->unitMasteryReader->missing($user, $unit) !== [];
 

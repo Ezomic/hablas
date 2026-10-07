@@ -610,6 +610,12 @@
         }
     },
     "units": {
+        "training": {
+            "title": "Train this unit",
+            "practise": "Practise",
+            "complete": "All done",
+            "note": "Practise each skill until it is complete, then take the unit check when you are ready."
+        },
         "struggles": {
             "title": "Struggles",
             "count": "{count} struggle | {count} struggles",

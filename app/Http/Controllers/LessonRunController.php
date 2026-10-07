@@ -32,7 +32,7 @@ final class LessonRunController extends Controller
             $kind = $startLessonRun->openKind($this->currentUser(), $lesson) ?? LessonRunKind::Check;
         }
 
-        return to_route('lesson-runs.show', $startLessonRun->handle($this->currentUser(), $lesson, $kind));
+        return to_route('lesson-runs.show', $startLessonRun->handle($this->currentUser(), $lesson, $kind, $request->skill()));
     }
 
     public function show(LessonRun $lessonRun, GetCurrentLanguage $getCurrentLanguage, SettleLessonRun $settleLessonRun, PresentLessonRun $presentLessonRun): Response

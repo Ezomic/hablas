@@ -37,3 +37,8 @@ export interface UnitStruggles {
     items: { label: string; meaning: string | null }[];
     lessonId: number | null;
 }
+
+export interface UnitTraining {
+    skills: { skill: string; done: number; total: number; percent: number }[];
+    lessonId: number | null;
+}
