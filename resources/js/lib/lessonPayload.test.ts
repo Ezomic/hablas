@@ -11,6 +11,7 @@ import {
     passageAnswers,
     passageLines,
     passageQuestions,
+    sameLetters,
 } from './lessonPayload';
 
 describe('englishLine', () => {
@@ -174,5 +175,14 @@ describe('the instruction and hint text', () => {
             'Begint met "l", 7 letters',
         );
         expect(hintFor(exercise(['a']))).toBe('Begint met "a", 1 letter');
+    });
+});
+
+describe('sameLetters', () => {
+    it('forgives accents, case, spaces and punctuation when a word is copied', () => {
+        expect(sameLetters('como estas?', '¿cómo estás?')).toBe(true);
+        expect(sameLetters('  Como   estas ', '¿cómo estás?')).toBe(true);
+        expect(sameLetters('¿Cómo estás?', '¿cómo estás?')).toBe(true);
+        expect(sameLetters('como esta', '¿cómo estás?')).toBe(false);
     });
 });

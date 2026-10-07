@@ -39,6 +39,7 @@ import {
     passageAnswers,
     passageLines,
     passageQuestions,
+    lettersOf,
     sameLetters,
     strings,
     text,
@@ -99,8 +100,8 @@ const copyMissed = computed(
         copiesWord.value &&
         !copyMatches.value &&
         exercise.value !== null &&
-        typed.value.trim().length >=
-            text(exercise.value.payload.term).trim().length,
+        lettersOf(typed.value).length >=
+            lettersOf(text(exercise.value.payload.term)).length,
 );
 
 const canCheck = computed(() => {
