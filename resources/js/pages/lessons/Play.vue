@@ -160,6 +160,13 @@ function giveLetter() {
     lettersGiven.value += 1;
 }
 
+const speakHintable = computed(
+    () =>
+        format.value === 'speak_answer' &&
+        exercise.value !== null &&
+        text(exercise.value.payload.model) !== '',
+);
+
 const canHint = computed(
     () =>
         !lesson.check &&
@@ -168,10 +175,11 @@ const canHint = computed(
             : !lesson.hintShown.value) &&
         exercise.value !== null &&
         !isTeachFormat(format.value) &&
-        !isSpeakFormat(format.value) &&
+        (!isSpeakFormat(format.value) || speakHintable.value) &&
         !isPassageFormat(format.value) &&
         !['match_pairs', 'build_sentence'].includes(format.value) &&
-        (expectedAnswer(exercise.value) !== '' ||
+        (speakHintable.value ||
+            expectedAnswer(exercise.value) !== '' ||
             (isListenFormat(format.value) &&
                 (clipUrl(exercise.value.payload.audioSlowUrl) !== null ||
                     text(exercise.value.payload.text) !== ''))),
@@ -600,6 +608,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     :score-url="scoreUrl"
                     :replay-limit="props.settings.replayLimit"
                     :disabled="inFeedback"
+                    :show-model="lesson.hintShown.value"
                     @change="spoken = $event"
                     @denied="lesson.denyMicrophone"
                 />

@@ -407,6 +407,39 @@ describe('a word heard and chosen', () => {
 describe('a dictation', () => {
     const dictation = () => mountPlay({ plan: [listenType, typed] });
 
+    it('offers a hint before the first try that shows how to answer, and none in a check', async () => {
+        const question: PlanExercise = {
+            ...speakAnswer,
+            payload: {
+                prompt: '¿Cómo estás?',
+                english: 'How are you?',
+                model: 'Estoy bien, gracias.',
+            },
+        };
+        const wrapper = mountPlay({ plan: [question] });
+
+        expect(wrapper.text()).toContain('How are you?');
+        expect(wrapper.find('[data-testid="speak-hint"]').exists()).toBe(false);
+
+        const hint = wrapper
+            .findAll('button')
+            .find((button) => button.text() === 'Show a hint');
+        await hint!.trigger('click');
+        await flushPromises();
+
+        expect(wrapper.get('[data-testid="speak-hint"]').text()).toBe(
+            'Say something like: Estoy bien, gracias.',
+        );
+
+        const check = mountPlay({
+            plan: [{ ...question, payload: { prompt: '¿Cómo estás?' } }],
+        });
+
+        expect(
+            check.findAll('button').some((b) => b.text() === 'Show a hint'),
+        ).toBe(false);
+    });
+
     it('is heard from its clip, never shows its text, and waits for the verdict', async () => {
         mocks.submitOrQueue.mockResolvedValue(
             json({
