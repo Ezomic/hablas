@@ -118,6 +118,20 @@ describe('useOfflineSync', () => {
         expect(await getPendingSubmissions(1)).toEqual([]);
     });
 
+    it('catches up with the real connection when the page is shown again, after a missed event', async () => {
+        const { useOfflineSync } = await import('./useOfflineSync');
+        const { sync } = mountOfflineSync(useOfflineSync);
+
+        window.dispatchEvent(new Event('offline'));
+
+        expect(sync.isOnline.value).toBe(false);
+
+        setOnline(true);
+        window.dispatchEvent(new Event('focus'));
+
+        expect(sync.isOnline.value).toBe(true);
+    });
+
     it('queues instead of submitting when offline', async () => {
         setOnline(false);
 

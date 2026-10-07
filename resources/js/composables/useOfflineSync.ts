@@ -225,9 +225,26 @@ export function useOfflineSync() {
         isOnline.value = false;
     }
 
+    // The online and offline events are missed while the page is in the
+    // background, which would leave a stale offline flag on an online phone.
+    function resync() {
+        if (
+            document.visibilityState !== 'hidden' &&
+            navigator.onLine !== isOnline.value
+        ) {
+            if (navigator.onLine) {
+                handleOnline();
+            } else {
+                handleOffline();
+            }
+        }
+    }
+
     onMounted(() => {
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
+        window.addEventListener('focus', resync);
+        document.addEventListener('visibilitychange', resync);
 
         if (isOnline.value) {
             void replayQueue();
@@ -239,6 +256,8 @@ export function useOfflineSync() {
     onUnmounted(() => {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
+        window.removeEventListener('focus', resync);
+        document.removeEventListener('visibilitychange', resync);
     });
 
     return { isOnline, pendingCount, rejectedCount, submitOrQueue };

@@ -224,7 +224,9 @@ const instruction = computed(() => {
         case 'build_sentence':
             return t('lesson.instruction.buildSentence');
         case 'write_guided':
-            return t('lesson.instruction.writeGuided');
+            return exercise.value?.payload.answers === true
+                ? t('lesson.instruction.writeAnswer')
+                : t('lesson.instruction.writeGuided');
         case 'transform_sentence':
             return text(exercise.value?.payload.prompt);
         default:
