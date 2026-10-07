@@ -40,10 +40,7 @@ final class SubstituteBuilder
             },
             LessonExerciseFormat::SpeakAnswer => $early
                 ? [LessonExerciseFormat::TypeWord, $this->only($payload, ['english', 'accepted']) + ['prompt' => $payload['english'] ?? $payload['prompt'] ?? '']]
-                : [LessonExerciseFormat::WriteGuided, ['prompt' => $payload['prompt'] ?? '', 'required' => array_map(
-                    fn (mixed $slot): array => ['forms' => is_array($slot) ? $slot : [], 'target' => null],
-                    is_array($payload['slots'] ?? null) ? $payload['slots'] : [],
-                )]],
+                : [LessonExerciseFormat::WriteGuided, $this->writtenAnswer($payload)],
             default => null,
         };
 
@@ -89,5 +86,30 @@ final class SubstituteBuilder
         usort($tiles, fn (string $a, string $b): int => strcmp(md5($text.$a), md5($text.$b)));
 
         return ['prompt' => $payload['english'] ?? '', 'english' => $payload['english'] ?? '', 'tiles' => $tiles, 'accepted' => $payload['accepted'] ?? []];
+    }
+
+    /**
+     * A question answered in writing instead of out loud: the question with
+     * its meaning, the words an answer can use for the hint, and a flag so the
+     * player asks for an answer, not for the question to be copied.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function writtenAnswer(array $payload): array
+    {
+        $slots = is_array($payload['slots'] ?? null) ? $payload['slots'] : [];
+
+        return array_filter([
+            'prompt' => $payload['prompt'] ?? '',
+            'english' => $payload['english'] ?? null,
+            'chips' => array_values(array_filter(array_map(fn (mixed $slot): mixed => is_array($slot) ? ($slot[0] ?? null) : null, $slots), is_string(...))),
+            'model' => $payload['model'] ?? null,
+            'answers' => true,
+            'required' => array_map(
+                fn (mixed $slot): array => ['forms' => is_array($slot) ? $slot : [], 'target' => null],
+                $slots,
+            ),
+        ], fn (mixed $value): bool => $value !== null);
     }
 }
