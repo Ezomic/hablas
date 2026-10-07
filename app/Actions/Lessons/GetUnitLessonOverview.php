@@ -14,6 +14,7 @@ use App\Models\LessonAnswer;
 use App\Models\LessonRun;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\LessonMastery;
 use App\Services\LessonProgress;
 use App\Services\UnitCheckRequirements;
 use App\Services\UnitMasteryReader;
@@ -24,6 +25,7 @@ final class GetUnitLessonOverview
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
         private readonly UnitCheckRequirements $unitCheckRequirements = new UnitCheckRequirements,
+        private readonly LessonMastery $lessonMastery = new LessonMastery,
     ) {}
 
     /**
@@ -33,7 +35,7 @@ final class GetUnitLessonOverview
      * sentence and grammar lessons are still on their way.
      *
      * @return array{
-     *     lessons: list<array{stage: string, title: string, position: int, lessonId: int|null, state: string, bestAccuracy: float|null, mastered: bool}>,
+     *     lessons: list<array{stage: string, title: string, position: int, lessonId: int|null, state: string, bestAccuracy: float|null, mastered: bool, missed: int}>,
      *     mastery: array{mastered: int, total: int},
      *     skipped: array{listening: int, speaking: int},
      *     contentPending: bool,
@@ -58,8 +60,9 @@ final class GetUnitLessonOverview
                 'position' => $stage->position(),
                 'lessonId' => $lesson?->id,
                 'state' => $lesson === null ? LessonState::Coming->value : ($states[$lesson->id] ?? LessonState::Coming)->value,
-                'bestAccuracy' => $lesson === null ? null : $this->bestAccuracy($user, $lesson),
-                'mastered' => $lesson !== null && $stage !== LessonStage::Check && $this->unitCheckRequirements->isMastered($user, $lesson->id),
+                'bestAccuracy' => $lesson === null ? null : $this->bestAccuracy($user, $lesson, $stage),
+                'mastered' => $lesson !== null && $stage !== LessonStage::Check && $this->lessonMastery->isMastered($user, $lesson),
+                'missed' => $lesson === null || $stage === LessonStage::Check || ! $this->lessonMastery->hasCompletedRun($user, $lesson) ? 0 : count($this->lessonMastery->missing($user, $lesson)),
             ];
         }
 
@@ -95,16 +98,24 @@ final class GetUnitLessonOverview
             ->exists();
     }
 
-    private function bestAccuracy(User $user, Lesson $lesson): ?float
+    /**
+     * The share of the lesson's exercises right first time over all its runs,
+     * so a replay of only the missed ones cannot read as a perfect lesson.
+     */
+    private function bestAccuracy(User $user, Lesson $lesson, LessonStage $stage): ?float
     {
-        $best = LessonRun::query()
-            ->where('user_id', $user->id)
-            ->where('lesson_id', $lesson->id)
-            ->where('status', LessonRunStatus::Completed)
-            ->whereNotIn('kind', [LessonRunKind::Practice, LessonRunKind::SkillTest])
-            ->max('first_try_accuracy');
+        if ($stage === LessonStage::Check) {
+            $best = LessonRun::query()
+                ->where('user_id', $user->id)
+                ->where('lesson_id', $lesson->id)
+                ->where('status', LessonRunStatus::Completed)
+                ->whereNotIn('kind', [LessonRunKind::Practice, LessonRunKind::SkillTest])
+                ->max('first_try_accuracy');
 
-        return is_numeric($best) ? (float) $best : null;
+            return is_numeric($best) ? (float) $best : null;
+        }
+
+        return $this->lessonMastery->hasCompletedRun($user, $lesson) ? $this->lessonMastery->share($user, $lesson) : null;
     }
 
     /** @return array{listening: int, speaking: int} */

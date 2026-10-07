@@ -914,6 +914,7 @@
         "submit": "Reflectie versturen"
     },
     "unitLessons": {
+        "redoMissed": "Doe de gemiste opnieuw | Doe de {count} gemiste opnieuw",
         "unlock": {
             "title": "Ontgrendelt de unittoets",
             "lessons": "Lessen met 100% in één keer goed: {mastered} van {total}",
@@ -939,7 +940,7 @@
             "opensTomorrow": "Opent morgen",
             "coming": "Komt eraan",
             "inProgress": "Bezig",
-            "doneBest": "Klaar, hoogste score {percent}% meteen goed",
+            "doneBest": "Klaar, {percent}% in één keer goed",
             "done": "Klaar",
             "ready": "Klaar om te beginnen"
         },

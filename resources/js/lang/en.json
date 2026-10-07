@@ -914,6 +914,7 @@
         "submit": "Submit reflection"
     },
     "unitLessons": {
+        "redoMissed": "Redo the missed one | Redo the {count} missed",
         "unlock": {
             "title": "Unlocks the unit check",
             "lessons": "Lessons at 100% first time: {mastered} of {total}",
@@ -939,7 +940,7 @@
             "opensTomorrow": "Opens tomorrow",
             "coming": "Coming soon",
             "inProgress": "In progress",
-            "doneBest": "Done, best {percent}% first time",
+            "doneBest": "Done, {percent}% right first time",
             "done": "Done",
             "ready": "Ready"
         },

@@ -92,7 +92,9 @@ function label(row: UnitLessonRow): string {
         case 'in_progress':
             return t('unitLessons.continue');
         case 'completed':
-            return t('unitLessons.replay');
+            return row.missed > 0
+                ? t('unitLessons.redoMissed', { count: row.missed }, row.missed)
+                : t('unitLessons.replay');
         default:
             return t('unitLessons.start');
     }
