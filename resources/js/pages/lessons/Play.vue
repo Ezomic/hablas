@@ -167,6 +167,13 @@ const speakHintable = computed(
         text(exercise.value.payload.model) !== '',
 );
 
+const guidedHintable = computed(
+    () =>
+        format.value === 'write_guided' &&
+        exercise.value !== null &&
+        strings(exercise.value.payload.chips).length > 0,
+);
+
 const canHint = computed(
     () =>
         !lesson.check &&
@@ -179,6 +186,7 @@ const canHint = computed(
         !isPassageFormat(format.value) &&
         !['match_pairs', 'build_sentence'].includes(format.value) &&
         (speakHintable.value ||
+            guidedHintable.value ||
             expectedAnswer(exercise.value) !== '' ||
             (isListenFormat(format.value) &&
                 (clipUrl(exercise.value.payload.audioSlowUrl) !== null ||
@@ -690,7 +698,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
                     :instruction="instruction"
                     :english="english"
                     :glosses="glosses"
-                    :chips="strings(exercise.payload.chips)"
+                    :chips="
+                        lesson.hintShown.value && !lesson.check
+                            ? strings(exercise.payload.chips)
+                            : []
+                    "
                     :gap="format === 'type_gap'"
                     :multiline="format === 'write_guided'"
                     :locale="locale"

@@ -278,7 +278,7 @@ describe('SpeakExercise', () => {
         expect(wrapper.emitted('change')?.[0]).toEqual([[]]);
     });
 
-    it('shows what a question means, and after a missed try how to start the answer', async () => {
+    it('shows what a question means, and keeps the answer hidden until asked, even after a miss', async () => {
         mocks.fetchJson.mockResolvedValue(
             scored({ correct: false, score: 0, missed: 2, words: [] }),
         );
@@ -296,8 +296,12 @@ describe('SpeakExercise', () => {
 
         await say('cómo estás');
 
+        expect(wrapper.find('[data-testid="speak-hint"]').exists()).toBe(false);
+
+        await wrapper.setProps({ showModel: true });
+
         expect(wrapper.get('[data-testid="speak-hint"]').text()).toBe(
-            'Hint: start your answer with Estoy',
+            'Say something like: Estoy bien, gracias.',
         );
     });
 

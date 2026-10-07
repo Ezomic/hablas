@@ -42,21 +42,11 @@ const audioUrl = computed(() => clipUrl(props.payload.audioUrl));
 const audioSlowUrl = computed(() => clipUrl(props.payload.audioSlowUrl));
 const last = computed(() => speaking.tries.value.at(-1) ?? null);
 const model = computed(() => (isRepeat.value ? '' : text(props.payload.model)));
-const hint = computed(() => {
-    if (model.value === '') {
-        return null;
-    }
-
-    if (props.showModel) {
-        return t('lesson.speak.hintFull', { model: model.value });
-    }
-
-    const first = model.value.split(/\s+/)[0].replace(/[,.!?¡¿]+$/u, '');
-
-    return last.value?.result?.correct === false
-        ? t('lesson.speak.hint', { word: first })
-        : null;
-});
+const hint = computed(() =>
+    props.showModel && model.value !== ''
+        ? t('lesson.speak.hintFull', { model: model.value })
+        : null,
+);
 const used = computed(() => speaking.tries.value.length);
 
 watch(speaking.transcripts, (transcripts) => emit('change', transcripts), {
