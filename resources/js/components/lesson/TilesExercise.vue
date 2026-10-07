@@ -18,10 +18,34 @@ const { t } = useI18n();
 
 const placed = ref<number[]>([]);
 
-const free = computed(() =>
-    props.tiles
-        .map((tile, index) => ({ tile, index }))
-        .filter(({ index }) => !placed.value.includes(index)),
+// A tile shows without its sentence capital and its punctuation, which would
+// give away the first and the last word. A name keeps its capital: it shows
+// in the English line too, away from the start of that sentence.
+const names = computed(() => {
+    const found = new Set<string>();
+    const english = `${props.prompt} ${props.english ?? ''}`;
+
+    for (const match of english.matchAll(/(?<=[a-z,] )\p{Lu}\p{L}+/gu)) {
+        found.add(match[0]);
+    }
+
+    return found;
+});
+
+function label(tile: string): string {
+    const word = tile.replace(/^[¿¡]+|[.,;:!?]+$/gu, '');
+
+    return names.value.has(word)
+        ? word
+        : word.charAt(0).toLowerCase() + word.slice(1);
+}
+
+const bank = computed(() =>
+    props.tiles.map((tile, index) => ({
+        tile,
+        index,
+        used: placed.value.includes(index),
+    })),
 );
 
 function report() {
@@ -82,7 +106,7 @@ const tileClass =
                     data-testid="placed"
                     @click="remove(index)"
                 >
-                    {{ props.tiles[index] }}
+                    {{ label(props.tiles[index]) }}
                 </button>
             </li>
         </ol>
@@ -91,15 +115,16 @@ const tileClass =
             :aria-label="t('lesson.build.tiles')"
             data-testid="tiles"
         >
-            <li v-for="item in free" :key="item.index">
+            <li v-for="item in bank" :key="item.index">
                 <button
                     type="button"
-                    :class="tileClass"
-                    :disabled="props.disabled"
+                    :class="[tileClass, item.used && 'opacity-30']"
+                    :disabled="props.disabled || item.used"
+                    :data-used="item.used ? 'true' : undefined"
                     data-testid="tile"
                     @click="place(item.index)"
                 >
-                    {{ item.tile }}
+                    {{ label(item.tile) }}
                 </button>
             </li>
         </ul>

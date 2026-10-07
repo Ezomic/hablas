@@ -43,18 +43,57 @@ describe('TilesExercise', () => {
     const texts = (wrapper: ReturnType<typeof mountTiles>, id: string) =>
         wrapper.findAll(`[data-testid="${id}"]`).map((tile) => tile.text());
 
-    it('moves a tapped tile to the answer line and back again', async () => {
+    it('greys a tapped tile out in place and frees it again when taken back', async () => {
         const wrapper = mountTiles();
 
         await wrapper.findAll('[data-testid="tile"]')[1].trigger('click');
 
         expect(texts(wrapper, 'placed')).toEqual(['llave']);
-        expect(texts(wrapper, 'tile')).toHaveLength(5);
+        expect(texts(wrapper, 'tile')).toEqual([
+            'la',
+            'llave',
+            'está',
+            'en',
+            'la',
+            'habitación',
+        ]);
+        expect(
+            wrapper
+                .findAll('[data-testid="tile"]')
+                .map((tile) => tile.attributes('data-used')),
+        ).toEqual([
+            undefined,
+            'true',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        ]);
+
+        await wrapper.findAll('[data-testid="tile"]')[1].trigger('click');
+
+        expect(texts(wrapper, 'placed')).toEqual(['llave']);
 
         await wrapper.get('[data-testid="placed"]').trigger('click');
 
         expect(texts(wrapper, 'placed')).toEqual([]);
-        expect(texts(wrapper, 'tile')).toHaveLength(6);
+        expect(wrapper.findAll('[data-used]')).toHaveLength(0);
+    });
+
+    it('shows tiles without the sentence capital or punctuation, but keeps a name', () => {
+        const wrapper = mountTiles({
+            prompt: 'Good afternoon, we are Pablo and Luis.',
+            tiles: ['Buenas', 'tardes,', 'somos', 'Pablo', 'y', 'Luis.'],
+        });
+
+        expect(texts(wrapper, 'tile')).toEqual([
+            'buenas',
+            'tardes',
+            'somos',
+            'Pablo',
+            'y',
+            'Luis',
+        ]);
     });
 
     it('reports the placed words joined by a single space, untouched', async () => {
@@ -62,7 +101,7 @@ describe('TilesExercise', () => {
         const tiles = () => wrapper.findAll('[data-testid="tile"]');
 
         await tiles()[0].trigger('click');
-        await tiles()[0].trigger('click');
+        await tiles()[1].trigger('click');
 
         expect(wrapper.emitted('change')?.at(-1)).toEqual(['la llave']);
     });
@@ -71,19 +110,24 @@ describe('TilesExercise', () => {
         const wrapper = mountTiles();
 
         await wrapper.findAll('[data-testid="tile"]')[0].trigger('click');
-        await wrapper.findAll('[data-testid="tile"]')[3].trigger('click');
+        await wrapper.findAll('[data-testid="tile"]')[4].trigger('click');
 
         expect(wrapper.emitted('change')?.at(-1)).toEqual(['la la']);
 
         await wrapper.findAll('[data-testid="placed"]')[0].trigger('click');
 
         expect(wrapper.emitted('change')?.at(-1)).toEqual(['la']);
-        expect(texts(wrapper, 'tile')).toEqual([
-            'la',
-            'llave',
-            'está',
-            'en',
-            'habitación',
+        expect(
+            wrapper
+                .findAll('[data-testid="tile"]')
+                .map((tile) => tile.attributes('data-used')),
+        ).toEqual([
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            'true',
+            undefined,
         ]);
     });
 
