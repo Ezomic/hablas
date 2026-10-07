@@ -31,7 +31,7 @@ import { store as startRun } from '@/routes/lessons/runs';
 import { index as unitsIndex, show as showUnit } from '@/routes/units';
 import { store as completeUnit } from '@/routes/units/completion';
 import type { UnitLessonOverview } from '@/types/lesson';
-import type { DayProgress, UnitProgress } from '@/types/unit';
+import type { DayProgress, UnitProgress, UnitStruggles } from '@/types/unit';
 
 interface Unit {
     id: number;
@@ -51,6 +51,7 @@ const props = defineProps<{
     lessons?: UnitLessonOverview | null;
     progress: UnitProgress;
     day: DayProgress;
+    struggles: UnitStruggles;
     speechLocale: string | null;
 }>();
 
@@ -100,6 +101,22 @@ function continueUnit() {
     );
 }
 
+function practiseStruggles() {
+    if (props.struggles.lessonId === null) {
+        return;
+    }
+
+    starting.value = true;
+    router.post(
+        startRun({
+            unit: props.unit.id,
+            lesson: props.struggles.lessonId,
+        }).url,
+        { kind: 'practice' },
+        { onFinish: () => (starting.value = false) },
+    );
+}
+
 function complete() {
     form.post(completeUnit(props.unit.id).url);
 }
@@ -134,6 +151,58 @@ function complete() {
             :busy="starting"
             @continue="continueUnit"
         />
+
+        <Card v-if="props.lessons" data-testid="struggles">
+            <CardHeader>
+                <CardDescription>{{
+                    t('units.struggles.title')
+                }}</CardDescription>
+            </CardHeader>
+            <CardContent class="flex flex-col gap-3">
+                <template v-if="props.struggles.count > 0">
+                    <p class="font-medium">
+                        {{
+                            t(
+                                'units.struggles.count',
+                                { count: props.struggles.count },
+                                props.struggles.count,
+                            )
+                        }}
+                    </p>
+                    <ul
+                        class="flex flex-wrap gap-2"
+                        data-testid="struggle-words"
+                    >
+                        <li
+                            v-for="item in props.struggles.items"
+                            :key="item.label"
+                        >
+                            <Badge variant="outline">
+                                {{ item.label
+                                }}<span
+                                    v-if="item.meaning"
+                                    class="ml-1 text-muted-foreground"
+                                    >{{ item.meaning }}</span
+                                >
+                            </Badge>
+                        </li>
+                    </ul>
+                    <Button
+                        class="w-fit"
+                        :disabled="
+                            starting || props.struggles.lessonId === null
+                        "
+                        data-testid="practise-struggles"
+                        @click="practiseStruggles"
+                    >
+                        {{ t('units.struggles.practise') }}
+                    </Button>
+                </template>
+                <p v-else class="text-sm text-muted-foreground">
+                    {{ t('units.struggles.none') }}
+                </p>
+            </CardContent>
+        </Card>
 
         <Card v-if="props.unit.contrastNote">
             <CardHeader>

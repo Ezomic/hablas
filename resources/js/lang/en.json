@@ -610,6 +610,13 @@
         }
     },
     "units": {
+        "struggles": {
+            "title": "Struggles",
+            "count": "{count} struggle | {count} struggles",
+            "badge": "{count} struggle | {count} struggles",
+            "practise": "Practise struggles",
+            "none": "No struggles right now, nicely done."
+        },
         "pace": {
             "title": "A1 pace",
             "done": "A1 is finished.",

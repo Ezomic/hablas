@@ -18,6 +18,7 @@ use App\Models\UserUnitProgress;
 use App\Services\FirstTryRule;
 use App\Services\LessonProgress;
 use App\Services\UnitMasteryReader;
+use App\Services\UnitStruggles;
 use LogicException;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -31,6 +32,7 @@ final class BuildLessonPlan
     public function __construct(
         private readonly LessonProgress $lessonProgress = new LessonProgress,
         private readonly UnitMasteryReader $unitMasteryReader = new UnitMasteryReader,
+        private readonly UnitStruggles $unitStruggles = new UnitStruggles,
         private readonly FirstTryRule $firstTryRule = new FirstTryRule,
     ) {}
 
@@ -296,7 +298,9 @@ final class BuildLessonPlan
         $plan = [];
         $chosen = [];
 
-        foreach ($this->unitMasteryReader->missing($user, $unit) as $ref) {
+        $struggles = $this->unitStruggles->handle($user, $unit);
+
+        foreach ($struggles !== [] ? $struggles : $this->unitMasteryReader->missing($user, $unit) as $ref) {
             $candidates = [];
 
             foreach ($exercises as $exercise) {
