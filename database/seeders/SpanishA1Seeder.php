@@ -9,11 +9,7 @@ use App\Enums\ContextTag;
 use App\Enums\ErrorTagCategory;
 use App\Enums\InterestTag;
 use App\Enums\Skill;
-use App\Models\GrammarPoint;
-use App\Models\Language;
-use App\Models\Unit;
-use App\Models\UnitInterestTag;
-use App\Models\VocabularyItem;
+use Database\Seeders\Concerns\SeedsUnitDefinitions;
 use Illuminate\Database\Seeder;
 
 /**
@@ -36,47 +32,14 @@ use Illuminate\Database\Seeder;
  */
 class SpanishA1Seeder extends Seeder
 {
+    use SeedsUnitDefinitions;
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $spanish = Language::query()->where('code', 'es')->firstOrFail();
-
-        foreach ($this->units() as $sortOrder => $definition) {
-            $unit = Unit::query()->updateOrCreate(
-                ['language_id' => $spanish->id, 'slug' => $definition['slug']],
-                [
-                    'title' => $definition['title'],
-                    'cefr_level' => CefrLevel::A1,
-                    'context_tag' => $definition['context_tag'],
-                    'primary_skill' => $definition['primary_skill'],
-                    'secondary_skill' => $definition['secondary_skill'],
-                    'task_description' => $definition['task_description'],
-                    'sort_order' => $sortOrder + 1,
-                ],
-            );
-
-            foreach ($definition['vocabulary'] as $vocabulary) {
-                VocabularyItem::query()->updateOrCreate(
-                    ['language_id' => $spanish->id, 'unit_id' => $unit->id, 'term' => $vocabulary['term']],
-                    $vocabulary,
-                );
-            }
-
-            foreach ($definition['grammar'] as $grammar) {
-                GrammarPoint::query()->updateOrCreate(
-                    ['language_id' => $spanish->id, 'unit_id' => $unit->id, 'title' => $grammar['title']],
-                    $grammar,
-                );
-            }
-
-            foreach ($definition['interest_tags'] as $interestTag) {
-                UnitInterestTag::query()->updateOrCreate(
-                    ['unit_id' => $unit->id, 'interest_tag' => $interestTag],
-                );
-            }
-        }
+        $this->seedUnitDefinitions('es', CefrLevel::A1, $this->units(), 1);
     }
 
     /**

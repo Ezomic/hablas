@@ -22,6 +22,7 @@ use App\Services\SpanishTextNormalizer;
 use App\Services\UnitContentRegistry;
 use Database\Seeders\LanguageSeeder;
 use Database\Seeders\SpanishA1Seeder;
+use Database\Seeders\SpanishA2Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Lessons\LessonWorld;
@@ -31,6 +32,7 @@ foreach (['greetings-and-introductions', 'at-the-airport', 'ordering-food-at-a-r
         beforeEach(function () use ($slug) {
             $this->seed(LanguageSeeder::class);
             $this->seed(SpanishA1Seeder::class);
+            $this->seed(SpanishA2Seeder::class);
             $this->unit = Unit::query()->where('slug', $slug)->firstOrFail();
             $registered = collect(app(UnitContentRegistry::class)->all())->first(fn ($content): bool => $content->languageCode() === 'es' && $content->unitSlug() === $slug);
             $this->content = $registered;
