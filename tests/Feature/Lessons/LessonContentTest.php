@@ -6,6 +6,7 @@ use App\Actions\Lessons\BuildUnitLessons;
 use App\Actions\Lessons\RenderLessonReviewSheet;
 use App\Actions\Lessons\StartLessonRun;
 use App\Actions\Lessons\SyncUnitLessons;
+use App\Enums\CefrLevel;
 use App\Enums\ExerciseFamily;
 use App\Enums\LessonExerciseFormat as Format;
 use App\Enums\LessonRunKind;
@@ -30,6 +31,7 @@ use App\Services\UnitContentRegistry;
 use Database\Seeders\ContentSeeder;
 use Database\Seeders\LanguageSeeder;
 use Database\Seeders\SpanishA1Seeder;
+use Database\Seeders\SpanishA2Seeder;
 use Tests\Fixtures\Lessons\ArrayContent;
 use Tests\Fixtures\Lessons\LessonWorld;
 
@@ -38,6 +40,7 @@ const SPANISH_FAMILIES = [ExerciseFamily::Choice, ExerciseFamily::Writing];
 beforeEach(function () {
     $this->seed(LanguageSeeder::class);
     $this->seed(SpanishA1Seeder::class);
+    $this->seed(SpanishA2Seeder::class);
     $this->contents = array_values(array_filter((new UnitContentRegistry)->all(), fn (UnitContent $content): bool => $content->languageCode() === 'es'));
     $this->unitOf = fn (UnitContent $content): Unit => Unit::query()->where('slug', $content->unitSlug())->whereHas('language', fn ($query) => $query->where('code', 'es'))->firstOrFail();
     $this->build = fn (UnitContent $content): array => (new BuildUnitLessons)->handle(($this->unitOf)($content), new PreviewContent($content), SPANISH_FAMILIES);
@@ -62,7 +65,7 @@ describe('the Spanish word data', function () {
         $slugs = collect($this->contents)->map(fn (UnitContent $content): string => $content->unitSlug())->sort()->values()->all();
 
         expect($slugs)->toBe(Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->orderBy('slug')->pluck('slug')->all())
-            ->and($this->contents)->toHaveCount(24)
+            ->and($this->contents)->toHaveCount(32)
             ->and(collect($this->contents)->every(fn (UnitContent $content): bool => $content->languageCode() === 'es'))->toBeTrue();
     });
 
@@ -190,7 +193,7 @@ describe('the Spanish lesson text', function () {
     it('writes no dash as punctuation in a grammar card', function () {
         $cards = GrammarPoint::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->pluck('explanation');
 
-        expect($cards)->toHaveCount(24);
+        expect($cards)->toHaveCount(32);
 
         foreach ($cards as $explanation) {
             expect($explanation)->not->toMatch('/[—–]| -- /u');
@@ -230,7 +233,7 @@ describe('the review gate', function () {
     it('seeds every lesson of the released Spanish, French and Italian units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(200)
+        expect(Lesson::query()->count())->toBe(240)
             ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 
@@ -324,7 +327,7 @@ describe('the word lessons once reviewed', function () {
     });
 
     it('are graded right when answered with their own accepted answers, and prove every word (the daily cap holds the cards back)', function () {
-        $user = LessonWorld::learner();
+        $user = LessonWorld::learner(CefrLevel::A2);
 
         foreach ($this->contents as $content) {
             $unit = ($this->unitOf)($content);

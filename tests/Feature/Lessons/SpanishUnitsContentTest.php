@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Lessons\BuildUnitLessons;
+use App\Enums\CefrLevel;
 use App\Enums\LessonExerciseFormat as Format;
 use App\Enums\LessonStage;
 use App\Lessons\AuthoredExercise;
@@ -24,6 +25,7 @@ use Database\Content\Lessons\Es\CoreWords;
 use Database\Seeders\ContentSeeder;
 use Database\Seeders\LanguageSeeder;
 use Database\Seeders\SpanishA1Seeder;
+use Database\Seeders\SpanishA2Seeder;
 use Illuminate\Support\Collection;
 use Tests\Support\AuthoredContent;
 
@@ -46,6 +48,7 @@ describe('every Spanish unit with authored lessons is released through the revie
     beforeEach(function () {
         $this->seed(LanguageSeeder::class);
         $this->seed(SpanishA1Seeder::class);
+        $this->seed(SpanishA2Seeder::class);
     });
 
     it('is released: it has the independent AI review and the owner approval of the lessons', function () {
@@ -77,6 +80,7 @@ foreach (spanishUnits() as $slug => $unitContent) {
         beforeEach(function () use ($slug, $unitContent) {
             $this->seed(LanguageSeeder::class);
             $this->seed(SpanishA1Seeder::class);
+            $this->seed(SpanishA2Seeder::class);
             $this->content = $unitContent;
             $this->unit = Unit::query()->where('slug', $slug)->firstOrFail();
             $this->normalizer = new SpanishTextNormalizer;
@@ -323,10 +327,19 @@ foreach (spanishUnits() as $slug => $unitContent) {
                 }
             }
 
-            foreach ($this->content->words() as $word) {
-                foreach ([$word->term, ...$word->accepted, ...$word->forms] as $text) {
-                    foreach (explode(' ', $this->normalizer->exactKey($text)) as $part) {
-                        $known[$part] = true;
+            $contents = [$this->content];
+
+            if ($this->unit->cefr_level !== CefrLevel::A1) {
+                $a1 = Unit::query()->where('cefr_level', CefrLevel::A1)->pluck('slug')->all();
+                array_push($contents, ...array_values(array_filter(spanishUnits(), fn (string $other): bool => in_array($other, $a1, true), ARRAY_FILTER_USE_KEY)));
+            }
+
+            foreach ($contents as $content) {
+                foreach ($content->words() as $word) {
+                    foreach ([$word->term, ...$word->accepted, ...$word->forms] as $text) {
+                        foreach (explode(' ', $this->normalizer->exactKey($text)) as $part) {
+                            $known[$part] = true;
+                        }
                     }
                 }
             }
