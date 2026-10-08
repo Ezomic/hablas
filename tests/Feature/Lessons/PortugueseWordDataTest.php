@@ -249,7 +249,7 @@ describe('the Portuguese review gate', function () {
         $portuguese = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('id');
 
         expect(Lesson::query()->whereIn('unit_id', $portuguese)->count())->toBe(0)
-            ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(200);
+            ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(240);
     });
 
     it('shows a Portuguese learner every lesson of every Portuguese unit as still coming, with nothing to start', function () {

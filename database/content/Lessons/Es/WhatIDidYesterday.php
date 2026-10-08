@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -64,7 +67,11 @@ final class WhatIDidYesterday implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-08', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-08', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-08', 'Released on the owner\'s instruction on 2026-10-08, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -90,12 +97,12 @@ final class WhatIDidYesterday implements UnitContent
             Kit::translate($stage, 'sentences.translate.estudiaste', 'Last night you studied at home. (informal you)', ['Anoche estudiaste en casa.', 'Estudiaste en casa anoche.', 'Anoche tú estudiaste en casa.', 'Tú estudiaste en casa anoche.'], [Kit::word('anoche'), Kit::word('estudiar', 'estudiaste'), Kit::form('estudiaste')]),
             Kit::translate($stage, 'sentences.translate.compre-pan', 'Last week I bought bread.', ['La semana pasada compré pan.', 'Compré pan la semana pasada.', 'Yo compré pan la semana pasada.', 'La semana pasada yo compré pan.'], [Kit::word('pasado', 'pasada'), Kit::word('comprar', 'compré'), Kit::form('compré', true)]),
 
-            Kit::build($stage, 'sentences.build.cocine-anoche', 'I cooked last night.', 'Cociné anoche.', ['cocinó'], [Kit::word('cocinar', 'cociné'), Kit::word('anoche'), Kit::form('cociné')]),
+            Kit::build($stage, 'sentences.build.cocine-anoche', 'Last night I cooked.', 'Anoche cociné.', ['cocinó'], [Kit::word('cocinar', 'cociné'), Kit::word('anoche'), Kit::form('cociné')]),
             Kit::build($stage, 'sentences.build.hablamos-marta', 'Yesterday we talked with Marta.', 'Ayer hablamos con Marta.', ['hablaron'], [Kit::word('ayer'), Kit::word('hablar', 'hablamos'), Kit::form('hablamos')]),
-            Kit::build($stage, 'sentences.build.escucho-pablo', 'Pablo listened to music yesterday.', 'Pablo escuchó música ayer.', ['escuché'], [Kit::word('escuchar', 'escuchó'), Kit::word('ayer'), Kit::form('escuchó', true)]),
+            Kit::build($stage, 'sentences.build.escucho-pablo', 'Yesterday Pablo listened to music.', 'Ayer Pablo escuchó música.', ['escuché'], [Kit::word('escuchar', 'escuchó'), Kit::word('ayer'), Kit::form('escuchó', true)]),
 
-            Kit::listenChoose($stage, 'sentences.listen_choose.compre-pan', 'Ayer compré pan.', ['Yesterday I bought bread.', 'Yesterday she bought bread.', 'Yesterday I bought milk.', 'Today I buy bread.'], 'Yesterday I bought bread.', [Kit::word('ayer'), Kit::word('comprar', 'compré'), Kit::form('compré')]),
-            Kit::listenChoose($stage, 'sentences.listen_choose.hablo-marta', 'Marta habló con Ana anoche.', ['Marta talked with Ana last night.', 'Marta talks with Ana every night.', 'Marta talked with Ana yesterday.', 'I talked with Ana last night.'], 'Marta talked with Ana last night.', [Kit::word('hablar', 'habló'), Kit::word('anoche'), Kit::form('habló', true)]),
+            Kit::listenChoose($stage, 'sentences.listen_choose.compre-pan', 'Ayer compré leche.', ['Yesterday I bought milk.', 'Yesterday she bought milk.', 'Yesterday I bought bread.', 'Today I buy milk.'], 'Yesterday I bought milk.', [Kit::word('ayer'), Kit::word('comprar', 'compré'), Kit::form('compré')]),
+            Kit::listenChoose($stage, 'sentences.listen_choose.hablo-marta', 'Marta habló con Ana anoche.', ['Marta talked with Ana last night.', 'Marta talks with Ana every night.', 'Marta talked with Ana this morning.', 'I talked with Ana last night.'], 'Marta talked with Ana last night.', [Kit::word('hablar', 'habló'), Kit::word('anoche'), Kit::form('habló', true)]),
             Kit::listenChoose($stage, 'sentences.listen_choose.estudiamos', 'Estudiamos el fin de semana pasado.', ['We studied last weekend.', 'We study every weekend.', 'We studied last week.', 'I studied last weekend.'], 'We studied last weekend.', [Kit::word('estudiar', 'estudiamos'), Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::form('estudiamos')]),
             Kit::listenType($stage, 'sentences.listen_type.llame-luis', 'Ayer llamé a Luis.', 'Yesterday I called Luis.', [Kit::word('ayer'), Kit::word('llamar', 'llamé'), Kit::form('llamé')], homophoneNote: self::HOMOPHONE),
             Kit::listenType($stage, 'sentences.listen_type.cocinaste', 'Anoche cocinaste para Ana.', 'Last night you cooked for Ana. (informal you)', [Kit::word('anoche'), Kit::word('cocinar', 'cocinaste'), Kit::form('cocinaste')]),
@@ -108,7 +115,7 @@ final class WhatIDidYesterday implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.escuchamos-fin', 'El fin de semana pasado escuchamos música.', 'Last weekend we listened to music.', [Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::word('escuchar', 'escuchamos'), Kit::form('escuchamos')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.compraste', '¿Qué compraste ayer?', 'What did you buy yesterday?', [['compré'], self::THINGS], 'Ayer compré pan.', [Kit::word('comprar', 'compré'), Kit::word('ayer'), Kit::form('compré')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.hablaste', '¿Con quién hablaste anoche?', 'Who did you talk with last night?', [['hablé'], self::PEOPLE], 'Anoche hablé con Ana.', [Kit::word('hablar', 'hablé'), Kit::word('anoche'), Kit::form('hablé')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.estudiaste', '¿Estudiaste ayer?', 'Did you study yesterday?', [['sí', 'no'], ['estudié']], 'Sí, estudié ayer.', [Kit::word('estudiar', 'estudié'), Kit::word('ayer')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.estudiaste', '¿Estudiaste ayer?', 'Did you study yesterday?', [['estudié']], 'Sí, estudié ayer.', [Kit::word('estudiar', 'estudié'), Kit::word('ayer')]),
         ];
     }
 
@@ -150,7 +157,7 @@ final class WhatIDidYesterday implements UnitContent
             Kit::build($stage, 'task.build.llame-hable', 'Yesterday I called Marta and talked with Luis.', 'Ayer llamé a Marta y hablé con Luis.', ['llamó', 'habló'], [Kit::word('ayer'), Kit::word('llamar', 'llamé'), Kit::word('hablar', 'hablé'), Kit::form('llamé')]),
             Kit::build($stage, 'task.build.estudio-pablo', 'Last year Pablo studied in Holland.', 'El año pasado Pablo estudió en Holanda.', ['estudié', 'estudiaste'], [Kit::word('pasado'), Kit::word('estudiar', 'estudió'), Kit::form('estudió', true)]),
             Kit::build($stage, 'task.build.escuchamos-llamamos', 'Last Sunday we listened to music and called Ana.', 'El domingo pasado escuchamos música y llamamos a Ana.', ['escuché', 'llamaron'], [Kit::word('pasado'), Kit::word('escuchar', 'escuchamos'), Kit::word('llamar', 'llamamos'), Kit::form('escuchamos')]),
-            Kit::translate($stage, 'task.translate.compre-cocine', 'Yesterday I bought bread and last night I cooked fish.', ['Ayer compré pan y anoche cociné pescado.', 'Ayer yo compré pan y anoche yo cociné pescado.', 'Compré pan ayer y cociné pescado anoche.', 'Yo compré pan ayer y cociné pescado anoche.'], [Kit::word('ayer'), Kit::word('anoche'), Kit::word('comprar', 'compré'), Kit::word('cocinar', 'cociné'), Kit::form('compré', true)]),
+            Kit::translate($stage, 'task.translate.compre-cocine', 'Yesterday I bought bread and last night I cooked fish.', ['Ayer compré pan y anoche cociné pescado.', 'Ayer yo compré pan y anoche yo cociné pescado.', 'Compré pan ayer y cociné pescado anoche.', 'Compré pan ayer y anoche cociné pescado.', 'Yo compré pan ayer y cociné pescado anoche.'], [Kit::word('ayer'), Kit::word('anoche'), Kit::word('comprar', 'compré'), Kit::word('cocinar', 'cociné'), Kit::form('compré', true)]),
             Kit::translate($stage, 'task.translate.estudiamos-escuchamos', 'Last weekend we studied and listened to music.', ['El fin de semana pasado estudiamos y escuchamos música.', 'Estudiamos y escuchamos música el fin de semana pasado.', 'El fin de semana pasado nosotros estudiamos y escuchamos música.', 'Nosotros estudiamos y escuchamos música el fin de semana pasado.'], [Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::word('estudiar', 'estudiamos'), Kit::word('escuchar', 'escuchamos'), Kit::form('estudiamos')]),
 
             Kit::listenPassage($stage, 'task.listen_passage.ayer-anoche', [
@@ -173,7 +180,7 @@ final class WhatIDidYesterday implements UnitContent
 
             Kit::speakAnswer($stage, 'task.speak_answer.cocinaste', '¿Qué cocinaste anoche?', 'What did you cook last night?', [['cociné'], self::THINGS], 'Anoche cociné pescado.', [Kit::word('cocinar', 'cociné'), Kit::word('anoche'), Kit::form('cociné')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.llamaste', '¿A quién llamaste ayer?', 'Who did you call yesterday?', [['llamé'], self::PEOPLE], 'Ayer llamé a Ana.', [Kit::word('llamar', 'llamé'), Kit::word('ayer'), Kit::form('llamé')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.escuchaste', '¿Escuchaste música ayer?', 'Did you listen to music yesterday?', [['sí', 'no'], ['escuché']], 'Sí, escuché música ayer.', [Kit::word('escuchar', 'escuché'), Kit::word('ayer')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.escuchaste', '¿Escuchaste música ayer?', 'Did you listen to music yesterday?', [['escuché']], 'Sí, escuché música ayer.', [Kit::word('escuchar', 'escuché'), Kit::word('ayer')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.cuando-hablaste', '¿Cuándo hablaste con Ana?', 'When did you talk with Ana?', [['hablé'], ['ayer', 'anoche', 'semana', 'pasado', 'pasada', 'año', 'lunes', 'domingo']], 'Hablé con Ana ayer.', [Kit::word('hablar', 'hablé'), Kit::word('ayer')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.ayer-anoche', 'Ayer estudié y anoche cociné.', 'Yesterday I studied and last night I cooked.', [Kit::word('ayer'), Kit::word('anoche'), Kit::word('estudiar', 'estudié'), Kit::word('cocinar', 'cociné'), Kit::form('estudié')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.llamamos-ana', 'El fin de semana pasado llamamos a Ana.', 'Last weekend we called Ana.', [Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::word('llamar', 'llamamos'), Kit::form('llamamos')], 'speak'),
@@ -188,12 +195,12 @@ final class WhatIDidYesterday implements UnitContent
 
         return [
             Kit::translate($stage, 'check.a.translate.cocine-escuche', 'Last night I cooked and listened to music.', ['Anoche cociné y escuché música.', 'Cociné y escuché música anoche.', 'Anoche yo cociné y escuché música.', 'Yo cociné y escuché música anoche.'], [Kit::word('anoche'), Kit::word('cocinar', 'cociné'), Kit::word('escuchar', 'escuché'), Kit::form('cociné')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.pablo-compro', 'Pablo bought bread and talked with Luis yesterday.', ['Pablo compró pan y habló con Luis ayer.', 'Ayer Pablo compró pan y habló con Luis.'], [Kit::word('comprar', 'compró'), Kit::word('hablar', 'habló'), Kit::word('ayer'), Kit::form('compró', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.pablo-compro', 'Pablo bought bread and talked with Luis yesterday.', ['Pablo compró pan y habló con Luis ayer.', 'Ayer Pablo compró pan y habló con Luis.', 'Pablo compró pan ayer y habló con Luis.'], [Kit::word('comprar', 'compró'), Kit::word('hablar', 'habló'), Kit::word('ayer'), Kit::form('compró', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.llamamos-estudiamos', 'Last weekend we called Ana and studied.', ['El fin de semana pasado llamamos a Ana y estudiamos.', 'Llamamos a Ana y estudiamos el fin de semana pasado.'], [Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::word('llamar', 'llamamos'), Kit::word('estudiar', 'estudiamos'), Kit::form('llamamos')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.estudiaste-marta', 'Last year you studied with Marta. (informal you)', ['El año pasado estudiaste con Marta.', 'Estudiaste con Marta el año pasado.', 'El año pasado tú estudiaste con Marta.', 'Tú estudiaste con Marta el año pasado.'], [Kit::word('pasado'), Kit::word('estudiar', 'estudiaste'), Kit::form('estudiaste')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.llame-marta', 'Ayer yo ___ a Marta.', 'Yesterday I called Marta.', 'llamé', Kit::word('llamar', 'llamé'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.pasada', 'La semana ___ cociné pescado.', 'Last week I cooked fish.', 'pasada', Kit::word('pasado', 'pasada'), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.a.listen_type.marta-pablo', 'Marta habló con Pablo anoche.', 'Marta talked with Pablo last night.', [Kit::word('hablar', 'habló'), Kit::word('anoche'), Kit::form('habló', true)], 'dictation', $set),
+            Kit::listenType($stage, 'check.a.listen_type.marta-pablo', 'Ana habló con Pablo anoche.', 'Ana talked with Pablo last night.', [Kit::word('hablar', 'habló'), Kit::word('anoche'), Kit::form('habló', true)], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.luis-escucho', 'Luis escuchó música el fin de semana pasado.', 'Luis listened to music last weekend.', [Kit::word('escuchar', 'escuchó'), Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::form('escuchó')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.compre-fruta', 'Ayer compré fruta y leche.', 'Yesterday I bought fruit and milk.', [Kit::word('ayer'), Kit::word('comprar', 'compré')], 'dictation', $set),
             Kit::listenPassage($stage, 'check.a.listen_passage.fin-de-semana', [
@@ -211,14 +218,14 @@ final class WhatIDidYesterday implements UnitContent
             ], [Kit::word('comprar', 'compraste'), Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::word('anoche'), Kit::word('cocinar', 'cociné'), Kit::word('estudiar', 'estudié'), Kit::word('llamar', 'llamé')], 'passages', $set),
             Kit::readPassage($stage, 'check.a.read_passage.ayer', 'Read the conversation.', [
                 Kit::line('Luis', 'Ana, ¿hablaste con Marta ayer?'),
-                Kit::line('Ana', 'No, hablé con Pablo. Marta no llamó.'),
-                Kit::line('Luis', 'Anoche yo cociné y escuché música.'),
+                Kit::line('Ana', 'No, hablé con Pablo. Marta no llamó a Pablo.'),
+                Kit::line('Luis', 'Yo no hablé con Marta. Anoche cociné y escuché música.'),
             ], [
                 Kit::question('Who did Ana talk with yesterday?', ['Marta', 'Pablo', 'Luis'], 'Pablo'),
                 Kit::question('What did Luis do last night?', ['He cooked and listened to music', 'He studied', 'He called Ana'], 'He cooked and listened to music'),
             ], [Kit::word('hablar', 'hablaste'), Kit::word('ayer'), Kit::word('llamar', 'llamó'), Kit::word('anoche'), Kit::word('cocinar', 'cociné'), Kit::word('escuchar', 'escuché')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.compraste-anoche', '¿Qué compraste anoche?', 'What did you buy last night?', [['compré'], self::THINGS], 'Anoche compré fruta.', [Kit::word('comprar', 'compré'), Kit::word('anoche')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.estudiaste-fin', '¿Estudiaste el fin de semana pasado?', 'Did you study last weekend?', [['sí', 'no'], ['estudié']], 'Sí, estudié el fin de semana pasado.', [Kit::word('estudiar', 'estudié'), Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.estudiaste-fin', '¿Estudiaste el fin de semana pasado?', 'Did you study last weekend?', [['estudié']], 'Sí, estudié el fin de semana pasado.', [Kit::word('estudiar', 'estudié'), Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.llamaste-anoche', '¿A quién llamaste anoche?', 'Who did you call last night?', [['llamé'], self::PEOPLE], 'Anoche llamé a Luis.', [Kit::word('llamar', 'llamé'), Kit::word('anoche')], 'speaking', $set),
         ];
     }
@@ -230,7 +237,7 @@ final class WhatIDidYesterday implements UnitContent
         $set = 'b';
 
         return [
-            Kit::translate($stage, 'check.b.translate.llame-madre', 'Yesterday I called my mother and bought bread.', ['Ayer llamé a mi madre y compré pan.', 'Llamé a mi madre y compré pan ayer.', 'Ayer yo llamé a mi madre y compré pan.'], [Kit::word('ayer'), Kit::word('llamar', 'llamé'), Kit::word('comprar', 'compré'), Kit::form('llamé')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.llame-madre', 'Yesterday I called my mother and bought bread.', ['Ayer llamé a mi madre y compré pan.', 'Llamé a mi madre y compré pan ayer.', 'Ayer yo llamé a mi madre y compré pan.', 'Compré pan y llamé a mi madre ayer.'], [Kit::word('ayer'), Kit::word('llamar', 'llamé'), Kit::word('comprar', 'compré'), Kit::form('llamé')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.ana-cocino', 'Last night Ana cooked and Pablo studied.', ['Anoche Ana cocinó y Pablo estudió.', 'Ana cocinó y Pablo estudió anoche.'], [Kit::word('anoche'), Kit::word('cocinar', 'cocinó'), Kit::word('estudiar', 'estudió'), Kit::form('cocinó', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.hablaste-luis', 'Last weekend you talked with Luis. (informal you)', ['El fin de semana pasado hablaste con Luis.', 'Hablaste con Luis el fin de semana pasado.', 'El fin de semana pasado tú hablaste con Luis.', 'Tú hablaste con Luis el fin de semana pasado.'], [Kit::word('el fin de semana', 'fin de semana'), Kit::word('pasado'), Kit::word('hablar', 'hablaste'), Kit::form('hablaste')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.escucharon', 'Last week they listened to music.', ['La semana pasada escucharon música.', 'Escucharon música la semana pasada.', 'Ellos escucharon música la semana pasada.', 'La semana pasada ellos escucharon música.', 'Ellas escucharon música la semana pasada.', 'La semana pasada ellas escucharon música.'], [Kit::word('pasado', 'pasada'), Kit::word('escuchar', 'escucharon'), Kit::form('escucharon')], 'sentences', $set),

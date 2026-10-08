@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -62,7 +65,11 @@ final class ThingsIHaveSeenAndDone implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-08', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-08', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-08', 'Released on the owner\'s instruction on 2026-10-08, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -75,12 +82,12 @@ final class ThingsIHaveSeenAndDone implements UnitContent
             Kit::gap($stage, 'sentences.choose_gap.roto', 'Luis ha ___ el vaso.', ['roto', 'romper'], 'roto', Kit::form('roto', true), 'Romper has an irregular participle: roto, not rompido. After ha you need the participle, not the infinitive romper.', 'choose', 'Luis has broken the glass.'),
             Kit::gap($stage, 'sentences.choose_gap.dicho', 'Marta ha ___ hola a Pablo.', ['dicho', 'hecho'], 'dicho', Kit::form('dicho', true), 'Decir has the irregular participle dicho. Hecho is the participle of hacer (to do, to make).', 'choose', 'Marta has said hello to Pablo.'),
             Kit::gap($stage, 'sentences.choose_gap.visto', 'Hemos ___ un concierto.', ['visto', 'vuelto'], 'visto', Kit::form('visto', true), 'Ver has the irregular participle visto. Vuelto is the participle of volver (to come back).', 'choose', 'We have seen a concert.'),
-            Kit::gap($stage, 'sentences.choose_gap.viaje', 'Pablo ha hecho un ___.', ['viaje', 'playa', 'carta'], 'viaje', Kit::word('el viaje', 'viaje'), 'Un goes with a masculine word, and viaje is masculine. Playa and carta take una.', 'choose', 'Pablo has made a trip.'),
+            Kit::gap($stage, 'sentences.choose_gap.viaje', 'Pablo ha hecho un ___.', ['viaje', 'playa', 'carta'], 'viaje', Kit::word('el viaje', 'viaje'), 'Un goes with a masculine word, and viaje is masculine. Playa and carta take una.', 'choose', 'Pablo has taken a trip.'),
             Kit::gap($stage, 'sentences.choose_gap.playa', 'Luis ha vuelto de la ___.', ['playa', 'teatro', 'viaje'], 'playa', Kit::word('la playa', 'playa'), 'La goes with a feminine word, and playa is feminine. Teatro and viaje take el.', 'choose', 'Luis has come back from the beach.'),
 
             Kit::typeGap($stage, 'sentences.type_gap.abierto', 'Luis ha ___ la puerta.', 'Luis has opened the door.', 'abierto', Kit::word('abrir', 'abierto'), 'Abrir has an irregular participle: abierto, not abrido.'),
             Kit::typeGap($stage, 'sentences.type_gap.vuelto', 'Ana ha ___ de la playa.', 'Ana has come back from the beach.', 'vuelto', Kit::word('volver', 'vuelto'), 'Volver has an irregular participle: vuelto, not volvido.'),
-            Kit::typeGap($stage, 'sentences.type_gap.hecho', 'Hemos ___ un viaje.', 'We have made a trip.', 'hecho', Kit::form('hecho'), 'Hacer has the irregular participle hecho, not hacido.'),
+            Kit::typeGap($stage, 'sentences.type_gap.hecho', 'Hemos ___ un viaje.', 'We have taken a trip.', 'hecho', Kit::form('hecho'), 'Hacer has the irregular participle hecho, not hacido.'),
             Kit::typeGap($stage, 'sentences.type_gap.puesto', 'Luis ha ___ el libro aquí.', 'Luis has put the book here.', 'puesto', Kit::form('puesto'), 'Poner has the irregular participle puesto, not ponido.'),
             Kit::typeGap($stage, 'sentences.type_gap.mensaje', 'Pablo ha escrito un ___.', 'Pablo has written a message.', 'mensaje', Kit::word('el mensaje', 'mensaje')),
 
@@ -89,22 +96,22 @@ final class ThingsIHaveSeenAndDone implements UnitContent
             Kit::translate($stage, 'sentences.translate.carta', 'Have you opened the letter? (informal you)', ['¿Has abierto la carta?', '¿Tú has abierto la carta?'], [Kit::word('abrir', 'abierto'), Kit::word('la carta', 'carta'), Kit::form('has abierto')]),
 
             Kit::build($stage, 'sentences.build.escrito', 'I have written a message.', 'He escrito un mensaje.', ['ha'], [Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::form('he escrito')]),
-            Kit::build($stage, 'sentences.build.puesto', 'We have put the book here.', 'Hemos puesto el libro aquí.', ['hecho'], [Kit::form('hemos puesto')]),
+            Kit::build($stage, 'sentences.build.puesto', 'We have put the book on the table.', 'Hemos puesto el libro en la mesa.', ['hecho'], [Kit::form('hemos puesto')]),
             Kit::build($stage, 'sentences.build.vuelto', 'They have come back from the trip.', 'Han vuelto del viaje.', ['de'], [Kit::word('volver', 'vuelto'), Kit::word('el viaje', 'viaje'), Kit::form('han vuelto')]),
 
             Kit::listenChoose($stage, 'sentences.listen_choose.abierto', 'Ana ha abierto la ventana.', ['Ana has opened the window.', 'Ana is opening the window.', 'Ana has broken the window.', 'Ana has seen the window.'], 'Ana has opened the window.', [Kit::word('abrir', 'abierto'), Kit::form('ha abierto')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.concierto', 'Hemos visto el concierto.', ['We have seen the concert.', 'We are going to the concert.', 'We have written the concert.', 'They have seen the concert.'], 'We have seen the concert.', [Kit::word('el concierto', 'concierto'), Kit::form('hemos visto')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.teatro', 'Luis ha vuelto del teatro.', ['Luis has come back from the theatre.', 'Luis is going to the theatre.', 'Luis has come back from the beach.', 'Luis has written in the theatre.'], 'Luis has come back from the theatre.', [Kit::word('el teatro', 'teatro'), Kit::word('volver', 'vuelto'), Kit::form('ha vuelto')]),
             Kit::listenType($stage, 'sentences.listen_type.roto', 'Marta ha roto el vaso.', 'Marta has broken the glass.', [Kit::word('romper', 'roto'), Kit::form('ha roto')], homophoneNote: self::HA_NOTE),
-            Kit::listenType($stage, 'sentences.listen_type.hecho', 'Hemos hecho un viaje.', 'We have made a trip.', [Kit::word('el viaje', 'viaje'), Kit::form('hemos hecho')], homophoneNote: self::HECHO_NOTE),
+            Kit::listenType($stage, 'sentences.listen_type.hecho', 'Hemos hecho un viaje.', 'We have taken a trip.', [Kit::word('el viaje', 'viaje'), Kit::form('hemos hecho')], homophoneNote: self::HECHO_NOTE),
             Kit::listenType($stage, 'sentences.listen_type.escrito', 'Pablo ha escrito un mensaje.', 'Pablo has written a message.', [Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::form('ha escrito')], homophoneNote: self::HA_NOTE),
             Kit::listenType($stage, 'sentences.listen_type.vuelto', 'Hemos vuelto de la playa.', 'We have come back from the beach.', [Kit::word('volver', 'vuelto'), Kit::word('la playa', 'playa'), Kit::form('hemos vuelto')]),
 
             Kit::speakRepeat($stage, 'sentences.speak_repeat.abierto', 'Luis ha abierto la puerta.', 'Luis has opened the door.', [Kit::word('abrir', 'abierto'), Kit::form('ha abierto')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.teatro', 'Hemos visto un concierto en el teatro.', 'We have seen a concert in the theatre.', [Kit::word('el concierto', 'concierto'), Kit::word('el teatro', 'teatro'), Kit::form('hemos visto')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.carta', 'He escrito una carta.', 'I have written a letter.', [Kit::word('la carta', 'carta'), Kit::word('escribir', 'escrito'), Kit::form('he escrito')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.roto', 'Luis ha roto el vaso.', 'Luis has broken the glass.', [Kit::word('romper', 'roto'), Kit::form('ha roto')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.viaje', '¿Has hecho un viaje?', 'Have you made a trip? (informal you)', [['sí', 'no'], ['he']], 'Sí, he hecho un viaje.', [Kit::word('el viaje', 'viaje'), Kit::form('he hecho')]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.roto', 'Pablo ha roto el vaso.', 'Pablo has broken the glass.', [Kit::word('romper', 'roto'), Kit::form('ha roto')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.viaje', '¿Has hecho un viaje?', 'Have you taken a trip? (informal you)', [['sí', 'no'], ['he']], 'Sí, he hecho un viaje.', [Kit::word('el viaje', 'viaje'), Kit::form('he hecho')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.carta', '¿Has escrito la carta?', 'Have you written the letter? (informal you)', [['sí', 'no'], ['escrito']], 'Sí, he escrito la carta.', [Kit::word('la carta', 'carta'), Kit::word('escribir', 'escrito')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.teatro', '¿Ha vuelto Pablo del teatro?', 'Has Pablo come back from the theatre?', [['sí', 'no'], ['vuelto']], 'Sí, Pablo ha vuelto del teatro.', [Kit::word('el teatro', 'teatro'), Kit::word('volver', 'vuelto')]),
         ];
@@ -157,7 +164,7 @@ final class ThingsIHaveSeenAndDone implements UnitContent
             ], [
                 Kit::question('Where has Luis come back from?', ['From the beach', 'From the theatre', 'From the concert'], 'From the beach'),
                 Kit::question('What has Luis written to Ana?', ['A message', 'A letter', 'Nothing'], 'A message'),
-                Kit::question('Has Luis made a trip?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
+                Kit::question('Has Luis taken a trip?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
             ], [
                 Kit::question('Who asks the questions?', ['Marta', 'Luis', 'Nobody'], 'Marta'),
                 Kit::question('Has Luis written a letter?', ['Yes', 'No', 'The conversation does not say.'], 'No'),
@@ -165,14 +172,14 @@ final class ThingsIHaveSeenAndDone implements UnitContent
             ], [Kit::word('el viaje', 'viaje'), Kit::word('la playa', 'playa'), Kit::word('volver', 'vuelto'), Kit::word('escribir', 'escrito'), Kit::word('la carta', 'carta'), Kit::word('el mensaje', 'mensaje'), Kit::form('has escrito')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.abierto', 'Pablo ha abierto la carta de Ana.', 'Pablo has opened the letter from Ana.', [Kit::word('abrir', 'abierto'), Kit::word('la carta', 'carta'), Kit::form('ha abierto')], 'listen', homophoneNote: self::HA_NOTE),
             Kit::listenType($stage, 'task.listen_type.concierto', 'Luis y yo hemos visto un concierto.', 'Luis and I have seen a concert.', [Kit::word('el concierto', 'concierto'), Kit::form('hemos visto')], 'listen'),
-            Kit::listenType($stage, 'task.listen_type.roto', 'Marta ha vuelto del viaje y ha roto el vaso.', 'Marta has come back from the trip and has broken the glass.', [Kit::word('volver', 'vuelto'), Kit::word('el viaje', 'viaje'), Kit::word('romper', 'roto'), Kit::form('ha roto')], 'listen', homophoneNote: self::HA_NOTE),
+            Kit::listenType($stage, 'task.listen_type.roto', 'Marta ha vuelto y ha roto el vaso.', 'Marta has come back and has broken the glass.', [Kit::word('volver', 'vuelto'), Kit::word('romper', 'roto'), Kit::form('ha roto')], 'listen', homophoneNote: self::HA_NOTE),
 
-            Kit::speakAnswer($stage, 'task.speak_answer.escrito', '¿Qué has escrito?', 'What have you written? (informal you)', [['he'], ['carta', 'mensaje']], 'He escrito una carta.', [Kit::word('escribir', 'escrito'), Kit::word('la carta', 'carta'), Kit::word('el mensaje', 'mensaje')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.escrito', '¿Qué has escrito?', 'What have you written? (informal you)', [['escrito'], ['carta', 'mensaje']], 'He escrito una carta.', [Kit::word('escribir', 'escrito'), Kit::word('la carta', 'carta'), Kit::word('el mensaje', 'mensaje')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.concierto', '¿Has visto un concierto?', 'Have you seen a concert? (informal you)', [['sí', 'no'], ['he']], 'Sí, he visto un concierto.', [Kit::word('el concierto', 'concierto'), Kit::form('he visto')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.ventana', '¿Has abierto la ventana?', 'Have you opened the window? (informal you)', [['sí', 'no'], ['he']], 'Sí, he abierto la ventana.', [Kit::word('abrir', 'abierto'), Kit::form('he abierto')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.playa', '¿Has vuelto de la playa?', 'Have you come back from the beach? (informal you)', [['sí', 'no'], ['he']], 'Sí, he vuelto de la playa.', [Kit::word('la playa', 'playa'), Kit::word('volver', 'vuelto')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.carta', 'Marta ha escrito una carta a Luis.', 'Marta has written a letter to Luis.', [Kit::word('escribir', 'escrito'), Kit::word('la carta', 'carta'), Kit::form('ha escrito')], 'speak'),
-            Kit::speakRepeat($stage, 'task.speak_repeat.playa', 'Han hecho un viaje a la playa.', 'They have made a trip to the beach.', [Kit::word('el viaje', 'viaje'), Kit::word('la playa', 'playa'), Kit::form('han hecho')], 'speak'),
+            Kit::speakRepeat($stage, 'task.speak_repeat.playa', 'Han hecho un viaje a la playa.', 'They have taken a trip to the beach.', [Kit::word('el viaje', 'viaje'), Kit::word('la playa', 'playa'), Kit::form('han hecho')], 'speak'),
         ];
     }
 
@@ -189,30 +196,32 @@ final class ThingsIHaveSeenAndDone implements UnitContent
             Kit::translate($stage, 'check.a.translate.roto-abierto', 'Luis has broken the glass and opened the letter.', ['Luis ha roto el vaso y ha abierto la carta.'], [Kit::word('romper', 'roto'), Kit::word('abrir', 'abierto'), Kit::word('la carta', 'carta'), Kit::form('ha roto')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.dicho', 'Ana ha ___ hola a Luis.', 'Ana has said hello to Luis.', 'dicho', Kit::form('dicho', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.roto', 'Ana ha ___ la ventana.', 'Ana has broken the window.', 'roto', Kit::word('romper', 'roto'), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.a.listen_type.hecho-visto', 'Pablo ha hecho un viaje y ha visto un concierto.', 'Pablo has made a trip and has seen a concert.', [Kit::word('el viaje', 'viaje'), Kit::word('el concierto', 'concierto'), Kit::form('ha hecho')], 'dictation', $set, homophoneNote: self::HA_NOTE.' '.self::HECHO_NOTE),
+            Kit::listenType($stage, 'check.a.listen_type.hecho-visto', 'Pablo ha hecho un viaje y ha visto un concierto.', 'Pablo has taken a trip and has seen a concert.', [Kit::word('el viaje', 'viaje'), Kit::word('el concierto', 'concierto'), Kit::form('ha hecho')], 'dictation', $set, homophoneNote: self::HA_NOTE.' '.self::HECHO_NOTE),
             Kit::listenType($stage, 'check.a.listen_type.mensaje-playa', 'Ana ha escrito un mensaje en la playa.', 'Ana has written a message on the beach.', [Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::word('la playa', 'playa')], 'dictation', $set, homophoneNote: self::HA_NOTE),
-            Kit::listenType($stage, 'check.a.listen_type.vuelto-abierto', 'Luis ha vuelto del teatro y ha abierto la puerta.', 'Luis has come back from the theatre and has opened the door.', [Kit::word('volver', 'vuelto'), Kit::word('el teatro', 'teatro'), Kit::word('abrir', 'abierto')], 'dictation', $set, homophoneNote: self::HA_NOTE),
+            Kit::listenType($stage, 'check.a.listen_type.vuelto-abierto', 'Luis ha vuelto y ha abierto la puerta.', 'Luis has come back and has opened the door.', [Kit::word('volver', 'vuelto'), Kit::word('abrir', 'abierto')], 'dictation', $set, homophoneNote: self::HA_NOTE),
             Kit::listenPassage($stage, 'check.a.listen_passage.teatro', [
                 Kit::line('Pablo', 'Ana, ¿has vuelto del teatro?'),
-                Kit::line('Ana', 'Sí, he visto una película con Marta.'),
+                Kit::line('Ana', 'Sí, he visto un concierto con Marta.'),
                 Kit::line('Pablo', '¿Y has escrito un mensaje a Luis?'),
                 Kit::line('Ana', 'No, he escrito una carta.'),
             ], [
                 Kit::question('Where has Ana come back from?', ['From the theatre', 'From the beach', 'From the library'], 'From the theatre'),
-                Kit::question('What has Ana seen?', ['A film', 'A concert', 'A letter'], 'A film'),
+                Kit::question('What has Ana seen?', ['A concert', 'A film', 'A letter'], 'A concert'),
                 Kit::question('What has Ana written?', ['A letter', 'A message', 'A book'], 'A letter'),
             ], [
                 Kit::question('Who asks the questions?', ['Pablo', 'Ana', 'Nobody'], 'Pablo'),
-                Kit::question('Has Ana seen the film with Marta?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
+                Kit::question('Has Ana seen the concert with Marta?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
                 Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
-            ], [Kit::word('el teatro', 'teatro'), Kit::word('volver', 'vuelto'), Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::word('la carta', 'carta')], 'passages', $set),
+            ], [Kit::word('el teatro', 'teatro'), Kit::word('el concierto', 'concierto'), Kit::word('volver', 'vuelto'), Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::word('la carta', 'carta')], 'passages', $set),
             Kit::readPassage($stage, 'check.a.read_passage.ventana', 'Read the conversation.', [
                 Kit::line('Luis', 'Marta, ¿has abierto la ventana?'),
                 Kit::line('Marta', 'No, he abierto la puerta. Pablo ha roto la ventana.'),
                 Kit::line('Luis', '¿Has puesto el libro en la mesa?'),
+                Kit::line('Marta', 'Sí, he puesto el libro en la mesa.'),
             ], [
                 Kit::question('What has Marta opened?', ['The door', 'The window', 'The book'], 'The door'),
                 Kit::question('Who has broken the window?', ['Pablo', 'Marta', 'Luis'], 'Pablo'),
+                Kit::question('Where has Marta put the book?', ['On the table', 'On the beach', 'In the theatre'], 'On the table'),
             ], [Kit::word('abrir', 'abierto'), Kit::word('romper', 'roto')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.puerta', '¿Has abierto la puerta?', 'Have you opened the door? (informal you)', [['sí', 'no'], ['he']], 'Sí, he abierto la puerta.', [Kit::word('abrir', 'abierto')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.concierto-teatro', '¿Has visto un concierto en el teatro?', 'Have you seen a concert in the theatre? (informal you)', [['sí', 'no'], ['he']], 'Sí, he visto un concierto.', [Kit::word('el concierto', 'concierto'), Kit::word('el teatro', 'teatro')], 'speaking', $set),
@@ -230,11 +239,11 @@ final class ThingsIHaveSeenAndDone implements UnitContent
             Kit::translate($stage, 'check.b.translate.abierto-escrito', 'Pablo has opened the letter and written a message.', ['Pablo ha abierto la carta y ha escrito un mensaje.'], [Kit::word('abrir', 'abierto'), Kit::word('la carta', 'carta'), Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::form('ha abierto')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.vuelto-concierto', 'We have come back from the concert and from the beach.', ['Hemos vuelto del concierto y de la playa.', 'Nosotros hemos vuelto del concierto y de la playa.'], [Kit::word('volver', 'vuelto'), Kit::word('el concierto', 'concierto'), Kit::word('la playa', 'playa'), Kit::form('hemos vuelto')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.roto-teatro', 'Ana has broken a glass in the theatre.', ['Ana ha roto un vaso en el teatro.'], [Kit::word('romper', 'roto'), Kit::word('el teatro', 'teatro'), Kit::form('ha roto', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.hecho-viaje', 'Luis has made a trip and has seen a film.', ['Luis ha hecho un viaje y ha visto una película.'], [Kit::word('el viaje', 'viaje'), Kit::form('ha hecho')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.hecho-viaje', 'Luis has taken a trip and has seen a concert.', ['Luis ha hecho un viaje y ha visto un concierto.'], [Kit::word('el viaje', 'viaje'), Kit::word('el concierto', 'concierto'), Kit::form('ha hecho')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.dicho', 'Luis ha ___ adiós a Marta.', 'Luis has said goodbye to Marta.', 'dicho', Kit::form('dicho', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.concierto', 'Pablo ha visto un ___ con Ana.', 'Pablo has seen a concert with Ana.', 'concierto', Kit::word('el concierto', 'concierto'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.abierto-carta', 'Ana ha abierto la carta del teatro.', 'Ana has opened the letter from the theatre.', [Kit::word('abrir', 'abierto'), Kit::word('la carta', 'carta'), Kit::word('el teatro', 'teatro')], 'dictation', $set, homophoneNote: self::HA_NOTE),
-            Kit::listenType($stage, 'check.b.listen_type.escrito-playa', 'Marta y yo hemos escrito un mensaje en la playa.', 'Marta and I have written a message on the beach.', [Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::word('la playa', 'playa'), Kit::form('hemos escrito')], 'dictation', $set),
+            Kit::listenType($stage, 'check.b.listen_type.escrito-playa', 'Hemos escrito un mensaje en la playa.', 'We have written a message on the beach.', [Kit::word('escribir', 'escrito'), Kit::word('el mensaje', 'mensaje'), Kit::word('la playa', 'playa'), Kit::form('hemos escrito')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.vuelto-roto', 'Luis ha vuelto del viaje y ha roto un vaso.', 'Luis has come back from the trip and has broken a glass.', [Kit::word('volver', 'vuelto'), Kit::word('el viaje', 'viaje'), Kit::word('romper', 'roto')], 'dictation', $set, homophoneNote: self::HA_NOTE),
         ];
     }

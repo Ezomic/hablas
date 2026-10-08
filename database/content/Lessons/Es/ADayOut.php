@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -60,7 +63,11 @@ final class ADayOut implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-08', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-08', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-08', 'Released on the owner\'s instruction on 2026-10-08, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -86,7 +93,7 @@ final class ADayOut implements UnitContent
             Kit::translate($stage, 'sentences.translate.comimos-pescado', 'We ate fish on the beach.', ['Comimos pescado en la playa.', 'Nosotros comimos pescado en la playa.'], [Kit::word('comer', 'comimos'), Kit::word('la playa', 'playa'), Kit::form('comimos')]),
             Kit::translate($stage, 'sentences.translate.volviste-mercado', 'Did you come back from the market? (informal you)', ['¿Volviste del mercado?', '¿Tú volviste del mercado?'], [Kit::word('volver', 'volviste'), Kit::word('el mercado', 'mercado'), Kit::form('volviste', true)]),
 
-            Kit::build($stage, 'sentences.build.luis-subio', 'Luis climbed the mountain.', 'Luis subió a la montaña.', ['subí'], [Kit::word('subir', 'subió'), Kit::word('la montaña', 'montaña'), Kit::form('subió')]),
+            Kit::build($stage, 'sentences.build.luis-subio', 'Luis went up to the mountain.', 'Luis subió a la montaña.', ['subí'], [Kit::word('subir', 'subió'), Kit::word('la montaña', 'montaña'), Kit::form('subió')]),
             Kit::build($stage, 'sentences.build.decidimos-castillo', 'We decided to go to the castle.', 'Decidimos ir al castillo.', ['decidió'], [Kit::word('decidir', 'decidimos'), Kit::word('el castillo', 'castillo'), Kit::form('decidimos')]),
             Kit::build($stage, 'sentences.build.ana-bebio', 'Ana drank coffee in the market.', 'Ana bebió café en el mercado.', ['bebí'], [Kit::word('beber', 'bebió'), Kit::form('bebió', true)]),
 
@@ -101,7 +108,7 @@ final class ADayOut implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.comi-playa', 'Comí en la playa.', 'I ate on the beach.', [Kit::word('comer', 'comí'), Kit::word('la playa', 'playa'), Kit::form('comí')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.volvimos-castillo', 'Volvimos del castillo.', 'We came back from the castle.', [Kit::word('volver', 'volvimos'), Kit::word('el castillo', 'castillo'), Kit::form('volvimos')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.bebieron-lago', 'Bebieron agua en el lago.', 'They drank water at the lake.', [Kit::word('beber', 'bebieron'), Kit::word('el lago', 'lago'), Kit::form('bebieron')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.pablo-decidio', 'Pablo decidió subir a la montaña.', 'Pablo decided to climb the mountain.', [Kit::word('decidir', 'decidió'), Kit::word('subir', 'subir'), Kit::word('la montaña', 'montaña')]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.marta-decidio', 'Marta decidió volver a la playa.', 'Marta decided to go back to the beach.', [Kit::word('decidir', 'decidió'), Kit::word('volver', 'volver'), Kit::word('la playa', 'playa')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.comiste-mercado', '¿Comiste en el mercado?', 'Did you eat in the market? (informal you)', [['sí', 'no'], ['comí']], 'Sí, comí en el mercado.', [Kit::word('comer', 'comí'), Kit::word('el mercado', 'mercado')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.volviste-casa', '¿Volviste a casa?', 'Did you come back home? (informal you)', [['sí', 'no'], ['volví']], 'Sí, volví a casa.', [Kit::word('volver', 'volví')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.que-bebiste', '¿Qué bebiste?', 'What did you drink? (informal you)', [['bebí']], 'Bebí agua.', [Kit::word('beber', 'bebí')]),
@@ -127,7 +134,7 @@ final class ADayOut implements UnitContent
                 Kit::question('What did Luis decide?', ['To eat in the village', 'To climb the mountain', 'To go to the lake'], 'To eat in the village'),
             ], [Kit::word('el lago', 'lago'), Kit::word('volver', 'volviste'), Kit::word('la montaña', 'montaña'), Kit::word('subir', 'subimos'), Kit::word('comer', 'comí'), Kit::word('beber', 'bebió'), Kit::word('decidir', 'decidió')], 'read'),
             Kit::gap($stage, 'task.choose_gap.comieron-playa', 'Luis y Marta ___ en la playa.', ['comieron', 'comió', 'comí'], 'comieron', Kit::form('comieron', true), 'Luis y Marta is they, so the verb ends in -ieron: comieron. Comió is for one person.', 'read', 'Luis and Marta ate on the beach.'),
-            Kit::gap($stage, 'task.choose_gap.subimos-castillo', 'Subimos al ___ y vemos el pueblo.', ['castillo', 'supermercado', 'cine'], 'castillo', Kit::word('el castillo', 'castillo'), 'From a castle on a hill you can see the village. You do not go up to a supermarket or a cinema to look at the village.', 'read', 'We go up to the castle and see the village.'),
+            Kit::gap($stage, 'task.choose_gap.subimos-castillo', 'Subimos al ___ y comimos allí.', ['castillo', 'supermercado', 'cine'], 'castillo', Kit::word('el castillo', 'castillo'), 'You go up to a castle, because it stands on a hill. You do not go up to a supermarket or a cinema.', 'read', 'We went up and ate there.'),
 
             Kit::transform($stage, 'task.transform.ana-mercado', 'Say that Ana ate in the market.', 'Comí en el mercado.', ['Ana comió en el mercado.'], [Kit::word('comer', 'comió'), Kit::word('el mercado', 'mercado'), Kit::form('comió', true)]),
             Kit::transform($stage, 'task.transform.pablo-ana-bebieron', 'Say that Pablo and Ana drank water.', 'Bebimos agua.', ['Pablo y Ana bebieron agua.', 'Ana y Pablo bebieron agua.'], [Kit::word('beber', 'bebieron'), Kit::form('bebieron', true)]),
@@ -138,13 +145,13 @@ final class ADayOut implements UnitContent
                 ['forms' => ['subí'], 'term' => 'subir'],
                 ['forms' => ['castillo'], 'term' => 'el castillo'],
             ], [Kit::word('comer', 'comí'), Kit::word('el mercado', 'mercado'), Kit::word('subir', 'subí'), Kit::word('el castillo', 'castillo'), Kit::form('comí')]),
-            Kit::writeGuided($stage, 'task.write_guided.playa-agua', 'Say that you came back from the beach and drank water.', ['volví de', 'la playa', 'bebí', 'agua'], 'Volví de la playa y bebí agua.', [
+            Kit::writeGuided($stage, 'task.write_guided.playa-agua', 'Say that you came back from the beach and drank water.', ['volví de', 'la playa', 'bebí'], 'Volví de la playa y bebí agua.', [
                 ['forms' => ['volví'], 'term' => 'volver'],
                 ['forms' => ['playa'], 'term' => 'la playa'],
                 ['forms' => ['bebí'], 'term' => 'beber'],
             ], [Kit::word('volver', 'volví'), Kit::word('la playa', 'playa'), Kit::word('beber', 'bebí'), Kit::form('volví', true)]),
             Kit::build($stage, 'task.build.marta-y-yo', 'Marta and I ate fish in the market.', 'Marta y yo comimos pescado en el mercado.', ['comí', 'comió'], [Kit::word('comer', 'comimos'), Kit::form('comimos')]),
-            Kit::build($stage, 'task.build.luis-domingo', 'On Sunday Luis went up to the castle.', 'El domingo Luis subió al castillo.', ['subí', 'subimos'], [Kit::word('subir', 'subió'), Kit::word('el castillo', 'castillo'), Kit::form('subió')]),
+            Kit::build($stage, 'task.build.luis-domingo', 'Luis went up to the castle on Sunday.', 'Luis subió al castillo el domingo.', ['subí', 'subimos'], [Kit::word('subir', 'subió'), Kit::word('el castillo', 'castillo'), Kit::form('subió')]),
             Kit::build($stage, 'task.build.decidieron-volver', 'They decided to come back from the lake.', 'Decidieron volver del lago.', ['decidimos', 'volvieron'], [Kit::word('decidir', 'decidieron'), Kit::word('el lago', 'lago'), Kit::form('decidieron')]),
             Kit::translate($stage, 'task.translate.domingo-mercado', 'On Sunday I ate in the market and drank water.', ['El domingo comí en el mercado y bebí agua.', 'El domingo yo comí en el mercado y bebí agua.', 'Comí en el mercado y bebí agua el domingo.', 'Yo comí en el mercado y bebí agua el domingo.'], [Kit::word('beber', 'bebí'), Kit::word('el mercado', 'mercado'), Kit::form('comí')]),
             Kit::translate($stage, 'task.translate.subimos-volvimos', 'We went up the mountain and came back to the village.', ['Subimos a la montaña y volvimos al pueblo.', 'Nosotros subimos a la montaña y volvimos al pueblo.'], [Kit::word('subir', 'subimos'), Kit::word('la montaña', 'montaña'), Kit::word('volver', 'volvimos'), Kit::form('volvimos')]),
@@ -161,9 +168,9 @@ final class ADayOut implements UnitContent
                 Kit::question('What did Ana drink?', ['Wine', 'Water', 'Coffee'], 'Wine'),
                 Kit::question('What did Pablo decide?', ['To go up to the castle', 'To come back with Ana', 'To eat on the beach'], 'To go up to the castle'),
             ], [
-                Kit::question('Who asks the questions?', ['Luis', 'Marta', 'Pablo'], 'Luis'),
+                Kit::question('Who went up to the castle?', ['Pablo', 'Marta', 'Luis'], 'Pablo'),
                 Kit::question('Did Marta eat with Ana?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
-                Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
+                Kit::question('Who drank wine?', ['Ana', 'Marta', 'Pablo'], 'Ana'),
             ], [Kit::word('comer', 'comiste'), Kit::word('la playa', 'playa'), Kit::word('beber', 'bebiste'), Kit::word('volver', 'volvió'), Kit::word('decidir', 'decidió'), Kit::word('subir', 'subir'), Kit::word('el castillo', 'castillo')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.volvi-bebi', 'Volví a casa y bebí agua.', 'I came back home and drank water.', [Kit::word('volver', 'volví'), Kit::word('beber', 'bebí')], 'listen', homophoneNote: self::A_NOTE),
             Kit::listenType($stage, 'task.listen_type.subieron-montana', 'Pablo y Marta subieron a la montaña.', 'Pablo and Marta went up the mountain.', [Kit::word('subir', 'subieron'), Kit::word('la montaña', 'montaña'), Kit::form('subieron')], 'listen', homophoneNote: self::A_NOTE),
@@ -191,7 +198,7 @@ final class ADayOut implements UnitContent
             Kit::translate($stage, 'check.a.translate.volviste-lunes', 'Did you come back from the lake on Monday? (informal you)', ['¿Volviste del lago el lunes?', '¿Tú volviste del lago el lunes?', '¿El lunes volviste del lago?'], [Kit::word('volver', 'volviste'), Kit::word('el lago', 'lago'), Kit::form('volviste', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.ana-luis-comieron', 'Ana y Luis ___ en el mercado.', 'Ana and Luis ate in the market.', 'comieron', Kit::form('comieron', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.marta-bebio', 'Marta ___ agua en la playa.', 'Marta drank water on the beach.', 'bebió', Kit::word('beber', 'bebió'), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.a.listen_type.luis-montana', 'Marta subió a la montaña.', 'Marta went up the mountain.', [Kit::word('subir', 'subió'), Kit::word('la montaña', 'montaña'), Kit::form('subió', true)], 'dictation', $set, homophoneNote: self::A_NOTE),
+            Kit::listenType($stage, 'check.a.listen_type.marta-montana', 'Marta subió a la montaña.', 'Marta went up the mountain.', [Kit::word('subir', 'subió'), Kit::word('la montaña', 'montaña'), Kit::form('subió', true)], 'dictation', $set, homophoneNote: self::A_NOTE),
             Kit::listenType($stage, 'check.a.listen_type.decidimos-castillo', 'Decidimos comer en el castillo.', 'We decided to eat in the castle.', [Kit::word('decidir', 'decidimos'), Kit::word('comer', 'comer'), Kit::word('el castillo', 'castillo')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.bebi-vino-lago', 'Bebí vino en el lago.', 'I drank wine at the lake.', [Kit::word('beber', 'bebí'), Kit::word('el lago', 'lago'), Kit::form('bebí')], 'dictation', $set),
             Kit::listenPassage($stage, 'check.a.listen_passage.playa-mercado', [
@@ -204,9 +211,9 @@ final class ADayOut implements UnitContent
                 Kit::question('Where did Luis eat?', ['In the market', 'On the beach', 'At the castle'], 'In the market'),
                 Kit::question('What did Ana drink?', ['Wine', 'Water', 'Coffee'], 'Wine'),
             ], [
-                Kit::question('Who asks the questions?', ['Pablo', 'Luis', 'Ana'], 'Pablo'),
+                Kit::question('Who ate in the market with Ana?', ['Luis', 'Pablo', 'Marta'], 'Luis'),
                 Kit::question('Did Luis drink water?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
-                Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
+                Kit::question('Who drank wine?', ['Ana', 'Luis', 'Pablo'], 'Ana'),
             ], [Kit::word('volver', 'volviste'), Kit::word('la playa', 'playa'), Kit::word('comer', 'comí'), Kit::word('el mercado', 'mercado'), Kit::word('beber', 'bebiste')], 'passages', $set),
             Kit::readPassage($stage, 'check.a.read_passage.castillo', 'Read the conversation.', [
                 Kit::line('Ana', 'Marta, ¿subiste al castillo?'),
@@ -234,8 +241,8 @@ final class ADayOut implements UnitContent
             Kit::translate($stage, 'check.b.translate.decidimos-volver', 'We decided to come back from the mountain.', ['Decidimos volver de la montaña.', 'Nosotros decidimos volver de la montaña.'], [Kit::word('decidir', 'decidimos'), Kit::word('volver', 'volver'), Kit::word('la montaña', 'montaña'), Kit::form('decidimos')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.marta-castillo-mercado', 'Marta went up to the castle and ate in the market.', ['Marta subió al castillo y comió en el mercado.'], [Kit::word('subir', 'subió'), Kit::word('el castillo', 'castillo'), Kit::word('el mercado', 'mercado'), Kit::form('subió', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.volvi-lago-vino', 'I came back from the lake and drank wine.', ['Volví del lago y bebí vino.', 'Yo volví del lago y bebí vino.'], [Kit::word('volver', 'volví'), Kit::word('el lago', 'lago'), Kit::word('beber', 'bebí'), Kit::form('volví', true)], 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.nosotros-volvimos', 'Nosotros ___ del lago.', 'We came back from the lake.', 'volvimos', Kit::form('volvimos'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.subi-montana', 'Subí a la ___ con Pablo.', 'I went up the mountain with Pablo.', 'montaña', Kit::word('la montaña', 'montaña'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.nosotros-volvimos', 'Nosotros ___ de la playa.', 'We came back from the beach.', 'volvimos', Kit::form('volvimos'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.subi-montana', 'Subí al ___ con Pablo.', 'I went up to the castle with Pablo.', 'castillo', Kit::word('el castillo', 'castillo'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.bebieron-lago', 'Luis y Ana bebieron agua en el lago.', 'Luis and Ana drank water at the lake.', [Kit::word('beber', 'bebieron'), Kit::word('el lago', 'lago'), Kit::form('bebieron')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.decidi-castillo', 'Decidí subir al castillo con Marta.', 'I decided to go up to the castle with Marta.', [Kit::word('decidir', 'decidí'), Kit::word('subir', 'subir'), Kit::word('el castillo', 'castillo')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.comimos-volvimos', 'Comimos en el mercado y volvimos a la playa.', 'We ate in the market and came back to the beach.', [Kit::word('comer', 'comimos'), Kit::word('el mercado', 'mercado'), Kit::word('volver', 'volvimos'), Kit::word('la playa', 'playa')], 'dictation', $set, homophoneNote: self::A_NOTE),

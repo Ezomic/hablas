@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\TargetSpec;
 use App\Lessons\UnitContent;
@@ -36,7 +39,7 @@ final class WhatIHaveDone implements UnitContent
             new WordData('lavar', cue: 'to wash', forms: ['he lavado']),
             new WordData('ya', cue: 'already', note: 'Ya means already: Ya he terminado. In a question it means yet: ¿Has terminado ya? Todavía no is the answer when it is not done yet.'),
             new WordData('todavía', cue: 'yet (as in not yet)', accepted: ['aún'], note: 'Todavía no means not yet: Todavía no he terminado. Aún no means the same.'),
-            new WordData('nunca', cue: 'never', note: 'Nunca goes before he or after the participle with no: Nunca he comido pescado. No he comido pescado nunca.'),
+            new WordData('nunca', cue: 'never', note: 'Nunca goes before he: Nunca he comido pescado. If nunca comes after the participle, put no before he: No he comido pescado nunca.'),
             new WordData('alguna vez', cue: 'ever (at some time)', note: 'Alguna vez is used in questions about experience: ¿Has visitado el museo alguna vez?'),
         ];
     }
@@ -61,7 +64,11 @@ final class WhatIHaveDone implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-08', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-08', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-08', 'Released on the owner\'s instruction on 2026-10-08, without a line by line review of the lessons.'),
+        ];
     }
 
     private function todavia(): TargetSpec
@@ -95,9 +102,9 @@ final class WhatIHaveDone implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.ellos-terminado', 'Ellos ___ terminado hoy.', 'They have finished today.', 'han', Kit::form('han'), 'Ellos goes with han: han terminado.'),
             Kit::typeGap($stage, 'sentences.type_gap.preparado', 'Ya he ___ la cena.', 'I have already prepared dinner.', 'preparado', Kit::word('preparar', 'preparado'), 'After he you need the participle of preparar: preparado.'),
             Kit::typeGap($stage, 'sentences.type_gap.empezado', 'He ___ el libro.', 'I have started the book.', 'empezado', Kit::word('empezar', 'empezado'), 'After he you need the participle of empezar: empezado.'),
-            Kit::typeGap($stage, 'sentences.type_gap.nunca', '___ he visitado el museo.', 'I have never visited the museum.', 'Nunca', Kit::word('nunca'), 'Nunca means never. It goes in front of he.'),
+            Kit::typeGap($stage, 'sentences.type_gap.nunca', '___ he visitado el pueblo.', 'I have never visited the village.', 'Nunca', Kit::word('nunca'), 'Nunca means never. It goes in front of he.'),
 
-            Kit::translate($stage, 'sentences.translate.terminado-ya', 'I have already finished the work.', ['Ya he terminado el trabajo.', 'Yo ya he terminado el trabajo.', 'He terminado ya el trabajo.', 'He terminado el trabajo ya.', 'Yo he terminado ya el trabajo.'], [Kit::word('ya'), Kit::word('terminar', 'terminado'), Kit::form('he terminado')]),
+            Kit::translate($stage, 'sentences.translate.terminado-ya', 'I have already finished the book.', ['Ya he terminado el libro.', 'Yo ya he terminado el libro.', 'He terminado ya el libro.', 'He terminado el libro ya.', 'Yo he terminado ya el libro.'], [Kit::word('ya'), Kit::word('terminar', 'terminado'), Kit::form('he terminado')]),
             Kit::translate($stage, 'sentences.translate.limpiado-todavia', 'We have not cleaned the kitchen yet.', $this->aun(['Todavía no hemos limpiado la cocina.', 'No hemos limpiado la cocina todavía.', 'Nosotros todavía no hemos limpiado la cocina.', 'Nosotros no hemos limpiado la cocina todavía.']), [$this->todavia(), Kit::word('limpiar', 'limpiado'), Kit::form('hemos limpiado')]),
             Kit::translate($stage, 'sentences.translate.visitado-alguna-vez', 'Have you ever visited the museum? (informal you)', ['¿Has visitado alguna vez el museo?', '¿Has visitado el museo alguna vez?', '¿Alguna vez has visitado el museo?', '¿Tú has visitado alguna vez el museo?', '¿Tú has visitado el museo alguna vez?'], [Kit::word('alguna vez'), Kit::word('visitar', 'visitado'), Kit::form('has visitado')]),
 
@@ -147,13 +154,13 @@ final class WhatIHaveDone implements UnitContent
             Kit::transform($stage, 'task.transform.ellos-salido', 'Change the subject to they.', 'Ana ha salido hoy.', ['Ellos han salido hoy.', 'Ellas han salido hoy.', 'Han salido hoy.'], [Kit::form('han salido', true)]),
             Kit::transform($stage, 'task.transform.nosotros-limpiado', 'Change the subject to we.', 'Ya he limpiado la cocina.', ['Ya hemos limpiado la cocina.', 'Nosotros ya hemos limpiado la cocina.', 'Hemos limpiado ya la cocina.', 'Hemos limpiado la cocina ya.', 'Nosotros hemos limpiado ya la cocina.'], [Kit::word('limpiar', 'limpiado'), Kit::word('ya'), Kit::form('hemos limpiado')]),
             Kit::transform($stage, 'task.transform.nunca-lavado', 'Say that you have never washed the car.', 'He lavado el coche.', ['Nunca he lavado el coche.', 'Yo nunca he lavado el coche.', 'No he lavado nunca el coche.', 'No he lavado el coche nunca.'], [Kit::word('lavar', 'lavado'), Kit::word('nunca'), Kit::form('he lavado')]),
-            Kit::writeGuided($stage, 'task.write_guided.terminado-limpiado', 'Say that you have already finished and that you have not cleaned the kitchen yet.', ['ya he terminado', 'todavía no', 'he limpiado', 'la cocina'], 'Ya he terminado y todavía no he limpiado la cocina.', [
+            Kit::writeGuided($stage, 'task.write_guided.terminado-limpiado', 'Say that you have already finished and that you have not cleaned the kitchen yet.', ['ya', 'terminado', 'todavía no', 'limpiado', 'la cocina'], 'Ya he terminado y todavía no he limpiado la cocina.', [
                 ['forms' => ['ya'], 'term' => 'ya'],
                 ['forms' => ['terminado'], 'term' => 'terminar'],
                 ['forms' => ['todavía', 'aún'], 'term' => 'todavía'],
                 ['forms' => ['limpiado'], 'term' => 'limpiar'],
             ], [Kit::word('ya'), Kit::word('terminar', 'terminado'), $this->todavia(), Kit::word('limpiar', 'limpiado')]),
-            Kit::writeGuided($stage, 'task.write_guided.preparado-visitado', 'Say that you have prepared dinner and that you have never visited the museum.', ['he preparado', 'la cena', 'nunca', 'he visitado', 'el museo'], 'He preparado la cena y nunca he visitado el museo.', [
+            Kit::writeGuided($stage, 'task.write_guided.preparado-visitado', 'Say that you have prepared dinner and that you have never visited the museum.', ['preparado', 'la cena', 'nunca', 'visitado', 'el museo'], 'He preparado la cena y nunca he visitado el museo.', [
                 ['forms' => ['preparado'], 'term' => 'preparar'],
                 ['forms' => ['nunca'], 'term' => 'nunca'],
                 ['forms' => ['visitado'], 'term' => 'visitar'],
@@ -166,7 +173,7 @@ final class WhatIHaveDone implements UnitContent
 
             Kit::listenPassage($stage, 'task.listen_passage.trabajo-cena', [
                 Kit::line('Marta', 'Luis, ¿ya has empezado el trabajo?'),
-                Kit::line('Luis', 'No, todavía no. Hoy he limpiado la casa.'),
+                Kit::line('Luis', 'No, todavía no. Hoy he limpiado la cocina.'),
                 Kit::line('Marta', 'Yo ya he terminado. He preparado la cena y he lavado el coche.'),
                 Kit::line('Luis', 'Marta, ¿has visitado el museo alguna vez?'),
                 Kit::line('Marta', 'No, nunca.'),
@@ -176,11 +183,11 @@ final class WhatIHaveDone implements UnitContent
                 Kit::question('Has Marta ever visited the museum?', ['No, never', 'Yes, once', 'The conversation does not say.'], 'No, never'),
             ], [
                 Kit::question('Who has already finished?', ['Marta', 'Luis', 'Both of them'], 'Marta'),
-                Kit::question('What has Luis cleaned today?', ['The house', 'The car', 'The kitchen'], 'The house'),
+                Kit::question('What has Luis cleaned today?', ['The kitchen', 'The car', 'The house'], 'The kitchen'),
                 Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
             ], [Kit::word('empezar', 'empezado'), Kit::word('limpiar', 'limpiado'), Kit::word('terminar', 'terminado'), Kit::word('preparar', 'preparado'), Kit::word('lavar', 'lavado'), Kit::word('visitar', 'visitado'), $this->todavia(), ...$words('ya', 'nunca', 'alguna vez')]),
             Kit::listenType($stage, 'task.listen_type.hemos-limpiado-lavado', 'Hoy hemos limpiado la casa y hemos lavado el coche.', 'Today we have cleaned the house and washed the car.', [Kit::word('limpiar', 'limpiado'), Kit::word('lavar', 'lavado'), Kit::form('hemos limpiado')], 'listen'),
-            Kit::listenType($stage, 'task.listen_type.nunca-visitado-hoy', 'Nunca he visitado el museo, pero hoy voy.', 'I have never visited the museum, but today I am going.', [Kit::word('nunca'), Kit::word('visitar', 'visitado'), Kit::form('he visitado')], 'listen', homophoneNote: self::HE_HA_NOTE),
+            Kit::listenType($stage, 'task.listen_type.nunca-visitado-hoy', 'Nunca he visitado la biblioteca, pero hoy voy.', 'I have never visited the library, but today I am going.', [Kit::word('nunca'), Kit::word('visitar', 'visitado'), Kit::form('he visitado')], 'listen', homophoneNote: self::HE_HA_NOTE),
             Kit::listenType($stage, 'task.listen_type.han-terminado-ya', '¿Han terminado ya Ana y Pablo?', 'Have Ana and Pablo finished yet?', [Kit::word('terminar', 'terminado'), Kit::word('ya'), Kit::form('han terminado')], 'listen'),
 
             Kit::speakAnswer($stage, 'task.speak_answer.preparado', '¿Has preparado la cena?', 'Have you prepared dinner?', [['sí', 'no'], ['preparado', 'ya', 'todavía', 'aún']], 'Sí, ya he preparado la cena.', [Kit::word('preparar', 'preparado'), Kit::word('ya')], 'speak'),
@@ -203,8 +210,8 @@ final class WhatIHaveDone implements UnitContent
             Kit::translate($stage, 'check.a.translate.nunca-iglesia', 'I have never visited the church.', ['Nunca he visitado la iglesia.', 'Yo nunca he visitado la iglesia.', 'No he visitado nunca la iglesia.', 'No he visitado la iglesia nunca.'], [Kit::word('nunca'), Kit::word('visitar', 'visitado'), Kit::form('he visitado')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.ana-cena', 'Ana has already prepared dinner.', ['Ana ya ha preparado la cena.', 'Ana ha preparado ya la cena.', 'Ana ha preparado la cena ya.'], [Kit::word('ya'), Kit::word('preparar', 'preparado'), Kit::form('ha preparado')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.coche-todavia', 'We have not washed the car yet.', $this->aun(['Todavía no hemos lavado el coche.', 'No hemos lavado el coche todavía.', 'Nosotros todavía no hemos lavado el coche.', 'Nosotros no hemos lavado el coche todavía.']), [$this->todavia(), Kit::word('lavar', 'lavado'), Kit::form('hemos lavado', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.pueblo-alguna-vez', 'Have you ever visited the village of Ana? (informal you)', ['¿Has visitado alguna vez el pueblo de Ana?', '¿Has visitado el pueblo de Ana alguna vez?', '¿Alguna vez has visitado el pueblo de Ana?', '¿Tú has visitado alguna vez el pueblo de Ana?'], [Kit::word('alguna vez'), Kit::word('visitar', 'visitado'), Kit::form('has visitado', true)], 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.limpiado', 'Hoy hemos ___ la casa.', 'Today we have cleaned the house.', 'limpiado', Kit::word('limpiar', 'limpiado'), null, 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.pueblo-alguna-vez', 'Have you ever visited Ana\'s village? (informal you)', ['¿Has visitado alguna vez el pueblo de Ana?', '¿Has visitado el pueblo de Ana alguna vez?', '¿Alguna vez has visitado el pueblo de Ana?', '¿Tú has visitado alguna vez el pueblo de Ana?'], [Kit::word('alguna vez'), Kit::word('visitar', 'visitado'), Kit::form('has visitado', true)], 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.limpiado', 'Hoy hemos ___ la cocina.', 'Today we have cleaned the kitchen.', 'limpiado', Kit::word('limpiar', 'limpiado'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.empezado', 'Luis ya ha ___ la película.', 'Luis has already started the film.', 'empezado', Kit::word('empezar', 'empezado'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.terminado-todavia', 'Ana ha terminado, pero yo todavía no.', 'Ana has finished, but I have not yet.', [Kit::word('terminar', 'terminado'), $this->todavia(), Kit::form('ha terminado', true)], 'dictation', $set, homophoneNote: self::HE_HA_NOTE),
             Kit::listenType($stage, 'check.a.listen_type.nunca-lavado', 'Nunca han lavado el coche de Pablo.', 'They have never washed Pablo\'s car.', [Kit::word('nunca'), Kit::word('lavar', 'lavado'), Kit::form('han lavado')], 'dictation', $set),
@@ -247,11 +254,11 @@ final class WhatIHaveDone implements UnitContent
             Kit::translate($stage, 'check.b.translate.terminado-empezado', 'Pablo has not finished yet, but Ana has already started.', $this->aun(['Pablo todavía no ha terminado, pero Ana ya ha empezado.', 'Pablo no ha terminado todavía, pero Ana ya ha empezado.', 'Pablo todavía no ha terminado, pero Ana ha empezado ya.', 'Pablo no ha terminado todavía, pero Ana ha empezado ya.']), [$this->todavia(), Kit::word('terminar', 'terminado'), Kit::word('ya'), Kit::word('empezar', 'empezado'), Kit::form('ha terminado', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.marta-casa-coche', 'Marta has cleaned the house and washed the car.', ['Marta ha limpiado la casa y ha lavado el coche.', 'Marta ha limpiado la casa y lavado el coche.'], [Kit::word('limpiar', 'limpiado'), Kit::word('lavar', 'lavado'), Kit::form('ha limpiado')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.nunca-cena-luis', 'We have never prepared dinner for Luis.', ['Nunca hemos preparado la cena para Luis.', 'Nosotros nunca hemos preparado la cena para Luis.', 'No hemos preparado nunca la cena para Luis.', 'No hemos preparado la cena para Luis nunca.'], [Kit::word('nunca'), Kit::word('preparar', 'preparado'), Kit::form('hemos preparado')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.visitado-marta', 'Have you ever visited Marta? (informal you)', ['¿Has visitado alguna vez a Marta?', '¿Has visitado a Marta alguna vez?', '¿Alguna vez has visitado a Marta?', '¿Tú has visitado alguna vez a Marta?'], [Kit::word('alguna vez'), Kit::word('visitar', 'visitado'), Kit::form('has visitado', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.visitado-marta', 'Have you ever visited Marta\'s house? (informal you)', ['¿Has visitado alguna vez la casa de Marta?', '¿Has visitado la casa de Marta alguna vez?', '¿Alguna vez has visitado la casa de Marta?', '¿Tú has visitado alguna vez la casa de Marta?'], [Kit::word('alguna vez'), Kit::word('visitar', 'visitado'), Kit::form('has visitado', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.pablo-terminado', 'Pablo ya ha ___ el trabajo.', 'Pablo has already finished the work.', 'terminado', Kit::word('terminar', 'terminado'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.empezado', 'Hoy he ___ el libro.', 'Today I have started the book.', 'empezado', Kit::word('empezar', 'empezado'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.empezado', 'Hoy he ___ la ventana.', 'Today I have cleaned the window.', 'limpiado', Kit::word('limpiar', 'limpiado'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.limpiado-lavado', 'Ya han limpiado y nunca han lavado el coche.', 'They have already cleaned, and they have never washed the car.', [Kit::word('ya'), Kit::word('limpiar', 'limpiado'), Kit::word('nunca'), Kit::word('lavar', 'lavado'), Kit::form('han limpiado')], 'dictation', $set),
-            Kit::listenType($stage, 'check.b.listen_type.visitado-iglesia', '¿Has visitado la iglesia alguna vez? Yo todavía no.', 'Have you ever visited the church? I have not yet.', [Kit::word('visitar', 'visitado'), Kit::word('alguna vez'), $this->todavia()], 'dictation', $set),
+            Kit::listenType($stage, 'check.b.listen_type.visitado-iglesia', '¿Has visitado la iglesia alguna vez? Yo nunca.', 'Have you ever visited the church? I never have.', [Kit::word('visitar', 'visitado'), Kit::word('alguna vez'), Kit::word('nunca')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.marta-cena', 'Marta ha preparado la cena. Ana todavía no.', 'Marta has prepared dinner. Ana has not yet.', [Kit::word('preparar', 'preparado'), $this->todavia(), Kit::form('ha preparado', true)], 'dictation', $set, homophoneNote: self::HE_HA_NOTE),
         ];
     }
