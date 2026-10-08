@@ -179,7 +179,7 @@ describe('accents by stage', function () {
             ->and((new FirstTryRule)->rightFirstTime($answer))->toBeTrue();
     });
 
-    it('accepts a missing accent with a note in lessons 3 and 4 but not as right first time', function () {
+    it('forgives a missing accent in lessons 3 and 4 too, with the note, and counts it as right first time', function () {
         $exercise = seededExercise('task.transform.plural');
         $grade = gradeText($exercise, 'Las habitaciones están disponibles');
         $slip = gradeText($exercise, 'Las habitaciones estan disponibles');
@@ -191,7 +191,7 @@ describe('accents by stage', function () {
             ->and($grade->note)->toBeNull()
             ->and($slip->correct)->toBeTrue()
             ->and($slip->note)->toBe('accent')
-            ->and((new FirstTryRule)->rightFirstTime($answer))->toBeFalse();
+            ->and((new FirstTryRule)->rightFirstTime($answer))->toBeTrue();
     });
 
     it('marks a missing accent wrong in the check, and only on the word that slipped', function () {
