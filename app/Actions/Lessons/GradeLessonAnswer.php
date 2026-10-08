@@ -271,15 +271,23 @@ final class GradeLessonAnswer
         $best = null;
 
         foreach ($forms as $form) {
-            foreach ($words as $word) {
-                $verdict = $this->accentComparer->compare($normalizer, $this->string($form), $word);
+            $parts = $this->words($normalizer, $this->string($form));
 
-                if ($verdict === AccentVerdict::Exact) {
-                    return $verdict;
+            for ($start = 0; $parts !== [] && $start + count($parts) <= count($words); $start++) {
+                $verdicts = [];
+
+                foreach ($parts as $offset => $part) {
+                    $verdicts[] = $this->accentComparer->compare($normalizer, $part, $words[$start + $offset]);
                 }
 
-                if ($verdict === AccentVerdict::Missing && $policy !== AccentPolicy::Reject) {
-                    $best = $verdict;
+                if (count(array_filter($verdicts, fn (?AccentVerdict $verdict): bool => $verdict === AccentVerdict::Exact)) === count($parts)) {
+                    return AccentVerdict::Exact;
+                }
+
+                $acceptable = array_filter($verdicts, fn (?AccentVerdict $verdict): bool => $verdict === AccentVerdict::Exact || ($verdict === AccentVerdict::Missing && $policy !== AccentPolicy::Reject));
+
+                if (count($acceptable) === count($parts)) {
+                    $best = AccentVerdict::Missing;
                 }
             }
         }
