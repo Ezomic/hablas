@@ -218,7 +218,7 @@ final class TalkingAboutHobbies implements UnitContent
                 Kit::question('What does Marta like to do?', ['Read', 'Play football', 'Sing'], 'Read'),
             ], [Kit::word('el deporte', 'deporte'), Kit::word('el fútbol', 'fútbol'), Kit::word('jugar'), Kit::word('leer')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.musica', '¿Qué te gusta, los libros o las películas?', 'What do you like, books or movies?', [['me'], ['libros', 'películas']], 'Me gustan las películas.', [Kit::word('el libro', 'libros'), Kit::word('la película', 'películas')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.deporte', '¿Qué deporte te gusta?', 'What sport do you like?', [['me', 'mi'], ['gusta', 'es', 'fútbol']], 'Me gusta el fútbol.', [Kit::word('el fútbol', 'fútbol'), Kit::word('el deporte', 'deporte')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.deporte', '¿Qué deporte te gusta?', 'What sport do you like?', [['me gusta', 'mi'], ['fútbol']], 'Me gusta el fútbol.', [Kit::word('el fútbol', 'fútbol'), Kit::word('el deporte', 'deporte')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.leer-bailar', '¿Qué te gusta, leer o bailar?', 'What do you like, reading or dancing?', [['me'], ['leer', 'bailar']], 'Me gusta leer.', [Kit::word('leer'), Kit::word('bailar')], 'speaking', $set),
         ];
     }

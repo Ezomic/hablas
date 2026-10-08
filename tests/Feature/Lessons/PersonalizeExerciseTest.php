@@ -49,3 +49,17 @@ it('accepts the learner name as the answer to who are you, and still refuses ano
         ->and((new GradeLessonAnswer)->handle(introExercise(), ['text' => 'buenos días soy Luigi'], null)->correct)->toBeFalse()
         ->and((new GradeLessonAnswer)->handle(introExercise(), ['text' => 'buenos días soy Ana'], 'Luigi')->correct)->toBeTrue();
 });
+
+it('needs the whole phrase me llamo, not just me', function () {
+    $exercise = fn (): LessonExercise => tap(introExercise(), function (LessonExercise $exercise): void {
+        $exercise->payload = [...$exercise->payload, 'required' => [
+            ['forms' => ['soy', 'me llamo'], 'target' => null],
+            ['forms' => ['ana', 'pablo'], 'target' => null],
+        ]];
+    });
+
+    expect((new GradeLessonAnswer)->handle($exercise(), ['text' => 'me llamo Ana'])->correct)->toBeTrue()
+        ->and((new GradeLessonAnswer)->handle($exercise(), ['text' => 'soy Pablo'])->correct)->toBeTrue()
+        ->and((new GradeLessonAnswer)->handle($exercise(), ['text' => 'me amo Ana'])->correct)->toBeFalse()
+        ->and((new GradeLessonAnswer)->handle($exercise(), ['text' => 'llamo Ana'])->correct)->toBeFalse();
+});

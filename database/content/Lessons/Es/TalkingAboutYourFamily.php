@@ -108,7 +108,7 @@ final class TalkingAboutYourFamily implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.hermana-mayor', 'Mi hermana es mayor.', 'My sister is older.', [Kit::word('la hermana', 'hermana'), Kit::word('mayor'), Kit::form('mi')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.hermanos', '¿Tienes hermanos?', 'Do you have brothers or sisters?', [['sí', 'no', 'tengo', 'hermano', 'hermanos', 'hermana', 'una', 'dos', 'uno']], 'Sí, tengo una hermana.', [Kit::word('la hermana', 'hermana')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.casado', '¿Tu hermano está casado?', 'Is your brother married?', [['sí', 'no', 'está', 'mi', 'casado', 'soltero']], 'Sí, mi hermano está casado.', [Kit::word('el hermano', 'hermano'), Kit::word('casado'), Kit::form('mi')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.marta', '¿Quién es Marta?', 'Who is Marta?', [['mi', 'es', 'marta', 'la'], ['hermana', 'madre', 'familia']], 'Marta es mi hermana.', [Kit::word('la hermana', 'hermana'), Kit::form('mi')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.marta', '¿Quién es Marta?', 'Who is Marta?', [['mi', 'es', 'marta'], ['hermana', 'madre', 'familia']], 'Marta es mi hermana.', [Kit::word('la hermana', 'hermana'), Kit::form('mi')]),
         ];
     }
 
