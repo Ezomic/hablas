@@ -164,6 +164,8 @@
                 "mix": "Mix"
             },
             "modeNote": "Choosing gives four options for every word. Producing asks you to type each word from its English meaning. Mix chooses while a word is new and types it once you know it well. Grammar cards are always read, then revealed.",
+            "lessonName": "Your name in lessons",
+            "lessonNameNote": "Questions like Who are you? accept this name next to the usual ones. Leave it empty to use the first name of your account.",
             "push": {
                 "title": "Push notifications",
                 "digest": "Get a browser notification for your daily digest instead of (or alongside) email.",

@@ -58,7 +58,7 @@ final class AuthoredTexts
         $forms = [];
 
         foreach (is_array($slots) ? $slots : [] as $slot) {
-            array_push($forms, ...self::list($slot));
+            array_push($forms, ...array_filter(self::list($slot), fn (string $form): bool => $form !== PersonalizeExercise::PLACEHOLDER));
         }
 
         return $forms;

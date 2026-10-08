@@ -32,6 +32,7 @@ final class LearningController extends Controller
                 'newItemCapOverride' => $settings->new_item_cap_override,
                 'contextEmphasis' => $settings->context_emphasis?->value,
                 'reviewMode' => $settings->review_mode->value,
+                'lessonName' => $settings->lesson_name,
             ],
             'interestTags' => $this->currentUser()->interestPreferences()->get()
                 ->map(fn ($preference): string => $preference->interest_tag->value),
@@ -51,6 +52,7 @@ final class LearningController extends Controller
             newItemCapOverride: $request->filled('new_item_cap_override') ? $request->integer('new_item_cap_override') : null,
             contextEmphasis: $contextEmphasis === null ? null : ContextTag::from($contextEmphasis),
             reviewMode: ReviewMode::from($request->string('review_mode')->toString()),
+            lessonName: $request->filled('lesson_name') ? trim($request->string('lesson_name')->toString()) : null,
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Learning settings updated.')]);

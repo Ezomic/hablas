@@ -164,6 +164,8 @@
                 "mix": "Mix"
             },
             "modeNote": "Bij kiezen krijg je vier opties per woord. Bij produceren typ je elk woord vanuit de Engelse betekenis. Mix laat je kiezen zolang een woord nieuw is en laat je het typen zodra je het goed kent. Grammaticakaarten worden altijd gelezen en dan onthuld.",
+            "lessonName": "Jouw naam in de lessen",
+            "lessonNameNote": "Vragen als Wie ben je? accepteren deze naam naast de gebruikelijke. Laat leeg om de voornaam van je account te gebruiken.",
             "push": {
                 "title": "Pushmeldingen",
                 "digest": "Krijg een browsermelding voor je dagelijkse overzicht in plaats van (of naast) e-mail.",
