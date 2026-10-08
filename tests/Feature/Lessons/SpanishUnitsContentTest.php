@@ -331,7 +331,7 @@ foreach (spanishUnits() as $slug => $unitContent) {
 
             if ($this->unit->cefr_level !== CefrLevel::A1) {
                 $a1 = Unit::query()->where('cefr_level', CefrLevel::A1)->pluck('slug')->all();
-                array_push($contents, ...array_filter(spanishUnits(), fn (string $other): bool => in_array($other, $a1, true), ARRAY_FILTER_USE_KEY));
+                array_push($contents, ...array_values(array_filter(spanishUnits(), fn (string $other): bool => in_array($other, $a1, true), ARRAY_FILTER_USE_KEY)));
             }
 
             foreach ($contents as $content) {
