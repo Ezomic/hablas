@@ -35,13 +35,13 @@ final class SpeechGenerator
      * @param  list<SpeechSpeed>  $speeds
      * @param  Closure(string): void  $progress
      */
-    public function generate(string $language, VoiceConfig $voice, array $speeds, bool $dryRun, ?int $limit, bool $force, Closure $progress): SpeechRunReport
+    public function generate(string $language, VoiceConfig $voice, array $speeds, bool $dryRun, ?int $limit, bool $force, Closure $progress, bool $charactersOnly = false): SpeechRunReport
     {
         $disk = $this->disk();
         $skipped = 0;
         $pending = [];
 
-        foreach ($this->inventory->clips($language, [$voice], $speeds) as $clip) {
+        foreach ($this->inventory->clips($language, [$voice], $speeds, $charactersOnly) as $clip) {
             if (! $force && $disk->exists($clip->path())) {
                 $skipped++;
             } else {

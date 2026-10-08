@@ -45,6 +45,18 @@ final class SpeechVoices
         return $voices;
     }
 
+    /** The voice with that name, such as F1 or M2. */
+    public function named(string $language, string $name): ?VoiceConfig
+    {
+        foreach ($this->forLanguage($language) as $voice) {
+            if (strcasecmp($voice->voice, $name) === 0) {
+                return $voice;
+            }
+        }
+
+        return null;
+    }
+
     public function find(string $language, string $voiceId): ?VoiceConfig
     {
         foreach ($this->forLanguage($language) as $voice) {

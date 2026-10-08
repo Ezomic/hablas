@@ -22,13 +22,19 @@ use App\Models\VocabularyItem;
 use App\Services\LessonProgress;
 use App\Services\SpeechLocaleResolver;
 use App\Services\TypingSupport;
+use App\Speech\CharacterVoices;
 use App\Speech\SpeechClipResolver;
+use App\Speech\SpeechVoices;
 use LogicException;
 
 final class PresentLessonRun
 {
+    /** @var array<string, array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>> */
+    private array $characterClips = [];
+
     public function __construct(
         private readonly SpeechClipResolver $speechClipResolver,
+        private readonly SpeechVoices $speechVoices,
         private readonly SpeechLocaleResolver $speechLocaleResolver = new SpeechLocaleResolver,
         private readonly SummarizeLessonRun $summarizeLessonRun = new SummarizeLessonRun,
         private readonly LessonProgress $lessonProgress = new LessonProgress,
@@ -77,6 +83,7 @@ final class PresentLessonRun
         }
 
         $clips = $this->speechClipResolver->resolveBoth($language->code, $this->spokenTexts(array_values($exercises->all()), $hidesAnswers));
+        $this->characterClips = $this->clipsOfCharacters($language->code, array_values($exercises->all()));
         $user = $run->user ?? throw new LogicException("Run {$run->id} has no user.");
         $settings = $this->getUserSettings->handle($user);
 
@@ -344,10 +351,12 @@ final class PresentLessonRun
                 continue;
             }
 
+            $speaker = is_string($line['speaker'] ?? null) ? $line['speaker'] : '';
+
             $lines[] = [
-                'speaker' => is_string($line['speaker'] ?? null) ? $line['speaker'] : '',
+                'speaker' => $speaker,
                 ...($hidesAnswers ? [] : ['text' => $text]),
-                ...($clips[$text] ?? ['audioUrl' => null, 'audioSlowUrl' => null]),
+                ...($this->characterClips[$speaker][$text] ?? $clips[$text] ?? ['audioUrl' => null, 'audioSlowUrl' => null]),
             ];
         }
 
@@ -355,6 +364,48 @@ final class PresentLessonRun
         unset($rest['dialogue']);
 
         return [...$rest, 'lines' => $lines];
+    }
+
+    /**
+     * The clips of the dialogue lines whose speaker has a voice other than
+     * the primary one, by speaker and text, so each character sounds the same
+     * in every dialogue.
+     *
+     * @param  list<LessonExercise>  $exercises
+     * @return array<string, array<array-key, array{audioUrl: string|null, audioSlowUrl: string|null}>>
+     */
+    private function clipsOfCharacters(string $language, array $exercises): array
+    {
+        $primary = $this->speechVoices->primary($language);
+        $byVoice = [];
+
+        foreach ($exercises as $exercise) {
+            if ($exercise->format !== LessonExerciseFormat::ListenPassage) {
+                continue;
+            }
+
+            foreach (is_array($exercise->payload['dialogue'] ?? null) ? $exercise->payload['dialogue'] : [] as $line) {
+                if (is_array($line) && is_string($line['speaker'] ?? null) && is_string($line['text'] ?? null)) {
+                    $byVoice[CharacterVoices::voiceFor($line['speaker'])][$line['speaker']][] = $line['text'];
+                }
+            }
+        }
+
+        $clips = [];
+
+        foreach ($byVoice as $name => $speakers) {
+            $voice = $this->speechVoices->named($language, $name);
+
+            if ($voice === null || $voice->id === $primary?->id) {
+                continue;
+            }
+
+            foreach ($speakers as $speaker => $texts) {
+                $clips[(string) $speaker] = $this->speechClipResolver->resolveBoth($language, array_values(array_unique($texts)), $voice->id);
+            }
+        }
+
+        return $clips;
     }
 
     /**

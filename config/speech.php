@@ -52,6 +52,9 @@ return [
 
     'models_dir' => env('SPEECH_MODELS_DIR'),
 
+    // The folder holding stories-{language}.php, whose lines are spoken in a voice per character.
+    'stories_dir' => database_path('seeders/data'),
+
     'engines' => [
         'supertonic' => SupertonicEngine::class,
     ],

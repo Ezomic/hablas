@@ -221,3 +221,16 @@ it('lifts the blended level once reading catches up with the others', function (
 it('requires authentication', function () {
     $this->get(route('reading.index'))->assertRedirect(route('login'));
 });
+
+it('gives a story its lines with the clip of each in its speaker voice, or none without clips', function () {
+    $story = readingPassage($this->spanish);
+    $story->forceFill(['segments' => [['speaker' => 'Ana', 'text' => 'Hola.'], ['speaker' => 'Luis', 'text' => 'Encantado.']]])->save();
+
+    $this->actingAs($this->user)
+        ->get(route('reading.show', $story))
+        ->assertInertia(fn ($page) => $page
+            ->has('passage.segments', 2)
+            ->where('passage.segments.0.speaker', 'Ana')
+            ->where('passage.segments.1.audioUrl', null),
+        );
+});

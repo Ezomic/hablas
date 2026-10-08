@@ -17,6 +17,9 @@ use App\Models\ReadingPassage;
 use App\Models\User;
 use App\Models\UserSkillLevel;
 use App\Services\SpeechLocaleResolver;
+use App\Speech\CharacterVoices;
+use App\Speech\SpeechClipResolver;
+use App\Speech\SpeechVoices;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -67,6 +70,8 @@ final class ReadingExerciseController extends Controller
         GetCurrentLanguage $getCurrentLanguage,
         GetUserSkillLevels $getUserSkillLevels,
         SpeechLocaleResolver $speechLocaleResolver,
+        SpeechClipResolver $speechClipResolver,
+        SpeechVoices $speechVoices,
     ): Response {
         $user = $this->currentUser();
         $language = $getCurrentLanguage->handle($user);
@@ -86,6 +91,7 @@ final class ReadingExerciseController extends Controller
                 'cefrLevel' => $readingPassage->cefr_level->value,
                 'glosses' => (object) ($readingPassage->glosses ?? []),
                 'locale' => $speechLocaleResolver->forLanguage($language),
+                'segments' => $this->segments($readingPassage, $language->code, $speechClipResolver, $speechVoices),
                 // The answer key stays server side: sending correct_answer to
                 // the client would put the whole comprehension check in the
                 // page source.
@@ -136,5 +142,37 @@ final class ReadingExerciseController extends Controller
             ->map(fn (CefrLevel $level): string => $level->value)
             ->values()
             ->all();
+    }
+
+    /**
+     * The story's lines with the clip of each in its speaker's voice, or none
+     * for a story that has not been split into lines.
+     *
+     * @return list<array{speaker: string, text: string, audioUrl: string|null}>
+     */
+    private function segments(ReadingPassage $story, string $language, SpeechClipResolver $clips, SpeechVoices $voices): array
+    {
+        $segments = $story->segments ?? [];
+        $byVoice = [];
+
+        foreach ($segments as $segment) {
+            $byVoice[CharacterVoices::voiceFor($segment['speaker'])][] = $segment['text'];
+        }
+
+        $urls = [];
+
+        foreach ($byVoice as $name => $texts) {
+            $voice = $voices->named($language, $name);
+
+            if ($voice !== null) {
+                $urls[$name] = $clips->resolve($language, array_values(array_unique($texts)), $voice->id);
+            }
+        }
+
+        return array_map(fn (array $segment): array => [
+            'speaker' => $segment['speaker'],
+            'text' => $segment['text'],
+            'audioUrl' => $urls[CharacterVoices::voiceFor($segment['speaker'])][$segment['text']] ?? null,
+        ], $segments);
     }
 }
