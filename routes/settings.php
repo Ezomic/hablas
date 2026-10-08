@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', '/settings/profile');
+    Route::get('settings', fn () => to_route('profile.edit'));
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     // Saving the profile can change the address, which is the only
