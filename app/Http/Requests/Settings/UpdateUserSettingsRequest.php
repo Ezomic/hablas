@@ -33,6 +33,7 @@ final class UpdateUserSettingsRequest extends FormRequest
             'new_item_cap_override' => ['nullable', 'integer', 'min:0', 'max:100'],
             'context_emphasis' => ['nullable', Rule::enum(ContextTag::class)],
             'review_mode' => ['required', Rule::enum(ReviewMode::class)],
+            'lesson_name' => ['nullable', 'string', 'max:40', 'regex:/^[\\p{L}][\\p{L} \'-]*$/u'],
         ];
     }
 }

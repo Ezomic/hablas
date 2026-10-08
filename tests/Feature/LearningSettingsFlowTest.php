@@ -9,6 +9,7 @@ use App\Enums\ReviewMode;
 use App\Models\User;
 use App\Models\UserInterestPreference;
 use App\Models\UserSetting;
+use App\Services\LearnerName;
 use Illuminate\Support\Facades\DB;
 
 it('renders the learning settings page with the current settings', function () {
@@ -156,4 +157,26 @@ it('rejects an invalid interest tag', function () {
             'interest_tags' => ['not-a-real-tag'],
         ])
         ->assertInvalid(['interest_tags.0']);
+});
+
+it('saves the name the learner uses in lessons, and clears it when left empty', function () {
+    $user = User::factory()->create(['name' => 'Robbin Thijssen']);
+    $payload = ['notification_frequency' => 'daily', 'review_mode' => 'mix'];
+
+    $this->actingAs($user)->patch(route('learning.update'), [...$payload, 'lesson_name' => '  Luigi '])->assertSessionHasNoErrors();
+
+    expect(UserSetting::query()->where('user_id', $user->id)->value('lesson_name'))->toBe('Luigi')
+        ->and((new LearnerName)->for($user))->toBe('Luigi');
+
+    $this->actingAs($user)->patch(route('learning.update'), [...$payload, 'lesson_name' => ''])->assertSessionHasNoErrors();
+
+    expect((new LearnerName)->for($user))->toBe('Robbin');
+});
+
+it('refuses a lesson name that is not a name', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('learning.update'), ['notification_frequency' => 'daily', 'review_mode' => 'mix', 'lesson_name' => '<b>x</b>'])
+        ->assertSessionHasErrors('lesson_name');
 });

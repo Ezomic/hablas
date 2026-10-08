@@ -169,7 +169,7 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::listenType($stage, 'task.listen_type.somos', 'Somos Luis y Marta. Mucho gusto.', 'We are Luis and Marta. Nice to meet you.', [Kit::form('somos'), Kit::word('mucho gusto')]),
 
             Kit::speakAnswer($stage, 'task.speak_answer.tardes', 'Buenas tardes. ¿Cómo estás?', 'Good afternoon. How are you?', [['estoy', 'bien'], ['bien', 'gracias', 'muy']], 'Estoy bien, gracias.', [Kit::word('buenas tardes'), Kit::word('¿cómo estás?'), Kit::word('bien'), Kit::form('estoy', true)], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.quien-eres', 'Buenos días. ¿Quién eres?', 'Good morning. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis']], 'Buenos días, soy Ana.', [Kit::word('buenos días'), Kit::word('¿quién?', 'quién'), Kit::form('soy')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.quien-eres', 'Buenos días. ¿Quién eres?', 'Good morning. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis', '{name}']], 'Buenos días, soy Ana.', [Kit::word('buenos días'), Kit::word('¿quién?', 'quién'), Kit::form('soy')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.mucho-gusto', 'Me llamo Pablo. Mucho gusto.', 'My name is Pablo. Nice to meet you.', [['gusto', 'encantado', 'encantada']], 'Mucho gusto, Pablo.', [Kit::word('me llamo'), Kit::word('mucho gusto')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.quien-el', '¿Quién es él?', 'Who is he?', [['es', 'él'], ['pablo', 'luis']], 'Él es Pablo.', [Kit::word('¿quién?', 'quién'), Kit::form('es')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.buenas-noches', 'Buenas noches, Luis. Adiós.', 'Good night, Luis. Goodbye.', [Kit::word('buenas noches'), Kit::word('adiós')], 'speak'),
@@ -217,7 +217,7 @@ final class GreetingsAndIntroductions implements UnitContent
                 Kit::question('How is Pablo?', ['Fine', 'Not fine', 'The text does not say.'], 'Fine'),
             ], [Kit::word('buenas noches'), Kit::word('me llamo'), Kit::word('¿cómo estás?'), Kit::word('bien')], 'passages', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.como-estas', '¿Cómo estás?', 'How are you?', [['estoy', 'bien', 'muy'], ['bien', 'gracias']], 'Estoy bien, gracias.', [Kit::word('¿cómo estás?'), Kit::word('bien'), Kit::word('gracias')], 'speaking', $set),
-            Kit::speakAnswer($stage, 'check.a.speak_answer.quien-eres', 'Buenas noches. ¿Quién eres?', 'Good night. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis']], 'Soy Marta.', [Kit::word('buenas noches'), Kit::word('¿quién?', 'quién')], 'speaking', $set),
+            Kit::speakAnswer($stage, 'check.a.speak_answer.quien-eres', 'Buenas noches. ¿Quién eres?', 'Good night. Who are you?', [['soy', 'me', 'llamo'], ['ana', 'pablo', 'marta', 'luis', '{name}']], 'Soy Marta.', [Kit::word('buenas noches'), Kit::word('¿quién?', 'quién')], 'speaking', $set),
             Kit::speakAnswer($stage, 'check.a.speak_answer.eres-ana', 'Hola, ¿eres Ana?', 'Hello, are you Ana?', [['sí', 'no', 'soy'], ['soy', 'ana', 'luis', 'marta', 'pablo']], 'Sí, soy Ana.', [Kit::word('hola')], 'speaking', $set),
         ];
     }

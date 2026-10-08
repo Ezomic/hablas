@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $new_item_cap_override
  * @property ContextTag|null $context_emphasis
  * @property ReviewMode $review_mode
+ * @property string|null $lesson_name
  * @property CarbonImmutable|null $last_digest_sent_at
  * @property CarbonImmutable|null $last_due_reminder_sent_at
  * @property CarbonImmutable|null $listening_paused_until
@@ -29,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['user_id', 'notification_frequency', 'new_item_cap_override', 'context_emphasis', 'review_mode', 'listening_paused_until', 'speaking_paused_until'])]
+#[Fillable(['user_id', 'notification_frequency', 'new_item_cap_override', 'context_emphasis', 'review_mode', 'lesson_name', 'listening_paused_until', 'speaking_paused_until'])]
 class UserSetting extends Model
 {
     /** @use HasFactory<UserSettingFactory> */

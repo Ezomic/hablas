@@ -25,6 +25,7 @@ interface Settings {
     newItemCapOverride: number | null;
     contextEmphasis: 'travel' | 'everyday_social' | 'professional' | null;
     reviewMode: 'recognition' | 'production' | 'mix';
+    lessonName: string | null;
 }
 
 type InterestTag =
@@ -71,6 +72,7 @@ const form = useForm({
             : String(props.settings.newItemCapOverride),
     context_emphasis: props.settings.contextEmphasis ?? 'none',
     review_mode: props.settings.reviewMode,
+    lesson_name: props.settings.lessonName ?? '',
 });
 
 function submit() {
@@ -87,6 +89,8 @@ function submit() {
             context_emphasis:
                 data.context_emphasis === 'none' ? null : data.context_emphasis,
             review_mode: data.review_mode,
+            lesson_name:
+                data.lesson_name.trim() === '' ? null : data.lesson_name.trim(),
         };
     }).patch(update().url, { preserveScroll: true });
 }
@@ -237,6 +241,23 @@ async function togglePush(checked: boolean) {
                     {{ t('settings.learning.modeNote') }}
                 </p>
                 <InputError :message="form.errors.review_mode" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="lesson_name">{{
+                    t('settings.learning.lessonName')
+                }}</Label>
+                <Input
+                    id="lesson_name"
+                    v-model="form.lesson_name"
+                    class="max-w-xs"
+                    maxlength="40"
+                    autocomplete="off"
+                />
+                <p class="text-sm text-muted-foreground">
+                    {{ t('settings.learning.lessonNameNote') }}
+                </p>
+                <InputError :message="form.errors.lesson_name" />
             </div>
 
             <div class="flex items-center gap-4">

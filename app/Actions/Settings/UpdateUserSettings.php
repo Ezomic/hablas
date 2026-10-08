@@ -22,6 +22,7 @@ final class UpdateUserSettings
         ?int $newItemCapOverride,
         ?ContextTag $contextEmphasis,
         ReviewMode $reviewMode,
+        ?string $lessonName = null,
     ): UserSetting {
         $settings = $this->getUserSettings->handle($user);
 
@@ -30,6 +31,7 @@ final class UpdateUserSettings
             'new_item_cap_override' => $newItemCapOverride,
             'context_emphasis' => $contextEmphasis,
             'review_mode' => $reviewMode,
+            'lesson_name' => $lessonName,
         ])->save();
 
         return $settings;

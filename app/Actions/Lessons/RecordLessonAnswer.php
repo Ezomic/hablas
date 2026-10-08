@@ -14,15 +14,18 @@ use App\Models\LessonExercise;
 use App\Models\LessonRun;
 use App\Models\User;
 use App\Models\VocabularyItem;
+use App\Services\LearnerName;
 use App\Services\TypingSupport;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 final class RecordLessonAnswer
 {
     public function __construct(
         private readonly GradeLessonAnswer $gradeLessonAnswer = new GradeLessonAnswer,
+        private readonly LearnerName $learnerName = new LearnerName,
         private readonly SettleLessonRun $settleLessonRun = new SettleLessonRun,
         private readonly RecordStreakActivity $recordStreakActivity = new RecordStreakActivity,
         private readonly TypingSupport $typingSupport = new TypingSupport,
@@ -75,7 +78,7 @@ final class RecordLessonAnswer
                 $this->assertSkippable($exercise);
             }
 
-            $grade = $skipped ? null : $this->gradeLessonAnswer->handle($exercise, $response ?? []);
+            $grade = $skipped ? null : $this->gradeLessonAnswer->handle($exercise, $response ?? [], $this->learnerName->for($user));
             $attempt = LessonAnswer::query()->where('lesson_run_id', $run->id)->where('lesson_exercise_id', $exercise->id)->count() + 1;
 
             $answer = LessonAnswer::query()->create([
@@ -182,6 +185,7 @@ final class RecordLessonAnswer
             : $graded ?? $this->gradeLessonAnswer->handle(
                 LessonExercise::query()->with(['lesson.unit.language', 'targets', 'grammarPoints'])->findOrFail($answer->lesson_exercise_id),
                 $answer->response ?? [],
+                $this->learnerName->for($run->user ?? throw new LogicException("Run {$run->id} has no user.")),
             );
 
         return [
