@@ -425,12 +425,6 @@ final class BuildLessonPlan
      */
     private function shuffle(Randomizer $randomizer, array $ids): array
     {
-        $shuffled = [];
-
-        foreach ($randomizer->shuffleArray($ids) as $id) {
-            $shuffled[] = is_int($id) ? $id : 0;
-        }
-
-        return $shuffled;
+        return $randomizer->shuffleArray($ids);
     }
 }
