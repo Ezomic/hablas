@@ -134,7 +134,7 @@ final class WhatIHaveDone implements UnitContent
     private function task(): array
     {
         $stage = Stage::Task;
-        $words = fn (string ...$terms): array => array_map(fn (string $term): mixed => Kit::word($term), $terms);
+        $words = fn (string ...$terms): array => array_values(array_map(fn (string $term): TargetSpec => Kit::word($term), $terms));
 
         return [
             Kit::readPassage($stage, 'task.read_passage.hoy', 'Read the conversation about what Ana and Pablo have done today.', [
@@ -204,7 +204,7 @@ final class WhatIHaveDone implements UnitContent
     {
         $stage = Stage::Check;
         $set = 'a';
-        $words = fn (string ...$terms): array => array_map(fn (string $term): mixed => Kit::word($term), $terms);
+        $words = fn (string ...$terms): array => array_values(array_map(fn (string $term): TargetSpec => Kit::word($term), $terms));
 
         return [
             Kit::translate($stage, 'check.a.translate.nunca-iglesia', 'I have never visited the church.', ['Nunca he visitado la iglesia.', 'Yo nunca he visitado la iglesia.', 'No he visitado nunca la iglesia.', 'No he visitado la iglesia nunca.'], [Kit::word('nunca'), Kit::word('visitar', 'visitado'), Kit::form('he visitado')], 'sentences', $set),
