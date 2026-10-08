@@ -23,6 +23,7 @@ use Illuminate\Database\Seeder;
  *     cefr_level: string,
  *     body: string,
  *     glosses: array<string, string>,
+ *     segments?: list<array{speaker: string, text: string}>,
  *     questions: array<int, array{prompt: string, options: array<int, string>, correct_answer: string}>
  * }
  */
@@ -44,6 +45,7 @@ class ReadingPassageSeeder extends Seeder
                     'body' => $passage['body'],
                     'questions' => $passage['questions'],
                     'glosses' => $passage['glosses'] ?? null,
+                    'segments' => $passage['segments'] ?? null,
                 ],
             );
         }
@@ -165,6 +167,7 @@ class ReadingPassageSeeder extends Seeder
      *     cefr_level: CefrLevel,
      *     body: string,
      *     glosses: array<string, string>,
+     *     segments?: list<array{speaker: string, text: string}>,
      *     questions: array<int, array{prompt: string, options: array<int, string>, correct_answer: string}>
      * }>
      */

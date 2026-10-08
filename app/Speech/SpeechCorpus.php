@@ -42,6 +42,78 @@ final class SpeechCorpus
         return $texts;
     }
 
+    /**
+     * The lines of the language's stories and lesson dialogues that one voice
+     * speaks, normalised.
+     *
+     * @return list<string>
+     */
+    public function characterTexts(string $language, string $voice): array
+    {
+        $texts = [];
+
+        foreach ($this->characterLines($language) as $line) {
+            $text = $this->text->normalise($line['text']);
+
+            if ($text !== '' && CharacterVoices::voiceFor($line['speaker']) === $voice) {
+                $texts[$text] = true;
+            }
+        }
+
+        $list = array_map(strval(...), array_keys($texts));
+        sort($list, SORT_STRING);
+
+        return $list;
+    }
+
+    /** @return list<array{speaker: string, text: string}> */
+    private function characterLines(string $language): array
+    {
+        $lines = [];
+        $directory = config('speech.stories_dir');
+        $path = (is_string($directory) ? $directory : database_path('seeders/data'))."/stories-{$language}.php";
+
+        if (is_file($path)) {
+            /** @var list<array{segments?: list<array{speaker: string, text: string}>}> $stories */
+            $stories = require $path;
+
+            foreach ($stories as $story) {
+                array_push($lines, ...($story['segments'] ?? []));
+            }
+        }
+
+        foreach ($this->registry->all() as $content) {
+            if ($content->languageCode() !== $language) {
+                continue;
+            }
+
+            foreach ($content->exercises() as $exercise) {
+                if ($exercise->format === LessonExerciseFormat::ListenPassage) {
+                    array_push($lines, ...$this->dialogueLines($exercise->payload));
+                }
+            }
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return list<array{speaker: string, text: string}>
+     */
+    private function dialogueLines(array $payload): array
+    {
+        $lines = [];
+
+        foreach (is_array($payload['dialogue'] ?? null) ? $payload['dialogue'] : [] as $line) {
+            if (is_array($line) && is_string($line['speaker'] ?? null) && is_string($line['text'] ?? null)) {
+                $lines[] = ['speaker' => $line['speaker'], 'text' => $line['text']];
+            }
+        }
+
+        return $lines;
+    }
+
     /** @return list<string> */
     private function unitContent(string $language): array
     {

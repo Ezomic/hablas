@@ -27,3 +27,12 @@ it('ships well formed stories', function () {
         expect($story['body'])->not->toContain('—');
     }
 });
+
+it('splits every story into the lines its characters speak, matching the text', function () {
+    foreach (require database_path('seeders/data/stories-es.php') as $story) {
+        $plain = fn (string $text): string => preg_replace('/[\s«»]+/u', '', $text) ?? '';
+
+        expect($story['segments'])->not->toBeEmpty()
+            ->and($plain(implode(' ', array_column($story['segments'], 'text'))))->toBe($plain($story['body']));
+    }
+});

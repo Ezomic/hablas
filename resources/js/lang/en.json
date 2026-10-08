@@ -876,6 +876,7 @@
         "gloss": "{word} means {meaning}",
         "tapWord": "Tap a word you do not know.",
         "listen": "Listen to the story",
+        "stop": "Stop",
         "questionsHeading": "Questions",
         "correct": "Correct",
         "answerWas": "The answer is: {answer}",

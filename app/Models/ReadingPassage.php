@@ -22,10 +22,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $body
  * @property array<int, array{prompt: string, options: array<int, string>, correct_answer: string}> $questions
  * @property array<string, string>|null $glosses
+ * @property list<array{speaker: string, text: string}>|null $segments
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['language_id', 'unit_id', 'cefr_level', 'title', 'body', 'questions', 'glosses'])]
+#[Fillable(['language_id', 'unit_id', 'cefr_level', 'title', 'body', 'questions', 'glosses', 'segments'])]
 class ReadingPassage extends Model
 {
     /** @use HasFactory<ReadingPassageFactory> */
@@ -37,6 +38,7 @@ class ReadingPassage extends Model
             'cefr_level' => CefrLevel::class,
             'questions' => 'array',
             'glosses' => 'array',
+            'segments' => 'array',
         ];
     }
 

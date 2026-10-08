@@ -12,7 +12,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('speech:generate {language? : The language code, every configured language by default} {--voice= : The voice id or name, the primary voice by default} {--speed= : normal or slow, both by default} {--dry-run : Count what would be generated without writing} {--limit= : Generate at most this many texts} {--force : Regenerate clips whose file exists}')]
+#[Signature('speech:generate {language? : The language code, every configured language by default} {--voice= : The voice id or name, the primary voice by default} {--speed= : normal or slow, both by default} {--dry-run : Count what would be generated without writing} {--limit= : Generate at most this many texts} {--force : Regenerate clips whose file exists} {--characters : Only the story and dialogue lines this voice speaks}')]
 #[Description('Generate the speech audio for the spoken strings of a language')]
 class SpeechGenerate extends Command
 {
@@ -55,6 +55,7 @@ class SpeechGenerate extends Command
                 limit: is_string($limit) ? (int) $limit : null,
                 force: (bool) $this->option('force'),
                 progress: fn (string $line) => $this->line("  {$line}"),
+                charactersOnly: (bool) $this->option('characters'),
             );
 
             $failed = $failed || $report->failed > 0;

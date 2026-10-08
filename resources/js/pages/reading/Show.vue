@@ -3,6 +3,8 @@ import { Head, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SpeakButton from '@/components/SpeakButton.vue';
+import StoryPlayer from '@/components/StoryPlayer.vue';
+import type { StorySegment } from '@/components/StoryPlayer.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +28,7 @@ interface Passage {
     cefrLevel: string;
     glosses: Record<string, string>;
     locale: string | null;
+    segments: StorySegment[];
     questions: Question[];
 }
 
@@ -129,7 +132,12 @@ async function submit() {
                     <Badge variant="secondary">{{
                         props.passage.cefrLevel
                     }}</Badge>
+                    <StoryPlayer
+                        v-if="props.passage.segments.some((s) => s.audioUrl)"
+                        :segments="props.passage.segments"
+                    />
                     <SpeakButton
+                        v-else
                         :text="props.passage.body"
                         :locale="props.passage.locale"
                         :label="t('reading.listen')"

@@ -34,6 +34,11 @@ const passage = {
     cefrLevel: 'A1',
     glosses: { soy: 'I am' },
     locale: 'es-ES',
+    segments: [] as {
+        speaker: string;
+        text: string;
+        audioUrl: string | null;
+    }[],
     questions: [{ prompt: 'Who?', options: ['Carmen', 'Ana'] }],
 };
 
@@ -129,6 +134,20 @@ describe('story page', () => {
         expect(wrapper.text()).toContain(i18n.global.t('reading.tapWord'));
         expect(i18n.global.t('reading.tapWord')).not.toBe(
             'Tap a word you do not know.',
+        );
+    });
+
+    it('plays the story in a voice per character when it has clips, else the browser voice', () => {
+        const withClips = mountPage({
+            ...passage,
+            segments: [{ speaker: 'Ana', text: 'Hola.', audioUrl: '/a.mp3' }],
+        });
+
+        expect(withClips.find('[data-testid="story-player"]').exists()).toBe(
+            true,
+        );
+        expect(mountPage().find('[data-testid="story-player"]').exists()).toBe(
+            false,
         );
     });
 });

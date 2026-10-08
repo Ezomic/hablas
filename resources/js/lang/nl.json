@@ -876,6 +876,7 @@
         "gloss": "{word} betekent {meaning}",
         "tapWord": "Tik op een woord dat je niet kent.",
         "listen": "Luister naar het verhaal",
+        "stop": "Stoppen",
         "questionsHeading": "Vragen",
         "correct": "Goed",
         "answerWas": "Het antwoord is: {answer}",
