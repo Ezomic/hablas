@@ -65,7 +65,7 @@ describe('the Spanish word data', function () {
         $slugs = collect($this->contents)->map(fn (UnitContent $content): string => $content->unitSlug())->sort()->values()->all();
 
         expect($slugs)->toBe(Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->orderBy('slug')->pluck('slug')->all())
-            ->and($this->contents)->toHaveCount(32)
+            ->and($this->contents)->toHaveCount(40)
             ->and(collect($this->contents)->every(fn (UnitContent $content): bool => $content->languageCode() === 'es'))->toBeTrue();
     });
 
@@ -98,7 +98,7 @@ describe('the Spanish word data', function () {
         }
     });
 
-    it('flags the common-gender noun, and only that one, with both articles accepted', function () {
+    it('flags the common-gender nouns, and only those, with both articles accepted', function () {
         $flagged = [];
 
         foreach ($this->contents as $content) {
@@ -109,7 +109,7 @@ describe('the Spanish word data', function () {
             }
         }
 
-        expect($flagged)->toBe(['el recepcionista']);
+        expect($flagged)->toBe(['el recepcionista', 'el turista']);
     });
 
     it('keeps Latin American forms out of the data', function () {
@@ -193,7 +193,7 @@ describe('the Spanish lesson text', function () {
     it('writes no dash as punctuation in a grammar card', function () {
         $cards = GrammarPoint::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->pluck('explanation');
 
-        expect($cards)->toHaveCount(32);
+        expect($cards)->toHaveCount(40);
 
         foreach ($cards as $explanation) {
             expect($explanation)->not->toMatch('/[—–]| -- /u');
@@ -233,7 +233,7 @@ describe('the review gate', function () {
     it('seeds every lesson of the released Spanish, French and Italian units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(240)
+        expect(Lesson::query()->count())->toBe(280)
             ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 

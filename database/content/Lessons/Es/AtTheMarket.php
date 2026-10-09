@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 
 final class AtTheMarket implements UnitContent
 {
-    private const FOODS = ['huevos', 'tomates', 'manzanas', 'naranjas', 'fruta', 'pan', 'leche', 'queso', 'carne', 'pescado', 'vino', 'agua', 'docena', 'kilo', 'kilos'];
+    private const FOODS = ['huevos', 'huevo', 'tomates', 'tomate', 'manzanas', 'manzana', 'naranjas', 'naranja', 'fruta', 'pan', 'leche', 'queso', 'carne', 'pescado', 'vino', 'agua', 'docena', 'kilo', 'kilos'];
 
     private const AMOUNTS = ['un', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'doce', 'docena', 'kilo', 'kilos'];
 
@@ -62,7 +65,11 @@ final class AtTheMarket implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-09', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-09', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-09', 'Released on the owner\'s instruction on 2026-10-09, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -74,7 +81,7 @@ final class AtTheMarket implements UnitContent
             Kit::gap($stage, 'sentences.choose_gap.pan-lo', '¿El pan? ___ compro aquí.', ['lo', 'la', 'los'], 'lo', Kit::form('lo', true), 'El pan is masculine and singular, so you need lo. La is for a feminine word and los is for more than one.', 'choose', 'The bread? I buy it here.'),
             Kit::gap($stage, 'sentences.choose_gap.leche-la', '¿La leche? ___ necesito.', ['la', 'lo', 'las'], 'la', Kit::form('la', true), 'La leche is feminine and singular, so you need la. Lo is for a masculine word and las is for more than one.', 'choose', 'The milk? I need it.'),
             Kit::gap($stage, 'sentences.choose_gap.tomates-los', '¿Los tomates? ___ compro hoy.', ['los', 'las', 'lo'], 'los', Kit::form('los', true), 'Los tomates is masculine and plural, so you need los. Las is for feminine words and lo is for one thing.', 'choose', 'The tomatoes? I am buying them today.'),
-            Kit::gap($stage, 'sentences.choose_gap.docena', 'Necesito una ___ de huevos.', ['docena', 'manzana', 'naranja'], 'docena', Kit::word('la docena', 'docena'), 'Una docena de huevos is twelve eggs. Una manzana or una naranja is one piece of fruit, and you do not say it de huevos.', 'choose', 'I need a dozen eggs.'),
+            Kit::gap($stage, 'sentences.choose_gap.docena', 'Necesito una ___ de huevos.', ['docena', 'manzana', 'naranja'], 'docena', Kit::word('la docena', 'docena'), 'Una docena de huevos means twelve eggs. A manzana or naranja is one piece of fruit, so una manzana de huevos makes no sense.', 'choose', 'I need a dozen eggs.'),
             Kit::gap($stage, 'sentences.choose_gap.mercado', 'Voy al ___ con Marta.', ['mercado', 'tomate', 'huevo'], 'mercado', Kit::word('el mercado', 'mercado'), 'You go to a place: al mercado. A tomate or a huevo is a food, not a place.', 'choose', 'I am going to the market with Marta.'),
             Kit::gap($stage, 'sentences.choose_gap.frescas', 'Las manzanas están ___.', ['frescas', 'fresco', 'frescos'], 'frescas', Kit::word('fresco', 'frescas'), 'Fresco agrees with the noun. Las manzanas is feminine and plural, so you need frescas.', 'choose', 'The apples are fresh.'),
 
@@ -85,7 +92,7 @@ final class AtTheMarket implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.marta-necesita', 'Marta ___ huevos para la cena.', 'Marta needs eggs for dinner.', 'necesita', Kit::word('necesitar', 'necesita')),
 
             Kit::translate($stage, 'sentences.translate.huevos-mercado', 'The eggs? I buy them at the market.', ['¿Los huevos? Los compro en el mercado.', 'Los huevos los compro en el mercado.'], [Kit::word('el huevo', 'huevos'), Kit::word('comprar', 'compro'), Kit::word('el mercado', 'mercado'), Kit::form('los')]),
-            Kit::translate($stage, 'sentences.translate.manzanas-frescas', 'The apples are fresh, I am taking them.', ['Las manzanas están frescas, las llevo.', 'Las manzanas son frescas, las llevo.'], [Kit::word('la manzana', 'manzanas'), Kit::word('fresco', 'frescas'), Kit::word('llevar', 'llevo'), Kit::form('las')]),
+            Kit::translate($stage, 'sentences.translate.manzanas-frescas', 'The apples are fresh, I am taking them.', ['Las manzanas están frescas, las llevo.', 'Las manzanas están frescas y las llevo.'], [Kit::word('la manzana', 'manzanas'), Kit::word('fresco', 'frescas'), Kit::word('llevar', 'llevo'), Kit::form('las')]),
             Kit::translate($stage, 'sentences.translate.docena-naranjas', 'I need a dozen oranges.', ['Necesito una docena de naranjas.', 'Yo necesito una docena de naranjas.'], [Kit::word('la docena', 'docena'), Kit::word('la naranja', 'naranjas'), Kit::word('necesitar', 'necesito')]),
 
             Kit::build($stage, 'sentences.build.naranjas-las', 'The oranges? We are taking them.', '¿Las naranjas? Las llevamos.', ['los'], [Kit::word('la naranja', 'naranjas'), Kit::word('llevar', 'llevamos'), Kit::form('las')]),
@@ -128,7 +135,7 @@ final class AtTheMarket implements UnitContent
                 Kit::question('Are the tomatoes fresh today?', ['No', 'Yes', 'The conversation does not say.'], 'No'),
             ], [Kit::word('la manzana', 'manzanas'), Kit::word('la naranja', 'naranjas'), Kit::word('el tomate', 'tomates'), Kit::word('fresco', 'frescas'), Kit::word('necesitar', 'Necesito')], 'read'),
             Kit::gap($stage, 'task.choose_gap.huevos-los', 'Necesito huevos. ¿Dónde ___ compro?', ['los', 'las', 'lo'], 'los', Kit::form('los', true), 'Huevos is masculine and plural, so you need los. Las is for feminine words and lo is for one thing.', 'read', 'I need eggs. Where do I buy them?'),
-            Kit::gap($stage, 'task.choose_gap.ana-mercado', 'Ana va al ___ para comprar fruta.', ['mercado', 'huevo', 'tomate'], 'mercado', Kit::word('el mercado', 'mercado'), 'You go to a place to buy fruit: al mercado. A huevo or a tomate is a food, not a place.', 'read', 'Ana is going to the market to buy fruit.'),
+            Kit::gap($stage, 'task.choose_gap.ana-mercado', 'Pablo y Ana compran fruta en el ___.', ['mercado', 'huevo', 'tomate'], 'mercado', Kit::word('el mercado', 'mercado'), 'You buy fruit in a place: en el mercado. A huevo or a tomate is a food, not a place.', 'read', 'Pablo and Ana buy fruit at the market.'),
 
             Kit::transform($stage, 'task.transform.manzanas', 'Say it with a pronoun instead of the noun.', 'Necesito las manzanas.', ['Las necesito.', 'Yo las necesito.'], [Kit::word('necesitar', 'necesito'), Kit::form('las')]),
             Kit::transform($stage, 'task.transform.huevos', 'Say it with a pronoun instead of the noun.', 'Compramos los huevos.', ['Los compramos.', 'Nosotros los compramos.'], [Kit::word('comprar', 'compramos'), Kit::form('los')]),
@@ -166,16 +173,16 @@ final class AtTheMarket implements UnitContent
                 Kit::question('Does Marta buy tomatoes?', ['Yes', 'No', 'The conversation does not say.'], 'Yes'),
                 Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
             ], [Kit::word('el huevo', 'huevos'), Kit::word('el tomate', 'tomates'), Kit::word('la docena', 'docena'), Kit::word('el mercado', 'mercado'), Kit::word('necesitar', 'necesitas'), Kit::word('comprar', 'compro')], 'listen'),
-            Kit::listenType($stage, 'task.listen_type.kilos-tomates', 'Necesito dos kilos de tomates y los pago con tarjeta.', 'I need two kilos of tomatoes and I pay for them by card.', [Kit::word('necesitar', 'necesito'), Kit::word('el tomate', 'tomates'), Kit::form('los')], 'listen'),
+            Kit::listenType($stage, 'task.listen_type.kilos-tomates', 'Necesito dos kilos de tomates y los llevo.', 'I need two kilos of tomatoes and I am taking them.', [Kit::word('necesitar', 'necesito'), Kit::word('el tomate', 'tomates'), Kit::word('llevar', 'llevo'), Kit::form('los')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.pablo-docena', 'Pablo compra una docena de huevos en el mercado.', 'Pablo buys a dozen eggs at the market.', [Kit::word('comprar', 'compra'), Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos'), Kit::word('el mercado', 'mercado')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.huevos-no-frescos', 'Los huevos no están frescos, no los compro.', 'The eggs are not fresh, I am not buying them.', [Kit::word('el huevo', 'huevos'), Kit::word('fresco', 'frescos'), Kit::form('los', true)], 'listen'),
 
             Kit::speakAnswer($stage, 'task.speak_answer.necesitas', '¿Qué necesitas del mercado?', 'What do you need from the market?', [['necesito'], self::FOODS], 'Necesito una docena de huevos.', [Kit::word('necesitar', 'necesito'), Kit::word('la docena', 'docena')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.naranjas', '¿Compras las naranjas en el mercado?', 'Do you buy the oranges at the market?', [['sí', 'no'], ['las', 'compro']], 'Sí, las compro en el mercado.', [Kit::word('comprar', 'compro'), Kit::word('la naranja', 'naranjas'), Kit::word('el mercado', 'mercado'), Kit::form('las')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.tomates-frescos', '¿Están frescos los tomates?', 'Are the tomatoes fresh?', [['sí', 'no'], ['frescos', 'están']], 'Sí, los tomates están frescos.', [Kit::word('el tomate', 'tomates'), Kit::word('fresco', 'frescos')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.manzanas-llevas', '¿Cuántas manzanas llevas?', 'How many apples are you taking?', [['llevo'], self::AMOUNTS], 'Llevo dos kilos de manzanas.', [Kit::word('llevar', 'llevo'), Kit::word('la manzana', 'manzanas')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.manzanas-llevas', '¿Cuántos kilos de manzanas llevas?', 'How many kilos of apples are you taking?', [['llevo'], self::AMOUNTS], 'Llevo dos kilos de manzanas.', [Kit::word('llevar', 'llevo'), Kit::word('la manzana', 'manzanas')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.huevos', '¿Los huevos? Los compro aquí.', 'The eggs? I buy them here.', [Kit::word('el huevo', 'huevos'), Kit::word('comprar', 'compro'), Kit::form('los')], 'speak'),
-            Kit::speakRepeat($stage, 'task.speak_repeat.docena-cuesta', 'La docena de huevos cuesta tres euros.', 'The dozen eggs cost three euros.', [Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos')], 'speak'),
+            Kit::speakRepeat($stage, 'task.speak_repeat.docena-cuesta', 'Una docena de huevos cuesta tres euros.', 'A dozen eggs costs three euros.', [Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos')], 'speak'),
         ];
     }
 
@@ -187,10 +194,10 @@ final class AtTheMarket implements UnitContent
 
         return [
             Kit::translate($stage, 'check.a.translate.naranjas-pablo', 'The oranges? Pablo takes them.', ['¿Las naranjas? Pablo las lleva.', 'Las naranjas las lleva Pablo.'], [Kit::word('la naranja', 'naranjas'), Kit::word('llevar', 'lleva'), Kit::form('las')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.pan-fresco', 'The bread is fresh and I buy it.', ['El pan está fresco y lo compro.', 'El pan es fresco y lo compro.'], [Kit::word('fresco', 'fresco'), Kit::word('comprar', 'compro'), Kit::form('lo', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.pan-fresco', 'The bread is fresh and I buy it.', ['El pan está fresco y lo compro.'], [Kit::word('fresco', 'fresco'), Kit::word('comprar', 'compro'), Kit::form('lo', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.marta-docena', 'Marta buys a dozen eggs at the market.', ['Marta compra una docena de huevos en el mercado.'], [Kit::word('comprar', 'compra'), Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos'), Kit::word('el mercado', 'mercado')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.tomates-necesitas', 'Do you need the tomatoes? Yes, I need them.', ['¿Necesitas los tomates? Sí, los necesito.'], [Kit::word('necesitar', 'necesito'), Kit::word('el tomate', 'tomates'), Kit::form('los', true)], 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.kilo-manzanas', 'Compro un kilo de ___ en el mercado.', 'I buy a kilo of apples at the market.', 'manzanas', Kit::word('la manzana', 'manzanas'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.kilo-manzanas', 'Compro un kilo de ___ en el mercado.', 'I buy a kilo of oranges at the market.', 'naranjas', Kit::word('la naranja', 'naranjas'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.fruta-la', '¿La fruta? Sí, ___ llevo.', 'The fruit? Yes, I am taking it.', 'la', Kit::form('la'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.manzanas-frescas', 'Las manzanas están frescas y las necesito.', 'The apples are fresh and I need them.', [Kit::word('la manzana', 'manzanas'), Kit::word('fresco', 'frescas'), Kit::word('necesitar', 'necesito'), Kit::form('las')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.pablo-tomates', 'Pablo compra tomates y una docena de huevos.', 'Pablo buys tomatoes and a dozen eggs.', [Kit::word('comprar', 'compra'), Kit::word('el tomate', 'tomates'), Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos')], 'dictation', $set),
@@ -236,13 +243,13 @@ final class AtTheMarket implements UnitContent
 
         return [
             Kit::translate($stage, 'check.b.translate.manzanas-marta', 'The apples? Marta needs them.', ['¿Las manzanas? Marta las necesita.', 'Las manzanas las necesita Marta.'], [Kit::word('la manzana', 'manzanas'), Kit::word('necesitar', 'necesita'), Kit::form('las', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.tomates-ana', 'The tomatoes are fresh and Ana takes them.', ['Los tomates están frescos y Ana los lleva.', 'Los tomates son frescos y Ana los lleva.'], [Kit::word('el tomate', 'tomates'), Kit::word('fresco', 'frescos'), Kit::word('llevar', 'lleva'), Kit::form('los', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.pablo-docena', 'Pablo buys a dozen oranges at the market.', ['Pablo compra una docena de naranjas en el mercado.'], [Kit::word('comprar', 'compra'), Kit::word('la docena', 'docena'), Kit::word('la naranja', 'naranjas'), Kit::word('el mercado', 'mercado')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.tomates-ana', 'The tomatoes are fresh and Ana takes them.', ['Los tomates están frescos y Ana los lleva.'], [Kit::word('el tomate', 'tomates'), Kit::word('fresco', 'frescos'), Kit::word('llevar', 'lleva'), Kit::form('los', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.pablo-docena', 'I need a dozen oranges and I am taking them.', ['Necesito una docena de naranjas y las llevo.', 'Yo necesito una docena de naranjas y las llevo.'], [Kit::word('necesitar', 'necesito'), Kit::word('la docena', 'docena'), Kit::word('la naranja', 'naranjas'), Kit::word('llevar', 'llevo')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.leche-llevas', 'Do you take the milk? Yes, I take it.', ['¿Llevas la leche? Sí, la llevo.'], [Kit::word('llevar', 'llevo'), Kit::form('la')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.queso-lo', '¿El queso? ___ necesito para la cena.', 'The cheese? I need it for dinner.', 'lo', Kit::form('lo'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.seis-huevos', 'Necesito seis ___ para la cena.', 'I need six eggs for dinner.', 'huevos', Kit::word('el huevo', 'huevos'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.naranjas-mercado', 'Las naranjas están frescas y las compro en el mercado.', 'The oranges are fresh and I buy them at the market.', [Kit::word('la naranja', 'naranjas'), Kit::word('fresco', 'frescas'), Kit::word('comprar', 'compro'), Kit::word('el mercado', 'mercado'), Kit::form('las')], 'dictation', $set),
-            Kit::listenType($stage, 'check.b.listen_type.pablo-lleva', 'Pablo lleva una docena de huevos y tomates.', 'Pablo takes a dozen eggs and tomatoes.', [Kit::word('llevar', 'lleva'), Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos'), Kit::word('el tomate', 'tomates')], 'dictation', $set),
+            Kit::listenType($stage, 'check.b.listen_type.pablo-lleva', 'Ana necesita una docena de huevos y los compra.', 'Ana needs a dozen eggs and buys them.', [Kit::word('necesitar', 'necesita'), Kit::word('la docena', 'docena'), Kit::word('el huevo', 'huevos'), Kit::word('comprar', 'compra')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.manzanas-no', 'Las manzanas no están frescas, no las compro.', 'The apples are not fresh, I am not buying them.', [Kit::word('la manzana', 'manzanas'), Kit::word('fresco', 'frescas'), Kit::word('comprar', 'compro'), Kit::form('las')], 'dictation', $set),
         ];
     }

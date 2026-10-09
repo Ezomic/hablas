@@ -11,7 +11,7 @@ return [
     'context_tag' => ContextTag::EverydaySocial,
     'primary_skill' => Skill::Speaking,
     'secondary_skill' => Skill::Listening,
-    'task_description' => 'Say what you give, say and tell to people, and what you like to them.',
+    'task_description' => 'Say what you give, show and ask people, and say what they like.',
     'interest_tags' => [],
     'vocabulary' => [
         ['term' => 'regalar', 'translation_en' => 'to give (as a gift)', 'is_cognate' => false, 'part_of_speech' => 'verb'],

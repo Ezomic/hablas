@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
 
 final class GivingAndSharing implements UnitContent
 {
-    private const A_NOTE = 'A without an h means to. It sounds the same as ha, a form of haber, but here it is a, as in a Ana.';
+    private const A_NOTE = 'A without an h means to. It sounds the same as ha, a form of haber, but here it is a, as in a Ana or A Marta.';
 
     private const GIFTS = ['flor', 'flores', 'ramo', 'tarta', 'libro', 'regalo', 'sorpresa', 'abrazo'];
 
@@ -62,7 +65,11 @@ final class GivingAndSharing implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-09', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-09', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-09', 'Released on the owner\'s instruction on 2026-10-09, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -73,7 +80,7 @@ final class GivingAndSharing implements UnitContent
         return [
             Kit::gap($stage, 'sentences.choose_gap.le-libro', 'Luis ___ da un libro a Marta.', ['le', 'les', 'me'], 'le', Kit::form('le', true), 'A Marta is one person, so you need le. Les is for more than one person, and me would mean to me.', 'choose', 'Luis gives Marta a book.'),
             Kit::gap($stage, 'sentences.choose_gap.les-abuelos', 'Ana ___ da flores a los abuelos.', ['les', 'le', 'nos'], 'les', Kit::form('les', true), 'Los abuelos is more than one person, so you need les. Le is for one person.', 'choose', 'Ana gives flowers to the grandparents.'),
-            Kit::gap($stage, 'sentences.choose_gap.me-abrazo', 'Ana, ¿___ das un abrazo?', ['me', 'te', 'le'], 'me', Kit::form('me'), 'The speaker asks Ana for a hug, so the hug is for me. Te would mean to you.', 'choose', 'Ana, will you give me a hug?'),
+            Kit::gap($stage, 'sentences.choose_gap.me-abrazo', 'Ana, ¿___ das un abrazo?', ['me', 'nos', 'les'], 'me', Kit::form('me'), 'The speaker asks Ana for a hug, so the hug is for me. Nos would mean to us.', 'choose', 'Ana, will you give me a hug?'),
             Kit::gap($stage, 'sentences.choose_gap.nos-tarta', 'A nosotros ___ gusta la tarta.', ['nos', 'les', 'me'], 'nos', Kit::form('nos'), 'A nosotros means us, so the pronoun is nos. Les is for them and me is for me.', 'choose', 'We like the cake.'),
             Kit::gap($stage, 'sentences.choose_gap.gustan-flores', 'A Marta le ___ las flores.', ['gustan', 'gusta'], 'gustan', Kit::word('gustar', 'gustan'), 'Gustar agrees with what is liked. Las flores is plural, so you need gustan. Gusta is for one thing.', 'choose', 'Marta likes the flowers.'),
             Kit::gap($stage, 'sentences.choose_gap.abrazo-marta', 'Doy un ___ a Marta.', ['abrazo', 'tarta', 'flor'], 'abrazo', Kit::word('el abrazo', 'abrazo'), 'Un is masculine, so it goes with abrazo. Tarta and flor are feminine, so they would need una.', 'choose', 'I give Marta a hug.'),
@@ -86,9 +93,9 @@ final class GivingAndSharing implements UnitContent
 
             Kit::translate($stage, 'sentences.translate.abrazo-ana', 'I give Ana a hug.', ['Le doy un abrazo a Ana.', 'Yo le doy un abrazo a Ana.', 'A Ana le doy un abrazo.'], [Kit::word('el abrazo', 'abrazo'), Kit::form('le')]),
             Kit::translate($stage, 'sentences.translate.nos-tarta', 'They give us a cake as a gift.', ['Nos regalan una tarta.', 'Ellos nos regalan una tarta.'], [Kit::word('regalar', 'regalan'), Kit::word('la tarta', 'tarta'), Kit::form('nos')]),
-            Kit::translate($stage, 'sentences.translate.marta-flores', 'Marta likes the flowers.', ['A Marta le gustan las flores.', 'Le gustan las flores a Marta.', 'A Marta le gustan las flores'], [Kit::word('gustar', 'gustan'), Kit::word('la flor', 'flores'), Kit::form('le')]),
+            Kit::translate($stage, 'sentences.translate.marta-flores', 'Marta likes the flowers.', ['A Marta le gustan las flores.', 'Le gustan las flores a Marta.'], [Kit::word('gustar', 'gustan'), Kit::word('la flor', 'flores'), Kit::form('le')]),
 
-            Kit::build($stage, 'sentences.build.ensenar-invitacion', 'I show Pablo the invitation.', 'Le enseño la invitación a Pablo.', ['les'], [Kit::word('enseñar', 'enseño'), Kit::word('la invitación', 'invitación'), Kit::form('le')]),
+            Kit::build($stage, 'sentences.build.ensenar-invitacion', 'I show Pablo the invitation (end with the person).', 'Le enseño la invitación a Pablo.', ['les'], [Kit::word('enseñar', 'enseño'), Kit::word('la invitación', 'invitación'), Kit::form('le')]),
             Kit::build($stage, 'sentences.build.preguntar-fiesta', 'Luis asks me when the party is.', 'Luis me pregunta cuándo es la fiesta.', ['te'], [Kit::word('preguntar', 'pregunta'), Kit::form('me')]),
             Kit::build($stage, 'sentences.build.sorpresa', 'Pablo gives me a surprise.', 'Pablo me da una sorpresa.', ['le'], [Kit::word('la sorpresa', 'sorpresa'), Kit::form('me')]),
 
@@ -133,8 +140,8 @@ final class GivingAndSharing implements UnitContent
             Kit::gap($stage, 'task.choose_gap.pregunta', 'Luis le ___ a Ana: ¿Quieres venir a la fiesta?', ['pregunta', 'regala', 'enseña'], 'pregunta', Kit::word('preguntar', 'pregunta'), 'Luis asks a question, so you need pregunta. Regala is to give a gift and enseña is to show.', 'read', 'Luis asks Ana: Do you want to come to the party?'),
 
             Kit::transform($stage, 'task.transform.les-flor', 'Say it about two people: Marta and Luis.', 'Le regalo una flor a Ana.', ['Les regalo una flor a Marta y a Luis.', 'Les regalo una flor a Marta y Luis.', 'A Marta y a Luis les regalo una flor.', 'A Marta y Luis les regalo una flor.'], [Kit::word('la flor', 'flor'), Kit::word('regalar', 'regalo'), Kit::form('les', true)]),
-            Kit::transform($stage, 'task.transform.te-sorpresa', 'Say that Pablo gives it to you (informal you).', 'Pablo le da una sorpresa a Ana.', ['Pablo te da una sorpresa.'], [Kit::word('la sorpresa', 'sorpresa'), Kit::form('te', true)]),
-            Kit::transform($stage, 'task.transform.gustan-tartas', 'Say it about more than one cake.', 'Me gusta la tarta.', ['Me gustan las tartas.', 'Me gustan las tartas'], [Kit::word('la tarta', 'tartas'), Kit::word('gustar', 'gustan'), Kit::form('me', true)]),
+            Kit::transform($stage, 'task.transform.te-sorpresa', 'Say that Pablo gives a surprise to you (informal you).', 'Pablo le da una sorpresa a Ana.', ['Pablo te da una sorpresa.', 'Pablo te regala una sorpresa.'], [Kit::word('la sorpresa', 'sorpresa'), Kit::form('te', true)]),
+            Kit::transform($stage, 'task.transform.gustan-tartas', 'Say it about more than one cake.', 'Me gusta la tarta.', ['Me gustan las tartas.'], [Kit::word('la tarta', 'tartas'), Kit::word('gustar', 'gustan'), Kit::form('me', true)]),
             Kit::writeGuided($stage, 'task.write_guided.ramo-tarta', 'Say that you give Marta a bouquet of flowers and a cake.', ['le', 'doy', 'ramo', 'flores', 'tarta', 'Marta'], 'Le doy un ramo de flores y una tarta a Marta.', [
                 ['forms' => ['le'], 'term' => null],
                 ['forms' => ['ramo'], 'term' => 'el ramo'],
@@ -147,10 +154,10 @@ final class GivingAndSharing implements UnitContent
                 ['forms' => ['enseño'], 'term' => 'enseñar'],
             ], [Kit::word('la invitación', 'invitación'), Kit::word('la sorpresa', 'sorpresa'), Kit::word('enseñar', 'enseño'), Kit::form('les')]),
             Kit::build($stage, 'task.build.nos-ramo', 'Marta gives us a bouquet of flowers (start with the person).', 'Marta nos regala un ramo de flores.', ['me', 'le'], [Kit::word('el ramo', 'ramo'), Kit::word('regalar', 'regala'), Kit::form('nos')]),
-            Kit::build($stage, 'task.build.pregunta-invitacion', 'Luis asks Ana about the invitation (start with the person).', 'Luis le pregunta a Ana por la invitación.', ['les', 'me'], [Kit::word('preguntar', 'pregunta'), Kit::word('la invitación', 'invitación'), Kit::form('le')]),
+            Kit::build($stage, 'task.build.pregunta-invitacion', 'Luis asks Ana about the invitation (put Ana last).', 'Luis le pregunta a Ana por la invitación.', ['les', 'me'], [Kit::word('preguntar', 'pregunta'), Kit::word('la invitación', 'invitación'), Kit::form('le')]),
             Kit::build($stage, 'task.build.no-gusta', 'I do not like the cake.', 'No me gusta la tarta.', ['gustan', 'te'], [Kit::word('gustar', 'gusta'), Kit::form('me')]),
             Kit::translate($stage, 'task.translate.nos-ensena', 'Ana shows us the flowers and the cake.', ['Ana nos enseña las flores y la tarta.'], [Kit::word('enseñar', 'enseña'), Kit::word('la flor', 'flores'), Kit::word('la tarta', 'tarta'), Kit::form('nos')]),
-            Kit::translate($stage, 'task.translate.les-sorpresa', 'I give my grandparents a surprise for their party.', ['Les doy una sorpresa a mis abuelos para su fiesta.', 'Les doy una sorpresa a los abuelos para su fiesta.', 'A mis abuelos les doy una sorpresa para su fiesta.', 'A los abuelos les doy una sorpresa para su fiesta.'], [Kit::word('la sorpresa', 'sorpresa'), Kit::form('les')]),
+            Kit::translate($stage, 'task.translate.les-sorpresa', 'I give my grandparents a surprise for their party.', ['Les doy una sorpresa a mis abuelos para su fiesta.', 'Les doy una sorpresa a los abuelos para su fiesta.', 'Les regalo una sorpresa a mis abuelos para su fiesta.', 'Les regalo una sorpresa a los abuelos para su fiesta.', 'A mis abuelos les doy una sorpresa para su fiesta.', 'A los abuelos les doy una sorpresa para su fiesta.'], [Kit::word('la sorpresa', 'sorpresa'), Kit::form('les')]),
 
             Kit::listenPassage($stage, 'task.listen_passage.regalos', [
                 Kit::line('Marta', 'Luis, ¿qué le regalas a Ana?'),
@@ -172,8 +179,8 @@ final class GivingAndSharing implements UnitContent
             Kit::listenType($stage, 'task.listen_type.te-da', 'Ana te da una sorpresa y un abrazo.', 'Ana gives you a surprise and a hug.', [Kit::word('la sorpresa', 'sorpresa'), Kit::word('el abrazo', 'abrazo'), Kit::form('te')], 'listen'),
 
             Kit::speakAnswer($stage, 'task.speak_answer.pablo', '¿Qué le regalas a Pablo?', 'What do you give Pablo as a gift?', [['regalo', 'doy'], self::GIFTS], 'Le regalo un libro.', [Kit::word('regalar', 'regalo'), Kit::form('le')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.tarta-flores', '¿Te gusta la tarta o las flores?', 'Do you like the cake or the flowers?', [['gusta', 'gustan'], ['tarta', 'flores']], 'Me gustan las flores.', [Kit::word('la tarta', 'tarta'), Kit::word('la flor', 'flores'), Kit::word('gustar', 'gustan'), Kit::form('me')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.ensenas', '¿Qué le enseñas a Luis?', 'What do you show Luis?', [['enseño'], ['invitación', 'foto', 'tarta', 'ramo']], 'Le enseño la invitación.', [Kit::word('enseñar', 'enseño'), Kit::word('la invitación', 'invitación'), Kit::form('le')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.tarta-flores', '¿Te gustan las flores o la tarta?', 'Do you like the flowers or the cake?', [['gusta', 'gustan'], ['tarta', 'flores']], 'Me gustan las flores.', [Kit::word('la tarta', 'tarta'), Kit::word('la flor', 'flores'), Kit::word('gustar', 'gustan'), Kit::form('me')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.ensenas', '¿Qué le enseñas a Luis?', 'What do you show Luis?', [['enseño'], ['invitación', 'flores', 'flor', 'tarta', 'ramo', 'libro', 'sorpresa', 'regalo']], 'Le enseño la invitación.', [Kit::word('enseñar', 'enseño'), Kit::word('la invitación', 'invitación'), Kit::form('le')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.preguntas', '¿Le preguntas a Ana por la fiesta?', 'Do you ask Ana about the party?', [['sí', 'no'], ['pregunto', 'pregunta']], 'Sí, le pregunto por la fiesta.', [Kit::word('preguntar', 'pregunto'), Kit::form('le')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.sorpresa', 'Le doy una sorpresa y un abrazo a Marta.', 'I give Marta a surprise and a hug.', [Kit::word('la sorpresa', 'sorpresa'), Kit::word('el abrazo', 'abrazo'), Kit::form('le')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.flores-tarta', 'Nos gustan las flores y la tarta.', 'We like the flowers and the cake.', [Kit::word('la flor', 'flores'), Kit::word('la tarta', 'tarta'), Kit::word('gustar', 'gustan'), Kit::form('nos')], 'speak'),
@@ -190,8 +197,8 @@ final class GivingAndSharing implements UnitContent
             Kit::translate($stage, 'check.a.translate.libro-abrazo', 'I give Luis a book and a hug.', ['Le doy un libro y un abrazo a Luis.', 'Yo le doy un libro y un abrazo a Luis.', 'A Luis le doy un libro y un abrazo.'], [Kit::word('el abrazo', 'abrazo'), Kit::form('le', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.tarta-fiesta', 'Ana gives them a cake for the party.', ['Ana les da una tarta para la fiesta.', 'Ana les regala una tarta para la fiesta.'], [Kit::word('la tarta', 'tarta'), Kit::form('les', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.pablo-ensena', 'Pablo shows me the invitation.', ['Pablo me enseña la invitación.'], [Kit::word('enseñar', 'enseña'), Kit::word('la invitación', 'invitación'), Kit::form('me')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.gustan-flores', 'We like the flowers.', ['Nos gustan las flores.', 'Las flores nos gustan.'], [Kit::word('gustar', 'gustan'), Kit::word('la flor', 'flores'), Kit::form('nos')], 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.madre-ramo', 'Mi madre me regala un ___ de flores.', 'My mother gives me a bouquet of flowers.', 'ramo', Kit::word('el ramo', 'ramo'), null, 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.gustan-flores', 'We like the flowers.', ['Nos gustan las flores.', 'A nosotros nos gustan las flores.', 'Las flores nos gustan.'], [Kit::word('gustar', 'gustan'), Kit::word('la flor', 'flores'), Kit::form('nos')], 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.madre-ramo', 'Luis me enseña un ___ de flores.', 'Luis shows me a bouquet of flowers.', 'ramo', Kit::word('el ramo', 'ramo'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.fiesta-sorpresa', 'La fiesta es una ___ para Luis.', 'The party is a surprise for Luis.', 'sorpresa', Kit::word('la sorpresa', 'sorpresa'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.pablo-te', 'Pablo te regala una sorpresa.', 'Pablo gives you a surprise.', [Kit::word('regalar', 'regala'), Kit::word('la sorpresa', 'sorpresa'), Kit::form('te')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.luis-flores', 'Luis le pregunta por las flores.', 'Luis asks her about the flowers.', [Kit::word('preguntar', 'pregunta'), Kit::word('la flor', 'flores'), Kit::form('le')], 'dictation', $set),
@@ -236,9 +243,9 @@ final class GivingAndSharing implements UnitContent
             Kit::translate($stage, 'check.b.translate.ramo-cumpleanos', 'Pablo gives her a bouquet of flowers for the party.', ['Pablo le regala un ramo de flores para la fiesta.', 'Pablo le da un ramo de flores para la fiesta.'], [Kit::word('regalar', 'regala', ['da']), Kit::word('el ramo', 'ramo'), Kit::word('la flor', 'flores'), Kit::form('le', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.ensenar-tarta', 'I show you the invitation and the cake.', ['Te enseño la invitación y la tarta.', 'Yo te enseño la invitación y la tarta.'], [Kit::word('enseñar', 'enseño'), Kit::word('la invitación', 'invitación'), Kit::word('la tarta', 'tarta'), Kit::form('te')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.abuelos-sorpresa', 'My grandparents like the surprise.', ['A mis abuelos les gusta la sorpresa.', 'Les gusta la sorpresa a mis abuelos.'], [Kit::word('gustar', 'gusta'), Kit::word('la sorpresa', 'sorpresa'), Kit::form('les', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.marta-abrazo', 'Marta gives us a hug and flowers.', ['Marta nos da un abrazo y flores.', 'Marta nos regala un abrazo y flores.'], [Kit::word('el abrazo', 'abrazo'), Kit::word('la flor', 'flores'), Kit::form('nos')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.marta-abrazo', 'Marta gives us a hug and flowers.', ['Marta nos da un abrazo y flores.'], [Kit::word('el abrazo', 'abrazo'), Kit::word('la flor', 'flores'), Kit::form('nos')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.pablo-pregunta', 'Pablo le ___ a Ana por la fiesta.', 'Pablo asks Ana about the party.', 'pregunta', Kit::word('preguntar', 'pregunta'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.luis-sorpresa', 'Pablo tiene una ___ para Marta.', 'Pablo has a surprise for Marta.', 'sorpresa', Kit::word('la sorpresa', 'sorpresa'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.pablo-sorpresa', 'Pablo tiene una ___ para Marta.', 'Pablo has a surprise for Marta.', 'sorpresa', Kit::word('la sorpresa', 'sorpresa'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.marta-me', 'Marta me regala un ramo y un abrazo.', 'Marta gives me a bouquet and a hug.', [Kit::word('regalar', 'regala'), Kit::word('el ramo', 'ramo'), Kit::word('el abrazo', 'abrazo'), Kit::form('me')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.ana-pregunta', 'Ana le pregunta por la invitación.', 'Ana asks him about the invitation.', [Kit::word('preguntar', 'pregunta'), Kit::word('la invitación', 'invitación'), Kit::form('le')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.pablo-tarta', 'Pablo enseña la tarta y a Luis le gusta.', 'Pablo shows the cake and Luis likes it.', [Kit::word('enseñar', 'enseña'), Kit::word('la tarta', 'tarta'), Kit::word('gustar', 'gusta')], 'dictation', $set, homophoneNote: self::A_NOTE),

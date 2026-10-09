@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -60,7 +63,11 @@ final class TheBestAndTheWorst implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-09', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-09', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-09', 'Released on the owner\'s instruction on 2026-10-09, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -70,9 +77,9 @@ final class TheBestAndTheWorst implements UnitContent
 
         return [
             Kit::gap($stage, 'sentences.choose_gap.plaza-mas', 'La plaza es la ___ bonita.', ['más', 'mejor', 'muy'], 'más', Kit::form('la más'), 'The superlative is article + más + adjective: la más bonita. Mejor is only for good, and muy does not follow an article.', 'choose', 'The square is the prettiest.'),
-            Kit::gap($stage, 'sentences.choose_gap.tienda-mejor', 'La tienda es la ___ del barrio.', ['mejor', 'peor', 'más'], 'mejor', Kit::form('la mejor', true), 'The best is la mejor. Good has its own form, so Spanish does not say más bueno. La peor would mean the worst.', 'choose', 'The shop is the best in the neighbourhood.'),
+            Kit::gap($stage, 'sentences.choose_gap.plaza-mejor', 'La plaza es la ___ del barrio.', ['mejor', 'peor', 'más'], 'mejor', Kit::form('la mejor', true), 'The best is la mejor. Good has its own form, so Spanish does not say más bueno. La peor would mean the worst.', 'choose', 'The square is the best in the neighbourhood.'),
             Kit::gap($stage, 'sentences.choose_gap.catedral-de', 'Es la catedral más antigua ___ España.', ['de', 'que'], 'de', Kit::form('más', true), 'After a superlative the group comes after de: de España, like Dutch van or in. Que is only for comparing two things.', 'choose', 'It is the oldest cathedral in Spain.'),
-            Kit::gap($stage, 'sentences.choose_gap.plaza-fiesta', 'En la ___ hay una fiesta.', ['plaza', 'turista', 'barrio'], 'plaza', Kit::word('la plaza', 'plaza'), 'La goes with a feminine noun, and a party in the open air is in the plaza. En la barrio is wrong because barrio is masculine, and a turista is a person.', 'choose', 'There is a party in the square.'),
+            Kit::gap($stage, 'sentences.choose_gap.plaza-fiesta', 'En la ___ hay una fiesta.', ['plaza', 'turista', 'barrio'], 'plaza', Kit::word('la plaza', 'plaza'), 'La means a feminine noun: la plaza. Barrio is masculine (el barrio), and a turista is a person, not a place.', 'choose', 'There is a party in the square.'),
             Kit::gap($stage, 'sentences.choose_gap.barrio-tranquilo', 'Mi ___ es muy tranquilo.', ['barrio', 'plaza', 'catedral'], 'barrio', Kit::word('el barrio', 'barrio'), 'Tranquilo ends in -o, so it describes a masculine noun: mi barrio. Plaza and catedral are feminine and need tranquila.', 'choose', 'My neighbourhood is very quiet.'),
             Kit::gap($stage, 'sentences.choose_gap.catedral-antigua', 'La catedral es muy ___.', ['antigua', 'antiguo', 'antiguas'], 'antigua', Kit::word('antiguo', 'antigua'), 'Catedral is feminine and singular, so the adjective is antigua.', 'choose', 'The cathedral is very old.'),
 
@@ -104,7 +111,7 @@ final class TheBestAndTheWorst implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.plaza-ruidosa', 'La plaza es grande y ruidosa.', 'The square is big and noisy.', [Kit::word('la plaza', 'plaza'), Kit::word('grande'), Kit::word('ruidoso', 'ruidosa')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.como-barrio', '¿Cómo es tu barrio?', 'What is your neighbourhood like?', [['es', 'mi'], self::ADJECTIVES], 'Mi barrio es muy tranquilo.', [Kit::word('el barrio', 'barrio'), Kit::word('tranquilo')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.ciudad-famosa', '¿Es famosa tu ciudad?', 'Is your city famous?', [['sí', 'no'], ['famosa', 'es']], 'Sí, mi ciudad es muy famosa.', [Kit::word('famoso', 'famosa')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.mas-simpatico', '¿Quién es el más simpático?', 'Who is the friendliest?', [['ana', 'pablo', 'marta', 'luis'], ['más']], 'Pablo es el más simpático.', [Kit::form('el más')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.mas-simpatico', 'Ana, Pablo, Marta y Luis son turistas. ¿Quién es el más simpático?', 'Ana, Pablo, Marta and Luis are tourists. Who is the friendliest?', [['ana', 'pablo', 'marta', 'luis']], 'Pablo es el más simpático.', [Kit::form('el más')]),
         ];
     }
 
@@ -131,7 +138,7 @@ final class TheBestAndTheWorst implements UnitContent
 
             Kit::transform($stage, 'task.transform.plaza-bonita', 'Say that it is the prettiest in the village.', 'La plaza es bonita.', ['La plaza es la más bonita del pueblo.'], [Kit::word('la plaza', 'plaza'), Kit::word('bonito', 'bonita'), Kit::form('la más')]),
             Kit::transform($stage, 'task.transform.barrio-tranquilisimo', 'Say it is extremely quiet with -ísimo.', 'Mi barrio es muy tranquilo.', ['Mi barrio es tranquilísimo.'], [Kit::word('el barrio', 'barrio'), Kit::form('tranquilísimo')]),
-            Kit::transform($stage, 'task.transform.catedral-peor', 'Say that it is the worst in the village.', 'La catedral es la más bonita.', ['La catedral es la peor del pueblo.'], [Kit::word('la catedral', 'catedral'), Kit::form('la peor', true)]),
+            Kit::transform($stage, 'task.transform.catedral-mejor', 'Say that it is the best in the village.', 'La catedral es la más bonita.', ['La catedral es la mejor del pueblo.'], [Kit::word('la catedral', 'catedral'), Kit::form('la mejor', true)]),
             Kit::writeGuided($stage, 'task.write_guided.plaza-catedral', 'Say that the square is the biggest and the cathedral is the oldest.', ['la plaza', 'la más', 'grande', 'la catedral', 'antigua'], 'La plaza es la más grande y la catedral es la más antigua.', [
                 ['forms' => ['plaza'], 'term' => 'la plaza'],
                 ['forms' => ['grande'], 'term' => 'grande'],
@@ -139,14 +146,14 @@ final class TheBestAndTheWorst implements UnitContent
                 ['forms' => ['antigua'], 'term' => 'antiguo'],
                 ['forms' => ['más'], 'term' => null],
             ], [Kit::word('la plaza', 'plaza'), Kit::word('grande'), Kit::word('la catedral', 'catedral'), Kit::word('antiguo', 'antigua'), Kit::form('la más')]),
-            Kit::writeGuided($stage, 'task.write_guided.ana-turista', 'Say that Ana is the best tourist in the city.', ['Ana', 'la mejor', 'turista', 'ciudad'], 'Ana es la mejor turista de la ciudad.', [
+            Kit::writeGuided($stage, 'task.write_guided.marta-turista', 'Say that Marta is the best tourist in the city.', ['Marta', 'la mejor', 'turista', 'ciudad'], 'Marta es la mejor turista de la ciudad.', [
                 ['forms' => ['turista'], 'term' => 'el turista'],
                 ['forms' => ['mejor'], 'term' => null],
                 ['forms' => ['ciudad'], 'term' => null],
             ], [Kit::word('el turista', 'turista'), Kit::form('la mejor')]),
             Kit::build($stage, 'task.build.barrio-antiguo', 'The old neighbourhood is the quietest in the city.', 'El barrio antiguo es el más tranquilo de la ciudad.', ['mejor', 'que'], [Kit::word('el barrio', 'barrio'), Kit::word('antiguo'), Kit::word('tranquilo'), Kit::form('el más')]),
             Kit::build($stage, 'task.build.plaza-turistas', 'It is the best square for tourists.', 'Es la mejor plaza para los turistas.', ['más', 'peor'], [Kit::word('la plaza', 'plaza'), Kit::word('el turista', 'turistas'), Kit::form('la mejor')]),
-            Kit::build($stage, 'task.build.catedral-grande', 'The most famous cathedral is also the biggest.', 'La catedral más famosa también es la más grande.', ['mejor', 'muy'], [Kit::word('la catedral', 'catedral'), Kit::word('famoso', 'famosa'), Kit::word('grande'), Kit::form('la más')]),
+            Kit::build($stage, 'task.build.catedral-grande', 'The most famous cathedral is the biggest.', 'La catedral más famosa es la más grande.', ['mejor', 'muy'], [Kit::word('la catedral', 'catedral'), Kit::word('famoso', 'famosa'), Kit::word('grande'), Kit::form('la más')]),
             Kit::translate($stage, 'task.translate.plaza-ruidosa-bonita', 'The noisiest square is the prettiest.', ['La plaza más ruidosa es la más bonita.'], [Kit::word('la plaza', 'plaza'), Kit::word('ruidoso', 'ruidosa'), Kit::word('bonito', 'bonita'), Kit::form('la más')]),
             Kit::translate($stage, 'task.translate.mejores-barrios', 'The best neighbourhoods are quiet.', ['Los mejores barrios son tranquilos.'], [Kit::word('el barrio', 'barrios'), Kit::word('tranquilo', 'tranquilos'), Kit::form('los mejores', true)]),
 
@@ -170,10 +177,10 @@ final class TheBestAndTheWorst implements UnitContent
             Kit::listenType($stage, 'task.listen_type.turistas-jovenes', 'Ana y Marta son las turistas más jóvenes.', 'Ana and Marta are the youngest tourists.', [Kit::word('el turista', 'turistas'), Kit::form('más')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.tranquilisimo-grandisima', 'El barrio es tranquilísimo y la plaza grandísima.', 'The neighbourhood is extremely quiet and the square extremely big.', [Kit::word('el barrio', 'barrio'), Kit::word('la plaza', 'plaza'), Kit::form('tranquilísimo')], 'listen'),
 
-            Kit::speakAnswer($stage, 'task.speak_answer.barrio-tranquilo', '¿Cuál es el barrio más tranquilo de tu ciudad?', 'Which is the quietest neighbourhood in your city?', [['más'], ['barrio', 'tranquilo']], 'Mi barrio es el más tranquilo.', [Kit::word('el barrio', 'barrio'), Kit::word('tranquilo'), Kit::form('el más')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.barrio-ruidoso', '¿Cuál es el barrio más ruidoso de tu ciudad?', 'Which is the noisiest neighbourhood in your city?', [['más'], ['barrio', 'ruidoso']], 'El barrio antiguo es el más ruidoso.', [Kit::word('el barrio', 'barrio'), Kit::word('ruidoso'), Kit::form('el más')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.plaza-ciudad', '¿Cómo es la plaza de tu ciudad?', 'What is the square in your city like?', [['es'], self::ADJECTIVES], 'La plaza es grande y bonita.', [Kit::word('la plaza', 'plaza'), Kit::word('grande'), Kit::word('bonito', 'bonita')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.mejor-barrio', '¿Cuál es el mejor barrio para los turistas?', 'Which is the best neighbourhood for tourists?', [['es'], ['mejor', 'antiguo']], 'El barrio antiguo es el mejor.', [Kit::word('el turista', 'turistas'), Kit::form('el mejor')], 'speak'),
-            Kit::speakAnswer($stage, 'task.speak_answer.catedral-famosa', '¿Es famosa la catedral de tu ciudad?', 'Is the cathedral of your city famous?', [['sí', 'no'], ['famosa', 'es']], 'Sí, es muy famosa.', [Kit::word('la catedral', 'catedral'), Kit::word('famoso', 'famosa')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.mejor-barrio', '¿Cuál es el mejor barrio para los turistas?', 'Which is the best neighbourhood for tourists?', [['mejor', 'antiguo', 'barrio']], 'El barrio antiguo es el mejor.', [Kit::word('el turista', 'turistas'), Kit::form('el mejor')], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.catedral-ciudad', '¿Cómo es la catedral de tu ciudad?', 'What is the cathedral in your city like?', [['es'], self::ADJECTIVES], 'La catedral es muy antigua.', [Kit::word('la catedral', 'catedral'), Kit::word('antiguo', 'antigua')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.plaza-bonita-ruidosa', 'La plaza más bonita es muy ruidosa.', 'The prettiest square is very noisy.', [Kit::word('la plaza', 'plaza'), Kit::word('bonito', 'bonita'), Kit::word('ruidoso', 'ruidosa'), Kit::form('más')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.turista-simpatico', 'El turista más simpático es Luis.', 'The friendliest tourist is Luis.', [Kit::word('el turista', 'turista'), Kit::form('más')], 'speak'),
         ];
@@ -187,23 +194,23 @@ final class TheBestAndTheWorst implements UnitContent
 
         return [
             Kit::translate($stage, 'check.a.translate.catedral-ciudad', 'The cathedral is the most famous in the city.', ['La catedral es la más famosa de la ciudad.'], [Kit::word('la catedral', 'catedral'), Kit::word('famoso', 'famosa'), Kit::form('la más')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.barrio-tranquilo-grande', 'The quietest neighbourhood is also the biggest.', ['El barrio más tranquilo también es el más grande.'], [Kit::word('el barrio', 'barrio'), Kit::word('tranquilo'), Kit::word('grande'), Kit::form('el más')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.barrio-tranquilo-grande', 'The quietest neighbourhood is also the biggest.', ['El barrio más tranquilo también es el más grande.', 'El barrio más tranquilo es también el más grande.'], [Kit::word('el barrio', 'barrio'), Kit::word('tranquilo'), Kit::word('grande'), Kit::form('el más')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.plaza-bonitisima', 'The old square is extremely pretty (use -ísimo).', ['La plaza antigua es bonitísima.'], [Kit::word('la plaza', 'plaza'), Kit::word('antiguo', 'antigua'), Kit::form('bonitísima')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.mejor-barrio-turistas', 'The best neighbourhood for tourists is not the noisiest.', ['El mejor barrio para turistas no es el más ruidoso.'], [Kit::word('el barrio', 'barrio'), Kit::word('el turista', 'turistas'), Kit::word('ruidoso'), Kit::form('el mejor', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.mejor-barrio-turistas', 'The best neighbourhood for tourists is not noisy.', ['El mejor barrio para turistas no es ruidoso.', 'El mejor barrio para los turistas no es ruidoso.'], [Kit::word('el barrio', 'barrio'), Kit::word('el turista', 'turistas'), Kit::word('ruidoso'), Kit::form('el mejor', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.plaza-grande', 'La plaza es muy ___.', 'The square is very big.', 'grande', Kit::word('grande'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.catedral-bonita', 'La catedral es muy ___.', 'The cathedral is very pretty.', 'bonita', Kit::word('bonito', 'bonita'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.catedral-bonita', 'Es una catedral muy ___.', 'It is a very pretty cathedral.', 'bonita', Kit::word('bonito', 'bonita'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.catedral-plaza', 'La catedral es tranquila, pero la plaza es ruidosa.', 'The cathedral is quiet, but the square is noisy.', [Kit::word('la catedral', 'catedral'), Kit::word('tranquilo', 'tranquila'), Kit::word('la plaza', 'plaza'), Kit::word('ruidoso', 'ruidosa')], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.barrio-famoso-espana', 'El barrio antiguo es el más famoso de España.', 'The old neighbourhood is the most famous in Spain.', [Kit::word('el barrio', 'barrio'), Kit::word('antiguo'), Kit::word('famoso'), Kit::form('el más', true)], 'dictation', $set),
             Kit::listenType($stage, 'check.a.listen_type.turista-plaza', 'El turista dice que la plaza es la más bonita.', 'The tourist says that the square is the prettiest.', [Kit::word('el turista', 'turista'), Kit::word('la plaza', 'plaza'), Kit::word('bonito', 'bonita'), Kit::form('la más')], 'dictation', $set),
             Kit::listenPassage($stage, 'check.a.listen_passage.plaza-barrio', [
                 Kit::line('Ana', 'Pablo, ¿qué plaza es la más bonita?'),
-                Kit::line('Pablo', 'La plaza grande es famosa, pero es ruidosa.'),
+                Kit::line('Pablo', 'La plaza grande es la más bonita, pero es ruidosa.'),
                 Kit::line('Ana', '¿Y el barrio antiguo?'),
                 Kit::line('Pablo', 'Es el más tranquilo y tiene la catedral.'),
                 Kit::line('Ana', 'Claro, vamos al barrio antiguo.'),
             ], [
                 Kit::question('What is the problem with the big square?', ['It is noisy', 'It is old', 'It is closed'], 'It is noisy'),
-                Kit::question('Which neighbourhood is the quietest?', ['The old one', 'The one with the square', 'Pablo\'s'], 'The old one'),
+                Kit::question('Which neighbourhood is the quietest?', ['The old one', 'The one with the square', 'The park'], 'The old one'),
                 Kit::question('Where do they go?', ['To the old neighbourhood', 'To the big square', 'To the park'], 'To the old neighbourhood'),
             ], [
                 Kit::question('Who asks about the square?', ['Ana', 'Pablo', 'Nobody'], 'Ana'),
@@ -235,9 +242,9 @@ final class TheBestAndTheWorst implements UnitContent
             Kit::translate($stage, 'check.b.translate.catedral-espana', 'The cathedral is the biggest in Spain.', ['La catedral es la más grande de España.'], [Kit::word('la catedral', 'catedral'), Kit::word('grande'), Kit::form('la más')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.barrios-bonitos', 'The quiet neighbourhoods are the prettiest.', ['Los barrios tranquilos son los más bonitos.'], [Kit::word('el barrio', 'barrios'), Kit::word('tranquilo', 'tranquilos'), Kit::word('bonito', 'bonitos'), Kit::form('los más')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.plaza-famosisima', 'The noisy square is extremely famous (use -ísimo).', ['La plaza ruidosa es famosísima.'], [Kit::word('la plaza', 'plaza'), Kit::word('ruidoso', 'ruidosa'), Kit::form('famosísima')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.barrio-antiguo-peor', 'The oldest neighbourhood is also the worst.', ['El barrio más antiguo también es el peor.'], [Kit::word('el barrio', 'barrio'), Kit::word('antiguo'), Kit::form('el peor', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.barrio-antiguo-peor', 'The oldest neighbourhood is also the worst.', ['El barrio más antiguo también es el peor.', 'El barrio más antiguo es también el peor.'], [Kit::word('el barrio', 'barrio'), Kit::word('antiguo'), Kit::form('el peor', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.ana-turista', 'Ana es una ___ en la catedral.', 'Ana is a tourist in the cathedral.', 'turista', Kit::word('el turista', 'turista'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.iglesia-famosa', 'La iglesia es muy ___.', 'The church is very famous.', 'famosa', Kit::word('famoso', 'famosa'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.iglesia-famosa', 'La iglesia es la más ___ de la ciudad.', 'The church is the most famous in the city.', 'famosa', Kit::word('famoso', 'famosa'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.plaza-grande-ruidosa', 'La plaza más grande es la más ruidosa.', 'The biggest square is the noisiest.', [Kit::word('la plaza', 'plaza'), Kit::word('grande'), Kit::word('ruidoso', 'ruidosa'), Kit::form('la más')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.catedral-barrio-antiguo', 'La catedral es la más famosa del barrio antiguo.', 'The cathedral is the most famous in the old neighbourhood.', [Kit::word('la catedral', 'catedral'), Kit::word('famoso', 'famosa'), Kit::word('el barrio', 'barrio'), Kit::word('antiguo'), Kit::form('la más', true)], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.turista-barrio', 'El turista dice que el barrio es tranquilo y bonito.', 'The tourist says that the neighbourhood is quiet and pretty.', [Kit::word('el turista', 'turista'), Kit::word('el barrio', 'barrio'), Kit::word('tranquilo'), Kit::word('bonito')], 'dictation', $set),

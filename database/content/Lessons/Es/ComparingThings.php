@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Es;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -58,7 +61,11 @@ final class ComparingThings implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-09', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural Spanish (Spain). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-09', 'The exercises of this unit were reviewed by a separate reviewer for natural Spanish (Spain), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-09', 'Released on the owner\'s instruction on 2026-10-09, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -86,15 +93,15 @@ final class ComparingThings implements UnitContent
 
             Kit::build($stage, 'sentences.build.comodo-silla', 'It is more comfortable than the chair.', 'Es más cómodo que la silla.', ['menos'], [Kit::word('cómodo', 'cómodo'), Kit::form('que')]),
             Kit::build($stage, 'sentences.build.facil-leer', 'It is as easy as reading.', 'Es tan fácil como leer.', ['que'], [Kit::word('fácil', 'fácil'), Kit::form('tan')]),
-            Kit::build($stage, 'sentences.build.dificil-hablar', 'It is harder than reading.', 'Es más difícil que leer.', ['tan'], [Kit::word('difícil', 'difícil'), Kit::form('más')]),
+            Kit::build($stage, 'sentences.build.dificil-leer', 'It is harder than reading.', 'Es más difícil que leer.', ['tan'], [Kit::word('difícil', 'difícil'), Kit::form('más')]),
 
             Kit::listenChoose($stage, 'sentences.listen_choose.mas-alto', 'Luis es más alto que Pablo.', ['Luis is taller than Pablo.', 'Pablo is taller than Luis.', 'Luis is as tall as Pablo.', 'Luis is shorter than Pablo.'], 'Luis is taller than Pablo.', [Kit::form('más')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.rapido-tren', 'Es más rápido que el tren.', ['It is faster than the train.', 'It is slower than the train.', 'It is as fast as the train.', 'The train is faster than it.'], 'It is faster than the train.', [Kit::word('rápido', 'rápido'), Kit::form('más')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.tan-caro', 'Aquí es tan caro como allí.', ['It is as expensive here as there.', 'It is more expensive here than there.', 'It is cheaper here than there.', 'It is as cheap here as there.'], 'It is as expensive here as there.', [Kit::word('caro', 'caro'), Kit::form('tan')]),
-            Kit::listenType($stage, 'sentences.listen_type.menos-rapido', 'Pablo es menos rápido que Ana.', 'Pablo is less fast than Ana.', [Kit::word('rápido', 'rápido'), Kit::form('menos', true)]),
+            Kit::listenType($stage, 'sentences.listen_type.menos-rapido', 'Pablo es menos rápido que Ana.', 'Pablo is not as fast as Ana.', [Kit::word('rápido', 'rápido'), Kit::form('menos', true)]),
             Kit::listenType($stage, 'sentences.listen_type.pequeno-casa', 'Es más pequeño que mi casa.', 'It is smaller than my house.', [Kit::word('pequeño', 'pequeño'), Kit::form('más')]),
             Kit::listenType($stage, 'sentences.listen_type.dificil-leer', 'Es tan difícil como leer.', 'It is as difficult as reading.', [Kit::word('difícil', 'difícil'), Kit::form('tan')]),
-            Kit::listenType($stage, 'sentences.listen_type.coche-nuevo', 'Mi coche es nuevo y grande.', 'My car is new and big.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande')]),
+            Kit::listenType($stage, 'sentences.listen_type.coche-nuevo', 'Mi piso es nuevo y grande.', 'My flat is new and big.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande')]),
 
             Kit::speakRepeat($stage, 'sentences.speak_repeat.rapido-yo', 'Pablo es más rápido que yo.', 'Pablo is faster than me.', [Kit::word('rápido', 'rápido'), Kit::form('más')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.barato-pan', 'Es tan barato como el pan.', 'It is as cheap as bread.', [Kit::word('barato', 'barato'), Kit::form('tan')]),
@@ -123,10 +130,10 @@ final class ComparingThings implements UnitContent
                 Kit::question('Which flat is cheaper?', ['The one in the village', 'The one in the city', 'They cost the same'], 'The one in the village'),
                 Kit::question('Which flat does Ana choose?', ['The one in the village', 'The one in the city', 'Neither'], 'The one in the village'),
             ], [Kit::word('grande', 'grande'), Kit::word('nuevo', 'nuevo'), Kit::word('caro', 'caro'), Kit::word('pequeño', 'pequeño'), Kit::word('barato', 'barato'), Kit::word('cómodo', 'cómodo'), Kit::form('mejor')], 'read'),
-            Kit::gap($stage, 'task.choose_gap.tren-autobus', 'El tren es más ___ que el autobús, pero más caro.', ['cómodo', 'fácil', 'pequeño'], 'cómodo', Kit::word('cómodo', 'cómodo'), 'Comfortable is cómodo, which fits a train. Fácil is easy and pequeño is small.', 'read', 'The train is more comfortable than the bus, but more expensive.'),
+            Kit::gap($stage, 'task.choose_gap.tren-autobus', 'El tren es más ___ que el autobús, pero más caro.', ['cómodo', 'fácil', 'pequeño'], 'cómodo', Kit::word('cómodo', 'cómodo'), 'Comfortable is cómodo. Fácil means easy and pequeño means small, which do not match the English.', 'read', 'The train is more comfortable than the bus, but more expensive.'),
             Kit::gap($stage, 'task.choose_gap.vivir', 'Vivir en la ciudad es más ___ que vivir en el pueblo.', ['caro', 'cara', 'caros'], 'caro', Kit::word('caro', 'caro'), 'The subject is the verb vivir, so the adjective is masculine and singular: caro.', 'read', 'Living in the city is more expensive than living in the village.', ['vivir' => 'to live']),
 
-            Kit::transform($stage, 'task.transform.tan-rapida', 'Say that Ana is as fast as Pablo.', 'Pablo es más rápido que Ana.', ['Ana es tan rápida como Pablo.'], [Kit::word('rápido', 'rápida'), Kit::form('tan', true)]),
+            Kit::transform($stage, 'task.transform.tan-rapida', 'Say that Ana is as fast as Pablo.', 'Pablo es más rápido que Ana.', ['Ana es tan rápida como Pablo.', 'Pablo es tan rápido como Ana.'], [Kit::form('tan', true)]),
             Kit::transform($stage, 'task.transform.coche-tren', 'Turn it around: the car is faster than the train.', 'El tren es más lento que el coche.', ['El coche es más rápido que el tren.'], [Kit::word('rápido', 'rápido'), Kit::form('más', true)]),
             Kit::transform($stage, 'task.transform.piso-ana', 'Say that your flat is bigger than the flat of Ana.', 'Mi piso es grande.', ['Mi piso es más grande que el piso de Ana.', 'Mi piso es más grande que el de Ana.'], [Kit::word('grande', 'grande'), Kit::form('que')]),
             Kit::writeGuided($stage, 'task.write_guided.tren-autobus', 'Say that the train is faster than the bus, but more expensive.', ['el tren', 'más rápido', 'que', 'pero', 'más caro'], 'El tren es más rápido que el autobús, pero es más caro.', [
@@ -134,7 +141,7 @@ final class ComparingThings implements UnitContent
                 ['forms' => ['caro'], 'term' => 'caro'],
                 ['forms' => ['más'], 'term' => null],
             ], [Kit::word('rápido', 'rápido'), Kit::word('caro', 'caro'), Kit::form('más')]),
-            Kit::writeGuided($stage, 'task.write_guided.piso-ana', 'Say that your flat is smaller than the flat of Ana, but as comfortable.', ['mi piso', 'más pequeño', 'pero', 'tan cómodo', 'como'], 'Mi piso es más pequeño, pero tan cómodo como el de Ana.', [
+            Kit::writeGuided($stage, 'task.write_guided.piso-ana', 'Say that your flat is smaller, but as comfortable as the flat of Ana.', ['mi piso', 'más pequeño', 'pero', 'tan cómodo', 'como'], 'Mi piso es más pequeño, pero tan cómodo como el de Ana.', [
                 ['forms' => ['pequeño'], 'term' => 'pequeño'],
                 ['forms' => ['cómodo'], 'term' => 'cómodo'],
                 ['forms' => ['tan'], 'term' => null],
@@ -155,13 +162,13 @@ final class ComparingThings implements UnitContent
                 Kit::question('Which is cheaper?', ['The bus', 'The train', 'They cost the same'], 'The bus'),
                 Kit::question('How do they go?', ['By bus', 'By train', 'By car'], 'By bus'),
             ], [
-                Kit::question('Who speaks first?', ['Marta', 'Luis', 'Nobody'], 'Marta'),
+                Kit::question('Which is as comfortable as the train?', ['The bus', 'The car', 'Nothing'], 'The bus'),
                 Kit::question('Do they decide to go by train?', ['No', 'Yes', 'The conversation does not say.'], 'No'),
-                Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
+                Kit::question('Why do they choose the bus?', ['It is cheaper', 'It is faster', 'It is more comfortable'], 'It is cheaper'),
             ], [Kit::word('rápido', 'rápido'), Kit::word('caro', 'caro'), Kit::word('lento', 'lento'), Kit::word('cómodo', 'cómodo'), Kit::word('barato', 'barato')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.autobus', 'El autobús es más lento, pero es más barato.', 'The bus is slower, but it is cheaper.', [Kit::word('lento', 'lento'), Kit::word('barato', 'barato'), Kit::form('más')]),
             Kit::listenType($stage, 'task.listen_type.piso-nuevo', 'El piso nuevo es más grande que mi casa.', 'The new flat is bigger than my house.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande'), Kit::form('que')]),
-            Kit::listenType($stage, 'task.listen_type.tanto-menor', 'Pablo trabaja tanto como Luis, pero Luis es mayor.', 'Pablo works as much as Luis, but Luis is older.', [Kit::form('tanto', true)]),
+            Kit::listenType($stage, 'task.listen_type.tanto-mayor', 'Pablo trabaja tanto como Luis, pero Luis es mayor.', 'Pablo works as much as Luis, but Luis is older.', [Kit::form('tanto', true)]),
 
             Kit::speakAnswer($stage, 'task.speak_answer.tren-autobus', '¿Es el tren más rápido o más lento que el autobús?', 'Is the train faster or slower than the bus?', [['más', 'es'], ['rápido', 'lento']], 'El tren es más rápido que el autobús.', [Kit::word('rápido', 'rápido'), Kit::word('lento', 'lento'), Kit::form('más')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.mayor-menor', '¿Eres mayor o menor que Ana?', 'Are you older or younger than Ana?', [['soy'], ['mayor', 'menor']], 'Soy mayor que Ana.', [Kit::form('mayor')], 'speak'),
@@ -179,15 +186,15 @@ final class ComparingThings implements UnitContent
         $set = 'a';
 
         return [
-            Kit::translate($stage, 'check.a.translate.lento-barato', 'It is slower, but cheaper than the train.', ['Es más lento, pero más barato que el tren.'], [Kit::word('lento', 'lento'), Kit::word('barato', 'barato'), Kit::form('más', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.lento-barato', 'It is slower, but cheaper than the train.', ['Es más lento, pero más barato que el tren.', 'Es más lento que el tren, pero más barato.', 'Es más lento, pero es más barato que el tren.', 'Es más lento que el tren, pero es más barato.'], [Kit::word('lento', 'lento'), Kit::word('barato', 'barato'), Kit::form('más', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.nuevo-grande', 'It is new and comfortable, but it is not as big.', ['Es nuevo y cómodo, pero no es tan grande.'], [Kit::word('nuevo', 'nuevo'), Kit::word('cómodo', 'cómodo'), Kit::word('grande', 'grande'), Kit::form('tan', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.piso-mejor', 'My flat is small and cheap. Your house is better.', ['Mi piso es pequeño y barato. Tu casa es mejor.'], [Kit::word('pequeño', 'pequeño'), Kit::word('barato', 'barato'), Kit::form('mejor')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.leer-escribir', 'Reading is easy and fast. Working is difficult and slow.', ['Leer es fácil y rápido. Trabajar es difícil y lento.'], [Kit::word('fácil', 'fácil'), Kit::word('rápido', 'rápido'), Kit::word('difícil', 'difícil'), Kit::word('lento', 'lento')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.leer-trabajar', 'Reading is easy and fast. Working is difficult and slow.', ['Leer es fácil y rápido. Trabajar es difícil y lento.'], [Kit::word('fácil', 'fácil'), Kit::word('rápido', 'rápido'), Kit::word('difícil', 'difícil'), Kit::word('lento', 'lento')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.tanto-trabaja', 'Luis trabaja ___ como Ana.', 'Luis works as much as Ana.', 'tanto', Kit::form('tanto'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.mas-facil', 'Leer es ___ que trabajar.', 'Reading is easier than working.', 'más fácil', Kit::word('fácil', 'fácil'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.mas-facil', 'Leer es más ___ que trabajar.', 'Reading is easier than working.', 'fácil', Kit::word('fácil', 'fácil'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.caro-dificil', 'Es caro y difícil, pero es rápido.', 'It is expensive and difficult, but it is fast.', [Kit::word('caro', 'caro'), Kit::word('difícil', 'difícil'), Kit::word('rápido', 'rápido')], 'dictation', $set),
-            Kit::listenType($stage, 'check.a.listen_type.marta-menor', 'Marta es menor y su piso es pequeño y cómodo.', 'Marta is younger and her flat is small and comfortable.', [Kit::word('pequeño', 'pequeño'), Kit::word('cómodo', 'cómodo'), Kit::form('menor')], 'dictation', $set),
-            Kit::listenType($stage, 'check.a.listen_type.tren-menos', 'El piso nuevo es grande y menos caro.', 'The new flat is big and less expensive.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande'), Kit::word('caro', 'caro'), Kit::form('menos', true)], 'dictation', $set),
+            Kit::listenType($stage, 'check.a.listen_type.marta-menor', 'Marta es menor y su piso es pequeño y cómodo.', 'Marta is the younger one, and her flat is small and comfortable.', [Kit::word('pequeño', 'pequeño'), Kit::word('cómodo', 'cómodo'), Kit::form('menor')], 'dictation', $set),
+            Kit::listenType($stage, 'check.a.listen_type.piso-menos', 'El piso nuevo es grande y menos caro.', 'The new flat is big and less expensive.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande'), Kit::word('caro', 'caro'), Kit::form('menos', true)], 'dictation', $set),
             Kit::listenPassage($stage, 'check.a.listen_passage.coche-autobus', [
                 Kit::line('Marta', 'Pablo, ¿vamos en coche o en autobús?'),
                 Kit::line('Pablo', 'En coche. Es más rápido y más cómodo.'),
@@ -199,13 +206,13 @@ final class ComparingThings implements UnitContent
                 Kit::question('What is better about the bus, says Marta?', ['It is cheaper', 'It is faster', 'It is more comfortable'], 'It is cheaper'),
                 Kit::question('What do they decide?', ['To go by car', 'To go by bus', 'To stay at home'], 'To go by car'),
             ], [
-                Kit::question('Who speaks first?', ['Marta', 'Pablo', 'Nobody'], 'Marta'),
+                Kit::question('Which is faster, the car or the bus?', ['The car', 'The bus', 'They are equally fast'], 'The car'),
                 Kit::question('Do they go by bus?', ['No', 'Yes', 'The conversation does not say.'], 'No'),
-                Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
+                Kit::question('What does Pablo say about the bus?', ['It is slower', 'It is more expensive', 'It is smaller'], 'It is slower'),
             ], [Kit::word('rápido', 'rápido'), Kit::word('cómodo', 'cómodo'), Kit::word('barato', 'barato'), Kit::word('lento', 'lento')], 'passages', $set),
             Kit::readPassage($stage, 'check.a.read_passage.cafes', 'Read the conversation.', [
-                Kit::line('Ana', 'Pablo, ¿vamos al café nuevo?'),
-                Kit::line('Pablo', 'Es más grande, pero es más caro.'),
+                Kit::line('Ana', '¿Vamos al café nuevo o al café del pueblo?'),
+                Kit::line('Pablo', 'El café nuevo es más grande, pero es más caro.'),
                 Kit::line('Ana', 'El café del pueblo es pequeño, pero es barato.'),
                 Kit::line('Pablo', 'Muy bien, vamos al café del pueblo.'),
             ], [
@@ -230,9 +237,9 @@ final class ComparingThings implements UnitContent
             Kit::translate($stage, 'check.b.translate.coche-rapido', 'My car is cheap, big and fast.', ['Mi coche es barato, grande y rápido.'], [Kit::word('barato', 'barato'), Kit::word('grande', 'grande'), Kit::word('rápido', 'rápido')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.mas-dificil', 'Reading is easy, but working is more difficult and slow.', ['Leer es fácil, pero trabajar es más difícil y lento.'], [Kit::word('fácil', 'fácil'), Kit::word('difícil', 'difícil'), Kit::word('lento', 'lento'), Kit::form('más', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.tanto-trabaja', 'Marta trabaja ___ como Ana.', 'Marta works as much as Ana.', 'tanto', Kit::form('tanto'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.mas-dificil', 'Trabajar es ___ que leer.', 'Working is harder than reading.', 'más difícil', Kit::word('difícil', 'difícil'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.mas-dificil', 'Trabajar es más ___ que leer.', 'Working is harder than reading.', 'difícil', Kit::word('difícil', 'difícil'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.tren-facil', 'El tren es rápido, cómodo y fácil.', 'The train is fast, comfortable and easy.', [Kit::word('rápido', 'rápido'), Kit::word('cómodo', 'cómodo'), Kit::word('fácil', 'fácil')], 'dictation', $set),
-            Kit::listenType($stage, 'check.b.listen_type.pablo-mayor', 'Pablo es mayor. Su coche es nuevo, grande, lento y caro.', 'Pablo is older. His car is new, big, slow and expensive.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande'), Kit::word('lento', 'lento'), Kit::word('caro', 'caro'), Kit::form('mayor')], 'dictation', $set),
+            Kit::listenType($stage, 'check.b.listen_type.pablo-mayor', 'Pablo es mayor. Su coche es nuevo, grande, lento y caro.', 'Pablo is the older one. His car is new, big, slow and expensive.', [Kit::word('nuevo', 'nuevo'), Kit::word('grande', 'grande'), Kit::word('lento', 'lento'), Kit::word('caro', 'caro'), Kit::form('mayor')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.piso-peor', 'Mi piso es peor que tu casa. Es pequeño, pero barato.', 'My flat is worse than your house. It is small, but cheap.', [Kit::word('pequeño', 'pequeño'), Kit::word('barato', 'barato'), Kit::form('peor')], 'dictation', $set),
         ];
     }
