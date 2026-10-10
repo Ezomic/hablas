@@ -16,13 +16,13 @@ beforeEach(function () {
     $this->french = Language::query()->where('code', 'fr')->sole();
 });
 
-it('seeds the same eight units as the first eight Spanish units, topic for topic', function () {
+it('seeds the same 24 units as the Spanish A1 units, topic for topic', function () {
     $this->seed(ContentSeeder::class);
 
     $slugs = Unit::query()->where('language_id', $this->french->id)->orderBy('sort_order')->pluck('slug')->all();
     $spanishSlugs = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'es'))->orderBy('sort_order')->pluck('slug')->all();
 
-    expect($slugs)->toHaveCount(8)->and($slugs)->toBe(array_slice($spanishSlugs, 0, 8));
+    expect($slugs)->toHaveCount(24)->and($slugs)->toBe(array_slice($spanishSlugs, 0, 24));
 });
 
 it('gives every unit ten words and one grammar point', function () {
@@ -39,7 +39,7 @@ it('has word data for exactly the seeded vocabulary of each unit', function () {
 
     $contents = collect(app(UnitContentRegistry::class)->all())->filter(fn ($content) => $content->languageCode() === 'fr');
 
-    expect($contents)->toHaveCount(8);
+    expect($contents)->toHaveCount(24);
 
     foreach ($contents as $content) {
         $unit = Unit::query()->where('language_id', $this->french->id)->where('slug', $content->unitSlug())->sole();

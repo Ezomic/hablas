@@ -14,15 +14,22 @@ use App\Models\Language;
 use App\Models\Unit;
 use App\Models\UnitInterestTag;
 use App\Models\VocabularyItem;
+use Database\Seeders\Concerns\SeedsUnitDefinitions;
 use Illuminate\Database\Seeder;
 
 /**
  * Seeds French A1 content: the same eight units as Spanish and Portuguese, topic
  * for topic. AI-drafted and gated: nothing is released to learners until the
  * independent review and the owner approval are recorded on the unit content.
+ *
+ * @phpstan-import-type UnitDefinition from SpanishA1Seeder
  */
 class FrenchA1Seeder extends Seeder
 {
+    use SeedsUnitDefinitions;
+
+    private const LATER_UNITS_FIRST_SORT_ORDER = 9;
+
     /**
      * Run the database seeds.
      */
@@ -64,6 +71,8 @@ class FrenchA1Seeder extends Seeder
                 );
             }
         }
+
+        $this->seedUnitDefinitions('fr', CefrLevel::A1, $this->laterUnits(), self::LATER_UNITS_FIRST_SORT_ORDER);
     }
 
     /**
@@ -307,5 +316,19 @@ class FrenchA1Seeder extends Seeder
                 ],
             ],
         ];
+    }
+
+    /** @return list<UnitDefinition> */
+    private function laterUnits(): array
+    {
+        $units = [];
+
+        foreach (glob(database_path('seeders/data/french-a1/*.php')) ?: [] as $path) {
+            /** @var UnitDefinition $unit */
+            $unit = require $path;
+            $units[] = $unit;
+        }
+
+        return $units;
     }
 }
