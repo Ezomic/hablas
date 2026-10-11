@@ -2,6 +2,8 @@
 import { useI18n } from 'vue-i18n';
 import { useInterfaceLocale } from '@/composables/useInterfaceLocale';
 
+withDefaults(defineProps<{ compact?: boolean }>(), { compact: false });
+
 const { t } = useI18n();
 const { current, supported, change } = useInterfaceLocale();
 </script>
@@ -20,16 +22,20 @@ const { current, supported, change } = useInterfaceLocale();
             type="button"
             :lang="locale"
             :aria-pressed="locale === current"
+            :aria-label="compact ? t(`interfaceLocale.${locale}`) : undefined"
             :data-test="`interface-locale-${locale}`"
-            class="rounded px-2.5 py-1 transition-colors"
-            :class="
+            class="rounded transition-colors"
+            :class="[
+                compact ? 'px-2 py-1 text-xs font-medium' : 'px-2.5 py-1',
                 locale === current
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-            "
+                    : 'text-muted-foreground hover:text-foreground',
+            ]"
             @click="change(locale)"
         >
-            {{ t(`interfaceLocale.${locale}`) }}
+            {{
+                compact ? locale.toUpperCase() : t(`interfaceLocale.${locale}`)
+            }}
         </button>
     </div>
 </template>
