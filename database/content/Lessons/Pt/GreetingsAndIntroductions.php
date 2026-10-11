@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Pt;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -25,14 +28,14 @@ final class GreetingsAndIntroductions implements UnitContent
     public function words(): array
     {
         return [
-            new WordData('olá', cue: 'hello', questions: ['Is "olá" the right everyday greeting for a stranger in Portugal, and should the informal "oi" be accepted as well or kept out?']),
+            new WordData('olá', cue: 'hello'),
             new WordData('bom dia', cue: 'good morning'),
             new WordData('boa tarde', cue: 'good afternoon'),
             new WordData('boa noite', cue: 'good evening or good night (greeting after dark)'),
-            new WordData('adeus', cue: 'goodbye', questions: ['Is "adeus" natural as a plain goodbye in Portugal, or would most people say "até logo", "até amanhã" or "tchau"? Should "tchau" be accepted?']),
-            new WordData('chamo-me', cue: 'my name is (introducing yourself)', accepted: ['eu chamo-me', 'o meu nome é'], portunolSlips: ['me llamo']),
-            new WordData('muito prazer', cue: 'nice to meet you', accepted: ['prazer', 'muito gosto', 'muito prazer em conhecer-te', 'prazer em conhecer-te'], questions: ['Are "prazer", "muito gosto" and the "em conhecer-te" forms all natural answers for "nice to meet you" in Portugal?']),
-            new WordData('como estás?', cue: 'how are you? (to a friend)', accepted: ['como está?', 'como estás tu?', 'tudo bem?'], questions: ['Is "tudo bem?" a fair accepted answer for "how are you?", and is "como está?" right for the polite form (o senhor, a senhora)?']),
+            new WordData('adeus', cue: 'goodbye'),
+            new WordData('chamo-me', cue: 'my name is (introducing yourself)', accepted: ['eu chamo-me', 'o meu nome é'], portunolSlips: ['me llamo', 'me chamo']),
+            new WordData('muito prazer', cue: 'nice to meet you', accepted: ['prazer', 'muito gosto', 'muito prazer em conhecer-te', 'prazer em conhecer-te']),
+            new WordData('como estás?', cue: 'how are you? (to a friend)', accepted: ['como está?', 'como estás tu?', 'tudo bem?']),
             new WordData('bem', cue: 'well, fine (as in I am fine)', accepted: ['estou bem']),
             new WordData('obrigado', cue: 'thank you', accepted: ['obrigada', 'muito obrigado', 'muito obrigada'], portunolSlips: ['gracias'], note: 'A man says obrigado and a woman says obrigada, because the word agrees with the speaker. Both are accepted when you type it from the English cue.'),
         ];
@@ -58,7 +61,11 @@ final class GreetingsAndIntroductions implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-11', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural European Portuguese (Portugal). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-11', 'The exercises of this unit were reviewed by a separate reviewer for natural European Portuguese (Portugal), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-11', 'Released on the owner\'s instruction on 2026-10-11, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -72,16 +79,16 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::gap($stage, 'sentences.choose_gap.eu-bem', 'Eu ___ bem.', ['estou', 'sou', 'é'], 'estou', Kit::form('estou', true), 'How you are, a state, takes estar, not ser.', 'choose', 'I am fine.'),
             Kit::gap($stage, 'sentences.choose_gap.ela-marta', 'Ela ___ a Marta.', ['é', 'sou', 'somos'], 'é', Kit::form('é'), 'He, she and o senhor take é.', 'choose'),
             Kit::gap($stage, 'sentences.choose_gap.nos-joao-rui', 'Nós ___ o João e o Rui.', ['somos', 'são', 'sou'], 'somos', Kit::form('somos'), 'We takes somos.', 'choose'),
-            Kit::gap($stage, 'sentences.choose_gap.boa-noite', 'Boa ___, Marta.', ['noite', 'dia', 'tarde'], 'noite', Kit::word('boa noite', 'noite'), 'Boa is feminine, so it goes with noite or tarde, and good night is boa noite.', 'choose', 'Good night, Marta.'),
+            Kit::gap($stage, 'sentences.choose_gap.boa-noite', 'Boa ___, Marta.', ['noite', 'dia', 'bem'], 'noite', Kit::word('boa noite', 'noite'), 'Boa is feminine, so it cannot go with dia (bom dia). Good night is boa noite.', 'choose', 'Good night, Marta.'),
 
             Kit::typeGap($stage, 'sentences.type_gap.estudante', 'Eu ___ estudante.', 'I am a student.', 'sou', Kit::form('sou'), 'Saying who you are takes ser: I am is sou.', glosses: ['estudante' => 'student']),
-            Kit::typeGap($stage, 'sentences.type_gap.como-estas', 'Olá, Ana. Como ___?', 'Hi, Ana. How are you?', 'estás', Kit::form('estás', true), 'How you are, a state, takes estar. És says who you are.'),
+            Kit::typeGap($stage, 'sentences.type_gap.como-estas', 'Olá, Ana. Como ___?', 'Hi, Ana. How are you? (to a friend)', 'estás', Kit::form('estás', true), 'How you are, a state, takes estar. És says who you are.'),
             Kit::typeGap($stage, 'sentences.type_gap.tu-rui', 'Tu ___ o Rui.', 'You are Rui.', 'és', Kit::form('és'), 'You, to a friend, takes és.'),
             Kit::typeGap($stage, 'sentences.type_gap.eles', 'Eles ___ a Ana e o Rui.', 'They are Ana and Rui.', 'são', Kit::form('são'), 'More than one person, they, takes são, with the nasal ão of não.'),
             Kit::typeGap($stage, 'sentences.type_gap.bom-dia', 'Bom ___, Rui.', 'Good morning, Rui.', 'dia', Kit::word('bom dia', 'dia')),
             Kit::translate($stage, 'sentences.translate.ola-sou', 'Hello, I am Ana.', ['Olá, sou a Ana.', 'Olá, eu sou a Ana.', 'Olá, sou Ana.', 'Olá, eu sou Ana.'], [Kit::word('olá'), Kit::form('sou')]),
-            Kit::translate($stage, 'sentences.translate.chamo-me', 'My name is Rui. Nice to meet you.', ['Chamo-me Rui. Muito prazer.', 'Chamo-me Rui, muito prazer.', 'Eu chamo-me Rui. Muito prazer.'], [Kit::word('chamo-me'), Kit::word('muito prazer')]),
-            Kit::translate($stage, 'sentences.translate.bem-obrigada', 'I am fine, thank you. (A woman speaking.)', ['Estou bem, obrigada.', 'Estou bem. Obrigada.', 'Estou bem, muito obrigada.', 'Eu estou bem, obrigada.', 'Estou muito bem, obrigada.'], [Kit::word('bem'), Kit::word('obrigado', 'obrigada'), Kit::form('estou', true)]),
+            Kit::translate($stage, 'sentences.translate.chamo-me', 'My name is Rui. Nice to meet you.', ['Chamo-me Rui. Muito prazer.', 'Chamo-me Rui, muito prazer.', 'Eu chamo-me Rui. Muito prazer.', 'Chamo-me Rui. Muito gosto.', 'Chamo-me Rui. Prazer.', 'Chamo-me Rui. Muito prazer em conhecer-te.', 'Eu chamo-me Rui, muito prazer.'], [Kit::word('chamo-me'), Kit::word('muito prazer', null, ['prazer', 'muito gosto'])]),
+            Kit::translate($stage, 'sentences.translate.bem-obrigada', 'I am fine, thank you. (a woman speaking)', ['Estou bem, obrigada.', 'Estou bem. Obrigada.', 'Estou bem, muito obrigada.', 'Eu estou bem, obrigada.', 'Estou muito bem, obrigada.'], [Kit::word('bem'), Kit::word('obrigado', 'obrigada'), Kit::form('estou', true)]),
             Kit::build($stage, 'sentences.build.boa-tarde', 'Good afternoon, I am Ana.', 'Boa tarde, sou a Ana.', ['estou'], [Kit::word('boa tarde'), Kit::form('sou')]),
             Kit::build($stage, 'sentences.build.ola-joao', 'Hello, he is João.', 'Olá, ele é o João.', ['sou'], [Kit::word('olá'), Kit::form('é')]),
             Kit::build($stage, 'sentences.build.somos', 'We are João and Rui.', 'Somos o João e o Rui.', ['são'], [Kit::form('somos')]),
@@ -124,7 +131,7 @@ final class GreetingsAndIntroductions implements UnitContent
             Kit::gap($stage, 'task.choose_gap.bem-obrigado', 'Como estás? ___, obrigado.', ['Bem', 'Bom', 'Boa'], 'Bem', Kit::word('bem'), 'Bem is the usual answer to how are you. Bom is an adjective, as in bom dia.', 'read'),
 
             Kit::transform($stage, 'task.transform.somos', 'Make it plural: we.', 'Sou estudante.', ['Somos estudantes.', 'Nós somos estudantes.'], [Kit::form('somos')], ['estudante' => 'student', 'estudantes' => 'students']),
-            Kit::transform($stage, 'task.transform.tu', 'Change the subject to tu.', 'Ela é a Marta.', ['Tu és a Marta.'], [Kit::form('és')]),
+            Kit::transform($stage, 'task.transform.tu', 'Change the subject to tu.', 'Ela é a Marta.', ['Tu és a Marta.', 'És a Marta.', 'Tu és Marta.', 'És Marta.'], [Kit::form('és')]),
             Kit::transform($stage, 'task.transform.estamos', 'Change the subject to we.', 'Estou bem.', ['Estamos bem.', 'Nós estamos bem.'], [Kit::word('bem'), Kit::form('estamos', true)]),
             Kit::writeGuided($stage, 'task.write_guided.cumprimento', 'Say good morning, say your name is Ana and say nice to meet you.', ['bom dia', 'chamo-me', 'muito prazer'], 'Bom dia. Chamo-me Ana. Muito prazer.', [
                 ['forms' => ['dia'], 'term' => 'bom dia'],
@@ -138,29 +145,30 @@ final class GreetingsAndIntroductions implements UnitContent
             ], [Kit::word('boa noite'), Kit::word('obrigado'), Kit::word('adeus')]),
             Kit::build($stage, 'task.build.bom-dia', 'Good morning, I am Ana. How are you?', 'Bom dia, sou a Ana. Como estás?', ['estou', 'és'], [Kit::word('bom dia'), Kit::form('sou'), Kit::word('como estás?', 'como estás')], 'write'),
             Kit::build($stage, 'task.build.tarde', 'Good afternoon, we are João and Rui.', 'Boa tarde, somos o João e o Rui.', ['são', 'sou'], [Kit::word('boa tarde'), Kit::form('somos')], 'write'),
-            Kit::build($stage, 'task.build.estou-bem', 'I am fine, thank you (a man speaking). Goodbye, Ana.', 'Estou bem, obrigado. Adeus, Ana.', ['sou', 'estás'], [Kit::word('bem'), Kit::word('obrigado'), Kit::word('adeus'), Kit::form('estou', true)], 'write'),
-            Kit::translate($stage, 'task.translate.estudante', 'Nice to meet you. I am a student.', ['Muito prazer. Sou estudante.', 'Muito prazer, sou estudante.', 'Muito prazer. Eu sou estudante.', 'Muito prazer. Sou um estudante.', 'Muito prazer. Sou uma estudante.', 'Muito prazer. Eu sou um estudante.', 'Muito prazer. Eu sou uma estudante.'], [Kit::word('muito prazer'), Kit::form('sou')], 'write', null, ['estudante' => 'student']),
-            Kit::translate($stage, 'task.translate.ola-como', 'Hello, how are you?', ['Olá, como estás?', 'Olá, como estás tu?', 'Olá, como está?', 'Olá, como está o senhor?', 'Olá, como está a senhora?'], [Kit::word('olá'), Kit::word('como estás?', 'como')], 'write'),
+            Kit::build($stage, 'task.build.estou-bem', 'I am fine, thank you. Goodbye, Ana. (a man speaking)', 'Estou bem, obrigado. Adeus, Ana.', ['sou', 'estás'], [Kit::word('bem'), Kit::word('obrigado'), Kit::word('adeus'), Kit::form('estou', true)], 'write'),
+            Kit::translate($stage, 'task.translate.estudante', 'Nice to meet you. I am a student.', ['Muito prazer. Sou estudante.', 'Muito prazer, sou estudante.', 'Muito prazer. Eu sou estudante.', 'Muito prazer. Sou um estudante.', 'Muito prazer. Sou uma estudante.', 'Muito prazer. Eu sou um estudante.', 'Muito prazer. Eu sou uma estudante.', 'Muito gosto. Sou estudante.', 'Prazer. Sou estudante.', 'Muito gosto. Eu sou estudante.', 'Prazer. Eu sou estudante.'], [Kit::word('muito prazer', null, ['prazer', 'muito gosto']), Kit::form('sou')], 'write', null, ['estudante' => 'student']),
+            Kit::translate($stage, 'task.translate.ola-como', 'Hello, how are you?', ['Olá, como estás?', 'Olá, como estás tu?', 'Olá, como está?', 'Olá, como está o senhor?', 'Olá, como está a senhora?', 'Olá, como vais?'], [Kit::word('olá'), Kit::word('como estás?', 'como')], 'write'),
 
             Kit::listenPassage($stage, 'task.listen_passage.boa-noite', [
                 Kit::line('João', 'Boa noite, Marta. Como estás?'),
                 Kit::line('Marta', 'Bem, obrigada. Ele é o Rui.'),
                 Kit::line('João', 'Muito prazer, Rui. Chamo-me João.'),
-                Kit::line('Rui', 'Muito prazer. Adeus, João. Boa noite.'),
+                Kit::line('Rui', 'Muito prazer. Boa noite, João.'),
+                Kit::line('Marta', 'Adeus, Rui.'),
             ], [
                 Kit::question('What time of day is it?', ['Morning', 'Afternoon', 'Evening or night'], 'Evening or night'),
                 Kit::question('How is Marta?', ['Fine', 'Not fine', 'The conversation does not say.'], 'Fine'),
                 Kit::question('Who does Marta introduce?', ['João', 'Rui', 'Ana'], 'Rui'),
             ], [
                 Kit::question('What does João say to Rui?', ['Nice to meet you', 'Thank you', 'Good morning'], 'Nice to meet you'),
-                Kit::question('Who says goodbye?', ['Marta', 'Rui', 'João'], 'Rui'),
+                Kit::question('Who says goodbye?', ['Marta', 'Rui', 'João'], 'Marta'),
                 Kit::question('How many people speak?', ['Two', 'Three', 'Four'], 'Three'),
             ], [Kit::word('boa noite'), Kit::word('como estás?'), Kit::word('bem'), Kit::word('obrigado'), Kit::word('muito prazer'), Kit::word('chamo-me'), Kit::word('adeus')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.tarde-rui', 'Boa tarde, Rui. Como estás?', 'Good afternoon, Rui. How are you?', [Kit::word('boa tarde'), Kit::word('como estás?', 'como estás')]),
-            Kit::listenType($stage, 'task.listen_type.ele-ela', 'Ele é o João e ela é a Ana.', 'He is João and she is Ana.', [Kit::form('é')], homophoneNote: 'Both a words are the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'task.listen_type.ele-ela', 'Ele é o João e ela é a Ana.', 'He is João and she is Ana.', [Kit::form('é')], homophoneNote: 'The first é (is) has an accent, the e between João and ela (and) does not. The a before Ana is the article a (the), not à (to the) and not há (there is).'),
             Kit::listenType($stage, 'task.listen_type.somos', 'Somos o Rui e a Marta. Muito prazer.', 'We are Rui and Marta. Nice to meet you.', [Kit::form('somos'), Kit::word('muito prazer')], homophoneNote: 'The a before Marta is the article a (the), not à (to the) and not há (there is).'),
 
-            Kit::speakAnswer($stage, 'task.speak_answer.tarde', 'Boa tarde. Como estás?', 'Good afternoon. How are you?', [['estou', 'bem'], ['bem', 'obrigado', 'obrigada', 'muito']], 'Estou bem, obrigado.', [Kit::word('boa tarde'), Kit::word('como estás?'), Kit::word('bem'), Kit::form('estou', true)], 'speak'),
+            Kit::speakAnswer($stage, 'task.speak_answer.tarde', 'Boa tarde. Como estás?', 'Good afternoon. How are you?', [['estou', 'bem'], ['bem', 'obrigado', 'obrigada', 'muito']], 'Estou bem, obrigada.', [Kit::word('boa tarde'), Kit::word('como estás?'), Kit::word('bem'), Kit::form('estou', true)], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.quem-es', 'Bom dia. Quem és tu?', 'Good morning. Who are you?', [['sou', 'chamo', 'me', 'nome'], ['ana', 'joão', 'marta', 'rui']], 'Bom dia, sou a Ana.', [Kit::word('bom dia'), Kit::form('sou')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.muito-prazer', 'Chamo-me Rui. Muito prazer.', 'My name is Rui. Nice to meet you.', [['muito', 'prazer', 'gosto']], 'Muito prazer, Rui.', [Kit::word('chamo-me'), Kit::word('muito prazer')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.quem-ele', 'Quem é ele?', 'Who is he?', [['é', 'ele'], ['rui', 'joão']], 'Ele é o Rui.', [Kit::form('é')], 'speak'),
@@ -177,10 +185,10 @@ final class GreetingsAndIntroductions implements UnitContent
 
         return [
             Kit::translate($stage, 'check.a.translate.noite', 'Good night, I am Rui.', ['Boa noite, sou o Rui.', 'Boa noite, eu sou o Rui.', 'Boa noite, sou Rui.', 'Boa noite, eu sou Rui.'], [Kit::word('boa noite'), Kit::form('sou')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.obrigada', 'Thank you, Marta. Goodbye. (A woman speaking.)', ['Obrigada, Marta. Adeus.', 'Muito obrigada, Marta. Adeus.'], [Kit::word('obrigado', 'obrigada'), Kit::word('adeus')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.estou', 'How are you? I am fine.', ['Como estás? Estou bem.', 'Como está o senhor? Estou bem.', 'Como estás? Eu estou bem.', 'Como estás tu? Estou bem.', 'Como está? Estou bem.', 'Como está a senhora? Estou bem.'], [Kit::word('como estás?', 'como'), Kit::word('bem'), Kit::form('estou', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.obrigada', 'Thank you, Marta. Goodbye. (a woman speaking)', ['Obrigada, Marta. Adeus.', 'Muito obrigada, Marta. Adeus.'], [Kit::word('obrigado', 'obrigada'), Kit::word('adeus')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.estou', 'How are you? I am fine.', ['Como estás? Estou bem.', 'Como está o senhor? Estou bem.', 'Como estás? Eu estou bem.', 'Como estás tu? Estou bem.', 'Como está? Estou bem.', 'Como está a senhora? Estou bem.', 'Como vais? Estou bem.'], [Kit::word('como estás?', 'como'), Kit::word('bem'), Kit::form('estou', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.dia', 'Good morning, my name is Marta.', ['Bom dia, chamo-me Marta.', 'Bom dia, eu chamo-me Marta.'], [Kit::word('bom dia'), Kit::word('chamo-me')], 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.eles', 'Eles ___ o Rui e a Marta.', 'They are Rui and Marta.', 'são', Kit::form('são'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.eles', 'Eles ___ o João e a Marta.', 'They are João and Marta.', 'são', Kit::form('são'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.estas', 'Bom dia, João. Como ___?', 'Good morning, João. How are you? (to a friend)', 'estás', Kit::form('estás', true), null, 'sentences', $set),
             Kit::listenType($stage, 'check.a.listen_type.somos', 'Somos a Marta e o João.', 'We are Marta and João.', [Kit::form('somos')], 'dictation', $set, homophoneNote: 'The a before Marta is the article a (the), not à (to the) and not há (there is).'),
             Kit::listenType($stage, 'check.a.listen_type.ola-tarde', 'Olá, boa tarde, sou o Rui.', 'Hello, good afternoon, I am Rui.', [Kit::word('olá'), Kit::word('boa tarde'), Kit::form('sou')], 'dictation', $set),
@@ -222,9 +230,9 @@ final class GreetingsAndIntroductions implements UnitContent
 
         return [
             Kit::translate($stage, 'check.b.translate.ola-ela', 'Hello, she is Marta.', ['Olá, ela é a Marta.', 'Olá, ela é Marta.'], [Kit::word('olá'), Kit::form('é')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.adeus', 'Goodbye, thank you. (A man speaking.)', ['Adeus, obrigado.', 'Adeus, muito obrigado.', 'Obrigado, adeus.', 'Muito obrigado, adeus.'], [Kit::word('adeus'), Kit::word('obrigado')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.sou-ana', 'I am Ana. Nice to meet you.', ['Sou a Ana. Muito prazer.', 'Sou a Ana, muito prazer.', 'Eu sou a Ana. Muito prazer.', 'Sou Ana. Muito prazer.'], [Kit::word('muito prazer'), Kit::form('sou')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.como', 'Good morning, how are you?', ['Bom dia, como estás?', 'Bom dia, como está?', 'Bom dia, como está o senhor?', 'Bom dia, como estás tu?', 'Bom dia, como está a senhora?'], [Kit::word('bom dia'), Kit::word('como estás?', 'como')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.adeus', 'Goodbye, thank you. (a man speaking)', ['Adeus, obrigado.', 'Adeus, muito obrigado.', 'Obrigado, adeus.', 'Muito obrigado, adeus.'], [Kit::word('adeus'), Kit::word('obrigado')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.sou-ana', 'I am Ana. Nice to meet you.', ['Sou a Ana. Muito prazer.', 'Sou a Ana, muito prazer.', 'Eu sou a Ana. Muito prazer.', 'Sou Ana. Muito prazer.', 'Sou a Ana. Prazer.', 'Sou a Ana. Muito gosto.', 'Eu sou a Ana. Prazer.', 'Eu sou a Ana. Muito gosto.'], [Kit::word('muito prazer', null, ['prazer', 'muito gosto']), Kit::form('sou')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.como', 'Good morning, how are you? (formal)', ['Bom dia, como está?', 'Bom dia, como está o senhor?', 'Bom dia, como está a senhora?'], [Kit::word('bom dia'), Kit::word('como estás?', 'como')], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.estou', 'Eu ___ bem, obrigada.', 'I am fine, thank you.', 'estou', Kit::form('estou', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.marta', 'Como ___ a Marta?', 'How is Marta?', 'está', Kit::form('está', true), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.noite', 'Boa noite, sou a Marta.', 'Good night, I am Marta.', [Kit::word('boa noite'), Kit::form('sou')], 'dictation', $set, homophoneNote: 'The a before Marta is the article a (the), not à (to the) and not há (there is).'),

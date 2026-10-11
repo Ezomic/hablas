@@ -230,10 +230,10 @@ describe('the review gate', function () {
         'the independent AI on the lessons' => [[new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'ai', '2026-10-01')]],
     ]);
 
-    it('seeds every lesson of the released Spanish, French and Italian units', function () {
+    it('seeds every lesson of the released Spanish, French, Italian and Portuguese units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(480)
+        expect(Lesson::query()->count())->toBe(600)
             ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 

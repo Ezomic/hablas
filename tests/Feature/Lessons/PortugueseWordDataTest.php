@@ -63,7 +63,7 @@ describe('the Portuguese word data', function () {
         $slugs = collect($this->contents)->map(fn (UnitContent $content): string => $content->unitSlug())->sort()->values()->all();
 
         expect($slugs)->toBe(Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->orderBy('slug')->pluck('slug')->all())
-            ->and($this->contents)->toHaveCount(8)
+            ->and($this->contents)->toHaveCount(24)
             ->and(collect($this->contents)->every(fn (UnitContent $content): bool => $content->languageCode() === 'pt'))->toBeTrue();
     });
 
@@ -235,34 +235,34 @@ describe('the Portuguese lesson text', function () {
 });
 
 describe('the Portuguese review gate', function () {
-    it('releases nothing: no unit has its words released, so the course stays as it is today', function () {
+    it('releases every unit: the independent reviews and the owner approval are recorded', function () {
         foreach ($this->contents as $content) {
-            expect(ReviewGate::wordsReleased($content))->toBeFalse()
-                ->and(ReviewGate::lessonsReleased($content))->toBeFalse()
-                ->and($content->reviews())->toBe([]);
+            expect(ReviewGate::wordsReleased($content))->toBeTrue($content->unitSlug())
+                ->and(ReviewGate::lessonsReleased($content))->toBeTrue($content->unitSlug())
+                ->and($content->reviews())->toHaveCount(3, $content->unitSlug());
         }
     });
 
-    it('seeds no lesson for a Portuguese unit and leaves Spanish alone', function () {
+    it('seeds the five lessons of every Portuguese unit and leaves Spanish alone', function () {
         $this->seed(ContentSeeder::class);
 
         $portuguese = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('id');
 
-        expect(Lesson::query()->whereIn('unit_id', $portuguese)->count())->toBe(0)
+        expect($portuguese)->toHaveCount(24)
+            ->and(Lesson::query()->whereIn('unit_id', $portuguese)->count())->toBe(120)
             ->and(Lesson::query()->whereNotIn('unit_id', $portuguese)->count())->toBe(480);
     });
 
-    it('shows a Portuguese learner every lesson of every Portuguese unit as still coming, with nothing to start', function () {
+    it('gives a Portuguese learner a lesson to start in every lesson of every Portuguese unit', function () {
         $this->seed(ContentSeeder::class);
         $user = LessonWorld::learner(language: LessonWorld::portuguese());
 
         foreach (Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->get() as $unit) {
             $overview = (new GetUnitLessonOverview)->handle($user, $unit);
 
-            expect(array_column($overview['lessons'], 'state'))->toBe(['coming', 'coming', 'coming', 'coming', 'coming'], $unit->slug)
-                ->and(array_column($overview['lessons'], 'lessonId'))->toBe([null, null, null, null, null], $unit->slug)
-                ->and($overview['contentPending'])->toBeFalse()
-                ->and($overview['canTestOut'])->toBeFalse();
+            expect($overview['lessons'])->toHaveCount(5, $unit->slug)
+                ->and(array_filter(array_column($overview['lessons'], 'lessonId'), fn ($id): bool => $id === null))->toBe([], $unit->slug)
+                ->and($overview['contentPending'])->toBeFalse();
         }
     });
 

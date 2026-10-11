@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Pt;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -58,7 +61,11 @@ final class TalkingAboutYourFamily implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-11', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural European Portuguese (Portugal). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-11', 'The exercises of this unit were reviewed by a separate reviewer for natural European Portuguese (Portugal), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-11', 'Released on the owner\'s instruction on 2026-10-11, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -77,31 +84,31 @@ final class TalkingAboutYourFamily implements UnitContent
             Kit::typeGap($stage, 'sentences.type_gap.o-meu-pai', '___ pai está aqui.', 'My father is here.', 'o meu', Kit::form('o meu'), 'Pai is masculine and singular, so o meu. Keep the article, unlike Spanish.'),
             Kit::typeGap($stage, 'sentences.type_gap.familia', 'A ___ está aqui.', 'The family is here.', 'família', Kit::word('a família', 'família')),
             Kit::typeGap($stage, 'sentences.type_gap.os-meus-avos', '___ avós estão aqui.', 'My grandparents are here.', 'os meus', Kit::form('os meus', true), 'Avós is plural, so the possessive and the article are plural too: os meus.'),
-            Kit::typeGap($stage, 'sentences.type_gap.os-seus', 'A Marta e ___ irmãos estão aqui.', 'Marta and her brothers are here.', 'os seus', Kit::form('os seus', true), 'Seu agrees with the thing owned: more than one brother, so os seus.'),
-            Kit::typeGap($stage, 'sentences.type_gap.o-teu', 'Ana, ___ pai está aqui?', 'Ana, is your father here?', 'o teu', Kit::form('o teu'), 'Your, to a friend, is teu or tua, and with the article: o teu pai.'),
+            Kit::typeGap($stage, 'sentences.type_gap.os-teus', 'Ana, ___ filhos estão aqui?', 'Ana, are your sons here? (To a friend.)', 'os teus', Kit::form('os teus', true), 'Teu agrees with the thing owned: more than one son, so os teus.'),
+            Kit::typeGap($stage, 'sentences.type_gap.o-teu', 'Ana, ___ pai está aqui?', 'Ana, is your father here? (To a friend.)', 'o teu', Kit::form('o teu'), 'Your, to a friend, is teu or tua, and with the article: o teu pai.'),
 
             Kit::translate($stage, 'sentences.translate.mae', 'My mother is here.', ['A minha mãe está aqui.'], [Kit::word('a mãe', 'mãe'), Kit::form('a minha')]),
             Kit::translate($stage, 'sentences.translate.irma', 'Your sister is married. (To a friend.)', ['A tua irmã é casada.', 'A tua irmã está casada.'], [Kit::word('a irmã', 'irmã'), Kit::word('casado', 'casada'), Kit::form('a tua')]),
             Kit::translate($stage, 'sentences.translate.filhos', 'My sons are single.', ['Os meus filhos são solteiros.', 'Os meus filhos estão solteiros.'], [Kit::word('o filho', 'filhos'), Kit::word('solteiro', 'solteiros'), Kit::form('os meus', true)]),
-            Kit::build($stage, 'sentences.build.filho-solteiro', 'Her son is single.', 'O seu filho é solteiro.', ['sua'], [Kit::word('o filho', 'filho'), Kit::word('solteiro'), Kit::form('o seu')]),
+            Kit::build($stage, 'sentences.build.filho-solteiro', 'Her son is single.', 'O filho dela é solteiro.', ['dele'], [Kit::word('o filho', 'filho'), Kit::word('solteiro'), Kit::form('dela')]),
             Kit::build($stage, 'sentences.build.avos', 'My grandparents are here.', 'Os meus avós estão aqui.', ['meu'], [Kit::word('os avós', 'avós'), Kit::form('os meus', true)]),
             Kit::build($stage, 'sentences.build.irmao-mais-velho', 'My brother is older.', 'O meu irmão é mais velho.', ['maior'], [Kit::word('o irmão', 'irmão'), Kit::word('mais velho'), Kit::form('o meu')], glosses: ['maior' => 'bigger']),
 
             Kit::listenChoose($stage, 'sentences.listen_choose.irma', 'A minha irmã está aqui.', ['My sister is here.', 'My brother is here.', 'My mother is here.', 'My daughter is here.'], 'My sister is here.', [Kit::word('a irmã', 'irmã'), Kit::form('a minha')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.irmao', 'O meu irmão está aqui.', ['My brother is here.', 'My sister is here.', 'My father is here.', 'My son is here.'], 'My brother is here.', [Kit::word('o irmão', 'irmão'), Kit::form('o meu')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.avos', 'Os meus avós são casados.', ['My grandparents are married.', 'My grandparents are older.', 'My parents are married.', 'My brothers are married.'], 'My grandparents are married.', [Kit::word('os avós', 'avós'), Kit::word('casado', 'casados'), Kit::form('os meus', true)]),
-            Kit::listenType($stage, 'sentences.listen_type.mae-casada', 'A minha mãe é casada.', 'My mother is married.', [Kit::word('a mãe', 'mãe'), Kit::word('casado', 'casada'), Kit::form('a minha')], homophoneNote: 'The first word is the article a (the), not à (to the) and not há (there is).'),
-            Kit::listenType($stage, 'sentences.listen_type.familia', 'A família está aqui.', 'The family is here.', [Kit::word('a família')], homophoneNote: 'The first word is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'sentences.listen_type.mae-casada', 'A minha mãe é casada.', 'My mother is married.', [Kit::word('a mãe', 'mãe'), Kit::word('casado', 'casada'), Kit::form('a minha')], homophoneNote: 'Spell the first word as plain a (the article), not à or há.'),
+            Kit::listenType($stage, 'sentences.listen_type.familia', 'A família está aqui.', 'The family is here.', [Kit::word('a família')], homophoneNote: 'Spell the first word as plain a (the article), not à or há.'),
             Kit::listenType($stage, 'sentences.listen_type.filho-solteiro', 'O meu filho é solteiro.', 'My son is single.', [Kit::word('o filho', 'filho'), Kit::word('solteiro'), Kit::form('o meu')]),
-            Kit::listenType($stage, 'sentences.listen_type.pai-mae', 'O pai e a mãe estão aqui.', 'The father and the mother are here.', [Kit::word('o pai', 'pai'), Kit::word('a mãe', 'mãe')], homophoneNote: 'The a before mãe is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'sentences.listen_type.pai-mae', 'O pai e a mãe estão aqui.', 'The father and the mother are here.', [Kit::word('o pai', 'pai'), Kit::word('a mãe', 'mãe')], homophoneNote: 'Spell the a before mãe as plain a (the article), not à or há.'),
 
             Kit::speakRepeat($stage, 'sentences.speak_repeat.irma-mais-velha', 'A minha irmã é mais velha.', 'My sister is older.', [Kit::word('a irmã', 'irmã'), Kit::word('mais velho', 'mais velha'), Kit::form('a minha')]),
-            Kit::speakRepeat($stage, 'sentences.speak_repeat.filho-casado', 'O seu filho é casado.', 'Her son is married.', [Kit::word('o filho', 'filho'), Kit::word('casado'), Kit::form('o seu')]),
+            Kit::speakRepeat($stage, 'sentences.speak_repeat.filho-casado', 'O filho dele é casado.', 'His son is married.', [Kit::word('o filho', 'filho'), Kit::word('casado'), Kit::form('dele')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.irma-do-rui', 'A Marta é a irmã do Rui.', 'Marta is Rui\'s sister.', [Kit::word('a irmã', 'irmã')]),
             Kit::speakRepeat($stage, 'sentences.speak_repeat.pai-casado', 'O meu pai é casado.', 'My father is married.', [Kit::word('o pai', 'pai'), Kit::word('casado'), Kit::form('o meu')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.irmaos', 'Tens irmãos?', 'Do you have brothers or sisters?', [['sim', 'não', 'tenho', 'irmão', 'irmãos', 'irmã', 'uma', 'um', 'dois', 'duas']], 'Sim, tenho uma irmã.', [Kit::word('a irmã', 'irmã')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.irmaos', 'Tens irmãos?', 'Do you have brothers or sisters?', [['sim', 'não', 'tenho', 'irmão', 'irmãos', 'irmã', 'irmãs', 'uma', 'um', 'dois', 'duas', 'três']], 'Sim, tenho uma irmã.', [Kit::word('a irmã', 'irmã')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.irmao-casado', 'O teu irmão é casado?', 'Is your brother married?', [['sim', 'não', 'é', 'meu', 'casado', 'solteiro']], 'Sim, o meu irmão é casado.', [Kit::word('o irmão', 'irmão'), Kit::word('casado'), Kit::form('o meu')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.marta', 'Quem é a Marta?', 'Who is Marta?', [['a', 'minha', 'é', 'marta'], ['irmã', 'mãe', 'família']], 'A Marta é a minha irmã.', [Kit::word('a irmã', 'irmã'), Kit::form('a minha')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.marta', 'Quem é a Marta?', 'Who is Marta?', [['a', 'minha', 'é', 'marta'], ['irmã', 'mãe']], 'A Marta é a minha irmã.', [Kit::word('a irmã', 'irmã'), Kit::form('a minha')]),
         ];
     }
 
@@ -109,13 +116,20 @@ final class TalkingAboutYourFamily implements UnitContent
     private function task(): array
     {
         $stage = Stage::Task;
+        $casada = [];
+
+        foreach (['é', 'está'] as $copula) {
+            foreach (['também', 'também é', 'também está', 'também é casado', 'também está casado', 'é casado também', 'está casado também'] as $father) {
+                $casada[] = sprintf('A minha mãe %s casada e o meu pai %s.', $copula, $father);
+            }
+        }
 
         return [
             Kit::readPassage($stage, 'task.read_passage.familia', 'Read the conversation about Marta\'s family.', [
                 Kit::line('Rui', 'Marta, tens irmãos?'),
                 Kit::line('Marta', 'Tenho uma irmã e um irmão. A minha irmã é solteira.'),
                 Kit::line('Rui', 'E o teu irmão?'),
-                Kit::line('Marta', 'O meu irmão é mais velho e é casado. O seu filho está aqui.'),
+                Kit::line('Marta', 'O meu irmão é mais velho e é casado. O filho dele está aqui.'),
                 Kit::line('Rui', 'E o teu pai e a tua mãe?'),
                 Kit::line('Marta', 'O meu pai e a minha mãe estão aqui. Os meus avós também.'),
             ], [
@@ -123,8 +137,8 @@ final class TalkingAboutYourFamily implements UnitContent
                 Kit::question('Who is older and married?', ['Her sister', 'Her brother', 'Her father'], 'Her brother'),
                 Kit::question('Who is here with Marta?', ['Only her brother', 'Her father, her mother and her grandparents', 'Nobody'], 'Her father, her mother and her grandparents'),
             ], [Kit::word('o pai'), Kit::word('a mãe'), Kit::word('o irmão'), Kit::word('a irmã'), Kit::word('o filho'), Kit::word('os avós', 'avós'), Kit::word('casado'), Kit::word('solteiro'), Kit::word('mais velho')]),
-            Kit::gap($stage, 'task.choose_gap.pai', 'O João é o ___ da Ana.', ['pai', 'mãe'], 'pai', Kit::word('o pai', 'pai'), 'O goes with a masculine noun, so the father.', 'read'),
-            Kit::gap($stage, 'task.choose_gap.mae', 'A Marta é a ___ do Rui.', ['mãe', 'pai'], 'mãe', Kit::word('a mãe', 'mãe'), 'A goes with a feminine noun, so the mother.', 'read'),
+            Kit::gap($stage, 'task.choose_gap.pai', 'O ___ da Ana está aqui.', ['pai', 'mãe'], 'pai', Kit::word('o pai', 'pai'), 'O goes with a masculine noun, so the father.', 'read'),
+            Kit::gap($stage, 'task.choose_gap.mae', 'A ___ da Ana está aqui.', ['mãe', 'pai'], 'mãe', Kit::word('a mãe', 'mãe'), 'A goes with a feminine noun, so the mother.', 'read'),
 
             Kit::transform($stage, 'task.transform.irmaos', 'Make it plural.', 'O meu irmão é casado.', ['Os meus irmãos são casados.', 'Os meus irmãos estão casados.'], [Kit::word('o irmão', 'irmãos'), Kit::word('casado', 'casados'), Kit::form('os meus', true)]),
             Kit::transform($stage, 'task.transform.irmas', 'Make it plural.', 'A minha irmã é solteira.', ['As minhas irmãs são solteiras.', 'As minhas irmãs estão solteiras.'], [Kit::word('a irmã', 'irmãs'), Kit::word('solteiro', 'solteiras'), Kit::form('as minhas', true)]),
@@ -140,10 +154,10 @@ final class TalkingAboutYourFamily implements UnitContent
                 ['forms' => ['avós'], 'term' => 'os avós'],
             ], [Kit::word('o pai'), Kit::word('casado'), Kit::word('os avós', 'avós')]),
             Kit::build($stage, 'task.build.mae-avos', 'My mother is here with my grandparents.', 'A minha mãe está aqui com os meus avós.', ['meu', 'as'], [Kit::word('a mãe', 'mãe'), Kit::word('os avós', 'avós'), Kit::form('os meus', true)], 'write'),
-            Kit::build($stage, 'task.build.filho-velho', 'Her son is older and single.', 'O seu filho é mais velho e solteiro.', ['maior', 'casado'], [Kit::word('o filho', 'filho'), Kit::word('mais velho'), Kit::word('solteiro'), Kit::form('o seu')], 'write', ['maior' => 'bigger']),
-            Kit::build($stage, 'task.build.irmaos-casados', 'Ana, your brother and your sister are married.', 'O teu irmão e a tua irmã são casados.', ['é', 'teus'], [Kit::word('o irmão', 'irmão'), Kit::word('a irmã', 'irmã'), Kit::word('casado', 'casados'), Kit::form('o teu')], 'write'),
+            Kit::build($stage, 'task.build.filho-velho', 'Her son is older.', 'O seu filho é mais velho.', ['maior', 'casado'], [Kit::word('o filho', 'filho'), Kit::word('mais velho'), Kit::form('o seu')], 'write', ['maior' => 'bigger']),
+            Kit::build($stage, 'task.build.irmaos-casados', 'Your brother and your sister are married. (To a friend.)', 'O teu irmão e a tua irmã são casados.', ['é', 'teus'], [Kit::word('o irmão', 'irmão'), Kit::word('a irmã', 'irmã'), Kit::word('casado', 'casados'), Kit::form('o teu')], 'write'),
             Kit::translate($stage, 'task.translate.joao-marta', 'João is my brother. Marta is my sister.', ['O João é o meu irmão. A Marta é a minha irmã.', 'O João é o meu irmão. Marta é a minha irmã.', 'João é o meu irmão. A Marta é a minha irmã.', 'João é o meu irmão. Marta é a minha irmã.'], [Kit::word('o irmão', 'irmão'), Kit::word('a irmã', 'irmã'), Kit::form('o meu')], 'write'),
-            Kit::translate($stage, 'task.translate.casada', 'My mother is married and my father is too.', ['A minha mãe é casada e o meu pai também.', 'A minha mãe é casada e o meu pai também é casado.', 'A minha mãe é casada e o meu pai é casado também.', 'A minha mãe está casada e o meu pai também.', 'A minha mãe está casada e o meu pai também está casado.', 'A minha mãe está casada e o meu pai está casado também.', 'A minha mãe é casada e o meu pai também está casado.', 'A minha mãe é casada e o meu pai também é.', 'A minha mãe é casada e o meu pai também está.', 'A minha mãe está casada e o meu pai também é.', 'A minha mãe está casada e o meu pai também está.'], [Kit::word('a mãe', 'mãe'), Kit::word('o pai', 'pai'), Kit::word('casado', 'casada'), Kit::form('a minha')], 'write'),
+            Kit::translate($stage, 'task.translate.casada', 'My mother is married and my father is too.', $casada, [Kit::word('a mãe', 'mãe'), Kit::word('o pai', 'pai'), Kit::word('casado', 'casada'), Kit::form('a minha')], 'write'),
 
             Kit::listenPassage($stage, 'task.listen_passage.irmao', [
                 Kit::line('João', 'Ana, o teu irmão é casado?'),
@@ -161,7 +175,7 @@ final class TalkingAboutYourFamily implements UnitContent
                 Kit::question('How many people speak?', ['One', 'Two', 'Three'], 'Two'),
             ], [Kit::word('o irmão'), Kit::word('casado'), Kit::word('solteiro'), Kit::word('a irmã'), Kit::word('os avós', 'avós'), Kit::word('a família'), Kit::word('o pai')], 'listen'),
             Kit::listenType($stage, 'task.listen_type.irmao-velho', 'O meu irmão mais velho é casado.', 'My older brother is married.', [Kit::word('o irmão', 'irmão'), Kit::word('mais velho'), Kit::word('casado'), Kit::form('o meu')]),
-            Kit::listenType($stage, 'task.listen_type.familia', 'A família da Marta está aqui.', 'Marta\'s family is here.', [Kit::word('a família')], homophoneNote: 'The first word is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'task.listen_type.familia', 'A família da Marta está aqui.', 'Marta\'s family is here.', [Kit::word('a família')], homophoneNote: 'Spell the first word as plain a (the article), not à or há.'),
             Kit::listenType($stage, 'task.listen_type.avos-pai', 'Os teus avós e o teu pai estão aqui.', 'Your grandparents and your father are here.', [Kit::word('os avós', 'avós'), Kit::word('o pai', 'pai'), Kit::form('os teus', true)]),
 
             Kit::speakAnswer($stage, 'task.speak_answer.mae', 'A tua mãe é casada?', 'Is your mother married?', [['sim', 'não', 'é', 'minha', 'casada', 'solteira']], 'Sim, a minha mãe é casada.', [Kit::word('a mãe', 'mãe'), Kit::word('casado', 'casada'), Kit::form('a minha')], 'speak'),
@@ -181,19 +195,19 @@ final class TalkingAboutYourFamily implements UnitContent
 
         return [
             Kit::translate($stage, 'check.a.translate.irma', 'Your sister is older. (To a friend.)', ['A tua irmã é mais velha.'], [Kit::word('a irmã', 'irmã'), Kit::word('mais velho', 'mais velha'), Kit::form('a tua')], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.pai', 'Her father is married.', ['O seu pai é casado.', 'O seu pai está casado.'], [Kit::word('o pai', 'pai'), Kit::word('casado'), Kit::form('o seu')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.pai', 'Her father is married.', ['O seu pai é casado.', 'O seu pai está casado.', 'O pai dele é casado.', 'O pai dele está casado.', 'O pai dela é casado.', 'O pai dela está casado.'], [Kit::word('o pai', 'pai'), Kit::word('casado'), Kit::form('o seu', alternates: ['dele', 'dela'])], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.irmaos', 'My brothers are single.', ['Os meus irmãos são solteiros.', 'Os meus irmãos estão solteiros.'], [Kit::word('o irmão', 'irmãos'), Kit::word('solteiro', 'solteiros'), Kit::form('os meus', true)], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.filho', 'My son is with my grandparents.', ['O meu filho está com os meus avós.'], [Kit::word('o filho', 'filho'), Kit::word('os avós', 'avós')], 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.a-sua', 'A Marta está com ___ mãe.', 'Marta is with her mother.', 'a sua', Kit::form('a sua'), null, 'sentences', $set),
+            Kit::typeGap($stage, 'check.a.type_gap.o-teu', '___ pai está com os avós.', 'Your father is with the grandparents. (To a friend.)', 'o teu', Kit::form('o teu'), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.as-minhas', '___ irmãs estão aqui.', 'My sisters are here.', 'as minhas', Kit::form('as minhas', true), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.a.listen_type.mae-familia', 'A minha mãe está com a família.', 'My mother is with the family.', [Kit::word('a mãe', 'mãe'), Kit::word('a família', 'família'), Kit::form('a minha')], 'dictation', $set, homophoneNote: 'Both a words are the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'check.a.listen_type.mae-familia', 'A minha mãe está com a família.', 'My mother is with the family.', [Kit::word('a mãe', 'mãe'), Kit::word('a família', 'família'), Kit::form('a minha')], 'dictation', $set, homophoneNote: 'Spell both a words as plain a (the article), not à or há.'),
             Kit::listenType($stage, 'check.a.listen_type.irmao-casado', 'O irmão do Rui é casado.', 'Rui\'s brother is married.', [Kit::word('o irmão', 'irmão'), Kit::word('casado')], 'dictation', $set),
-            Kit::listenType($stage, 'check.a.listen_type.irma-solteira', 'A irmã da Marta é solteira.', 'Marta\'s sister is single.', [Kit::word('a irmã', 'irmã'), Kit::word('solteiro', 'solteira')], 'dictation', $set, homophoneNote: 'The first word is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'check.a.listen_type.irma-solteira', 'A irmã da Marta é solteira.', 'Marta\'s sister is single.', [Kit::word('a irmã', 'irmã'), Kit::word('solteiro', 'solteira')], 'dictation', $set, homophoneNote: 'Spell the first word as plain a (the article), not à or há.'),
             Kit::listenPassage($stage, 'check.a.listen_passage.irma', [
                 Kit::line('Marta', 'Rui, a tua irmã é casada?'),
                 Kit::line('Rui', 'Não, é solteira. Mas o meu irmão é casado.'),
                 Kit::line('Marta', 'E o teu irmão é mais velho?'),
-                Kit::line('Rui', 'Sim. O seu filho está com os meus avós.'),
+                Kit::line('Rui', 'Sim. O filho dele está com os meus avós.'),
             ], [
                 Kit::question('Is Rui\'s sister married?', ['Yes', 'No', 'The conversation does not say.'], 'No'),
                 Kit::question('Who is married?', ['Rui\'s sister', 'Rui\'s brother', 'Marta\'s brother'], 'Rui\'s brother'),
@@ -226,14 +240,14 @@ final class TalkingAboutYourFamily implements UnitContent
 
         return [
             Kit::translate($stage, 'check.b.translate.mae-pai', 'My mother is here with my father.', ['A minha mãe está aqui com o meu pai.'], [Kit::word('a mãe', 'mãe'), Kit::word('o pai', 'pai'), Kit::form('a minha')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.irma', 'Her sister is married.', ['A sua irmã é casada.', 'A sua irmã está casada.'], [Kit::word('a irmã', 'irmã'), Kit::word('casado', 'casada'), Kit::form('a sua')], 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.irma', 'Her sister is married.', ['A sua irmã é casada.', 'A sua irmã está casada.', 'A irmã dele é casada.', 'A irmã dele está casada.', 'A irmã dela é casada.', 'A irmã dela está casada.'], [Kit::word('a irmã', 'irmã'), Kit::word('casado', 'casada'), Kit::form('a sua', alternates: ['dele', 'dela'])], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.filhos', 'My sons are older.', ['Os meus filhos são mais velhos.'], [Kit::word('o filho', 'filhos'), Kit::word('mais velho', 'mais velhos'), Kit::form('os meus', true)], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.avos', 'Your grandparents are married. (To a friend.)', ['Os teus avós são casados.', 'Os teus avós estão casados.'], [Kit::word('os avós', 'avós'), Kit::word('casado', 'casados'), Kit::form('os teus', true)], 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.a-tua', '___ família está aqui.', 'Your family is here. (To a friend.)', 'a tua', Kit::form('a tua'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.o-seu', 'O Rui está com ___ irmão.', 'Rui is with his brother.', 'o seu', Kit::form('o seu'), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.b.listen_type.familia', 'A família da Ana está aqui.', 'Ana\'s family is here.', [Kit::word('a família', 'família')], 'dictation', $set, homophoneNote: 'The first word is the article a (the), not à (to the) and not há (there is).'),
+            Kit::typeGap($stage, 'check.b.type_gap.as-tuas', '___ irmãs estão com a mãe.', 'Your sisters are with the mother. (To a friend.)', 'as tuas', Kit::form('as tuas', true), null, 'sentences', $set),
+            Kit::listenType($stage, 'check.b.listen_type.familia', 'A família da Ana está aqui.', 'Ana\'s family is here.', [Kit::word('a família', 'família')], 'dictation', $set, homophoneNote: 'Spell the first word as plain a (the article), not à or há.'),
             Kit::listenType($stage, 'check.b.listen_type.irmao-solteiro', 'O irmão da Ana é solteiro.', 'Ana\'s brother is single.', [Kit::word('o irmão', 'irmão'), Kit::word('solteiro')], 'dictation', $set),
-            Kit::listenType($stage, 'check.b.listen_type.mae-casada', 'A mãe do Rui é casada.', 'Rui\'s mother is married.', [Kit::word('a mãe', 'mãe'), Kit::word('casado', 'casada')], 'dictation', $set, homophoneNote: 'The first word is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'check.b.listen_type.mae-casada', 'A mãe do Rui é casada.', 'Rui\'s mother is married.', [Kit::word('a mãe', 'mãe'), Kit::word('casado', 'casada')], 'dictation', $set, homophoneNote: 'Spell the first word as plain a (the article), not à or há.'),
         ];
     }
 }
