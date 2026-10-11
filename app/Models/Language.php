@@ -40,6 +40,12 @@ class Language extends Model
         return self::localize($this->name);
     }
 
+    /** @return HasMany<VocabularyItem, $this> */
+    public function vocabularyItems(): HasMany
+    {
+        return $this->hasMany(VocabularyItem::class);
+    }
+
     /** @return HasMany<UserSkillLevel, $this> */
     public function userSkillLevels(): HasMany
     {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Library, LogOut, Settings } from '@lucide/vue';
+import { Languages, Library, LogOut, Settings } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import InstallAppButton from '@/components/InstallAppButton.vue';
@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import UserInfo from '@/components/UserInfo.vue';
 import { clearOfflineData } from '@/composables/useOfflineSync';
 import { logout } from '@/routes';
+import { index as dutchReviewIndex } from '@/routes/dutch-review';
 import { edit } from '@/routes/profile';
 import { index as unitsIndex } from '@/routes/units';
 
@@ -35,6 +36,16 @@ function handleLogout() {
                     >
                         <Library class="size-5 text-muted-foreground" />
                         {{ t('nav.units') }}
+                    </Link>
+                </li>
+                <li v-if="page.props.supportedLocales.includes('nl')">
+                    <Link
+                        :href="dutchReviewIndex()"
+                        class="flex items-center gap-3 px-4 py-3 text-sm active:bg-accent"
+                        data-test="dutch-review-link"
+                    >
+                        <Languages class="size-5 text-muted-foreground" />
+                        {{ t('nav.dutchReview') }}
                     </Link>
                 </li>
                 <li>
