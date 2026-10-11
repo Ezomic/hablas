@@ -288,6 +288,15 @@ const nextIsOpen = computed(
                 }}
             </Button>
             <p
+                v-else-if="
+                    props.next?.state === 'locked' &&
+                    props.next.stage === 'check'
+                "
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('lesson.summary.checkLocked') }}
+            </p>
+            <p
                 v-else-if="props.next?.state === 'opens_tomorrow'"
                 class="text-sm text-muted-foreground"
             >

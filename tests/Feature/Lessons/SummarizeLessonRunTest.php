@@ -87,7 +87,18 @@ it('has nothing next when the next lesson waits for another day', function () {
     LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Sentences)));
     $fourth = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Task)));
 
+    LessonWorld::masterEverySkill($this->user, $this->unit);
+
     expect((app(PresentLessonRun::class))->handle($fourth)['run']['next'])->toMatchArray(['stage' => 'check', 'state' => 'opens_tomorrow']);
+});
+
+it('reports the check as locked while the lessons and skills are not mastered yet', function () {
+    LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Meet)));
+    LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Recall)));
+    LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Sentences)));
+    $fourth = LessonWorld::play($this->user, (new StartLessonRun)->handle($this->user, LessonWorld::lesson($this->unit, LessonStage::Task)));
+
+    expect((app(PresentLessonRun::class))->handle($fourth)['run']['next'])->toMatchArray(['stage' => 'check', 'state' => 'locked']);
 });
 
 it('describes the items of a result, and skips a reference that points at nothing', function () {
