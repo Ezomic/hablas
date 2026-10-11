@@ -42,42 +42,37 @@ function portugueseUnits(): array
     return $units;
 }
 
-describe('every Portuguese unit stays behind the review gate', function () {
+describe('every Portuguese unit is released', function () {
     beforeEach(function () {
         $this->seed(LanguageSeeder::class);
         $this->seed(PortugueseA1Seeder::class);
     });
 
-    it('has a class for each of the eight Portuguese units and no other', function () {
+    it('has a class for each of the 24 Portuguese units and no other', function () {
         expect(array_keys(portugueseUnits()))->toEqualCanonicalizing(Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('slug')->all())
-            ->and(portugueseUnits())->toHaveCount(8);
+            ->and(portugueseUnits())->toHaveCount(24);
     });
 
-    it('is written but released at no level: no independent AI review or owner approval is recorded, so neither the words nor the lessons are seeded', function () {
+    it('has the independent AI reviews and the owner approval recorded', function () {
         foreach (portugueseUnits() as $slug => $content) {
-            expect($content->reviews())->toBe([], $slug)
-                ->and(ReviewGate::wordsReleased($content))->toBeFalse($slug)
-                ->and(ReviewGate::lessonsReleased($content))->toBeFalse($slug)
-                ->and($content->exercises())->not->toBeEmpty($slug);
+            expect(ReviewGate::wordsReleased($content))->toBeTrue($slug)
+                ->and(ReviewGate::lessonsReleased($content))->toBeTrue($slug)
+                ->and($content->exercises())->not->toBeEmpty($slug)
+                ->and($content->reviews())->toHaveCount(3, $slug);
         }
     });
 
-    it('seeds no lesson of any Portuguese unit through ContentSeeder, so none of them can be played', function () {
+    it('seeds every authored lesson through ContentSeeder', function () {
         $this->seed(ContentSeeder::class);
 
-        $units = Unit::query()->whereHas('language', fn ($query) => $query->where('code', 'pt'))->pluck('id');
-
-        expect($units)->toHaveCount(8)
-            ->and(Lesson::query()->whereIn('unit_id', $units)->count())->toBe(0)
-            ->and(LessonExercise::query()->whereHas('lesson', fn ($query) => $query->whereIn('unit_id', $units))->count())->toBe(0)
-            ->and(Lesson::query()->playable()->whereIn('unit_id', $units)->count())->toBe(0);
-    });
-
-    it('builds no lesson from unreleased content', function () {
         foreach (portugueseUnits() as $slug => $content) {
             $unit = Unit::query()->where('slug', $slug)->whereHas('language', fn ($query) => $query->where('code', 'pt'))->firstOrFail();
+            $lessons = Lesson::query()->where('unit_id', $unit->id)->orderBy('position')->get();
+            $exercises = LessonExercise::query()->whereIn('lesson_id', $lessons->pluck('id'))->get();
+            $authoredKeys = collect($content->exercises())->map(fn (AuthoredExercise $exercise): string => $exercise->key);
 
-            expect((new BuildUnitLessons)->handle($unit, $content))->toBe([], $slug);
+            expect($lessons->map(fn (Lesson $lesson): string => $lesson->stage->value)->all())->toBe(['meet', 'recall', 'sentences', 'task', 'check'], $slug)
+                ->and($exercises->pluck('key')->intersect($authoredKeys)->count())->toBe($authoredKeys->count(), $slug);
         }
     });
 });

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Database\Content\Lessons\Pt;
 
 use App\Enums\LessonStage as Stage;
+use App\Enums\ReviewKind;
+use App\Enums\ReviewScope;
 use App\Lessons\AuthoredExercise;
+use App\Lessons\ContentReview;
 use App\Lessons\ExerciseKit as Kit;
 use App\Lessons\UnitContent;
 use App\Lessons\WordData;
@@ -34,7 +37,7 @@ final class AskingForDirections implements UnitContent
             new WordData('longe', cue: 'far', portunolSlips: ['lejos']),
             new WordData('o mapa', cue: 'map', questions: ['Is "o mapa" right for a street map in Portugal, or would "a planta" (town plan) be said for a city? The exercises say "Tens o mapa?" and "O mapa está aqui."']),
             new WordData('onde fica...?', cue: 'where is...? (asking where a place is)', accepted: ['onde está...?', 'onde fica', 'onde está'], portunolSlips: ['dónde está', 'dónde queda'], questions: ['Are "onde fica a rua?" and "onde está a rua?" both right and equally natural, and is the answer "Fica à direita" natural (not "Está à direita")? The exercises also accept "onde está" and "está" in the translations.']),
-            new WordData('a praça', cue: 'square (in a town)', portunolSlips: ['la plaza', 'a plaza'], questions: ['Is "a praça" the natural word for a town square in Portugal, and is "Parto da praça às três" natural for I leave the square at three, or would "saio da praça" be said?']),
+            new WordData('a praça', cue: 'square (in a town)', portunolSlips: ['la plaza', 'a plaza'], questions: ['Is "a praça" the natural word for a town square in Portugal, and is "Parto da praça às três" natural for I depart from the square at three?']),
         ];
     }
 
@@ -42,7 +45,7 @@ final class AskingForDirections implements UnitContent
     {
         return [
             ['text' => 'Como na praça.', 'english' => 'I eat in the square.'],
-            ['text' => 'Partimos da rua.', 'english' => 'We leave the street.'],
+            ['text' => 'Partimos da praça às duas.', 'english' => 'We depart from the square at two.'],
         ];
     }
 
@@ -58,7 +61,11 @@ final class AskingForDirections implements UnitContent
 
     public function reviews(): array
     {
-        return [];
+        return [
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Words, 'independent AI review (model knowledge, no dictionary pass)', '2026-10-11', 'Terms, articles, genders, translations, cues, accepted answers, forms and the grammar explanation checked by a separate reviewer for correct and natural European Portuguese (Portugal). A dictionary pass is still open.'),
+            new ContentReview(ReviewKind::IndependentAi, ReviewScope::Lessons, 'independent AI review of the exercises', '2026-10-11', 'The exercises of this unit were reviewed by a separate reviewer for natural European Portuguese (Portugal), one defensible answer, distractors, accepted answers and speaking slots, and the findings were fixed. Structure is checked by the content test.'),
+            new ContentReview(ReviewKind::Owner, ReviewScope::Lessons, 'owner', '2026-10-11', 'Released on the owner\'s instruction on 2026-10-11, without a line by line review of the lessons.'),
+        ];
     }
 
     /** @return list<AuthoredExercise> */
@@ -67,32 +74,32 @@ final class AskingForDirections implements UnitContent
         $stage = Stage::Sentences;
 
         return [
-            Kit::gap($stage, 'sentences.choose_gap.nos-praca', 'Nós ___ na praça.', ['comemos', 'comes', 'comem'], 'comemos', Kit::form('comemos'), 'Nós takes -emos in an -er verb like comer.', 'choose', 'We eat in the square.'),
+            Kit::gap($stage, 'sentences.choose_gap.nos-praca', 'Nós ___ na esquina.', ['comemos', 'comes', 'comem'], 'comemos', Kit::form('comemos'), 'Nós takes -emos in an -er verb like comer.', 'choose', 'We eat on the corner.'),
             Kit::gap($stage, 'sentences.choose_gap.nos-partimos', 'Nós ___ da praça às duas.', ['partimos', 'comemos', 'partem'], 'partimos', Kit::form('partimos', true), 'The verb is partir, an -ir verb, so nós ends in -imos and not in -emos like comer.', 'choose', 'We leave the square at two.'),
-            Kit::gap($stage, 'sentences.choose_gap.ana-parte', 'A Ana ___ da praça às três.', ['parte', 'parto', 'partes'], 'parte', Kit::form('parte'), 'Ana is a she, so the -ir verb ends in -e.', 'choose', 'Ana leaves the square at three.'),
-            Kit::gap($stage, 'sentences.choose_gap.perto', 'Não fica longe, fica ___.', ['perto', 'cerca'], 'perto', Kit::word('perto'), 'Perto is the Portuguese word for near. Cerca is the Spanish word.', 'choose', 'It is not far, it is near.', ['cerca' => 'near (Spanish, not Portuguese)']),
-            Kit::gap($stage, 'sentences.choose_gap.fica-perto', 'A rua ___ perto da praça.', ['fica', 'come', 'parte'], 'fica', Kit::form('fica', true), 'Where a place is takes ficar. Comer and partir are verbs for doing, not for saying where something is.', 'choose', 'The street is near the square.'),
+            Kit::gap($stage, 'sentences.choose_gap.ana-parte', 'A Ana ___ da praça às três.', ['parte', 'parto', 'partes'], 'parte', Kit::form('parte'), 'Ana is a she, so the -ir verb ends in -e.', 'choose', 'Ana departs from the square at three.'),
+            Kit::gap($stage, 'sentences.choose_gap.perto', 'Não fica longe, fica ___.', ['perto', 'cerca'], 'perto', Kit::word('perto'), 'Perto is the Portuguese word for near. Spanish uses cerca, and in Portuguese cerca means a fence or about (cerca de).', 'choose', 'It is not far, it is near.', ['cerca' => 'fence / about (not near in Portuguese)']),
+            Kit::gap($stage, 'sentences.choose_gap.fica-perto', 'A rua ___ perto da praça.', ['fica', 'come', 'parte'], 'fica', Kit::form('fica', true), 'For where a fixed place is, ficar is the natural verb. Comer and partir are verbs for doing, not for saying where something is.', 'choose', 'The street is near the square.'),
             Kit::gap($stage, 'sentences.choose_gap.esquerda', 'A esquina fica ___.', ['à esquerda', 'à direita', 'longe'], 'à esquerda', Kit::word('à esquerda'), 'On the left is the fixed phrase à esquerda.', 'choose', 'The corner is on the left.'),
 
             Kit::typeGap($stage, 'sentences.type_gap.comemos', '___ na praça.', 'We eat in the square.', 'Comemos', Kit::form('comemos'), 'With we and an -er verb, the ending is -emos.'),
             Kit::typeGap($stage, 'sentences.type_gap.comes', 'Tu ___ perto da praça.', 'You eat near the square.', 'comes', Kit::form('comes'), 'With tu and an -er verb, the ending is -es.'),
-            Kit::typeGap($stage, 'sentences.type_gap.partem', 'Eles ___ da praça às três.', 'They leave the square at three.', 'partem', Kit::form('partem'), 'With they and an -ir verb, the ending is -em, with the nasal vowel of bem.'),
-            Kit::typeGap($stage, 'sentences.type_gap.parto', 'Eu ___ da esquina às duas.', 'I leave the corner at two.', 'parto', Kit::form('parto'), 'With eu, an -ir verb ends in -o.'),
+            Kit::typeGap($stage, 'sentences.type_gap.partem', 'Eles ___ da praça às três.', 'They depart from the square at three.', 'partem', Kit::form('partem'), 'With they and an -ir verb, the ending is -em, with the nasal vowel of bem.'),
+            Kit::typeGap($stage, 'sentences.type_gap.parto', 'Eu ___ da esquina às duas.', 'I depart from the corner at two.', 'parto', Kit::form('parto'), 'With eu, an -ir verb ends in -o.'),
             Kit::typeGap($stage, 'sentences.type_gap.mapa', 'O ___ está aqui.', 'The map is here.', 'mapa', Kit::word('o mapa', 'mapa')),
 
             Kit::translate($stage, 'sentences.translate.comemos-perto', 'We eat near the square.', ['Comemos perto da praça.', 'Nós comemos perto da praça.'], [Kit::word('perto'), Kit::word('a praça', 'praça'), Kit::form('comemos')]),
             Kit::translate($stage, 'sentences.translate.onde-rua', 'Where is the street? It is on the right.', ['Onde fica a rua? Fica à direita.', 'Onde está a rua? Está à direita.', 'Onde fica a rua? Está à direita.', 'Onde está a rua? Fica à direita.'], [Kit::word('onde fica...?', 'onde'), Kit::word('a rua'), Kit::word('à direita')]),
-            Kit::translate($stage, 'sentences.translate.parto-praca', 'I leave the square at three.', ['Parto da praça às três.', 'Eu parto da praça às três.'], [Kit::word('a praça', 'praça'), Kit::form('parto')]),
+            Kit::translate($stage, 'sentences.translate.parto-praca', 'I depart from the square at three.', ['Parto da praça às três.', 'Eu parto da praça às três.'], [Kit::word('a praça', 'praça'), Kit::form('parto')]),
             Kit::build($stage, 'sentences.build.praca-longe', 'The square is far.', 'A praça fica longe.', ['come'], [Kit::word('a praça'), Kit::word('longe'), Kit::form('fica', true)]),
             Kit::build($stage, 'sentences.build.onde-mapa', 'Where is the map?', 'Onde está o mapa?', ['come'], [Kit::word('onde fica...?', 'onde'), Kit::word('o mapa')]),
-            Kit::build($stage, 'sentences.build.partimos-rua', 'We leave the street at two.', 'Partimos da rua às duas.', ['comemos'], [Kit::word('a rua', 'rua'), Kit::form('partimos', true)]),
+            Kit::build($stage, 'sentences.build.partimos-rua', 'We depart from the street at two.', 'Partimos da rua às duas.', ['comemos'], [Kit::word('a rua', 'rua'), Kit::form('partimos', true)]),
 
             Kit::listenChoose($stage, 'sentences.listen_choose.rua-direita', 'A rua fica à direita.', ['The street is on the right.', 'The street is on the left.', 'The street is far.', 'The square is on the right.'], 'The street is on the right.', [Kit::word('a rua'), Kit::word('à direita'), Kit::form('fica')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.praca-frente', 'A praça fica sempre em frente.', ['The square is straight ahead.', 'The square is on the left.', 'The square is near.', 'The map is straight ahead.'], 'The square is straight ahead.', [Kit::word('a praça'), Kit::word('sempre em frente')]),
             Kit::listenChoose($stage, 'sentences.listen_choose.esquina-esquerda', 'A esquina fica à esquerda.', ['The corner is on the left.', 'The corner is on the right.', 'The street is on the left.', 'The corner is near.'], 'The corner is on the left.', [Kit::word('a esquina'), Kit::word('à esquerda')]),
-            Kit::listenType($stage, 'sentences.listen_type.onde-praca', 'Onde fica a praça?', 'Where is the square?', [Kit::word('onde fica...?', 'onde fica'), Kit::word('a praça')], homophoneNote: 'The a before praça is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'sentences.listen_type.onde-praca', 'Onde fica a praça?', 'Where is the square?', [Kit::word('onde fica...?', 'onde fica'), Kit::word('a praça')], homophoneNote: 'The a before praça is the article a (the), written without an accent and without an h: not à (to the) and not há (there is).'),
             Kit::listenType($stage, 'sentences.listen_type.comes-rua', 'Tu comes perto da rua.', 'You eat near the street.', [Kit::word('perto'), Kit::word('a rua', 'rua'), Kit::form('comes')]),
-            Kit::listenType($stage, 'sentences.listen_type.partem-esquina', 'Eles partem da esquina.', 'They leave the corner.', [Kit::word('a esquina', 'esquina'), Kit::form('partem')]),
+            Kit::listenType($stage, 'sentences.listen_type.partem-esquina', 'Eles partem da esquina.', 'They depart from the corner.', [Kit::word('a esquina', 'esquina'), Kit::form('partem')]),
             Kit::listenType($stage, 'sentences.listen_type.mapa-esquerda', 'O mapa está à esquerda.', 'The map is on the left.', [Kit::word('o mapa'), Kit::word('à esquerda')], homophoneNote: 'The à in à esquerda is a plus a (to the, on the), not the article a and not há (there is).'),
 
             Kit::speakRepeat($stage, 'sentences.speak_repeat.onde-praca', 'Onde fica a praça? Fica à direita.', 'Where is the square? It is on the right.', [Kit::word('onde fica...?', 'onde fica'), Kit::word('a praça'), Kit::word('à direita')]),
@@ -101,7 +108,7 @@ final class AskingForDirections implements UnitContent
             Kit::speakRepeat($stage, 'sentences.speak_repeat.frente-esquerda', 'Sempre em frente e à esquerda.', 'Straight ahead and to the left.', [Kit::word('sempre em frente'), Kit::word('à esquerda')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.onde-praca', 'Onde fica a praça?', 'Where is the square?', [['praça', 'fica', 'está'], ['direita', 'direito', 'esquerda', 'frente', 'perto', 'longe', 'aqui', 'ali', 'lá']], 'A praça fica sempre em frente.', [Kit::word('onde fica...?', 'onde'), Kit::word('a praça'), Kit::word('sempre em frente')]),
             Kit::speakAnswer($stage, 'sentences.speak_answer.rua-praca', 'Comes na rua ou na praça?', 'Do you eat in the street or in the square?', [['como', 'comemos'], ['rua', 'praça']], 'Como na praça.', [Kit::word('a rua', 'rua'), Kit::word('a praça', 'praça'), Kit::form('como')]),
-            Kit::speakAnswer($stage, 'sentences.speak_answer.mapa', 'Tens um mapa?', 'Do you have a map?', [['sim', 'não', 'tenho'], ['mapa']], 'Sim, tenho o mapa.', [Kit::word('o mapa', 'mapa')]),
+            Kit::speakAnswer($stage, 'sentences.speak_answer.mapa', 'Tens um mapa?', 'Do you have a map?', [['sim', 'não', 'tenho'], ['mapa']], 'Sim, tenho um mapa.', [Kit::word('o mapa', 'mapa')]),
         ];
     }
 
@@ -116,7 +123,7 @@ final class AskingForDirections implements UnitContent
                 Kit::line('Rui', 'A praça não fica longe. Fica sempre em frente.'),
                 Kit::line('Ana', 'E a esquina? Fica à direita ou à esquerda?'),
                 Kit::line('Rui', 'Na esquina, à direita. A rua fica perto.'),
-                Kit::line('Ana', 'Muito bem, obrigada.'),
+                Kit::line('Ana', 'Obrigada, Rui.'),
             ], [
                 Kit::question('What does Ana have?', ['A map', 'A square', 'A corner'], 'A map'),
                 Kit::question('Is the square far?', ['Yes, it is far.', 'No, it is not far.', 'The text does not say.'], 'No, it is not far.'),
@@ -140,8 +147,8 @@ final class AskingForDirections implements UnitContent
                 ['forms' => ['esquerda'], 'term' => 'à esquerda'],
             ], [Kit::word('onde fica...?', 'onde'), Kit::word('a rua'), Kit::word('a esquina'), Kit::word('à esquerda')]),
             Kit::build($stage, 'task.build.mapa-direita', 'The map is on the right.', 'O mapa está à direita.', ['derecha', 'come'], [Kit::word('o mapa'), Kit::word('à direita')], 'write', ['derecha' => 'right (Spanish, not Portuguese)']),
-            Kit::build($stage, 'task.build.comemos-rua', 'We eat near the street.', 'Comemos perto da rua.', ['partimos', 'comem'], [Kit::word('perto'), Kit::word('a rua', 'rua'), Kit::form('comemos', true)], 'write'),
-            Kit::build($stage, 'task.build.partes-praca', 'You leave the square at three.', 'Partes da praça às três.', ['parto', 'comes'], [Kit::word('a praça', 'praça'), Kit::form('partes')], 'write'),
+            Kit::build($stage, 'task.build.comemos-rua', 'We eat far from the street.', 'Comemos longe da rua.', ['partimos', 'comem'], [Kit::word('longe'), Kit::word('a rua', 'rua'), Kit::form('comemos', true)], 'write'),
+            Kit::build($stage, 'task.build.partes-praca', 'You depart from the square at three.', 'Partes da praça às três.', ['parto', 'comes'], [Kit::word('a praça', 'praça'), Kit::form('partes')], 'write'),
             Kit::translate($stage, 'task.translate.rua-longe', 'The street is far from the square, but the corner is near.', ['A rua fica longe da praça, mas a esquina fica perto.', 'A rua está longe da praça, mas a esquina está perto.', 'A rua fica longe da praça, mas a esquina está perto.', 'A rua está longe da praça, mas a esquina fica perto.'], [Kit::word('a rua'), Kit::word('a esquina'), Kit::word('a praça', 'praça'), Kit::word('longe'), Kit::word('perto')], 'write'),
             Kit::translate($stage, 'task.translate.mapa-onde', 'I have the map here, but where is the square?', ['Tenho o mapa aqui, mas onde fica a praça?', 'Tenho o mapa aqui, mas onde está a praça?', 'Eu tenho o mapa aqui, mas onde fica a praça?', 'Eu tenho o mapa aqui, mas onde está a praça?', 'Tenho aqui o mapa, mas onde fica a praça?', 'Tenho aqui o mapa, mas onde está a praça?', 'Eu tenho aqui o mapa, mas onde fica a praça?', 'Eu tenho aqui o mapa, mas onde está a praça?'], [Kit::word('o mapa'), Kit::word('onde fica...?', 'onde'), Kit::word('a praça')], 'write'),
 
@@ -160,8 +167,8 @@ final class AskingForDirections implements UnitContent
                 Kit::question('How many people speak?', ['Two', 'Three', 'Four'], 'Two'),
                 Kit::question('Who says thank you?', ['Marta', 'João', 'Both of them'], 'Marta'),
             ], [Kit::word('onde fica...?', 'onde fica'), Kit::word('a esquina'), Kit::word('perto'), Kit::word('sempre em frente'), Kit::word('à esquerda'), Kit::word('a praça'), Kit::word('longe'), Kit::word('a rua', 'rua')], 'listen'),
-            Kit::listenType($stage, 'task.listen_type.parto-rua', 'Eu parto da rua às duas.', 'I leave the street at two.', [Kit::word('a rua', 'rua'), Kit::form('parto')], 'listen'),
-            Kit::listenType($stage, 'task.listen_type.esquina-longe', 'A esquina fica longe da praça.', 'The corner is far from the square.', [Kit::word('a esquina'), Kit::word('longe'), Kit::word('a praça', 'praça'), Kit::form('fica')], 'listen', null, [], 'The a before esquina is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'task.listen_type.parto-rua', 'Eu parto da rua às duas.', 'I depart from the street at two.', [Kit::word('a rua', 'rua'), Kit::form('parto')], 'listen'),
+            Kit::listenType($stage, 'task.listen_type.esquina-longe', 'A esquina fica longe da praça.', 'The corner is far from the square.', [Kit::word('a esquina'), Kit::word('longe'), Kit::word('a praça', 'praça'), Kit::form('fica')], 'listen', null, [], 'The a before esquina is the article a (the), written without an accent and without an h: not à (to the) and not há (there is).'),
             Kit::listenType($stage, 'task.listen_type.comem-direita', 'Eles comem perto da praça, à direita.', 'They eat near the square, on the right.', [Kit::word('perto'), Kit::word('a praça', 'praça'), Kit::word('à direita'), Kit::form('comem')], 'listen', null, [], 'The à in à direita is a plus a (to the, on the), not the article a and not há (there is).'),
 
             Kit::speakAnswer($stage, 'task.speak_answer.onde-esquina', 'Onde fica a esquina?', 'Where is the corner?', [['esquina', 'fica', 'está'], ['direita', 'direito', 'esquerda', 'frente', 'perto', 'longe', 'aqui', 'ali', 'lá']], 'A esquina fica à esquerda.', [Kit::word('onde fica...?', 'onde'), Kit::word('a esquina'), Kit::word('à esquerda')], 'speak'),
@@ -169,7 +176,7 @@ final class AskingForDirections implements UnitContent
             Kit::speakAnswer($stage, 'task.speak_answer.comes-rua', 'Comes na rua?', 'Do you eat in the street?', [['sim', 'não', 'como'], ['rua', 'praça']], 'Não, como na praça.', [Kit::word('a rua', 'rua'), Kit::word('a praça', 'praça'), Kit::form('como')], 'speak'),
             Kit::speakAnswer($stage, 'task.speak_answer.tens-mapa', 'Tens o mapa?', 'Do you have the map?', [['sim', 'não', 'tenho'], ['mapa']], 'Sim, tenho o mapa aqui.', [Kit::word('o mapa', 'mapa')], 'speak'),
             Kit::speakRepeat($stage, 'task.speak_repeat.frente-direita', 'Sempre em frente e à direita, perto da praça.', 'Straight ahead and to the right, near the square.', [Kit::word('sempre em frente'), Kit::word('à direita'), Kit::word('perto'), Kit::word('a praça', 'praça')], 'speak'),
-            Kit::speakRepeat($stage, 'task.speak_repeat.partimos-comemos', 'Nós partimos da esquina e comemos na rua.', 'We leave the corner and eat in the street.', [Kit::word('a esquina', 'esquina'), Kit::word('a rua', 'rua'), Kit::form('partimos')], 'speak'),
+            Kit::speakRepeat($stage, 'task.speak_repeat.partimos-comemos', 'Nós partimos da esquina e comemos na rua.', 'We depart from the corner and eat in the street.', [Kit::word('a esquina', 'esquina'), Kit::word('a rua', 'rua'), Kit::form('partimos')], 'speak'),
         ];
     }
 
@@ -180,13 +187,13 @@ final class AskingForDirections implements UnitContent
         $set = 'a';
 
         return [
-            Kit::translate($stage, 'check.a.translate.partimos-esquina', 'We leave the corner at three.', ['Partimos da esquina às três.', 'Nós partimos da esquina às três.'], [Kit::word('a esquina', 'esquina'), Kit::form('partimos', true)], 'sentences', $set),
-            Kit::translate($stage, 'check.a.translate.onde-rua', 'Where is the street? It is far.', ['Onde fica a rua? Fica longe.', 'Onde está a rua? Está longe.', 'Onde fica a rua? Está longe.', 'Onde está a rua? Fica longe.'], [Kit::word('onde fica...?', 'onde'), Kit::word('a rua'), Kit::word('longe')], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.partimos-esquina', 'We depart from the corner at three.', ['Partimos da esquina às três.', 'Nós partimos da esquina às três.'], [Kit::word('a esquina', 'esquina'), Kit::form('partimos', true)], 'sentences', $set),
+            Kit::translate($stage, 'check.a.translate.onde-rua', 'Where is the square? It is near.', ['Onde fica a praça? Fica perto.', 'Onde está a praça? Está perto.', 'Onde fica a praça? Está perto.', 'Onde está a praça? Fica perto.'], [Kit::word('onde fica...?', 'onde'), Kit::word('a praça', 'praça'), Kit::word('perto')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.ana-come', 'Ana eats near the square, on the right.', ['A Ana come perto da praça, à direita.', 'Ana come perto da praça, à direita.'], [Kit::word('perto'), Kit::word('a praça', 'praça'), Kit::word('à direita'), Kit::form('come')], 'sentences', $set),
             Kit::translate($stage, 'check.a.translate.mapa-frente', 'I have the map, but the square is straight ahead.', ['Tenho o mapa, mas a praça fica sempre em frente.', 'Tenho o mapa, mas a praça está sempre em frente.'], [Kit::word('o mapa'), Kit::word('a praça'), Kit::word('sempre em frente')], 'sentences', $set),
             Kit::typeGap($stage, 'check.a.type_gap.vocês', 'Vocês ___ perto da esquina.', 'You (all) eat near the corner.', 'comem', Kit::form('comem'), null, 'sentences', $set),
-            Kit::typeGap($stage, 'check.a.type_gap.tu-partes', 'Tu ___ da rua às duas.', 'You leave the street at two.', 'partes', Kit::form('partes', true), null, 'sentences', $set),
-            Kit::listenType($stage, 'check.a.listen_type.partem-esquerda', 'Eles partem da praça, à esquerda.', 'They leave the square, on the left.', [Kit::word('a praça', 'praça'), Kit::word('à esquerda'), Kit::form('partem')], 'dictation', $set, [], 'The à in à esquerda is a plus a (to the, on the), not the article a and not há (there is).'),
+            Kit::typeGap($stage, 'check.a.type_gap.tu-partes', 'Tu ___ da rua às duas.', 'You depart from the street at two.', 'partes', Kit::form('partes', true), null, 'sentences', $set),
+            Kit::listenType($stage, 'check.a.listen_type.partem-esquerda', 'Eles partem da praça à esquerda.', 'They depart from the square on the left.', [Kit::word('a praça', 'praça'), Kit::word('à esquerda'), Kit::form('partem')], 'dictation', $set, [], 'The à in à esquerda is a plus a (to the, on the), not the article a and not há (there is).'),
             Kit::listenType($stage, 'check.a.listen_type.esquina-direita', 'A esquina fica longe, à direita.', 'The corner is far, on the right.', [Kit::word('a esquina'), Kit::word('longe'), Kit::word('à direita')], 'dictation', $set, [], 'The first a is the article a (the). The à in à direita is a plus a (to the, on the). Neither is há (there is).'),
             Kit::listenType($stage, 'check.a.listen_type.comemos-longe', 'Nós comemos longe da rua.', 'We eat far from the street.', [Kit::word('longe'), Kit::word('a rua', 'rua'), Kit::form('comemos')], 'dictation', $set),
             Kit::listenPassage($stage, 'check.a.listen_passage.rui', [
@@ -228,12 +235,12 @@ final class AskingForDirections implements UnitContent
             Kit::translate($stage, 'check.b.translate.comes-longe', 'You eat far from the corner.', ['Comes longe da esquina.', 'Tu comes longe da esquina.'], [Kit::word('longe'), Kit::word('a esquina', 'esquina'), Kit::form('comes')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.mapa-esquerda', 'The map is on the left, near the street.', ['O mapa está à esquerda, perto da rua.'], [Kit::word('o mapa'), Kit::word('à esquerda'), Kit::word('perto'), Kit::word('a rua', 'rua')], 'sentences', $set),
             Kit::translate($stage, 'check.b.translate.onde-esquina', 'Where is the corner? It is straight ahead.', ['Onde fica a esquina? Fica sempre em frente.', 'Onde está a esquina? Está sempre em frente.', 'Onde fica a esquina? Está sempre em frente.', 'Onde está a esquina? Fica sempre em frente.'], [Kit::word('onde fica...?', 'onde'), Kit::word('a esquina'), Kit::word('sempre em frente')], 'sentences', $set),
-            Kit::translate($stage, 'check.b.translate.partem-praca', 'They leave the square at two.', ['Eles partem da praça às duas.', 'Elas partem da praça às duas.', 'Partem da praça às duas.'], [Kit::word('a praça', 'praça'), Kit::form('partem', true)], 'sentences', $set),
-            Kit::typeGap($stage, 'check.b.type_gap.partimos', 'Nós ___ da rua.', 'We leave the street.', 'partimos', Kit::form('partimos', true), null, 'sentences', $set),
+            Kit::translate($stage, 'check.b.translate.partem-praca', 'They depart from the square at two.', ['Eles partem da praça às duas.', 'Elas partem da praça às duas.', 'Partem da praça às duas.'], [Kit::word('a praça', 'praça'), Kit::form('partem', true)], 'sentences', $set),
+            Kit::typeGap($stage, 'check.b.type_gap.partimos', 'Nós ___ da rua.', 'We depart from the street.', 'partimos', Kit::form('partimos', true), null, 'sentences', $set),
             Kit::typeGap($stage, 'check.b.type_gap.ana-come', 'A Ana ___ longe da praça.', 'Ana eats far from the square.', 'come', Kit::form('come'), null, 'sentences', $set),
             Kit::listenType($stage, 'check.b.listen_type.como-praca', 'Eu como na praça.', 'I eat in the square.', [Kit::word('a praça', 'praça'), Kit::form('como')], 'dictation', $set),
             Kit::listenType($stage, 'check.b.listen_type.mapa-direita', 'O mapa está à direita da rua.', 'The map is on the right of the street.', [Kit::word('o mapa'), Kit::word('à direita'), Kit::word('a rua', 'rua')], 'dictation', $set, [], 'The à in à direita is a plus a (to the, on the), not the article a and not há (there is).'),
-            Kit::listenType($stage, 'check.b.listen_type.esquina-frente', 'A esquina fica perto, sempre em frente.', 'The corner is near, straight ahead.', [Kit::word('a esquina'), Kit::word('perto'), Kit::word('sempre em frente'), Kit::form('fica', true)], 'dictation', $set, [], 'The a before esquina is the article a (the), not à (to the) and not há (there is).'),
+            Kit::listenType($stage, 'check.b.listen_type.esquina-frente', 'A esquina fica perto, sempre em frente.', 'The corner is near, straight ahead.', [Kit::word('a esquina'), Kit::word('perto'), Kit::word('sempre em frente'), Kit::form('fica', true)], 'dictation', $set, [], 'The a before esquina is the article a (the), written without an accent and without an h: not à (to the) and not há (there is).'),
         ];
     }
 }

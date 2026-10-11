@@ -24,6 +24,19 @@ use Illuminate\Database\Seeder;
  * specifically (false-friend and gender-flip claims are easy to get subtly
  * wrong), before being treated as authoritative teaching material, per the
  * content-sourcing pipeline in the Feature Brainstorm doc (category 6).
+ *
+ * @phpstan-type PortugueseUnit array{
+ *     slug: string,
+ *     title: string,
+ *     context_tag: ContextTag,
+ *     primary_skill: Skill,
+ *     secondary_skill: Skill,
+ *     task_description: string,
+ *     contrast_note: string|null,
+ *     vocabulary: array<int, array{term: string, translation_en: string, is_cognate: bool, part_of_speech: string, contrast_note?: string|null}>,
+ *     grammar: array<int, array{title: string, explanation: string, error_tag_category: ErrorTagCategory|null}>,
+ *     interest_tags: array<int, InterestTag>,
+ * }
  */
 class PortugueseA1Seeder extends Seeder
 {
@@ -39,7 +52,7 @@ class PortugueseA1Seeder extends Seeder
     {
         $portuguese = Language::query()->where('code', 'pt')->firstOrFail();
 
-        foreach ($this->units() as $sortOrder => $definition) {
+        foreach ([...$this->units(), ...$this->laterUnits()] as $sortOrder => $definition) {
             $unit = Unit::query()->updateOrCreate(
                 ['language_id' => $portuguese->id, 'slug' => $definition['slug']],
                 [
@@ -89,20 +102,7 @@ class PortugueseA1Seeder extends Seeder
         }
     }
 
-    /**
-     * @return array<int, array{
-     *     slug: string,
-     *     title: string,
-     *     context_tag: ContextTag,
-     *     primary_skill: Skill,
-     *     secondary_skill: Skill,
-     *     task_description: string,
-     *     contrast_note: string|null,
-     *     vocabulary: array<int, array{term: string, translation_en: string, is_cognate: bool, part_of_speech: string, contrast_note?: string|null}>,
-     *     grammar: array<int, array{title: string, explanation: string, error_tag_category: ErrorTagCategory|null}>,
-     *     interest_tags: array<int, InterestTag>,
-     * }>
-     */
+    /** @return array<int, PortugueseUnit> */
     private function units(): array
     {
         return [
@@ -130,7 +130,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Subject pronouns and ser for identity',
-                        'explanation' => "Portuguese keeps the ser and estar split of Spanish: ser for identity and origin (sou, és, é, somos, são), estar for location and temporary states. The verbs transfer almost directly from Spanish, but the forms differ (soy is sou, eres is és, son is são). With friends you say tu (és), politely you say o senhor or a senhora (é), and for more than one person vocês (são). Portuguese drops the subject pronoun too: 'Sou a Ana' is more natural than 'Eu sou a Ana'.",
+                        'explanation' => "Portuguese keeps the ser and estar split of Spanish: ser for identity and origin (sou, és, é, somos, são), estar for location and temporary states. The verbs transfer almost directly from Spanish, but the forms differ (soy is sou, eres is és, son is são). The pronouns are eu (sou), tu (és), ele and ela (é), nós (somos) and eles and elas (são). With friends you say tu (és), politely you say o senhor or a senhora (é), and for more than one person vocês (são). Estar: estou, estás, está, estamos, estão (Eu estou bem. Como estás?). Portuguese drops the subject pronoun too: 'Sou a Ana' is more natural than 'Eu sou a Ana'.",
                         'error_tag_category' => null,
                     ],
                 ],
@@ -188,7 +188,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Estar for location and temporary states',
-                        'explanation' => "Estar (estou, estás, está, estamos, estão) covers location and temporary states here as it does in Spanish: 'O hotel está perto' works like 'El hotel está cerca'. The trap is the other verb: ser describes what something is like ('O quarto é grande'), and Portuguese says 'estar a' plus the infinitive for what is happening now ('Estou a ler', not 'Estou lendo'). Like ser in the greetings unit, this transfers almost unchanged from Spanish.",
+                        'explanation' => "Estar (estou, estás, está, estamos, estão) covers location and temporary states here as it does in Spanish: 'O hotel está perto' works like 'El hotel está cerca'. The trap is the other verb: ser describes what something is like ('O quarto é grande'), and Portuguese says 'estar a' plus the infinitive for what is happening now ('Estou a ler', not 'Estou lendo'). Ser also gives who someone is ('Sou o rececionista'), which number something is ('É o três'), what something is for ('A reserva é para duas noites') and the time of an event ('O pequeno-almoço é às sete'). Dutch uses only zijn, so choose between ser and estar every time: 'O hotel é aqui' is the natural slip. Estar transfers almost unchanged from Spanish.",
                         'error_tag_category' => null,
                     ],
                 ],
@@ -229,24 +229,24 @@ class PortugueseA1Seeder extends Seeder
                 'primary_skill' => Skill::Listening,
                 'secondary_skill' => Skill::Speaking,
                 'task_description' => 'Ask for and understand directions around a city.',
-                'contrast_note' => 'Several direction words are entirely different roots from Spanish (esquerda and izquierda, perto and cerca, longe and lejos), so this unit carries more false-friend and interference risk than most: the words are unrelated enough that a Portuñol slip (defaulting to the Spanish word) is common.',
+                'contrast_note' => 'Several direction words differ from Spanish in form or root (esquerda vs izquierda, perto vs cerca, longe vs lejos), so this unit carries more Portuñol interference risk than most.',
                 'interest_tags' => [InterestTag::Travel],
                 'vocabulary' => [
                     ['term' => 'a rua', 'translation_en' => 'street', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'a esquina', 'translation_en' => 'corner', 'is_cognate' => false, 'part_of_speech' => 'noun'],
+                    ['term' => 'a esquina', 'translation_en' => 'corner', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                     ['term' => 'à direita', 'translation_en' => 'to the right', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
-                    ['term' => 'à esquerda', 'translation_en' => 'to the left', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Completely different root from Spanish 'izquierda': a classic Portuñol slip is defaulting to the Spanish word here."],
+                    ['term' => 'à esquerda', 'translation_en' => 'to the left', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Looks quite different from Spanish 'izquierda' even though the words are related, so defaulting to the Spanish word is a classic Portuñol slip."],
                     ['term' => 'sempre em frente', 'translation_en' => 'straight ahead', 'is_cognate' => false, 'part_of_speech' => 'phrase'],
                     ['term' => 'perto', 'translation_en' => 'near', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'longe', 'translation_en' => 'far', 'is_cognate' => false, 'part_of_speech' => 'adverb'],
                     ['term' => 'o mapa', 'translation_en' => 'map', 'is_cognate' => true, 'part_of_speech' => 'noun'],
-                    ['term' => 'onde fica...?', 'translation_en' => 'where is...?', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese commonly asks for a location with 'ficar' (to be located) rather than 'estar', unlike Spanish '¿dónde está...?'. Both are understood and both are accepted here, but 'fica' sounds more native."],
+                    ['term' => 'onde fica...?', 'translation_en' => 'where is...?', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "For a fixed place Portuguese commonly says 'fica' rather than Spanish '¿dónde está...?'. 'Está' is also correct and accepted here, and is the normal verb for things that move, like o mapa."],
                     ['term' => 'a praça', 'translation_en' => 'square / plaza', 'is_cognate' => true, 'part_of_speech' => 'noun'],
                 ],
                 'grammar' => [
                     [
                         'title' => 'Present tense of -er and -ir verbs, and ficar for location',
-                        'explanation' => "-er verbs like comer (como, comes, come, comemos, comeis, comem) and -ir verbs like partir follow the same pattern shape as their Spanish equivalents. The new wrinkle here is ficar: Portuguese uses it (not estar) as the default verb for 'where is X located', which has no direct Spanish parallel and is worth practicing deliberately rather than assuming estar always works.",
+                        'explanation' => '-er verbs like comer (como, comes, come, comemos, comeis, comem) and -ir verbs like partir follow the same pattern shape as their Spanish equivalents. Contractions run through the unit: de + a = da, a + as = às (perto da praça, partimos da rua às duas). The verb ter (tenho, tens) is irregular and appears in the dialogues. The new wrinkle is ficar: for where a fixed place is (a rua, a praça), Portuguese uses ficar where Spanish usually uses estar (Spanish quedar is only a loose parallel). For movable things like o mapa, estar is used.',
                         'error_tag_category' => ErrorTagCategory::PortunolSlip,
                     ],
                 ],
@@ -275,7 +275,7 @@ class PortugueseA1Seeder extends Seeder
                 'grammar' => [
                     [
                         'title' => 'Adjective agreement (gender and number)',
-                        'explanation' => "The agreement rule itself transfers directly from Spanish: adjectives still match gender and number ('a camisa cara', 'as camisas caras'). What does not always transfer is the gender of the noun being described, as 'a cor' shows, so agreement mistakes in Portuguese are often really gender mistakes carried over from Spanish.",
+                        'explanation' => "The agreement rule itself transfers directly from Spanish: adjectives still match gender and number ('a camisa cara', 'as camisas caras'). What does not always transfer is the gender of the noun being described, as 'a cor' shows, so agreement mistakes in Portuguese can be gender mistakes carried over from Spanish. Adjectives in -e (verde, grande) have one form for masculine and feminine and only add -s in the plural. Roupa is singular in Portuguese even though clothes is plural in English.",
                         'error_tag_category' => ErrorTagCategory::WrongGender,
                     ],
                 ],
@@ -295,16 +295,16 @@ class PortugueseA1Seeder extends Seeder
                     ['term' => 'a mãe', 'translation_en' => 'mother', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'o irmão', 'translation_en' => 'brother', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'a irmã', 'translation_en' => 'sister', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'o filho', 'translation_en' => 'son', 'is_cognate' => true, 'part_of_speech' => 'noun'],
+                    ['term' => 'o filho', 'translation_en' => 'son', 'is_cognate' => false, 'part_of_speech' => 'noun'],
                     ['term' => 'os avós', 'translation_en' => 'grandparents', 'is_cognate' => false, 'part_of_speech' => 'noun'],
-                    ['term' => 'casado', 'translation_en' => 'married', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
-                    ['term' => 'solteiro', 'translation_en' => 'single', 'is_cognate' => true, 'part_of_speech' => 'adjective'],
+                    ['term' => 'casado', 'translation_en' => 'married', 'is_cognate' => false, 'part_of_speech' => 'adjective'],
+                    ['term' => 'solteiro', 'translation_en' => 'single', 'is_cognate' => false, 'part_of_speech' => 'adjective'],
                     ['term' => 'mais velho', 'translation_en' => 'older', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese says 'mais velho' (more old) where Spanish has the single adjective 'mayor'. Do not use 'maior' for older: Portuguese 'maior' means bigger."],
                 ],
                 'grammar' => [
                     [
                         'title' => 'Possessive adjectives with an article (o meu, a tua, o seu)',
-                        'explanation' => "Portuguese possessives normally keep the article: 'o meu irmão', 'a minha irmã', unlike Spanish, which drops it ('mi hermano', not 'el mi hermano'). The possessive also agrees with the thing owned, not the owner: meu, minha, meus, minhas. The article is the usual form in Portugal, so dropping it out of habit from Spanish is a common Portuñol slip at this level.",
+                        'explanation' => "Portuguese possessives normally keep the article: 'o meu irmão', 'a minha irmã', unlike Spanish, which drops it ('mi hermano', not 'el mi hermano'). The possessive also agrees with the thing owned, not the owner: meu, minha, meus, minhas. The article is the usual form in Portugal, so dropping it out of habit from Spanish is a common Portuñol slip at this level. Teu and tua mean your, to a friend. Seu and sua mean his, her or your (formal), and are ambiguous, so Portuguese often says 'o irmão dele' (his brother) or 'o irmão dela' (her brother) instead.",
                         'error_tag_category' => ErrorTagCategory::PortunolSlip,
                     ],
                 ],
@@ -320,8 +320,8 @@ class PortugueseA1Seeder extends Seeder
                 'interest_tags' => [],
                 'vocabulary' => [
                     ['term' => 'levantar-se', 'translation_en' => 'to get up', 'is_cognate' => false, 'part_of_speech' => 'verb', 'contrast_note' => "Reflexive pronoun placement flips from Spanish: 'levanto-me' (pronoun after the verb) versus Spanish's 'me levanto' (pronoun first)."],
-                    ['term' => 'acordar', 'translation_en' => 'to wake up', 'is_cognate' => false, 'part_of_speech' => 'verb', 'contrast_note' => "Not reflexive in Portuguese, unlike Spanish's 'despertarse'."],
-                    ['term' => 'tomar duche', 'translation_en' => 'to shower', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese uses a non-reflexive verb phrase here, unlike Spanish's reflexive 'ducharse'."],
+                    ['term' => 'acordar', 'translation_en' => 'to wake up', 'is_cognate' => false, 'part_of_speech' => 'verb', 'contrast_note' => "Not reflexive in Portuguese, unlike Spanish's 'despertarse'. Careful: Spanish 'acordar' means 'to agree', while Portuguese 'acordar' is 'to wake up'."],
+                    ['term' => 'tomar duche', 'translation_en' => 'to take a shower', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "Portuguese uses a non-reflexive verb phrase here, unlike Spanish's reflexive 'ducharse'."],
                     ['term' => 'tomar o pequeno-almoço', 'translation_en' => 'to have breakfast', 'is_cognate' => false, 'part_of_speech' => 'phrase', 'contrast_note' => "A verb+noun phrase where Spanish has a single verb, 'desayunar'."],
                     ['term' => 'trabalhar', 'translation_en' => 'to work', 'is_cognate' => true, 'part_of_speech' => 'verb'],
                     ['term' => 'deitar-se', 'translation_en' => 'to go to bed', 'is_cognate' => false, 'part_of_speech' => 'verb'],
@@ -339,5 +339,19 @@ class PortugueseA1Seeder extends Seeder
                 ],
             ],
         ];
+    }
+
+    /** @return list<PortugueseUnit> */
+    private function laterUnits(): array
+    {
+        $units = [];
+
+        foreach (glob(database_path('seeders/data/portuguese-a1/*.php')) ?: [] as $path) {
+            /** @var PortugueseUnit $unit */
+            $unit = require $path;
+            $units[] = $unit;
+        }
+
+        return $units;
     }
 }

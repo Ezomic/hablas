@@ -178,7 +178,7 @@ it('seeds the same lessons on a second pass over the real content, and writes no
     $before = [Lesson::query()->count(), LessonExercise::query()->count()];
     $writes = writesDuring(fn () => $this->seed(LessonSeeder::class));
 
-    expect($before[0])->toBe(480)
+    expect($before[0])->toBe(600)
         ->and($before[1])->toBeGreaterThan(0)
         ->and([Lesson::query()->count(), LessonExercise::query()->count()])->toBe($before)
         ->and($writes)->toBe([]);
@@ -188,11 +188,11 @@ it('finds no content classes in an empty content folder', function () {
     expect((new UnitContentRegistry(path: sys_get_temp_dir().'/no-such-content-folder'))->all())->toBe([]);
 });
 
-it('finds the twenty-four Spanish and the eight Portuguese content classes in the content folder', function () {
+it('finds the 48 Spanish and the 24 Portuguese content classes in the content folder', function () {
     $contents = (new UnitContentRegistry)->all();
 
     expect(array_filter($contents, fn ($content): bool => $content->languageCode() === 'es'))->toHaveCount(48)
-        ->and(array_filter($contents, fn ($content): bool => $content->languageCode() === 'pt'))->toHaveCount(8);
+        ->and(array_filter($contents, fn ($content): bool => $content->languageCode() === 'pt'))->toHaveCount(24);
 });
 
 it('syncs a unit whose content lost a whole lesson by retiring that lesson\'s exercises', function () {
