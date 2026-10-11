@@ -105,4 +105,18 @@ describe('interface locale switcher', () => {
 
         expect(inertia.patch.mock.calls[0][0]).toBe('/locale');
     });
+
+    it('shows short codes with the full name as the accessible label when compact', () => {
+        const wrapper = mount(InterfaceLocaleSwitcher, {
+            props: { compact: true },
+        });
+
+        const nl = wrapper.find('[data-test="interface-locale-nl"]');
+
+        expect(nl.text()).toBe('NL');
+        expect(nl.attributes('aria-label')).toBe('Nederlands');
+        expect(wrapper.find('[data-test="interface-locale-en"]').text()).toBe(
+            'EN',
+        );
+    });
 });

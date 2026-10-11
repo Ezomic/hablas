@@ -2,6 +2,7 @@
 import AppToaster from '@/components/AppToaster.vue';
 import BottomTabs from '@/components/BottomTabs.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import InterfaceLocaleSwitcher from '@/components/InterfaceLocaleSwitcher.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import OfflineSyncBanner from '@/components/OfflineSyncBanner.vue';
 import type { BreadcrumbItem } from '@/types';
@@ -27,7 +28,10 @@ withDefaults(
                     :breadcrumbs="breadcrumbs"
                 />
             </div>
-            <LanguageSwitcher />
+            <div class="flex shrink-0 items-center gap-2">
+                <InterfaceLocaleSwitcher compact />
+                <LanguageSwitcher />
+            </div>
         </header>
         <OfflineSyncBanner />
         <main
