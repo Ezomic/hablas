@@ -550,6 +550,7 @@
             "cardsJoined": "{n} kaart is toegevoegd aan je herhaalstapel. | {n} kaarten zijn toegevoegd aan je herhaalstapel.",
             "takeCheck": "Doe de eenheidstoets",
             "nextLesson": "Volgende les: {title}",
+            "checkLocked": "De eenheidstoets opent zodra je elke les beheerst en bij elke vaardigheid de eindtoets hebt gehaald.",
             "checkLater": "De eenheidstoets opent morgen, zodat wat je hebt geleerd de tijd krijgt om te beklijven.",
             "backToUnit": "Terug naar de eenheid"
         }

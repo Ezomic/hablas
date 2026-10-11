@@ -550,6 +550,7 @@
             "cardsJoined": "{n} card joined your review deck. | {n} cards joined your review deck.",
             "takeCheck": "Take the unit check",
             "nextLesson": "Next lesson: {title}",
+            "checkLocked": "The unit check opens once every lesson is mastered and every skill has passed its final test.",
             "checkLater": "The unit check opens tomorrow, so what you learned has time to settle.",
             "backToUnit": "Back to the unit"
         }

@@ -760,4 +760,24 @@ describe('LessonSummary', () => {
         expect(wrapper.text()).toContain('opens tomorrow');
         expect(wrapper.text()).not.toContain('Take the unit check');
     });
+
+    it('explains what unlocks the check instead of offering it while it is locked', () => {
+        const wrapper = mount(LessonSummary, {
+            props: {
+                summary,
+                isCheck: false,
+                next: {
+                    lessonId: 5,
+                    title: 'Unit check',
+                    position: 5,
+                    stage: 'check',
+                    state: 'locked',
+                },
+            },
+        });
+
+        expect(wrapper.text()).toContain('every lesson is mastered');
+        expect(wrapper.text()).not.toContain('Take the unit check');
+        expect(wrapper.text()).not.toContain('opens tomorrow');
+    });
 });

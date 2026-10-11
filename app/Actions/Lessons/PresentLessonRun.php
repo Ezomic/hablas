@@ -9,6 +9,7 @@ use App\Enums\ExerciseFamily;
 use App\Enums\LessonExerciseFormat;
 use App\Enums\LessonRunKind;
 use App\Enums\LessonRunStatus;
+use App\Enums\LessonStage;
 use App\Enums\LessonState;
 use App\Lessons\LocalizeExercise;
 use App\Lessons\SpokenTexts;
@@ -22,6 +23,7 @@ use App\Models\VocabularyItem;
 use App\Services\LessonProgress;
 use App\Services\SpeechLocaleResolver;
 use App\Services\TypingSupport;
+use App\Services\UnitCheckRequirements;
 use App\Speech\CharacterVoices;
 use App\Speech\SpeechClipResolver;
 use App\Speech\SpeechVoices;
@@ -41,6 +43,7 @@ final class PresentLessonRun
         private readonly GetUserSettings $getUserSettings = new GetUserSettings,
         private readonly TypingSupport $typingSupport = new TypingSupport,
         private readonly LocalizeExercise $localizeExercise = new LocalizeExercise,
+        private readonly UnitCheckRequirements $unitCheckRequirements = new UnitCheckRequirements,
     ) {}
 
     /**
@@ -230,6 +233,10 @@ final class PresentLessonRun
             $state = $states[$lesson->id] ?? LessonState::Coming;
 
             if (in_array($state, [LessonState::Available, LessonState::InProgress, LessonState::OpensTomorrow], true)) {
+                if ($lesson->stage === LessonStage::Check && $state !== LessonState::InProgress && ! $this->unitCheckRequirements->handle($user, $unit)['met']) {
+                    $state = LessonState::Locked;
+                }
+
                 return ['lessonId' => $lesson->id, 'title' => $lesson->stage->label(), 'position' => $lesson->position, 'stage' => $lesson->stage->value, 'state' => $state->value];
             }
         }
