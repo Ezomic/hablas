@@ -233,7 +233,7 @@ describe('the review gate', function () {
     it('seeds every lesson of the released Spanish, French and Italian units', function () {
         $this->seed(ContentSeeder::class);
 
-        expect(Lesson::query()->count())->toBe(320)
+        expect(Lesson::query()->count())->toBe(400)
             ->and(Lesson::query()->pluck('stage')->map(fn (LessonStage $stage): string => $stage->value)->unique()->sort()->values()->all())->toBe(['check', 'meet', 'recall', 'sentences', 'task']);
     });
 
