@@ -9,6 +9,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -165,7 +166,9 @@ final class IdPortalClient
             $categories = $response->json('categories', []);
 
             return ['applications' => $applications, 'categories' => $categories];
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            Log::warning('ID portal fetch failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+
             return null;
         }
     }
