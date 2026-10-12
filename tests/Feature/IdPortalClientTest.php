@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use App\Models\User;
 use App\Services\Portal\IdPortalClient;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 function portalKey(User $user): string
 {
@@ -96,6 +98,18 @@ it('returns nothing and does not ask again straight away when ID is down and not
     expect($first)->toBe(['apps' => [], 'categories' => []])
         ->and($second)->toBe($first)
         ->and(appsRequests())->toBe(1);
+});
+
+it('logs the reason when ID cannot be reached instead of swallowing it', function () {
+    Http::fake(fn () => throw new ConnectionException('cURL error 28: timed out'));
+    Log::spy();
+
+    expect((new IdPortalClient)->appsFor($this->user))->toBe(['apps' => [], 'categories' => []]);
+
+    Log::shouldHaveReceived('warning')->once()->with('ID portal fetch failed', [
+        'exception' => ConnectionException::class,
+        'message' => 'cURL error 28: timed out',
+    ]);
 });
 
 it('asks again once the minute has passed', function () {
