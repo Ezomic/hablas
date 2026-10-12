@@ -9,16 +9,18 @@ use App\Models\LessonExercise;
 use App\Models\VocabularyItem;
 
 /**
- * Shows an exercise's English word meanings in the interface language. The
+ * Shows an exercise's English word meanings and sentences in the interface language. The
  * stored payload stays English; the loaded model is changed in memory, both
  * when the exercise is presented and when it is graded, so what a learner
- * picks is compared with the same text they were shown. A meaning without a
- * translation stays English.
+ * picks is compared with the same text they were shown. A meaning or
+ * sentence without a translation stays English.
  */
 final class LocalizeExercise
 {
     /** @var array<int, array<string, string>> */
     private array $meanings = [];
+
+    public function __construct(private readonly DutchSentences $sentences = new DutchSentences) {}
 
     public function handle(LessonExercise $exercise, ?string $locale = null): void
     {
@@ -28,13 +30,16 @@ final class LocalizeExercise
             return;
         }
 
+        $payload = $exercise->payload;
         $meanings = $this->meanings($exercise->lesson->unit_id);
 
-        if ($meanings === []) {
-            return;
+        if ($meanings !== []) {
+            $payload = $this->payload($exercise->format, $payload, $meanings);
         }
 
-        $exercise->payload = $this->payload($exercise->format, $exercise->payload, $meanings);
+        $payload = DutchTextFields::map($exercise->format, $payload, fn (string $text): string => $this->sentences->translate($text) ?? $text);
+
+        $exercise->payload = $payload;
         $exercise->syncOriginalAttribute('payload');
     }
 
